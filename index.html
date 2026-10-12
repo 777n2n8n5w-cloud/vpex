@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-11-30">
+<meta name="vpex-build" content="2026-12-01">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -5913,12 +5913,16 @@
   .oc-name span { font-size: 12px; color: var(--text-faint); overflow-wrap: anywhere; }
   .oc-chip { flex: none; padding: 3px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 700; border: 1px solid currentColor; white-space: nowrap; }
   .oc-trial { color: var(--callback); } .oc-paid { color: var(--interested); } .oc-warn { color: var(--voicemail); } .oc-off { color: var(--notinterested); }
+  .oc-auto.oc-drift { color: var(--voicemail); margin-top: 2px; }
   .oc-auto { margin-top: 6px; font-size: 12.5px; font-weight: 600; color: var(--interested); }
   .oc-meta { margin: 8px 0 10px; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); }
   .oc-acts { display: flex; flex-wrap: wrap; gap: 6px; }
   .oc-acts .btn-primary, .oc-acts .btn-secondary { flex: 0 0 auto; width: auto; min-width: 0; margin: 0; padding: 9px 13px; font-size: 13px; white-space: nowrap; }
   .bl-status { padding: 14px 16px; border-radius: var(--radius-m, 14px); border: 1px solid var(--border); background: var(--surface-raised); display: flex; flex-direction: column; gap: 4px; }
   .bl-status b { font-size: 16px; }
+  .bl-total { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-top: 10px; padding: 12px 16px; border-radius: var(--radius-m, 14px); border: 1px solid var(--border); }
+  .bl-total span { font-size: 14px; color: var(--text-dim); }
+  .bl-total b { font-size: 18px; font-variant-numeric: tabular-nums; }
   .bl-status span { font-size: 13px; color: var(--text-dim); }
   .oc-acts [data-oc-act="delete"] { color: var(--danger); border-color: var(--danger); background: transparent; }
   .oc-bill label { display: block; font-size: 12.5px; font-weight: 600; color: var(--text-dim); margin: 12px 0 5px; }
@@ -11442,6 +11446,7 @@
     try {
       TEAM.office = OFFICE;
       await tcol("members").doc(cred.user.uid).set({ username: user, name: me, role: "rep", active: true, createdAt: Date.now(), lastSeen: Date.now(), invite: JOIN });
+      try { var bs = await TEAM.db.collection("config").doc("billing").get(); TEAM.billing = bs.exists ? (bs.data() || {}) : {}; syncSeats(); } catch (e) {}
     } catch (e) {
       TEAM.office = null; await dropUser(cred.user); setTimeout(function () { TEAM.creating = false; }, 300);
       return authFail("jnGo", (e && e.code) === "permission-denied" ? "This invite link is no longer valid. Ask your admin for a new one." : "Couldn\u2019t join (" + ((e && e.code) || "unknown") + "). Check your connection and try again.");
@@ -11478,6 +11483,23 @@
     if (!link) return "";
     return link + (link.indexOf("?") < 0 ? "?" : "&") + "client_reference_id=" + encodeURIComponent(office);
   }
+  // Seats = active logins. When they change, the billing connector sets the Stripe subscription to match.
+  function activeSeats() { var m = TEAM.members || {}; return Object.keys(m).filter(function (k) { return m[k] && m[k].active; }).length; }
+  function syncSeats() {
+    var url = String((TEAM.billing || {}).connectorUrl || "").replace(/\/+$/, "");
+    if (!url || !TEAM.office || !/^https:\/\//.test(url)) return;
+    var target = url + "/sync?office=" + encodeURIComponent(TEAM.office);
+    try { if (navigator.sendBeacon && navigator.sendBeacon(target, "")) return; } catch (e) {}
+    try { fetch(target, { method: "POST", keepalive: true }).catch(function () {}); } catch (e) {}
+  }
+  var seatTimer = null;
+  function seatsMaybeChanged() {
+    if (!TEAM.office || !isAdmin()) return;
+    var n = activeSeats(), d = TEAM.officeDoc || {};
+    var drift = autoBilled(d) && d.seatsPaid && d.seatsPaid !== n;
+    if ((TEAM.lastSeats !== undefined && n !== TEAM.lastSeats) || (TEAM.lastSeats === undefined && drift)) { clearTimeout(seatTimer); seatTimer = setTimeout(syncSeats, 2500); }
+    TEAM.lastSeats = n;
+  }
   function openBilling() {
     var d = TEAM.officeDoc || {}, st = myOfficeState() || { kind: "trial", days: 0 }, b = TEAM.billing || {};
     var date = function (t) { return new Date(t).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }); };
@@ -11488,6 +11510,9 @@
     var showPay = st.kind !== "paused" && st.kind !== "free" && !autoBilled(d);
     featOpen('<h3>Billing</h3><p class="modal-sub">' + escapeHtml(d.name || officeTitle(TEAM.office)) + '</p>' +
       '<div class="bl-status"><b>' + escapeHtml(line) + '</b><span>$' + officePrice(d) + ' per rep per month' + (d.founding ? ' (founding price)' : '') + (d.seatsPaid ? ' \u00b7 ' + d.seatsPaid + ' rep' + (d.seatsPaid === 1 ? '' : 's') + ' paid for' : '') + (d.cancelled ? ' \u00b7 cancelled' : '') + '</span></div>' +
+      (function () { var n = Math.max(1, activeSeats()), p = officePrice(d);
+        return '<div class="bl-total"><span>' + n + ' active login' + (n === 1 ? '' : 's') + ' \u00d7 $' + p + '</span><b>$' + (n * p).toLocaleString() + ' / month</b></div>' +
+          '<p class="oc-note">Every active login counts as a rep. Add or turn off reps in Team &amp; access and your bill updates automatically; Stripe charges or credits the difference for the rest of the month.</p>'; })() +
       (showPay ? '<button class="btn-primary" id="blPay" type="button" style="width:100%;margin-top:14px">Add payment</button>' : '') +
       (b.portalLink && d.stripeCustomer ? '<a class="btn-secondary" id="blManage" href="' + escapeHtml(b.portalLink) + '" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:10px">Manage billing</a><p class="oc-note">Update your card, download invoices, change how many reps you pay for, or cancel. Stripe emails you a sign-in link.</p>' : '') +
       '<p class="oc-note">Payments are handled by Stripe. VPEX never sees your card number.</p>');
@@ -11698,6 +11723,7 @@
       var m = {};
       qs.docs.forEach(function (d) { var x = d.data() || {}; x.uid = d.id; m[d.id] = x; });
       TEAM.members = m;
+      seatsMaybeChanged();
       if (DEMO && isAdmin() && m.dR2 && m.dR2.workLoc === undefined) [["dR2", "office"], ["dR3", "remote"], ["dR1", "remote"]].forEach(function (x) { setWorkLoc(x[0], x[1]); });
       if (TEAM.me && m[TEAM.me.uid]) TEAM.me.workLoc = m[TEAM.me.uid].workLoc;
       var smo = document.getElementById("scoreModal"); if (smo && smo.classList.contains("show")) renderScoreboard();
@@ -12168,6 +12194,7 @@
       (TEAM.office ? '<div class="tm-invite"><div><b>Invite link</b><span>Office code: <code>' + escapeHtml(TEAM.office) + '</code></span></div><div class="tm-invite-btns"><button class="btn-primary" id="tmInvite" type="button">Copy invite link</button><button class="btn-secondary" id="tmInviteReset" type="button" title="Old links stop working">Reset</button></div></div>' : '') +
       '<div class="tm-list">' + (rows || '<div class="pipe-empty">No one yet.</div>') + '</div>' +
       '<div class="settings-heading" style="margin-top:18px">Add a rep</div>' +
+      (TEAM.office ? '<p class="oc-note" id="tmSeatNote" style="margin:-2px 0 8px">Each active login is $' + officePrice(TEAM.officeDoc) + ' a month. Your bill updates automatically when you add, turn off or remove someone.</p>' : '') +
       '<label for="tmName">Full name</label><input type="text" id="tmName" autocomplete="off">' +
       '<label for="tmUser">Username</label><input type="text" id="tmUser" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="e.g. mike">' +
       '<label for="tmPw">Password</label><div class="pw-row"><input type="text" id="tmPw" autocomplete="off" autocapitalize="none" spellcheck="false"><button class="btn-secondary" id="tmGen" type="button">Generate</button></div>' +
@@ -13951,7 +13978,8 @@
         var d = o.d, st = o.st, ind = INDUSTRIES[d.industry] ? INDUSTRIES[d.industry].name : (d.industry || "");
         return '<div class="oc-card" data-oc="' + escapeHtml(o.id) + '">' +
           '<div class="oc-top"><div class="oc-name"><b>' + escapeHtml(d.name || o.id) + '</b><span>' + escapeHtml(o.id) + (ind ? ' \u00b7 ' + escapeHtml(ind) : '') + '</span></div>' + ocStatusChip(st, d) + '</div>' +
-          (d.stripeSub ? '<div class="oc-auto">' + (d.cancelled ? 'Cancelled in Stripe' : 'Card on file \u00b7 renews automatically') + (d.seatsPaid ? ' \u00b7 ' + d.seatsPaid + ' rep' + (d.seatsPaid === 1 ? '' : 's') + ' paid' : '') + '</div>' : '') +
+          (d.stripeSub ? '<div class="oc-auto">' + (d.cancelled ? 'Cancelled in Stripe' : 'Card on file \u00b7 renews automatically') + (d.seatsPaid ? ' \u00b7 ' + d.seatsPaid + ' rep' + (d.seatsPaid === 1 ? '' : 's') + ' paid' : '') + '</div>' +
+            (!d.cancelled && d.seatsPaid && d.seatsPaid !== o.reps ? '<div class="oc-auto oc-drift">' + o.reps + ' active now \u00b7 seats update within the hour</div>' : '') : '') +
           '<div class="oc-meta">' + o.reps + ' rep' + (o.reps === 1 ? '' : 's') + ' \u00b7 ' + o.calls + ' calls this week \u00b7 last active ' + escapeHtml(dt(o.last)) + ' \u00b7 $' + officePrice(d) + '/rep' + (d.founding ? ' (founding)' : '') + ' \u00b7 ' + (st.kind === "paid" || st.kind === "pastdue" ? '$' + (o.reps * officePrice(d)).toLocaleString() + '/mo' : 'joined ' + escapeHtml(dt(d.createdAt))) + '</div>' +
           '<div class="oc-acts">' +
             '<button type="button" class="btn-primary" data-oc-act="paid">' + (d.plan === "paid" ? '+1 month paid' : 'Mark paid') + '</button>' +
@@ -13968,6 +13996,7 @@
         '<label for="ocLink">Stripe payment link</label><input id="ocLink" type="url" autocapitalize="none" spellcheck="false" placeholder="https://buy.stripe.com/..." value="' + escapeHtml(b.payLink || "") + '">' +
         '<label for="ocFPrice">Founding price per rep / month ($)</label><input id="ocFPrice" type="number" inputmode="numeric" value="' + escapeHtml(String(b.foundingPrice || 29)) + '">' +
         '<label for="ocFLink">Founding payment link</label><input id="ocFLink" type="url" autocapitalize="none" spellcheck="false" placeholder="https://buy.stripe.com/..." value="' + escapeHtml(b.foundingLink || "") + '">' +
+        '<label for="ocConn">Billing connector address</label><input id="ocConn" type="url" autocapitalize="none" spellcheck="false" placeholder="https://vpex-billing.yourname.workers.dev" value="' + escapeHtml(b.connectorUrl || "") + '">' +
         '<label for="ocPortal">Customer portal link (Manage billing)</label><input id="ocPortal" type="url" autocapitalize="none" spellcheck="false" placeholder="https://billing.stripe.com/p/login/..." value="' + escapeHtml(b.portalLink || "") + '">' +
         '<div class="field-error" id="ocErr"></div><button class="btn-primary" id="ocSave" type="button" style="width:100%;margin-top:12px">Save billing</button>' +
         '<p class="oc-note">Once the billing connector is set up, offices switch to paid by themselves when they pay. Without it, Stripe shows the office code as the reference: tap Mark paid on that office here.</p>' +
@@ -13976,9 +14005,9 @@
       btn.addEventListener("click", function () { ocAction(btn.closest("[data-oc]").getAttribute("data-oc"), btn.getAttribute("data-oc-act")); });
     });
     document.getElementById("ocSave").addEventListener("click", function () {
-      var v = function (id) { return document.getElementById(id).value.trim(); }, bad = [v("ocLink"), v("ocFLink"), v("ocPortal")].some(function (x) { return x && !/^https:\/\//.test(x); });
+      var v = function (id) { return document.getElementById(id).value.trim(); }, bad = [v("ocLink"), v("ocFLink"), v("ocPortal"), v("ocConn")].some(function (x) { return x && !/^https:\/\//.test(x); });
       if (bad) { document.getElementById("ocErr").textContent = "Links start with https://"; return; }
-      var val = { price: Number(v("ocPrice")) || 49, payLink: v("ocLink"), foundingPrice: Number(v("ocFPrice")) || 29, foundingLink: v("ocFLink"), portalLink: v("ocPortal"), updatedAt: Date.now() };
+      var val = { price: Number(v("ocPrice")) || 49, payLink: v("ocLink"), foundingPrice: Number(v("ocFPrice")) || 29, foundingLink: v("ocFLink"), portalLink: v("ocPortal"), connectorUrl: v("ocConn").replace(/\/+$/, ""), updatedAt: Date.now() };
       TEAM.db.collection("config").doc("billing").set(val, { merge: true }).then(function () { TEAM.billing = Object.assign({}, TEAM.billing, val); showToast("Billing saved"); ocRender(); },
         function () { document.getElementById("ocErr").textContent = "Couldn\u2019t save. Check your connection and that the new security rules are published."; });
     });
