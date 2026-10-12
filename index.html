@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-12-03">
+<meta name="vpex-build" content="2026-12-04">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -5169,6 +5169,9 @@
     gap: 14px;
     padding: 40px 8px;
   }
+  .empty .btn-primary, .empty .btn-secondary { flex: none; min-width: 200px; }
+  .empty .needs { justify-content: center; }
+  .empty .empty-acts { display: flex; flex-direction: column; gap: 10px; align-items: stretch; }
   .empty .glyph {
     font-size: 30px;
     opacity: 0.7;
@@ -6323,6 +6326,7 @@
   .loc-badge.loc-remote, .loc-chip.loc-remote { color: var(--accent); border-color: var(--accent); }
   .loc-badge.loc-out, .loc-chip.loc-out { opacity: 0.7; }
   .tm-loc { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 12px; color: var(--text-dim); }
+  .tm-loc select { font: inherit; font-size: 12.5px; color: var(--text); background: var(--surface-raised); border: 1px solid var(--border); border-radius: 8px; padding: 5px 8px; min-height: 30px; }
   .sb-locs { margin: 10px 0 4px; }
   .sb-cmp table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 6px; }
   .sb-cmp th { text-align: left; font-weight: 600; color: var(--text-dim); padding: 4px 4px 6px; font-size: 11.5px; }
@@ -9880,19 +9884,26 @@
       return;
     }
     if (total === 0) {
+      var repView = TEAM.on && TEAM.me && !isAdmin(), inviteBtn = TEAM.on && TEAM.office && isAdmin();
       main.innerHTML =
         '<div class="empty">' +
+          needsHtml(true) +
           '<div class="glyph">☎</div>' +
+          (repView ? '<h2>No leads yet</h2><p>Your admin loads the call list. Leads show up here the moment they do.</p>' :
           '<h2>Load your leads to start dialing</h2>' +
           '<p>' + (hasImportData() ?
             "Import the Elite Investors list, paste a list, or add leads one at a time. Each call opens your phone's dialer — you stay in control of every call." :
             "Paste a list or add leads one at a time. Each call opens your phone's dialer — you stay in control of every call.") + '</p>' +
-          '<button class="btn-primary" id="emptyLoadBtn" style="padding:13px 24px;border-radius:8px;">Load leads</button>' +
+          '<div class="empty-acts"><button class="btn-primary" id="emptyLoadBtn" style="padding:13px 24px;border-radius:8px;">Load leads</button>' +
+          (inviteBtn ? '<button class="btn-secondary" id="emptyInviteBtn" type="button" style="padding:12px 24px;border-radius:8px;">Invite your reps</button>' : '') + '</div>') +
         '</div>';
-      document.getElementById("emptyLoadBtn").addEventListener("click", function () {
+      var elb = document.getElementById("emptyLoadBtn");
+      if (elb) elb.addEventListener("click", function () {
         openLoadModal();
         if (hasImportData()) switchTab("import");
       });
+      var eib = document.getElementById("emptyInviteBtn");
+      if (eib) eib.addEventListener("click", function () { openTeamPanel(); });
       return;
     }
 
@@ -11505,7 +11516,7 @@
     var dd = function (n) { return n + " day" + (n === 1 ? "" : "s"); };
     var line = { trial: "Free trial \u00b7 " + dd(st.days) + " left", grace: "Trial ended \u00b7 " + dd(st.days) + " to add payment", locked: "Paused until payment is added",
       paid: d.paidThrough ? (autoBilled(d) ? "Paid \u00b7 renews automatically around " + date(d.paidThrough) : "Paid through " + date(d.paidThrough)) : "Paid",
-      pastdue: "Payment due \u00b7 " + dd(st.days) + " left before the office pauses", free: "Free plan", paused: "Paused by VPEX" }[st.kind] || "";
+      pastdue: (autoBilled(d) ? "Your last payment didn\u2019t go through \u00b7 " : "Payment due \u00b7 ") + dd(st.days) + " left before the office pauses", free: "Free plan", paused: "Paused by VPEX" }[st.kind] || "";
     var showPay = st.kind !== "paused" && st.kind !== "free" && !autoBilled(d);
     featOpen('<h3>Billing</h3><p class="modal-sub">' + escapeHtml(d.name || officeTitle(TEAM.office)) + '</p>' +
       '<div class="bl-status"><b>' + escapeHtml(line) + '</b><span>$' + officePrice(d) + ' per rep per month' + (d.founding ? ' (founding price)' : '') + (d.seatsPaid ? ' \u00b7 ' + d.seatsPaid + ' rep' + (d.seatsPaid === 1 ? '' : 's') + ' paid for' : '') + (d.cancelled ? ' \u00b7 cancelled' : '') + '</span></div>' +
@@ -11518,6 +11529,12 @@
     var bp = document.getElementById("blPay"); if (bp) bp.addEventListener("click", payNow);
   }
   function payNow() {
+    var od = TEAM.officeDoc || {}, b = TEAM.billing || {};
+    if (autoBilled(od)) {
+      if (b.portalLink && od.stripeCustomer) { showToast("Opening Stripe \u00b7 Update your card and VPEX switches back on by itself", { kind: "info" }); window.open(b.portalLink, "_blank", "noopener"); }
+      else showToast("Check your email from Stripe for a link to update your card", { kind: "info" });
+      return;
+    }
     var u = payUrl(TEAM.officeDoc, TEAM.office);
     if (!u) { showToast("Payment link coming soon \u00b7 We\u2019ll text you a link to add payment", { kind: "info" }); return; }
     showToast("Opening secure checkout \u00b7 Your office switches on as soon as payment comes through", { kind: "info" });
@@ -11542,7 +11559,7 @@
     if (st.kind === "trial" && st.days > 5 && isAdmin()) return '<button class="need-pill" type="button" data-need="pay">Free trial \u00b7 ' + d(st.days) + ' left \u00b7 Pay now</button>';
     if (st.kind === "trial" && st.days <= 5 && isAdmin()) return '<button class="need-pill" type="button" data-need="pay">Trial \u00b7 ' + d(st.days) + ' left \u00b7 Add payment</button>';
     if (st.kind === "grace") return isAdmin() ? '<button class="need-pill warn" type="button" data-need="pay">Trial ended \u00b7 ' + d(st.days) + ' to add payment</button>' : '<span class="need-pill warn">Trial ended \u00b7 ask your admin to add payment</span>';
-    if (st.kind === "pastdue") return isAdmin() ? '<button class="need-pill warn" type="button" data-need="pay">Payment due \u00b7 ' + d(st.days) + ' left</button>' : "";
+    if (st.kind === "pastdue") return isAdmin() ? '<button class="need-pill warn" type="button" data-need="pay">' + (autoBilled(TEAM.officeDoc) ? 'Card declined \u00b7 Update card' : 'Payment due \u00b7 ' + d(st.days) + ' left') + '</button>' : "";
     return "";
   }
   function updatePaused() {
@@ -11554,10 +11571,14 @@
     if (!show) return;
     var name = (TEAM.officeDoc && TEAM.officeDoc.name) || officeTitle(TEAM.office), admin = isAdmin();
     document.getElementById("psTitle").textContent = name + " is paused";
+    var od = TEAM.officeDoc || {}, wasPaid = od.plan === "paid", cardFix = autoBilled(od);
     document.getElementById("psText").textContent = st.kind === "paused"
       ? "Your office\u2019s access is paused. Your leads, notes and call history are all saved. Reach out to VPEX to switch it back on."
+      : wasPaid ? (admin ? (cardFix ? "Your last payment didn\u2019t go through. Update your card to pick up exactly where you left off." : "Your subscription has ended. Add payment to pick up exactly where you left off.") + " Your leads, notes and call history are all saved."
+                         : "Your office\u2019s subscription needs attention. Ask your admin to update payment. Everything you\u2019ve done is saved.")
       : admin ? "Your free trial has ended. Add payment to pick up exactly where you left off. Your leads, notes and call history are all saved."
               : "Your office\u2019s free trial has ended. Ask your admin to add payment. Everything you\u2019ve done is saved.";
+    document.getElementById("psPay").textContent = cardFix ? "Update card" : "Add payment";
     document.getElementById("psPay").style.display = admin && st.kind !== "paused" && !justPaid() ? "" : "none";
     if (justPaid() && st.kind !== "paused") document.getElementById("psText").textContent = "Payment received. Your office unlocks as soon as Stripe confirms it, usually within a minute. Your leads, notes and call history are all saved.";
     document.getElementById("psExport").style.display = admin ? "" : "none";
@@ -12170,7 +12191,7 @@
       return ((a.role === "admin" ? 0 : 1) - (b.role === "admin" ? 0 : 1)) || String(a.name).localeCompare(String(b.name));
     });
     var rows = list.map(function (m) {
-      var self = TEAM.me && m.uid === TEAM.me.uid, owner = m.username === TEAM_OWNER;
+      var self = TEAM.me && m.uid === TEAM.me.uid, owner = !TEAM.office && m.username === TEAM_OWNER;
       return '<div class="tm-row' + (m.active ? '' : ' off') + '">' +
         '<div class="tm-main"><b>' + escapeHtml(m.name || m.username) + '</b>' +
           '<span>' + escapeHtml(m.username) + ' \u00b7 ' + ({ admin: "Admin", manager: "Manager" }[m.role] || "Rep") + (m.closer ? " \u00b7 Closer" : "") + (m.active ? '' : ' \u00b7 <em>access off</em>') + '</span>' +
@@ -12275,7 +12296,7 @@
     err.textContent = "";
     if (!name) { err.textContent = "Enter their name."; return; }
     if (/\s/.test(rawUser) || !/^[a-z0-9._-]{3,30}$/.test(user)) { err.textContent = "Username: 3\u201330 letters or numbers, no spaces."; return; }
-    if (user === TEAM_OWNER) { err.textContent = "That username is reserved for you."; return; }
+    if (!TEAM.office && user === TEAM_OWNER) { err.textContent = "That username is reserved for you."; return; }
     if (pw.length < 8) { err.textContent = "Password: at least 8 characters. Tap Generate for a strong one."; return; }
     btn.disabled = true; btn.textContent = "Creating\u2026";
     try {
@@ -13926,7 +13947,7 @@
   }
 
   /* ----- customer copies ----- */
-  function isOwnerMaster() { return !CUSTOMER.firebase && !DEMO && TEAM.on && TEAM.me && usernameClean(TEAM.me.username) === TEAM_OWNER; }
+  function isOwnerMaster() { return !CUSTOMER.firebase && !DEMO && TEAM.on && TEAM.me && !TEAM.office && usernameClean(TEAM.me.username) === TEAM_OWNER; }
   function parseFbConfig(t) {
     var o = {};
     ["apiKey", "authDomain", "projectId", "storageBucket", "messagingSenderId", "appId"].forEach(function (k) {
@@ -13945,7 +13966,7 @@
     var dd = function (n) { return n + " day" + (n === 1 ? "" : "s"); };
     var dt = function (ms) { return new Date(ms).toLocaleDateString([], { month: "short", day: "numeric" }); };
     var map = { trial: ["trial", "Trial \u00b7 " + dd(st.days) + " left"], grace: ["warn", "Trial ended \u00b7 " + dd(st.days) + " grace"], paid: ["paid", d.paidThrough ? "Paid through " + dt(d.paidThrough) : "Paid"],
-      pastdue: ["warn", "Payment due \u00b7 " + dd(st.days) + " grace"], locked: ["off", "Locked \u00b7 unpaid"], paused: ["off", "Paused by you"], free: ["paid", "Free"] };
+      pastdue: ["warn", (d.stripeSub && !d.cancelled ? "Card declined \u00b7 " : "Payment due \u00b7 ") + dd(st.days) + " left"], locked: ["off", d.plan === "paid" ? "Locked \u00b7 unpaid" : "Trial ended \u00b7 paused"], paused: ["off", "Paused by you"], free: ["paid", "Free"] };
     var m = map[st.kind] || ["off", st.kind];
     return '<span class="oc-chip oc-' + m[0] + '">' + m[1] + '</span>';
   }
@@ -13978,7 +13999,8 @@
         return '<div class="oc-card" data-oc="' + escapeHtml(o.id) + '">' +
           '<div class="oc-top"><div class="oc-name"><b>' + escapeHtml(d.name || o.id) + '</b><span>' + escapeHtml(o.id) + (ind ? ' \u00b7 ' + escapeHtml(ind) : '') + '</span></div>' + ocStatusChip(st, d) + '</div>' +
           (d.stripeSub ? '<div class="oc-auto">' + (d.cancelled ? 'Cancelled in Stripe' : 'Card on file \u00b7 renews automatically') + (d.seatsPaid ? ' \u00b7 ' + d.seatsPaid + ' rep' + (d.seatsPaid === 1 ? '' : 's') + ' paid' : '') + '</div>' +
-            (!d.cancelled && d.seatsPaid && d.seatsPaid !== o.reps ? '<div class="oc-auto oc-drift">' + o.reps + ' active now \u00b7 seats update within the hour</div>' : '') : '') +
+            (!d.cancelled && d.seatsPaid && d.seatsPaid !== o.reps ? '<div class="oc-auto oc-drift">' + o.reps + ' active now \u00b7 seats update within the hour</div>' : '') +
+            (d.stripeSubPrev ? '<div class="oc-auto oc-drift">Paid twice: cancel the older subscription in Stripe (' + escapeHtml(d.stripeSubPrev) + ')</div>' : '') : '') +
           '<div class="oc-meta">' + o.reps + ' rep' + (o.reps === 1 ? '' : 's') + ' \u00b7 ' + o.calls + ' calls this week \u00b7 last active ' + escapeHtml(dt(o.last)) + ' \u00b7 $' + officePrice(d) + '/rep' + (d.founding ? ' (founding)' : '') + ' \u00b7 ' + (st.kind === "paid" || st.kind === "pastdue" ? '$' + (o.reps * officePrice(d)).toLocaleString() + '/mo' : 'joined ' + escapeHtml(dt(d.createdAt))) + '</div>' +
           '<div class="oc-acts">' +
             '<button type="button" class="btn-primary" data-oc-act="paid">' + (d.plan === "paid" ? '+1 month paid' : 'Mark paid') + '</button>' +
@@ -14893,7 +14915,8 @@
       (needs.length ? '<div class="hub-needs"><div class="hub-needs-h">Needs you</div>' +
         needs.map(function (n) { return '<button class="hub-need" type="button" data-hub-go="' + n[0] + '"><span>' + n[1] + '</span><span class="hub-go" aria-hidden="true">›</span></button>'; }).join("") + '</div>' : '') +
       grid +
-      (admin ? '<div class="hub-note">Reps sign in at <b>' + escapeHtml(TEAM_LINK) + '</b> with the logins you create in Team &amp; logins.</div>' : '') + '</div>' +
+      (admin ? '<div class="hub-note">' + (TEAM.office ? 'Reps sign in at <b>' + escapeHtml(TEAM_LINK) + '</b> with office code <b>' + escapeHtml(TEAM.office) + '</b>, or join with the invite link in Team &amp; access.'
+        : 'Reps sign in at <b>' + escapeHtml(TEAM_LINK) + '</b> with the logins you create in Team &amp; access.') + '</div>' : '') + '</div>' +
       views;
     function hubShow(key) {
       body.querySelectorAll("[data-hub-view]").forEach(function (v) { v.hidden = v.getAttribute("data-hub-view") !== key; });
