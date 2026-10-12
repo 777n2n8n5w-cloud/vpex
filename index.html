@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-12-01">
+<meta name="vpex-build" content="2026-12-02">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -6916,7 +6916,7 @@
         <li><b>Follow-ups never slip.</b> VPEX nudges each rep at the exact time a lead asked for, with one tap to call.</li>
         <li><b>Your whole floor, live.</b> One shared list so nobody double-dials, and a scoreboard that updates as calls happen.</li>
       </ul>
-      <div class="hero-price"><b>$49</b><span>per rep / month</span><em>14 days free · no card · cancel any time</em></div>
+      <div class="hero-price"><b>$49</b><span>per rep / month</span><em>7 days free · no card · cancel any time</em></div>
       <button class="btn-secondary hero-demo" id="heroDemo" type="button">See a demo office first</button>
     </div>
     <div class="auth-sub" id="authSub">Sign in to your team account</div>
@@ -6937,7 +6937,7 @@
       <label for="suPw2">Confirm password</label>
       <input id="suPw2" type="password" autocomplete="new-password">
       <button class="btn-primary" id="suGo">Start my free trial</button>
-      <div class="auth-hint" style="text-align:center;margin-top:10px">14 days free · no card needed · your reps call from their own phones</div>
+      <div class="auth-hint" style="text-align:center;margin-top:10px">7 days free · no card needed · your reps call from their own phones</div>
       <button class="btn-secondary su-buy" id="suBuy" type="button">Already sold? Buy now</button>
       <button class="auth-link" id="suBack" type="button">Already have an office? Sign in</button>
     </div>
@@ -11419,7 +11419,7 @@
     var now = Date.now();
     try {
       TEAM.office = slug;
-      await TEAM.db.collection("offices").doc(slug).set({ name: name, industry: ind, ownerUid: cred.user.uid, plan: "trial", trialEnds: now + 14 * 86400000, createdAt: now, invite: inviteCode(), locked: false, seats: 0 });
+      await TEAM.db.collection("offices").doc(slug).set({ name: name, industry: ind, ownerUid: cred.user.uid, plan: "trial", trialEnds: now + 7 * 86400000, createdAt: now, invite: inviteCode(), locked: false, seats: 0 });
       await tcol("members").doc(cred.user.uid).set({ username: user, name: me, role: "admin", active: true, createdAt: now, lastSeen: now });
     } catch (e) {
       TEAM.office = null; await dropUser(cred.user); setTimeout(function () { TEAM.creating = false; }, 300);
