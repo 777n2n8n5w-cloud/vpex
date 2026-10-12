@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-12-04">
+<meta name="vpex-build" content="2026-12-06">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -7415,8 +7415,9 @@
       var DEL = { __del: true };
       function err(code, msg) { var e = new Error(msg || code); e.code = code; return e; }
       function split(p) { var out = [], cur = "", q = false; for (var i = 0; i < p.length; i++) { var ch = p[i]; if (ch === "`") { q = !q; continue; } if (ch === "." && !q) { out.push(cur); cur = ""; continue; } cur += ch; } out.push(cur); return out; }
-      function setIn(o, path, v) { var ps = split(path); for (var i = 0; i < ps.length - 1; i++) { if (typeof o[ps[i]] !== "object" || o[ps[i]] === null) o[ps[i]] = {}; o = o[ps[i]]; } if (v === DEL) delete o[ps[ps.length - 1]]; else o[ps[ps.length - 1]] = clone(v); }
-      function merge(t, s) { Object.keys(s).forEach(function (k) { var v = s[k]; if (v === DEL) { delete t[k]; return; } if (v && typeof v === "object" && !Array.isArray(v) && t[k] && typeof t[k] === "object" && !Array.isArray(t[k])) merge(t[k], v); else t[k] = clone(v); }); }
+      function isInc(v) { return !!(v && typeof v === "object" && v.__inc !== undefined); }
+      function setIn(o, path, v) { var ps = split(path); for (var i = 0; i < ps.length - 1; i++) { if (typeof o[ps[i]] !== "object" || o[ps[i]] === null) o[ps[i]] = {}; o = o[ps[i]]; } var last = ps[ps.length - 1]; if (v === DEL) delete o[last]; else if (isInc(v)) o[last] = (typeof o[last] === "number" ? o[last] : 0) + v.__inc; else o[last] = clone(v); }
+      function merge(t, s) { Object.keys(s).forEach(function (k) { var v = s[k]; if (v === DEL) { delete t[k]; return; } if (isInc(v)) { t[k] = (typeof t[k] === "number" ? t[k] : 0) + v.__inc; return; } if (v && typeof v === "object" && !Array.isArray(v) && t[k] && typeof t[k] === "object" && !Array.isArray(t[k])) merge(t[k], v); else t[k] = clone(v); }); }
       var apps = [], listeners = [];
       function allowed(app, path, op, filters) {
         var u = app._user; if (!u) return false;
@@ -7458,16 +7459,25 @@
         } else {
           var depth = l.path.split("/").length + 1;
           var docs = Object.keys(db).filter(function (k) { return k.indexOf(l.path + "/") === 0 && k.split("/").length === depth; })
-            .filter(function (k) { return !(l.filters || []).some(function (f) { return (db[k] || {})[f[0]] !== f[1]; }); }).sort().map(function (k) { return snapDoc(k, db[k]); });
+            .filter(function (k) { return (l.filters || []).every(function (f) { return passes(k, db[k], f); }); }).sort().map(function (k) { return snapDoc(k, db[k]); });
           var js2 = JSON.stringify(docs.map(function (d) { return [d.id, d.data()]; }));
           if (js2 === l.last) return; l.last = js2;
-          l.cb({ docs: docs, empty: !docs.length, size: docs.length, forEach: function (f) { docs.forEach(f); }, metadata: { fromCache: false, hasPendingWrites: false } });
+          var prev = l.lastMap || {}, cur = {}, changes = [];
+          docs.forEach(function (d) { var j = JSON.stringify(d.data()); cur[d.id] = j; if (!(d.id in prev)) changes.push({ type: "added", doc: d }); else if (prev[d.id] !== j) changes.push({ type: "modified", doc: d }); });
+          Object.keys(prev).forEach(function (id) { if (!(id in cur)) changes.push({ type: "removed", doc: snapDoc(l.path + "/" + id, JSON.parse(prev[id])) }); });
+          l.lastMap = cur;
+          window.__mockDocDeliveries = (window.__mockDocDeliveries || 0) + changes.length;
+          l.cb({ docs: docs, empty: !docs.length, size: docs.length, forEach: function (f) { docs.forEach(f); }, docChanges: function () { return changes; }, metadata: { fromCache: false, hasPendingWrites: false } });
         }
       }
       function notify() { listeners.slice().forEach(fire); }
       window.addEventListener("storage", function (e) { if (e.key === FS) notify(); });
       window.__mockListenerCount = function () { return listeners.length; };
       function isAdminUser(app, path) { var u = app._user; if (!u) return false; var uo = emailOffice(u.email); if (!uo && isOwnerEmail(u.email)) return true; var mm = load(FS)[(uo ? "offices/" + uo + "/" : "") + "members/" + u.uid]; return !!(mm && mm.active && mm.role === "admin"); }
+      function passes(k, d, f) {
+        var v = f[0] === "__name__" ? k.split("/").pop() : (d || {})[f[0]], op = f[2] || "==";
+        return op === "==" ? v === f[1] : op === ">=" ? v >= f[1] : op === ">" ? v > f[1] : op === "<=" ? v <= f[1] : op === "<" ? v < f[1] : false;
+      }
       function sameKeys(a, b) { var ka = Object.keys(a || {}).sort(), kb = Object.keys(b || {}).sort(); return ka.join("|") === kb.join("|"); }
       function superset(nw, old) { var n = nw || {}; return Object.keys(old || {}).every(function (k) { return k in n; }); }
       function write(app, path, fn, op) {
@@ -7529,18 +7539,20 @@
       DocRef.prototype.onSnapshot = function (cb, e) { if (typeof cb !== "function") { cb = e; e = arguments[2]; } var l = { kind: "doc", path: this.path, cb: cb, err: e, app: this.app }; listeners.push(l); setTimeout(function () { fire(l); }, 0); return function () { var i = listeners.indexOf(l); if (i > -1) listeners.splice(i, 1); }; };
       function ColRef(app, path) { this.app = app; this.path = path; }
       ColRef.prototype.doc = function (id) { return new DocRef(this.app, this.path + "/" + id); };
-      ColRef.prototype.get = function () { var a = this.app, p = this.path, f = this.filters; return Promise.resolve().then(function () {
-        if (window.__offline) throw err("unavailable");
+      ColRef.prototype.get = function (opts) { var a = this.app, p = this.path, f = this.filters, cache = opts && opts.source === "cache"; return Promise.resolve().then(function () {
+        if (!cache && window.__offline) throw err("unavailable");
+        if (!cache) window.__mockServerQueries = (window.__mockServerQueries || []).concat([p + " " + JSON.stringify(f || [])]);
         if (!allowed(a, p, "read", f)) throw err("permission-denied");
         var db = load(FS), depth = p.split("/").length + 1;
         var docs = Object.keys(db).filter(function (k) { return k.indexOf(p + "/") === 0 && k.split("/").length === depth; })
-          .filter(function (k) { return !(f || []).some(function (x) { return (db[k] || {})[x[0]] !== x[1]; }); }).sort().map(function (k) { return snapDoc(k, db[k]); });
+          .filter(function (k) { return (f || []).every(function (x) { return passes(k, db[k], x); }); }).sort().map(function (k) { return snapDoc(k, db[k]); });
         return { docs: docs, empty: !docs.length, size: docs.length, forEach: function (fn) { docs.forEach(fn); } }; }); };
-      ColRef.prototype.where = function (field, op, val) { var q = new ColRef(this.app, this.path); q.filters = (this.filters || []).concat([[field, val]]); return q; };
+      ColRef.prototype.where = function (field, op, val) { var q = new ColRef(this.app, this.path); q.filters = (this.filters || []).concat([[field && field.__docId ? "__name__" : field, val, op]]); return q; };
       ColRef.prototype.onSnapshot = function (cb, e) { if (typeof cb !== "function") { cb = e; e = arguments[2]; } var l = { kind: "col", path: this.path, cb: cb, err: e, app: this.app, filters: this.filters }; listeners.push(l); setTimeout(function () { fire(l); }, 0); return function () { var i = listeners.indexOf(l); if (i > -1) listeners.splice(i, 1); }; };
       function Firestore(app) { this.app = app; }
       Firestore.prototype.collection = function (p) { return new ColRef(this.app, p); };
       Firestore.prototype.enablePersistence = function () { return Promise.resolve(); };
+      Firestore.prototype.settings = function () {};
       Firestore.prototype.runTransaction = function (fn) {
         var writes = [], t = { get: function (ref) { return ref.get(); }, update: function (ref, obj) { writes.push(function () { return ref.update(obj); }); return t; }, set: function (ref, d, o) { writes.push(function () { return ref.set(d, o); }); return t; } };
         return Promise.resolve(fn(t)).then(function (res) { return writes.reduce(function (p, w) { return p.then(w); }, Promise.resolve()).then(function () { return res; }); });
@@ -7578,7 +7590,7 @@
         initializeApp: function (cfg, name) { var a = new App(name || "[DEFAULT]"); apps.push(a); return a; },
         app: function (name) { name = name || "[DEFAULT]"; return apps.filter(function (a) { return a.name === name; })[0]; },
         auth: { Auth: { Persistence: { LOCAL: "local", NONE: "none", SESSION: "session" } }, EmailAuthProvider: { credential: function (e, p) { return { email: e, pw: p }; } } },
-        firestore: { FieldValue: { delete: function () { return DEL; } } }
+        firestore: { FieldValue: { delete: function () { return DEL; }, increment: function (n) { return { __inc: n }; } }, FieldPath: { documentId: function () { return { __docId: true }; } } }
       };
       window.firebase.auth.Auth = window.firebase.auth.Auth;
     })();
@@ -8940,17 +8952,31 @@
     return slotAt(lead, gap, hour);
   }
 
-  function callsForLead(id) { return state.callLog.filter(function (c) { return c.leadId === id; }); }
-  function lastCallFor(id) {
-    for (var i = state.callLog.length - 1; i >= 0; i--) if (state.callLog[i].leadId === id) return state.callLog[i];
-    return null;
+  // A lead's calls, in call-log order. The older (history) part of a team's log is indexed once when it loads;
+  // only the recent part is re-indexed when a call comes in. Scanning the whole log for every lead on screen
+  // froze big offices' phones.
+  var EMPTY_CALLS = [], recentCallIdx = { ref: null, len: -1, from: 0, map: null };
+  function leadCalls(id) {
+    var log = state.callLog, h = TEAM.on && TEAM.logRef === log ? TEAM.logHistLen || 0 : 0;
+    if (recentCallIdx.ref !== log || recentCallIdx.len !== log.length || recentCallIdx.from !== h) {
+      var m = new Map();
+      for (var i = h; i < log.length; i++) { var c = log[i], a = m.get(c.leadId); if (!a) m.set(c.leadId, a = []); a.push(c); }
+      recentCallIdx = { ref: log, len: log.length, from: h, map: m };
+    }
+    var recent = recentCallIdx.map.get(id), old = null;
+    if (h) {
+      if (!TEAM.histByLead) { var hm = new Map(); for (var j = 0; j < h; j++) { var hc = log[j], ha = hm.get(hc.leadId); if (!ha) hm.set(hc.leadId, ha = []); ha.push(hc); } TEAM.histByLead = hm; }
+      old = TEAM.histByLead.get(id) || null;
+    }
+    return old ? (recent ? old.concat(recent) : old) : (recent || EMPTY_CALLS);
   }
+  function callsForLead(id) { return leadCalls(id).slice(); }
+  function lastCallFor(id) { var a = leadCalls(id); return a.length ? a[a.length - 1] : null; }
   function noContactStreak(id) {
-    var n = 0, lead = findLeadById(id), since = lead && lead.recycledAt ? lead.recycledAt : 0;
-    for (var i = state.callLog.length - 1; i >= 0; i--) {
-      var c = state.callLog[i];
-      if (since && c.leadId === id && new Date(c.timestamp).getTime() < since) break;
-      if (c.leadId !== id) continue;
+    var n = 0, lead = findLeadById(id), since = lead && lead.recycledAt ? lead.recycledAt : 0, a = leadCalls(id);
+    for (var i = a.length - 1; i >= 0; i--) {
+      var c = a[i];
+      if (since && new Date(c.timestamp).getTime() < since) break;
       if (c.outcomeKey === "voicemail" || c.outcomeKey === "noanswer") n++; else break;
     }
     return n;
@@ -8960,8 +8986,15 @@
     if (t.due) { var p = t.due.split("-"); return new Date(+p[0], +p[1] - 1, +p[2], 9, 0).getTime(); }
     return Infinity;
   }
+  var taskIdx = { ref: null, len: -1, map: null };
   function openTasksFor(id) {
-    return state.tasks.filter(function (t) { return !t.done && t.leadId === id; })
+    var ts = state.tasks;
+    if (taskIdx.ref !== ts || taskIdx.len !== ts.length) {
+      var m = new Map();
+      ts.forEach(function (t) { var a = m.get(t.leadId); if (!a) m.set(t.leadId, a = []); a.push(t); });
+      taskIdx = { ref: ts, len: ts.length, map: m };
+    }
+    return (taskIdx.map.get(id) || []).filter(function (t) { return !t.done && t.leadId === id; })
       .sort(function (a, b) { return taskDueTs(a) - taskDueTs(b); });
   }
   function dueTasks() {
@@ -9125,6 +9158,13 @@
     return COMPANY;
   }
   if (window.__mockListenerCount) window.__mockFillText = function (name) { return fillTemplate(textSettings().noAnswerTpl, { name: name }); };   // test bench only
+  if (window.__mockListenerCount) {   // test bench only
+    window.__mockCallLog = function () { return state.callLog.map(function (c) { return [c.id, c.timestamp, c.leadId, c.by ? c.by.uid : ""]; }); };
+    window.__mockLeadCalls = function (id) { return { n: callsForLead(id).length, last: (lastCallFor(id) || {}).id || null, streak: noContactStreak(id) }; };
+    window.__mockRemoveLead = function (id) { state.leads = state.leads.filter(function (l) { return l.id !== id; }); state.tasks = state.tasks.filter(function (t) { return t.leadId !== id; }); saveState(); };
+    window.__mockEditLead = function (id, k, v) { var l = findLeadById(id); if (l) { l[k] = v; saveState(); } };
+    window.__mockLeads = function () { return state.leads.map(function (l) { return { id: l.id, name: l.name, notes: l.notes || "", status: l.status }; }); };
+  }
   function fillTemplate(tpl, lead, nextOverride) {
     var ts = textSettings();
     return String(tpl || "")
@@ -11124,7 +11164,7 @@
   var CLAIM_TTL = 20 * 60 * 1000;
   var CALL_DAYS = 45;
   var TEAM = { on: false, app: null, auth: null, db: null, me: null, members: {}, unsub: [], lastSent: {}, lastCk: {},
-    chunkSizes: {}, flushTimer: null, flushing: false, again: false, claiming: null, myClaimId: null, days: {}, dayUnsub: {},
+    chunkSizes: {}, flushTimer: null, flushing: false, again: false, claiming: null, myClaimId: null, days: {}, dayUnsub: {}, fastSig: {},
     ready: false, renderPending: false, taskScope: "mine", histRep: "all", heartbeat: null, dayTimer: null,
     signingOut: false, migrationChecked: false, membersUnsub: null, setupMode: false, office: null, officeDoc: null, officeUnsub: null };
 
@@ -11164,6 +11204,15 @@
     return myCall(c);
   }
   function pipeScope(l) { return !TEAM.on || canSeeTeam() || !!(l.owner && TEAM.me && l.owner.uid === TEAM.me.uid); }
+  // Has this lead changed since it last matched the server? A native JSON check of the same object answers "no"
+  // for almost every lead; only when it differs does the exact, key-sorted comparison run.
+  function leadUnsaved(lead, tasks, texts) {
+    var p = teamPayload(lead, tasks, texts), f = JSON.stringify(p);
+    if (TEAM.fastSig && TEAM.fastSig[lead.id] === f) return false;
+    if (stableJson(p) !== TEAM.lastSent[lead.id]) return true;
+    TEAM.fastSig[lead.id] = f;
+    return false;
+  }
   function teamPayload(lead, tasks, texts) {
     var p = {};
     Object.keys(lead).forEach(function (k) { if (k !== "ck" && lead[k] !== undefined) p[k] = lead[k]; });
@@ -11216,6 +11265,7 @@
     teamWatchMembers();
     // includeMetadataChanges: Firestore only tells us the server has confirmed cached data when we ask.
     // Without it, opening the app showed "Offline \u00b7 will sync" until someone's data changed.
+    TEAM.chunkCache = null; TEAM.chunkBytesDirty = {};
     TEAM.unsub.push(tcol("leadChunks").onSnapshot({ includeMetadataChanges: true }, function (qs) {
       if (TEAM.ready && typeof qs.docChanges === "function" && !qs.docChanges().length) {
         var md = qs.metadata || {};
@@ -11306,6 +11356,7 @@
       TEAM.app = (firebase.apps && firebase.apps.length) ? firebase.app() : firebase.initializeApp(FIREBASE_CONFIG);
       TEAM.auth = TEAM.app.auth();
       TEAM.db = TEAM.app.firestore();
+      try { TEAM.db.settings({ cacheSizeBytes: 100 * 1048576 }); } catch (e) {}
       try { TEAM.db.enablePersistence({ synchronizeTabs: true }).catch(function () {}); } catch (e) {}
     } catch (e) {
       showAuthScreen("Couldn\u2019t reach the team server. Check your connection and reload.");
@@ -11650,7 +11701,7 @@
     STORAGE_KEY = (TEAM.office ? "vpex_team_" : "dovetail_team_") + user.uid;
     state = loadTeamPrefs();
     if (!state.textSettings) { textSettings(); state.textSettings.myName = DEMO && TEAM.me.name === "You" ? "Alex" : firstName(TEAM.me.name); }
-    TEAM.ready = false; TEAM.lastSent = {}; TEAM.lastCk = {}; TEAM.days = {}; TEAM.migrationChecked = false; TEAM.myClaimId = null; TEAM.forceRemote = {};
+    TEAM.ready = false; TEAM.lastSent = {}; TEAM.fastSig = {}; TEAM.lastCk = {}; TEAM.days = {}; TEAM.migrationChecked = false; TEAM.myClaimId = null; TEAM.forceRemote = {};
     hideAuthScreen();
     applyTeamVisibility();
     document.body.classList.add("sync-lock");
@@ -11680,7 +11731,7 @@
     clearTimeout(verifyTimer); clearTimeout(TEAM.retryTimer);
     teamDetachData();
     clearInterval(TEAM.heartbeat); clearInterval(TEAM.dayTimer); clearTimeout(TEAM.flushTimer);
-    TEAM.me = null; TEAM.ready = false; TEAM.members = {}; TEAM.lastSent = {}; TEAM.lastCk = {}; TEAM.days = {}; TEAM.myClaimId = null;
+    TEAM.me = null; TEAM.ready = false; TEAM.members = {}; TEAM.lastSent = {}; TEAM.fastSig = {}; TEAM.lastCk = {}; TEAM.days = {}; TEAM.myClaimId = null; teamForgetHistory();
     TEAM.office = null; TEAM.officeDoc = null;
     var pse = document.getElementById("pausedScreen"); if (pse) pse.style.display = "none";
     STORAGE_KEY = "dovetail_team_signedout";
@@ -11752,20 +11803,116 @@
       if (teamModalOpen()) renderTeamPanel();
     }, function () {});
   }
+  // ---- Call history ----
+  // Calls are saved in small records, one per rep per hour: callDays/{date}_{uid}_{HH} (UTC). One record per office
+  // per day hit the database's per-record limit at about 1,500 calls, and every phone re-downloaded the whole
+  // growing record after each call. Records from older builds (callDays/{date}, callDays/{date}_{uid}) start
+  // with the same date, so the same date-range queries read them too.
+  // Only today and yesterday are live. Older days don't change: each phone downloads them once, keeps them in its
+  // database cache, and holds a compact copy in memory. Reps keep 14 days; admins and managers 31 (for reports).
+  // Per-day totals for the owner console live in callDays/n_{date} (a counter, so nothing else is downloaded).
+  function callDayId(timestamp, uidv) {
+    var ts = String(timestamp);
+    return ts.slice(0, 10) + "_" + (uidv || "team") + "_" + (/^\d{4}-\d\d-\d\dT\d\d/.test(ts) ? ts.slice(11, 13) : "00");
+  }
+  function callWindowDays() { return TEAM.on && TEAM.me && (isAdmin() || isManager()) ? 31 : 14; }
+  function cmpCallTs(a, b) { var x = a.timestamp, y = b.timestamp; return x < y ? -1 : x > y ? 1 : 0; }
+  var callStrs = new Map(), callBys = new Map(), CALL_SHARED = { leadId: 1, name: 1, phone: 1, phoneRaw: 1, outcomeKey: 1, outcome: 1, notes: 1, list: 1 };
+  function compactCall(id, c) {
+    var o = {};
+    Object.keys(c).forEach(function (k) {
+      var v = c[k];
+      if (k === "by" && v && typeof v === "object") {
+        var bk = v.uid + "\u0001" + (v.name || ""), b = callBys.get(bk);
+        if (!b) { b = { uid: v.uid, name: v.name }; callBys.set(bk, b); }
+        o.by = b;
+      } else if (CALL_SHARED[k] && typeof v === "string" && v.length <= 160) {
+        var sv = callStrs.get(v);
+        if (sv === undefined) callStrs.set(v, sv = v);
+        o[k] = sv;
+      } else o[k] = v;
+    });
+    o.id = id;
+    return o;
+  }
+  function teamForgetHistory() {
+    TEAM.hist = []; TEAM.histKey = ""; TEAM.histLoading = ""; TEAM.histIds = null; TEAM.histByLead = null; TEAM.logRef = null; TEAM.logHistLen = 0;
+    callStrs = new Map(); callBys = new Map();
+  }
+  function histStoreKey() { return "vpex_hist_" + (TEAM.office || "team") + "_" + (TEAM.me ? TEAM.me.uid : ""); }
+  async function teamLoadHistory() {
+    if (!TEAM.me || !TEAM.db) return;
+    var DAYMS = 86400000, now = Date.now(), win = callWindowDays();
+    var from = dayKey(new Date(now - (win - 1) * DAYMS)), last = dayKey(new Date(now - 2 * DAYMS));
+    var key = from + "|" + last + "|" + win, me = TEAM.me;
+    if (from > last || TEAM.histKey === key || TEAM.histLoading === key) return;
+    TEAM.histLoading = key;
+    try {
+      var ID = firebase.firestore.FieldPath.documentId(), col = tcol("callDays"), docs = {}, have = {};
+      try { have = JSON.parse(window.localStorage.getItem(histStoreKey()) || "{}") || {}; } catch (e) { have = {}; }
+      try {
+        var cs = await col.where(ID, ">=", from).where(ID, "<=", last + "\uf8ff").get({ source: "cache" });
+        cs.forEach(function (d) { docs[d.id] = d.data() || {}; });
+      } catch (e) {}
+      var inCache = {};
+      Object.keys(docs).forEach(function (id) { var k = id.slice(0, 10); inCache[k] = (inCache[k] || 0) + 1; });
+      // Days this phone hasn't downloaded, whose records the cache dropped, or that may still be settling: a phone
+      // that was offline saves its calls late, so a day counts as final once it was fetched 3+ days after it.
+      var spans = [], t0 = Date.parse(from + "T00:00:00Z"), todayK = dayKey(new Date(now));
+      for (var t = t0; ; t += DAYMS) {
+        var k = dayKey(new Date(t)); if (k > last) break;
+        var hv = have[k];
+        if (Array.isArray(hv) && (inCache[k] || 0) >= hv[0] && (hv[1] === todayK || hv[1] >= dayKey(new Date(t + 3 * DAYMS)))) continue;
+        var sp = spans[spans.length - 1];
+        if (sp && dayKey(new Date(Date.parse(sp[1] + "T00:00:00Z") + DAYMS)) === k) sp[1] = k; else spans.push([k, k]);
+      }
+      for (var i = 0; i < spans.length; i++) {
+        var ss = null;
+        try { ss = await col.where(ID, ">=", spans[i][0]).where(ID, "<=", spans[i][1] + "\uf8ff").get(); } catch (e) { continue; }   // offline: use what the phone has
+        var cnt = {}, offline = !!(ss.metadata && ss.metadata.fromCache);
+        for (var u = Date.parse(spans[i][0] + "T00:00:00Z"); dayKey(new Date(u)) <= spans[i][1]; u += DAYMS) cnt[dayKey(new Date(u))] = 0;
+        ss.forEach(function (d) { docs[d.id] = d.data() || {}; var dk = d.id.slice(0, 10); cnt[dk] = (cnt[dk] || 0) + 1; });
+        if (!offline) Object.keys(cnt).forEach(function (dk) { have[dk] = [cnt[dk], todayK]; });   // only a server answer marks days as downloaded
+      }
+      if (TEAM.me !== me) return;
+      Object.keys(have).forEach(function (dk) { if (dk < from) delete have[dk]; });
+      try { window.localStorage.setItem(histStoreKey(), JSON.stringify(have)); } catch (e) {}
+      var out = [], seen = {};
+      Object.keys(docs).forEach(function (id) {
+        if (id.slice(0, 10) < from) return;
+        var m = docs[id].calls || {};
+        Object.keys(m).forEach(function (cid) { if (seen[cid]) return; seen[cid] = 1; out.push(compactCall(cid, m[cid])); });
+      });
+      out.sort(cmpCallTs);
+      TEAM.hist = out; TEAM.histIds = null; TEAM.histByLead = null; TEAM.histKey = key;
+      teamRebuildCalls();
+    } catch (e) {
+      // history fills in on the next try (every 10 minutes, or the next time the app opens)
+    } finally { if (TEAM.histLoading === key) TEAM.histLoading = ""; }
+  }
   function teamWatchDays() {
     if (!TEAM.me) return;
-    var want = {};
-    for (var i = -1; i < CALL_DAYS; i++) want[dayKey(new Date(Date.now() - i * 86400000))] = true;
-    Object.keys(TEAM.dayUnsub).forEach(function (k) {
-      if (!want[k]) { TEAM.dayUnsub[k](); delete TEAM.dayUnsub[k]; delete TEAM.days[k]; }
-    });
-    Object.keys(want).forEach(function (k) {
-      if (TEAM.dayUnsub[k]) return;
-      TEAM.dayUnsub[k] = tcol("callDays").doc(k).onSnapshot(function (snap) {
-        TEAM.days[k] = snap.exists ? ((snap.data() || {}).calls || {}) : {};
+    var DAYMS = 86400000, now = Date.now();
+    var from = dayKey(new Date(now - DAYMS)), to = dayKey(new Date(now + DAYMS)) + "\uf8ff", range = from + "|" + to;
+    if (!(TEAM.dayUnsub.__range && TEAM.dayRange === range)) {
+      Object.keys(TEAM.dayUnsub).forEach(function (k) { try { TEAM.dayUnsub[k](); } catch (e) {} });
+      TEAM.dayUnsub = {}; TEAM.dayRange = range;
+      var ID = firebase.firestore.FieldPath.documentId(), first = true;
+      TEAM.dayUnsub.__range = tcol("callDays").where(ID, ">=", from).where(ID, "<=", to).onSnapshot(function (snap) {
+        var ch = typeof snap.docChanges === "function" ? snap.docChanges() : null;
+        if (first || !ch) {
+          first = false;
+          var days = {};
+          snap.forEach(function (d) { days[d.id] = (d.data() || {}).calls || {}; });
+          TEAM.days = days;
+        } else {
+          if (!ch.length) return;
+          ch.forEach(function (c) { if (c.type === "removed") delete TEAM.days[c.doc.id]; else TEAM.days[c.doc.id] = (c.doc.data() || {}).calls || {}; });
+        }
         teamRebuildCalls();
       }, teamListenError);
-    });
+    }
+    teamLoadHistory();
   }
   // ---- Work location (In office / Remote / Out of office) and note activity, kept per day ----
   var LOCS = { office: "In office", remote: "Remote", out: "Out of office" };
@@ -11831,24 +11978,32 @@
 
   function teamRebuildCalls() {
     teamActListen();
-    var all = [];
+    var live = [], have = {};
     Object.keys(TEAM.days).forEach(function (k) {
       var m = TEAM.days[k];
-      Object.keys(m).forEach(function (id) { var c = m[id]; c.id = id; all.push(c); });
+      Object.keys(m).forEach(function (id) { if (have[id]) return; have[id] = true; var c = m[id]; c.id = id; live.push(c); });
     });
-    var have = {}; all.forEach(function (c) { have[c.id] = true; });
-    (state.pendingCalls || []).forEach(function (c) { if (!have[c.id]) all.push(c); });
-    all.sort(function (a, b) { return new Date(a.timestamp) - new Date(b.timestamp); });
-    state.callLog = all;
+    var pend = state.pendingCalls || [], hist = TEAM.hist || [];
+    if (pend.length) {
+      if (!TEAM.histIds) { TEAM.histIds = {}; hist.forEach(function (c) { TEAM.histIds[c.id] = true; }); }
+      pend.forEach(function (c) { if (!have[c.id] && !TEAM.histIds[c.id]) { have[c.id] = true; live.push(c); } });
+    }
+    live.sort(cmpCallTs);
+    // history days all come before the live days, so the joined log is already in order
+    state.callLog = hist.length ? hist.concat(live) : live;
+    TEAM.logRef = state.callLog; TEAM.logHistLen = hist.length;
     teamRenderSoon();
   }
   function teamLogCall(entry) {
-    var ref = tcol("callDays").doc(String(entry.timestamp).slice(0, 10));
+    var ref = tcol("callDays").doc(callDayId(entry.timestamp, (entry.by && entry.by.uid) || (TEAM.me && TEAM.me.uid)));
     var clean = JSON.parse(JSON.stringify(entry));
     var upd = {}; upd["calls." + fp(entry.id)] = clean;
     ref.update(upd).catch(function (e) {
       if (e && e.code === "not-found") { var obj = { calls: {} }; obj.calls[entry.id] = clean; return ref.set(obj, { merge: true }); }
       throw e;
+    }).then(function () {
+      // the day's call total (the owner console reads these instead of every call)
+      tcol("callDays").doc("n_" + String(entry.timestamp).slice(0, 10)).set({ calls: {}, c: firebase.firestore.FieldValue.increment(1) }, { merge: true }).catch(function () {});
     }).catch(function (e) {
       if (!state.pendingCalls) state.pendingCalls = [];
       if (!state.pendingCalls.some(function (c) { return c.id === entry.id; })) state.pendingCalls.push(clean);
@@ -11859,23 +12014,38 @@
   }
 
   // Apply the shared lead list. Local edits not yet saved are kept, so nothing typed is lost.
+  // Only the lead records that changed since the last update are re-read and re-compared. (A busy office changes
+  // a record on every call; re-checking every lead each time slowed every phone as the list grew.)
   function teamApplyChunks(qs) {
+    var changed = {}, cache = TEAM.chunkCache;
+    if (!cache || typeof qs.docChanges !== "function") {
+      cache = TEAM.chunkCache = {};
+      qs.docs.forEach(function (d) { cache[d.id] = d.data() || {}; changed[d.id] = true; });
+    } else qs.docChanges().forEach(function (ch) {
+      var id = ch.doc.id; changed[id] = true;
+      if (ch.type === "removed") delete cache[id]; else cache[id] = ch.doc.data() || {};
+    });
     var remote = {}, sizes = {};
-    qs.docs.forEach(function (d) {
-      if (d.id.charAt(0) === "_") { if (d.id === "_team") TEAM.infoCfg = d.data() || {}; if (d.id === "_dnc") TEAM.dnc = (d.data() || {}).nums || {}; return; }
-      var leads = (d.data() || {}).leads || {};
-      sizes[d.id] = Object.keys(leads).length;
-      Object.keys(leads).forEach(function (id) { remote[id] = { ck: d.id, v: leads[id] }; });
+    TEAM.chunkBytesDirty = TEAM.chunkBytesDirty || {};
+    Object.keys(cache).forEach(function (ck) {
+      var data = cache[ck];
+      if (ck.charAt(0) === "_") { if (changed[ck]) { if (ck === "_team") TEAM.infoCfg = data; if (ck === "_dnc") TEAM.dnc = data.nums || {}; } return; }
+      var leads = data.leads || {};
+      sizes[ck] = Object.keys(leads).length;
+      if (changed[ck]) TEAM.chunkBytesDirty[ck] = true;
+      Object.keys(leads).forEach(function (id) { remote[id] = { ck: ck, v: leads[id] }; });
     });
     TEAM.chunkSizes = sizes;
     if (TEAM.on && TEAM.me && isAdmin() && !TEAM.rebalancing && Date.now() - (TEAM.sizeCheckAt || 0) > 30000) {
-      TEAM.sizeCheckAt = Date.now(); TEAM.chunkBytes = {};
+      TEAM.sizeCheckAt = Date.now(); TEAM.chunkBytes = TEAM.chunkBytes || {};
+      Object.keys(TEAM.chunkBytesDirty).forEach(function (ck) {
+        if (cache[ck] && ck.charAt(0) !== "_") TEAM.chunkBytes[ck] = JSON.stringify(cache[ck].leads || {}).length; else delete TEAM.chunkBytes[ck];
+      });
+      TEAM.chunkBytesDirty = {};
       var heavy = null;
-      qs.docs.forEach(function (d) {
-        if (d.id.charAt(0) === "_") return;
-        var lv = (d.data() || {}).leads || {}, bytes = JSON.stringify(lv).length;
-        TEAM.chunkBytes[d.id] = bytes;
-        if (bytes > 600000 && (!heavy || bytes > heavy.bytes)) heavy = { ck: d.id, leads: lv, bytes: bytes };
+      Object.keys(TEAM.chunkBytes).forEach(function (ck) {
+        var bytes = TEAM.chunkBytes[ck];
+        if (cache[ck] && bytes > 600000 && (!heavy || bytes > heavy.bytes)) heavy = { ck: ck, leads: cache[ck].leads || {}, bytes: bytes };
       });
       if (heavy) setTimeout(function () { teamRebalance(heavy.ck, heavy.leads); }, 0);
     }
@@ -11885,9 +12055,12 @@
     var keep = [], fresh = [], tasks = [], texts = [];
     function take(ts, xs) { tasks.push.apply(tasks, ts || []); texts.push.apply(texts, xs || []); }
     Object.keys(remote).forEach(function (id) {
-      var r = remote[id], local = localById[id];
-      if (TEAM.forceRemote && TEAM.forceRemote[id]) { delete TEAM.forceRemote[id]; }
-      else if (local && TEAM.lastSent[id] !== undefined && stableJson(teamPayload(local, tBy[id], xBy[id])) !== TEAM.lastSent[id]) {
+      var r = remote[id], local = localById[id], force = TEAM.forceRemote && TEAM.forceRemote[id];
+      // its record didn't change: the phone's copy is already the latest (plus any edits not yet saved)
+      if (local && !force && !changed[r.ck]) { local.ck = r.ck; keep.push(local); take(tBy[id], xBy[id]); return; }
+      if (!local && !force && TEAM.lastSent[id] !== undefined && isAdmin()) return;   // removed on this phone; the next save deletes it
+      if (force) { delete TEAM.forceRemote[id]; }
+      else if (local && TEAM.lastSent[id] !== undefined && leadUnsaved(local, tBy[id], xBy[id])) {
         local.ck = r.ck; keep.push(local); take(tBy[id], xBy[id]); return;
       }
       var v = r.v || {}, lead = {};
@@ -11895,7 +12068,8 @@
       lead.id = id; lead.ck = r.ck;
       var ts = (v.tasks || []).map(function (t) { t.leadId = id; return t; });
       var xs = (v.texts || []).map(function (x) { x.leadId = id; return x; });
-      TEAM.lastSent[id] = stableJson(teamPayload(lead, ts, xs));
+      var pl = teamPayload(lead, ts, xs);
+      TEAM.lastSent[id] = stableJson(pl); TEAM.fastSig[id] = JSON.stringify(pl);
       TEAM.lastCk[id] = r.ck;
       (local ? keep : fresh).push(lead);
       take(ts, xs);
@@ -11903,7 +12077,7 @@
     state.leads.forEach(function (l) {
       if (!remote[l.id] && TEAM.lastSent[l.id] === undefined) { keep.push(l); take(tBy[l.id], xBy[l.id]); }
     });
-    Object.keys(TEAM.lastSent).forEach(function (id) { if (!remote[id]) { delete TEAM.lastSent[id]; delete TEAM.lastCk[id]; } });
+    Object.keys(TEAM.lastSent).forEach(function (id) { if (!remote[id]) { delete TEAM.lastSent[id]; delete TEAM.fastSig[id]; delete TEAM.lastCk[id]; } });
     keep.sort(function (a, b) { return (pos[a.id] === undefined ? 1e9 : pos[a.id]) - (pos[b.id] === undefined ? 1e9 : pos[b.id]); });
     fresh.sort(function (a, b) { return ((b.front ? 1 : 0) - (a.front ? 1 : 0)) || ((a.seq || 0) - (b.seq || 0)); });
     state.leads = fresh.filter(function (l) { return l.front; }).concat(keep, fresh.filter(function (l) { return !l.front; }));
@@ -11951,13 +12125,13 @@
       try { var snap = await chunkRef(r.ck).get({ source: "server" }); remote = snap.exists ? ((snap.data() || {}).leads || {}) : {}; }
       catch (e) { continue; }
       r.ids.forEach(function (id) {
-        if (remote[id]) { TEAM.forceRemote[id] = true; TEAM.lastSent[id] = "__refresh__"; return; }
+        if (remote[id]) { TEAM.forceRemote[id] = true; TEAM.lastSent[id] = "__refresh__"; delete TEAM.fastSig[id]; return; }
         state.leads = state.leads.filter(function (l) { return l.id !== id; });
         state.tasks = state.tasks.filter(function (t) { return t.leadId !== id; });
         state.texts = state.texts.filter(function (x) { return x.leadId !== id; });
         if (state.focusLeadId === id) { state.focusLeadId = null; state.focusTaskId = null; }
         if (state.activeLeadId === id) { state.activeLeadId = null; state.awaitingOutcome = false; }
-        delete TEAM.lastSent[id]; delete TEAM.lastCk[id];
+        delete TEAM.lastSent[id]; delete TEAM.fastSig[id]; delete TEAM.lastCk[id];
       });
     }
     teamRestartListeners();
@@ -12009,13 +12183,16 @@
     if (TEAM.rebalancing) { setTimeout(teamFlush, 800); return; }   // a record split is moving leads; save right after
     if (TEAM.flushing) { TEAM.again = true; return; }
     TEAM.flushing = true;
-    var byChunk = {}, sent = {}, dels = {};
+    var byChunk = {}, sent = {}, sentFast = {}, dels = {};
     try {
       var tBy = groupByLead(state.tasks), xBy = groupByLead(state.texts), present = {};
       state.leads.forEach(function (l) {
         present[l.id] = true;
-        var p = teamPayload(l, tBy[l.id], xBy[l.id]), js = stableJson(p);
-        if (js === TEAM.lastSent[l.id]) return;
+        var p = teamPayload(l, tBy[l.id], xBy[l.id]), fast = JSON.stringify(p);
+        if (TEAM.fastSig[l.id] === fast) return;
+        var js = stableJson(p);
+        if (js === TEAM.lastSent[l.id]) { TEAM.fastSig[l.id] = fast; return; }
+        sentFast[l.id] = fast;
         if (!l.ck) l.ck = isAdmin() ? teamPickChunk() : "r_" + TEAM.me.uid;
         (byChunk[l.ck] = byChunk[l.ck] || {})["leads." + fp(l.id)] = p;
         sent[l.id] = js;
@@ -12041,8 +12218,8 @@
         }
         Object.keys(upd).forEach(function (k) {
           var id = k.slice(6).replace(/`/g, "");
-          if (dels[id]) { delete TEAM.lastSent[id]; delete TEAM.lastCk[id]; }
-          else if (sent[id]) { TEAM.lastSent[id] = sent[id]; TEAM.lastCk[id] = ck; }
+          if (dels[id]) { delete TEAM.lastSent[id]; delete TEAM.fastSig[id]; delete TEAM.lastCk[id]; }
+          else if (sent[id]) { TEAM.lastSent[id] = sent[id]; TEAM.fastSig[id] = sentFast[id]; TEAM.lastCk[id] = ck; }
         });
       }
       if (rejected.length) teamReconcileRejected(rejected);
@@ -12086,7 +12263,7 @@
       if (res.ok) {
         lead.claim = mine;
         TEAM.myClaimId = lead.id;
-        try { var base = JSON.parse(TEAM.lastSent[lead.id] || "null"); if (base) { base.claim = mine; TEAM.lastSent[lead.id] = stableJson(base); } } catch (e) {}
+        try { var base = JSON.parse(TEAM.lastSent[lead.id] || "null"); if (base) { base.claim = mine; TEAM.lastSent[lead.id] = stableJson(base); delete TEAM.fastSig[lead.id]; } } catch (e) {}
         return;
       }
       if (res.by) lead.claim = res.by;
@@ -12146,7 +12323,7 @@
         var e = JSON.parse(JSON.stringify(c));
         e.id = e.id || uid();
         if (!e.by) e.by = meRef();
-        var k = String(e.timestamp || "").slice(0, 10) || dayKey(new Date());
+        var k = callDayId(/^\d{4}-\d\d-\d\d/.test(String(e.timestamp || "")) ? e.timestamp : new Date().toISOString(), e.by && e.by.uid);
         (days[k] = days[k] || {})[e.id] = e;
       });
       var dk = Object.keys(days);
@@ -13814,7 +13991,7 @@
     });
     var rows = Object.keys(lists).map(function (k) { var r = lists[k]; r.per100 = r.calls ? r.interested / r.calls * 100 : 0; r.perLead = r.leads ? r.committed / r.leads : 0; return r; })
       .sort(function (a, b) { return (b.perLead - a.perLead) || (b.per100 - a.per100); });
-    featOpen('<h3>List ROI</h3><p class="modal-sub">Which lead lists produce investors. Calls and interested leads are from the last ' + CALL_DAYS + ' days; committed dollars are all-time.</p>' +
+    featOpen('<h3>List ROI</h3><p class="modal-sub">Which lead lists produce investors. Calls and interested leads are from the last ' + callWindowDays() + ' days; committed dollars are all-time.</p>' +
       rows.map(function (r, n) {
         return '<div class="coach-card' + (n === 0 && rows.length > 1 && (r.committed || r.interested) ? ' team' : '') + '"><div class="coach-top"><b>' + escapeHtml(r.name) + '</b><span>' + r.leads + ' leads \u00b7 ' + Object.keys(r.dialed).length + ' dialed</span></div>' +
           '<div class="sb-stats"><span><b>' + r.calls + '</b> calls</span><span><b>' + pctN(r.reached, r.calls) + '%</b> conversations</span>' +
@@ -13976,8 +14153,8 @@
     await Promise.all(qs.docs.map(async function (doc) {
       var d = doc.data() || {}, o = { id: doc.id, d: d, st: officeState(d, now), reps: 0, calls: 0, last: 0 };
       try { var ms = await db.collection("offices").doc(doc.id).collection("members").get(); ms.docs.forEach(function (m) { var x = m.data() || {}; if (x.active) o.reps++; if ((x.lastSeen || 0) > o.last) o.last = x.lastSeen; }); } catch (e) {}
-      try { var snaps = await Promise.all(days.map(function (k) { return db.collection("offices").doc(doc.id).collection("callDays").doc(k).get(); }));
-        snaps.forEach(function (sn) { if (sn.exists) o.calls += Object.keys((sn.data() || {}).calls || {}).length; }); } catch (e) {}
+      try { var cn = await Promise.all(days.map(function (k) { return db.collection("offices").doc(doc.id).collection("callDays").doc("n_" + k).get(); }));
+        cn.forEach(function (sn) { if (sn.exists) o.calls += Number((sn.data() || {}).c) || 0; }); } catch (e) {}
       out.push(o);
     }));
     var rank = { grace: 0, pastdue: 0, locked: 1, trial: 2, paid: 3, free: 4, paused: 5 };
