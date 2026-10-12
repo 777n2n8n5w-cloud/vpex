@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-11-28">
+<meta name="vpex-build" content="2026-11-29">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -5912,11 +5912,13 @@
   .oc-name span { font-size: 12px; color: var(--text-faint); overflow-wrap: anywhere; }
   .oc-chip { flex: none; padding: 3px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 700; border: 1px solid currentColor; white-space: nowrap; }
   .oc-trial { color: var(--callback); } .oc-paid { color: var(--interested); } .oc-warn { color: var(--voicemail); } .oc-off { color: var(--notinterested); }
+  .oc-auto { margin-top: 6px; font-size: 12.5px; font-weight: 600; color: var(--interested); }
   .oc-meta { margin: 8px 0 10px; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); }
   .oc-acts { display: flex; flex-wrap: wrap; gap: 6px; }
   .oc-acts .btn-primary, .oc-acts .btn-secondary { flex: 0 0 auto; width: auto; min-width: 0; margin: 0; padding: 9px 13px; font-size: 13px; white-space: nowrap; }
-  .oc-acts [data-oc-act="delete"] { color: var(--danger); border-color: var(--danger); background: transparent; }
-  .oc-acts [data-oc-act="delete"] { color: var(--danger); border-color: var(--danger); background: transparent; }
+  .bl-status { padding: 14px 16px; border-radius: var(--radius-m, 14px); border: 1px solid var(--border); background: var(--surface-raised); display: flex; flex-direction: column; gap: 4px; }
+  .bl-status b { font-size: 16px; }
+  .bl-status span { font-size: 13px; color: var(--text-dim); }
   .oc-acts [data-oc-act="delete"] { color: var(--danger); border-color: var(--danger); background: transparent; }
   .oc-bill label { display: block; font-size: 12.5px; font-weight: 600; color: var(--text-dim); margin: 12px 0 5px; }
   .oc-bill input { -webkit-appearance: none; appearance: none; width: 100%; box-sizing: border-box; background: var(--surface-raised); border: 1px solid var(--border);
@@ -11462,12 +11464,32 @@
     if (now < d.trialEnds + GRACE) return { kind: "grace", days: Math.ceil((d.trialEnds + GRACE - now) / DAY) };
     return { kind: "locked", days: 0 };
   }
+  var PAID_KEY = "vpex_paid_at";
+  (function () { try { var q = new URLSearchParams(location.search); if (q.get("paid") === "1") { window.sessionStorage.setItem(PAID_KEY, String(Date.now())); q.delete("paid");
+    history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q.toString() : "") + location.hash); } } catch (e) {} })();
+  function justPaid() { try { var t = Number(window.sessionStorage.getItem(PAID_KEY) || 0); return t && Date.now() - t < 15 * 60000; } catch (e) { return false; } }
+  function autoBilled(d) { return !!(d && d.stripeSub && !d.cancelled); }
   function myOfficeState() { return TEAM.office && TEAM.officeDoc ? officeState(TEAM.officeDoc) : null; }
   function officePrice(d) { var b = TEAM.billing || {}; return d && d.founding ? Number(b.foundingPrice || 29) : Number(b.price || 49); }
   function payUrl(d, office) {
     var b = TEAM.billing || {}, link = d && d.founding ? (b.foundingLink || b.payLink) : (b.payLink || b.foundingLink);
     if (!link) return "";
     return link + (link.indexOf("?") < 0 ? "?" : "&") + "client_reference_id=" + encodeURIComponent(office);
+  }
+  function openBilling() {
+    var d = TEAM.officeDoc || {}, st = myOfficeState() || { kind: "trial", days: 0 }, b = TEAM.billing || {};
+    var date = function (t) { return new Date(t).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }); };
+    var dd = function (n) { return n + " day" + (n === 1 ? "" : "s"); };
+    var line = { trial: "Free trial \u00b7 " + dd(st.days) + " left", grace: "Trial ended \u00b7 " + dd(st.days) + " to add payment", locked: "Paused until payment is added",
+      paid: d.paidThrough ? (autoBilled(d) ? "Paid \u00b7 renews automatically around " + date(d.paidThrough) : "Paid through " + date(d.paidThrough)) : "Paid",
+      pastdue: "Payment due \u00b7 " + dd(st.days) + " left before the office pauses", free: "Free plan", paused: "Paused by VPEX" }[st.kind] || "";
+    var showPay = st.kind !== "paused" && st.kind !== "free" && !autoBilled(d);
+    featOpen('<h3>Billing</h3><p class="modal-sub">' + escapeHtml(d.name || officeTitle(TEAM.office)) + '</p>' +
+      '<div class="bl-status"><b>' + escapeHtml(line) + '</b><span>$' + officePrice(d) + ' per rep per month' + (d.founding ? ' (founding price)' : '') + (d.seatsPaid ? ' \u00b7 ' + d.seatsPaid + ' rep' + (d.seatsPaid === 1 ? '' : 's') + ' paid for' : '') + (d.cancelled ? ' \u00b7 cancelled' : '') + '</span></div>' +
+      (showPay ? '<button class="btn-primary" id="blPay" type="button" style="width:100%;margin-top:14px">Add payment</button>' : '') +
+      (b.portalLink && d.stripeCustomer ? '<a class="btn-secondary" id="blManage" href="' + escapeHtml(b.portalLink) + '" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:10px">Manage billing</a><p class="oc-note">Update your card, download invoices, change how many reps you pay for, or cancel. Stripe emails you a sign-in link.</p>' : '') +
+      '<p class="oc-note">Payments are handled by Stripe. VPEX never sees your card number.</p>');
+    var bp = document.getElementById("blPay"); if (bp) bp.addEventListener("click", payNow);
   }
   function payNow() {
     var u = payUrl(TEAM.officeDoc, TEAM.office);
@@ -11481,6 +11503,7 @@
   function billingPillsHtml() {
     var st = myOfficeState(); if (!st) return "";
     var d = function (n) { return n + " day" + (n === 1 ? "" : "s"); };
+    if (autoBilled(TEAM.officeDoc) && st.kind !== "pastdue") return "";
     if (st.kind === "trial" && st.days <= 5 && isAdmin()) return '<button class="need-pill" type="button" data-need="pay">Trial \u00b7 ' + d(st.days) + ' left \u00b7 Add payment</button>';
     if (st.kind === "grace") return isAdmin() ? '<button class="need-pill warn" type="button" data-need="pay">Trial ended \u00b7 ' + d(st.days) + ' to add payment</button>' : '<span class="need-pill warn">Trial ended \u00b7 ask your admin to add payment</span>';
     if (st.kind === "pastdue") return isAdmin() ? '<button class="need-pill warn" type="button" data-need="pay">Payment due \u00b7 ' + d(st.days) + ' left</button>' : "";
@@ -11489,6 +11512,8 @@
   function updatePaused() {
     var el = document.getElementById("pausedScreen"); if (!el) return;
     var st = myOfficeState(), show = !!(TEAM.me && st && (st.kind === "locked" || st.kind === "paused"));
+    if (!show && TEAM.wasPaused && justPaid()) { try { window.sessionStorage.removeItem(PAID_KEY); } catch (e) {} showToast("Payment received. VPEX is unlocked \u00b7 Thank you!"); }
+    TEAM.wasPaused = show;
     el.style.display = show ? "" : "none";
     if (!show) return;
     var name = (TEAM.officeDoc && TEAM.officeDoc.name) || officeTitle(TEAM.office), admin = isAdmin();
@@ -11497,7 +11522,8 @@
       ? "Your office\u2019s access is paused. Your leads, notes and call history are all saved. Reach out to VPEX to switch it back on."
       : admin ? "Your free trial has ended. Add payment to pick up exactly where you left off. Your leads, notes and call history are all saved."
               : "Your office\u2019s free trial has ended. Ask your admin to add payment. Everything you\u2019ve done is saved.";
-    document.getElementById("psPay").style.display = admin && st.kind !== "paused" ? "" : "none";
+    document.getElementById("psPay").style.display = admin && st.kind !== "paused" && !justPaid() ? "" : "none";
+    if (justPaid() && st.kind !== "paused") document.getElementById("psText").textContent = "Payment received. Your office unlocks as soon as Stripe confirms it, usually within a minute. Your leads, notes and call history are all saved.";
     document.getElementById("psExport").style.display = admin ? "" : "none";
     document.getElementById("psPrice").textContent = admin && st.kind !== "paused" ? "$" + officePrice(TEAM.officeDoc) + " per rep per month \u00b7 cancel any time" : "";
   }
@@ -13912,6 +13938,7 @@
         var d = o.d, st = o.st, ind = INDUSTRIES[d.industry] ? INDUSTRIES[d.industry].name : (d.industry || "");
         return '<div class="oc-card" data-oc="' + escapeHtml(o.id) + '">' +
           '<div class="oc-top"><div class="oc-name"><b>' + escapeHtml(d.name || o.id) + '</b><span>' + escapeHtml(o.id) + (ind ? ' \u00b7 ' + escapeHtml(ind) : '') + '</span></div>' + ocStatusChip(st, d) + '</div>' +
+          (d.stripeSub ? '<div class="oc-auto">' + (d.cancelled ? 'Cancelled in Stripe' : 'Card on file \u00b7 renews automatically') + (d.seatsPaid ? ' \u00b7 ' + d.seatsPaid + ' rep' + (d.seatsPaid === 1 ? '' : 's') + ' paid' : '') + '</div>' : '') +
           '<div class="oc-meta">' + o.reps + ' rep' + (o.reps === 1 ? '' : 's') + ' \u00b7 ' + o.calls + ' calls this week \u00b7 last active ' + escapeHtml(dt(o.last)) + ' \u00b7 $' + officePrice(d) + '/rep' + (d.founding ? ' (founding)' : '') + ' \u00b7 ' + (st.kind === "paid" || st.kind === "pastdue" ? '$' + (o.reps * officePrice(d)).toLocaleString() + '/mo' : 'joined ' + escapeHtml(dt(d.createdAt))) + '</div>' +
           '<div class="oc-acts">' +
             '<button type="button" class="btn-primary" data-oc-act="paid">' + (d.plan === "paid" ? '+1 month paid' : 'Mark paid') + '</button>' +
@@ -13928,16 +13955,17 @@
         '<label for="ocLink">Stripe payment link</label><input id="ocLink" type="url" autocapitalize="none" spellcheck="false" placeholder="https://buy.stripe.com/..." value="' + escapeHtml(b.payLink || "") + '">' +
         '<label for="ocFPrice">Founding price per rep / month ($)</label><input id="ocFPrice" type="number" inputmode="numeric" value="' + escapeHtml(String(b.foundingPrice || 29)) + '">' +
         '<label for="ocFLink">Founding payment link</label><input id="ocFLink" type="url" autocapitalize="none" spellcheck="false" placeholder="https://buy.stripe.com/..." value="' + escapeHtml(b.foundingLink || "") + '">' +
+        '<label for="ocPortal">Customer portal link (Manage billing)</label><input id="ocPortal" type="url" autocapitalize="none" spellcheck="false" placeholder="https://billing.stripe.com/p/login/..." value="' + escapeHtml(b.portalLink || "") + '">' +
         '<div class="field-error" id="ocErr"></div><button class="btn-primary" id="ocSave" type="button" style="width:100%;margin-top:12px">Save billing</button>' +
-        '<p class="oc-note">When an office pays, Stripe shows its office code as the reference. Tap Mark paid on that office here.</p>' +
+        '<p class="oc-note">Once the billing connector is set up, offices switch to paid by themselves when they pay. Without it, Stripe shows the office code as the reference: tap Mark paid on that office here.</p>' +
       '</div>';
     box.querySelectorAll("[data-oc-act]").forEach(function (btn) {
       btn.addEventListener("click", function () { ocAction(btn.closest("[data-oc]").getAttribute("data-oc"), btn.getAttribute("data-oc-act")); });
     });
     document.getElementById("ocSave").addEventListener("click", function () {
-      var v = function (id) { return document.getElementById(id).value.trim(); }, bad = [v("ocLink"), v("ocFLink")].some(function (x) { return x && !/^https:\/\//.test(x); });
-      if (bad) { document.getElementById("ocErr").textContent = "Payment links start with https://"; return; }
-      var val = { price: Number(v("ocPrice")) || 49, payLink: v("ocLink"), foundingPrice: Number(v("ocFPrice")) || 29, foundingLink: v("ocFLink"), updatedAt: Date.now() };
+      var v = function (id) { return document.getElementById(id).value.trim(); }, bad = [v("ocLink"), v("ocFLink"), v("ocPortal")].some(function (x) { return x && !/^https:\/\//.test(x); });
+      if (bad) { document.getElementById("ocErr").textContent = "Links start with https://"; return; }
+      var val = { price: Number(v("ocPrice")) || 49, payLink: v("ocLink"), foundingPrice: Number(v("ocFPrice")) || 29, foundingLink: v("ocFLink"), portalLink: v("ocPortal"), updatedAt: Date.now() };
       TEAM.db.collection("config").doc("billing").set(val, { merge: true }).then(function () { TEAM.billing = Object.assign({}, TEAM.billing, val); showToast("Billing saved"); ocRender(); },
         function () { document.getElementById("ocErr").textContent = "Couldn\u2019t save. Check your connection and that the new security rules are published."; });
     });
@@ -14794,6 +14822,7 @@
           secCfg().requireLock ? "Face ID required for everyone" : "Face ID lock for your team", secCfg().requireLock ? "On" : ""),
         admin && row("hubExport", '<path d="M12 4v11M7 10l5 5 5-5"/><path d="M5 20h14"/>', "Export call log", "A CSV of every call"),
         admin && row("hubBackup", '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 4v6h8V4"/>', "Full backup", "Leads, calls and follow-ups in one file"),
+        admin && TEAM.office && row("hubBilling", '<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><path d="M7 15h3"/>', "Billing", "Plan, payment and invoices"),
         admin && isOwnerMaster() && row("hubOffices", '<path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 9h.01M15 9h.01M9 13h.01M15 13h.01M9 17h.01M15 17h.01"/>', "VPEX offices", "Every customer office, trials and billing"),
         admin && isOwnerMaster() && row("hubCustomer", '<rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 18v3"/>', "Customer copy", "Branded app for another office")
       ]]
@@ -14854,6 +14883,7 @@
     (document.getElementById("hubLists") || document.createElement("i")).addEventListener("click", openLists);
     var hcu = document.getElementById("hubCustomer"); if (hcu) hcu.addEventListener("click", openCustomerCopy);
     var hof = document.getElementById("hubOffices"); if (hof) hof.addEventListener("click", openOwnerConsole);
+    var hbl = document.getElementById("hubBilling"); if (hbl) hbl.addEventListener("click", function () { closeAdminHub(); openBilling(); });
     (document.getElementById("hubAnswers") || document.createElement("i")).addEventListener("click", function () { closeAdminHub(); openScoreboard("answers"); });
     (document.getElementById("hubLeads") || document.createElement("i")).addEventListener("click", function () { closeAdminHub(); openLoadModal(); switchTab("upload"); });
     (document.getElementById("hubExport") || document.createElement("i")).addEventListener("click", function () { closeAdminHub(); document.getElementById("menuExportBtn").click(); });
