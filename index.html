@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-11-27">
+<meta name="vpex-build" content="2026-11-28">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -11334,7 +11334,7 @@
     document.getElementById("authSignup").style.display = view === "signup" ? "" : "none";
     document.getElementById("authJoin").style.display = view === "join" ? "" : "none";
     var ow = document.getElementById("authOfficeWrap"), oi = document.getElementById("authOffice");
-    ow.style.display = signin && !setup && (OFFICE || !legacyPhone()) ? "" : "none";
+    ow.style.display = signin && !setup && !/legacy/i.test(location.hash + location.search) && (OFFICE || !legacyPhone()) ? "" : "none";   // ?legacy=1 is the VPEX owner's sign-in
     if (OFFICE && !oi.value) oi.value = OFFICE;
     document.getElementById("authStart").style.display = signin && !setup && !CUSTOMER.firebase ? "" : "none";
     var hero = document.getElementById("authHero"), wasHero = hero.style.display !== "none";
@@ -11377,7 +11377,7 @@
       var oc = officeSlug(document.getElementById("authOffice").value);
       if (!oc) return fail("Enter your office code. It\u2019s in the invite your admin sent, or ask them for it.");
       setOffice(oc);
-    }
+    } else if (/legacy/i.test(location.hash + location.search)) setOffice(null);
     btn.disabled = true;
     if (TEAM.setupMode) {
       if (pw.length < 8) return fail("Use at least 8 characters for your password.");
