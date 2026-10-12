@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-11-29">
+<meta name="vpex-build" content="2026-11-30">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -5862,6 +5862,7 @@
   #authScreen { align-items: flex-start; }
   .auth-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .auth-card .hero-signin { margin: 0; width: auto; padding: 8px 2px; font-size: 15px; font-weight: 600; }
+  .auth-card .su-buy { width: 100%; margin-top: 14px; padding: 13px; font-size: 15px; }
   .auth-card .hero-cta { width: 100%; padding: 15px; margin: 2px 0 22px; font-size: 16px; }
   .hero { margin: 4px 0 26px; }
   .hero-h { font-family: var(--font-display, inherit); font-size: 34px; line-height: 1.05; letter-spacing: -0.02em; margin: 14px 0 12px; font-weight: 800; }
@@ -6933,6 +6934,7 @@
       <input id="suPw2" type="password" autocomplete="new-password">
       <button class="btn-primary" id="suGo">Start my free trial</button>
       <div class="auth-hint" style="text-align:center;margin-top:10px">14 days free · no card needed · your reps call from their own phones</div>
+      <button class="btn-secondary su-buy" id="suBuy" type="button">Already sold? Buy now</button>
       <button class="auth-link" id="suBack" type="button">Already have an office? Sign in</button>
     </div>
     <div id="authJoin" style="display:none">
@@ -11498,12 +11500,22 @@
     window.open(u, "_blank", "noopener");
   }
   function teamWatchBilling() {
-    TEAM.unsub.push(TEAM.db.collection("config").doc("billing").onSnapshot(function (snap) { TEAM.billing = snap.exists ? (snap.data() || {}) : {}; }, function () {}));
+    TEAM.unsub.push(TEAM.db.collection("config").doc("billing").onSnapshot(function (snap) { TEAM.billing = snap.exists ? (snap.data() || {}) : {}; TEAM.billingLoaded = true; maybeBuyNow(); }, function () {}));
+  }
+  // "Already sold? Buy now" on the sales page: the office is created, then checkout opens in the same tab
+  function maybeBuyNow() {
+    var flag = false; try { flag = window.sessionStorage.getItem("vpex_buy_now") === "1"; } catch (e) {}
+    if (!flag || !TEAM.me || !TEAM.office || !TEAM.officeDoc || !TEAM.billingLoaded || !isAdmin()) return;
+    try { window.sessionStorage.removeItem("vpex_buy_now"); } catch (e) {}
+    var u = payUrl(TEAM.officeDoc, TEAM.office);
+    if (u) { showToast("Opening secure checkout\u2026"); setTimeout(function () { location.assign(u); }, 300); }
+    else openBilling();
   }
   function billingPillsHtml() {
     var st = myOfficeState(); if (!st) return "";
     var d = function (n) { return n + " day" + (n === 1 ? "" : "s"); };
     if (autoBilled(TEAM.officeDoc) && st.kind !== "pastdue") return "";
+    if (st.kind === "trial" && st.days > 5 && isAdmin()) return '<button class="need-pill" type="button" data-need="pay">Free trial \u00b7 ' + d(st.days) + ' left \u00b7 Pay now</button>';
     if (st.kind === "trial" && st.days <= 5 && isAdmin()) return '<button class="need-pill" type="button" data-need="pay">Trial \u00b7 ' + d(st.days) + ' left \u00b7 Add payment</button>';
     if (st.kind === "grace") return isAdmin() ? '<button class="need-pill warn" type="button" data-need="pay">Trial ended \u00b7 ' + d(st.days) + ' to add payment</button>' : '<span class="need-pill warn">Trial ended \u00b7 ask your admin to add payment</span>';
     if (st.kind === "pastdue") return isAdmin() ? '<button class="need-pill warn" type="button" data-need="pay">Payment due \u00b7 ' + d(st.days) + ' left</button>' : "";
@@ -11546,6 +11558,7 @@
       } catch (e) {}
       if (teamModalOpen()) renderTeamPanel();
       updatePaused();
+      maybeBuyNow();
       teamRenderSoon();
     }, function () {}));
   }
@@ -15132,6 +15145,7 @@
     document.getElementById("suBack").addEventListener("click", function () { showAuthView("signin"); document.getElementById("authMsg").style.display = "none"; });
     document.getElementById("jnBack").addEventListener("click", function () { try { window.sessionStorage.removeItem("vpex_join"); } catch (e) {} JOIN = ""; showAuthView("signin"); document.getElementById("authMsg").style.display = "none"; });
     document.getElementById("suGo").addEventListener("click", officeSignup);
+    document.getElementById("suBuy").addEventListener("click", function () { try { window.sessionStorage.setItem("vpex_buy_now", "1"); } catch (e) {} officeSignup(); });
     var hvid = document.getElementById("heroVid");
     if (hvid) hvid.addEventListener("error", function () {   // video can't play here: show the still instead (or nothing if that's missing too)
       var im = document.createElement("img"); im.className = "hero-vid"; im.alt = ""; im.src = hvid.getAttribute("poster") || "";
