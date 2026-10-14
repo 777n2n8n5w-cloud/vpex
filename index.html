@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-12-06">
+<meta name="vpex-build" content="2026-12-07">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -5517,7 +5517,8 @@
     color: var(--text-dim); margin: 14px 0 6px;
   }
   .modal label:first-of-type { margin-top: 0; }
-  .modal textarea, .modal input[type="text"], .modal input[type="tel"] {
+  .modal textarea, .modal input[type="text"], .modal input[type="tel"], .modal input[type="email"], .modal input[type="password"] {
+    -webkit-appearance: none; appearance: none; box-sizing: border-box;
     width: 100%;
     background: var(--surface-raised);
     border: 1px solid var(--border);
@@ -5898,6 +5899,8 @@
   .tm-row { display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 10px;
     border: 1px solid var(--border); background: var(--surface-raised); }
   .tm-row.off { opacity: 0.6; }
+  .tm-pw-out:empty { display: none; }
+  .tm-pw-out .pw-out { margin-top: 0; }
   .tm-invite { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 12px 14px; margin: 10px 0 4px; border-radius: var(--radius-m, 14px);
     border: 1px solid var(--border); background: var(--surface-raised); background: color-mix(in srgb, var(--accent) 9%, var(--surface)); }
   .tm-invite > div:first-child { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
@@ -5920,6 +5923,26 @@
   .oc-auto { margin-top: 6px; font-size: 12.5px; font-weight: 600; color: var(--interested); }
   .oc-meta { margin: 8px 0 10px; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); }
   .oc-acts { display: flex; flex-wrap: wrap; gap: 6px; }
+  .oc-who { margin-top: 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 13px; line-height: 1.4; }
+  .oc-who b { font-weight: 700; }
+  .oc-who .oc-none { color: var(--text-faint); font-size: 12.5px; }
+  .oc-who a { display: inline-flex; align-items: center; min-height: 32px; padding: 0 11px; border-radius: 999px; border: 1px solid var(--border); color: var(--accent); font-weight: 700; font-size: 12.5px; text-decoration: none; }
+  .oc-pw { margin: 10px 0 2px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-raised); }
+  .oc-pw-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 0; font-size: 13px; }
+  .oc-pw-row + .oc-pw-row { border-top: 1px solid var(--border); }
+  .oc-pw-row span { color: var(--text-faint); font-size: 12px; }
+  .oc-pw-row .btn-secondary { flex: none; width: auto; margin: 0; padding: 8px 12px; font-size: 12.5px; }
+  .pw-out { margin-top: 10px; padding: 12px; border-radius: 10px; border: 1px solid var(--interested); background: var(--surface-raised); }
+  .pw-out code { display: block; margin: 6px 0 10px; font-size: 18px; font-weight: 800; letter-spacing: 0.04em; user-select: all; -webkit-user-select: all; }
+  .pw-out .modal-actions { margin-top: 0; }
+  .pw-out a.btn-primary, .pw-out a.btn-secondary { display: flex; align-items: center; justify-content: center; text-align: center; text-decoration: none; }
+  .auth-forgot { margin-top: 12px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface-raised); font-size: 13.5px; line-height: 1.5; text-align: left; }
+  .auth-forgot p { margin: 0 0 8px; } .auth-forgot p:last-child { margin-bottom: 0; }
+  .auth-support { display: block; margin: 18px auto 0; text-align: center; font-size: 13px; color: var(--text-dim); text-decoration: underline; overflow-wrap: anywhere; }
+  .auth-forgot .btn-secondary { display: block; text-align: center; text-decoration: none; margin-top: 8px; }
+  .bl-contact { margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border); font-size: 13px; line-height: 1.4; }
+  .bl-contact b { display: block; font-size: 13.5px; }
+  .bl-contact .btn-secondary { flex: none; width: auto; margin: 0; padding: 8px 12px; font-size: 12.5px; }
   .oc-acts .btn-primary, .oc-acts .btn-secondary { flex: 0 0 auto; width: auto; min-width: 0; margin: 0; padding: 9px 13px; font-size: 13px; white-space: nowrap; }
   .bl-status { padding: 14px 16px; border-radius: var(--radius-m, 14px); border: 1px solid var(--border); background: var(--surface-raised); display: flex; flex-direction: column; gap: 4px; }
   .bl-status b { font-size: 16px; }
@@ -6905,6 +6928,7 @@
     <div class="auth-hint" id="psPrice" style="text-align:center"></div>
     <button class="btn-secondary ps-btn" id="psExport" type="button">Download my data</button>
     <button class="auth-link" id="psOut" type="button">Sign out</button>
+    <a class="auth-support" href="mailto:support@vpexdialer.com?subject=VPEX%20account">Need help? support@vpexdialer.com</a>
   </div>
 </div>
 <div class="auth-screen" id="authScreen" style="display:none">
@@ -6934,6 +6958,11 @@
       <select id="suInd" class="auth-select"></select>
       <label for="suName">Your name</label>
       <input id="suName" autocomplete="name">
+      <label for="suPhone">Mobile number</label>
+      <input id="suPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(305) 555-0142">
+      <label for="suEmail">Email</label>
+      <input id="suEmail" type="email" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="you@company.com">
+      <div class="auth-hint">Only for your account and billing, like resetting your password. Never shared.</div>
       <label for="suUser">Username (how you'll sign in)</label>
       <input id="suUser" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="pat">
       <label for="suPw">Password</label>
@@ -6969,12 +6998,15 @@
         <input id="authPw2" type="password" autocomplete="new-password">
       </div>
       <button class="btn-primary" id="authGo">Sign in</button>
+      <button class="auth-link" id="authForgot" type="button">Forgot your password?</button>
+      <div class="auth-forgot" id="authForgotBox" style="display:none"></div>
       <button class="auth-link" id="authSetup" type="button" style="display:none">First time? Set up the admin account</button>
       <button class="auth-link" id="authStart" type="button" style="display:none">New here? Start a free trial for your office</button>
       <button class="auth-link" id="authDemo" type="button">See a demo office</button>
       <div class="auth-note" id="authNote"></div>
       <div class="auth-note" id="authBuild"></div>
     </div>
+    <a class="auth-support" href="mailto:support@vpexdialer.com">Questions? support@vpexdialer.com</a>
   </div>
 </div>
 <div id="fxLayer" aria-hidden="true"></div>
@@ -8182,6 +8214,7 @@
   document.addEventListener("click", function (e) {
     var b = e.target.closest && e.target.closest("[data-need]"); if (!b) return;
     if (b.getAttribute("data-need") === "pay") { payNow(); return; }
+    if (b.getAttribute("data-need") === "contact") { openContactEdit(false); return; }
     var k = b.getAttribute("data-need");
     if (k === "overdue") startFollowupRun("overdue");
     else if (k === "lock") lockSetup().then(function () { render(); });
@@ -11421,7 +11454,7 @@
     } else document.getElementById("authSub").textContent = setup ? "Create the admin account (one time only)" : (OFFICE ? "Sign in to " + officeLabel() : "Sign in to your team account");
     if (!signin) return;
     var u = document.getElementById("authUser");
-    document.getElementById("authSub").textContent = setup ? "Create the admin account (one time only)" : "Sign in to your team account";
+    document.getElementById("authSub").textContent = setup ? "Create the admin account (one time only)" : (OFFICE && !/legacy/i.test(location.hash + location.search) ? "Sign in to " + officeLabel() : "Sign in to your team account");
     document.getElementById("authConfirmWrap").style.display = setup ? "" : "none";
     document.getElementById("authGo").textContent = setup ? "Create admin account" : "Sign in";
     document.getElementById("authSetup").textContent = setup ? "Back to sign in" : "First time? Set up the admin account";
@@ -11437,14 +11470,25 @@
     if (/weak-password/.test(c)) return "Pick a longer password (at least 8 characters).";
     return "Couldn\u2019t sign in (" + (c || "unknown error") + ").";
   }
+  // The office box takes the code, the office's name, or a whole pasted invite / sign-in link.
+  function officeFromInput(v) {
+    v = String(v || "").trim();
+    var m = /[?&#]o=([A-Za-z0-9-]+)/.exec(v);
+    if (m) return officeSlug(m[1]);
+    var em = /@([a-z0-9-]+)\.vpex\.app$/i.exec(v);
+    if (em) return officeSlug(em[1]);
+    return officeSlug(v.replace(/^https?:\/\/[^/]+\/?/i, ""));
+  }
   function authSubmit() {
     var msg = document.getElementById("authMsg"), btn = document.getElementById("authGo");
-    var u = usernameClean(document.getElementById("authUser").value), pw = document.getElementById("authPw").value;
+    var rawU = String(document.getElementById("authUser").value || "").trim();
+    if (/@/.test(rawU) && /\.vpex\.app$/i.test(rawU)) { document.getElementById("authOffice").value = officeFromInput(rawU); rawU = rawU.split("@")[0]; }
+    var u = usernameClean(rawU), pw = document.getElementById("authPw").value;
     function fail(t) { msg.textContent = t; msg.style.display = ""; btn.disabled = false; }
     if (!u || !pw) return fail("Enter your username and password.");
-    var ow = document.getElementById("authOfficeWrap");
-    if (ow.style.display !== "none") {
-      var oc = officeSlug(document.getElementById("authOffice").value);
+    var ow = document.getElementById("authOfficeWrap"), withOffice = ow.style.display !== "none";
+    if (withOffice) {
+      var oc = officeFromInput(document.getElementById("authOffice").value);
       if (!oc) return fail("Enter your office code. It\u2019s in the invite your admin sent, or ask them for it.");
       setOffice(oc);
     } else if (/legacy/i.test(location.hash + location.search)) setOffice(null);
@@ -11457,9 +11501,95 @@
       return;
     }
     TEAM.auth.signInWithEmailAndPassword(emailFor(u), pw).then(function () { btn.disabled = false; })
-      .catch(function (e) { fail(authError(e)); });
+      .catch(function (e) {
+        var bad = /invalid-credential|wrong-password|user-not-found|invalid-email|invalid-login/.test((e && e.code) || "");
+        fail(bad && withOffice ? "Wrong office code, username or password. Your office code is in your invite link (after o=), or ask your admin." : authError(e));
+      });
+  }
+  // Forgot password: reps go to their admin (who can set a new one in Team & access); admins go to VPEX.
+  var SUPPORT_EMAIL = "support@vpexdialer.com";
+  function supportInfo() { var o = {}; try { o = JSON.parse(window.localStorage.getItem("vpex_support") || "{}") || {}; } catch (e) {} if (!o.email) o.email = SUPPORT_EMAIL; return o; }
+  function showForgot() {
+    var box = document.getElementById("authForgotBox"); if (!box) return;
+    if (box.style.display !== "none") { box.style.display = "none"; return; }
+    var sp = supportInfo(), ph = String(sp.phone || ""), em = String(sp.email || ""), dig = ph.replace(/[^0-9+]/g, "");
+    box.innerHTML = '<p><b>Reps:</b> ask your admin. They can set a new password for you in Team &amp; access, and you\u2019ll be back in within a minute.</p>' +
+      '<p><b>Admins:</b> contact VPEX and we\u2019ll reset it for you.</p>' +
+      (dig ? '<a class="btn-secondary" href="sms:' + escapeHtml(dig) + '">Text VPEX support</a>' : '') +
+      (em ? '<a class="btn-secondary" href="mailto:' + escapeHtml(em) + '?subject=' + encodeURIComponent("VPEX password reset") + '">Email ' + escapeHtml(em) + '</a>' : '');
+    box.style.display = "";
   }
 
+  function phoneDigits(s) { return String(s || "").replace(/\D/g, ""); }
+  function fmtPhone(s) {
+    var raw = String(s || "").trim(), d = phoneDigits(raw), us = (d.length === 11 && d.charAt(0) === "1") || (d.length === 10 && !/^\+/.test(raw));
+    if (us) { d = d.slice(-10); return "(" + d.slice(0, 3) + ") " + d.slice(3, 6) + "-" + d.slice(6); }
+    return raw.replace(/\s+/g, " ");
+  }
+  function validPhone(s) { var n = phoneDigits(s).length; return n >= 10 && n <= 15; }
+  function validEmail(s) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(s || "")) && String(s).length <= 120; }
+  function myContact() {
+    var m = TEAM.me && TEAM.members ? TEAM.members[TEAM.me.uid] : null;
+    return { phone: (m && m.phone) || "", email: (m && m.email) || "", known: !!m };
+  }
+  function checkoutEmail() {
+    var e = myContact().email; if (e) return e;
+    try { return window.sessionStorage.getItem("vpex_signup_email") || ""; } catch (x) { return ""; }
+  }
+  // An admin's phone and email live on their own login record: only they, their office's admins and VPEX can read it.
+  function openContactEdit(asked) {
+    var c = myContact();
+    featOpen('<h3>' + (asked ? 'Add your contact info' : 'Your contact info') + '</h3>' +
+      '<p class="modal-sub">VPEX uses this only for your account and billing, like resetting your password or a card that didn\u2019t go through. It\u2019s never shared, and your reps can\u2019t see it.</p>' +
+      '<label for="ctPhone">Mobile number</label><input id="ctPhone" type="tel" inputmode="tel" autocomplete="tel" value="' + escapeHtml(c.phone) + '" placeholder="(305) 555-0142">' +
+      '<label for="ctEmail">Email</label><input id="ctEmail" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" value="' + escapeHtml(c.email) + '" placeholder="you@company.com">' +
+      '<div class="field-error" id="ctErr"></div>' +
+      '<div class="modal-actions">' + (asked ? '<button class="btn-secondary" id="ctLater" type="button">Later</button>' : '') + '<button class="btn-primary" id="ctSave" type="button">Save</button></div>');
+    var later = document.getElementById("ctLater"); if (later) later.addEventListener("click", featClose);
+    document.getElementById("ctSave").addEventListener("click", function () {
+      var ph = fmtPhone(document.getElementById("ctPhone").value), em = String(document.getElementById("ctEmail").value || "").trim().toLowerCase(), er = document.getElementById("ctErr");
+      if (!validPhone(ph)) { er.textContent = "Enter your mobile number, with area code."; return; }
+      if (!validEmail(em)) { er.textContent = "Enter a valid email address."; return; }
+      var btn = this; btn.disabled = true;
+      tcol("members").doc(TEAM.me.uid).update({ phone: ph, email: em, contactAt: Date.now() }).then(function () {
+        if (TEAM.members[TEAM.me.uid]) { TEAM.members[TEAM.me.uid].phone = ph; TEAM.members[TEAM.me.uid].email = em; }
+        featClose(); showToast("Saved \u00b7 Thanks!"); teamRenderSoon();
+      }, function () { btn.disabled = false; er.textContent = "Couldn\u2019t save. Check your connection and try again."; });
+    });
+  }
+  function needsContact() {
+    if (!TEAM.office || !TEAM.me || !isAdmin() || DEMO) return false;
+    var c = myContact(); return c.known && (!c.phone || !c.email);
+  }
+  // Calls the billing connector as the signed-in person (it checks who they are before doing anything).
+  async function connectorPost(path, body) {
+    var url = String((TEAM.billing || {}).connectorUrl || "").replace(/\/+$/, "");
+    if (!/^https:\/\//.test(url)) throw new Error("Password resets need the billing connector. VPEX is setting it up.");
+    var tok = await TEAM.auth.currentUser.getIdToken(true);
+    var r;
+    try { r = await fetch(url + path, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + tok }, body: JSON.stringify(body) }); }
+    catch (e) { throw new Error("No connection. Check your signal and try again."); }
+    if (r.status === 404) throw new Error("This needs the latest billing connector. VPEX has been notified.");
+    var j = {}; try { j = await r.json(); } catch (e) {}
+    if (!r.ok || !j.ok) throw new Error(j.error || ("Couldn\u2019t do that (" + r.status + ")."));
+    return j;
+  }
+  // Sets a new password for someone on the team, then shows it once so it can be texted to them.
+  function resetLoginPassword(office, m, box, phone) {
+    var pw = genPassword(), who = m.name || m.username || "them";
+    box.innerHTML = '<div class="pw-out">Setting a new password for ' + escapeHtml(who) + '\u2026</div>';
+    connectorPost("/reset-password", { office: office || "", uid: m.uid, password: pw }).then(function () {
+      var msg = "Your new VPEX password: " + pw + "\nUsername: " + (m.username || "") + (office ? "\nOffice code: " + office : "") + "\nSign in at " + TEAM_LINK + (office ? "?o=" + office : "") + "\nYou can change it any time from the menu (Change my password).";
+      var dig = String(phone || "").replace(/[^0-9+]/g, "");
+      box.innerHTML = '<div class="pw-out"><b>New password for ' + escapeHtml(who) + '</b><code>' + escapeHtml(pw) + '</code>' +
+        '<div class="modal-actions"><button class="btn-secondary" type="button" data-pw-copy>Copy</button>' +
+        '<a class="btn-primary" href="sms:' + escapeHtml(dig) + (/iP(hone|ad|od)/.test(navigator.userAgent) ? '&' : '?') + 'body=' + encodeURIComponent(msg) + '">Text it' + (dig ? ' to ' + escapeHtml(phone) : '') + '</a></div>' +
+        '<p class="oc-note" style="margin:8px 0 0">Their old password stopped working. This is the only time it\u2019s shown.</p></div>';
+      box.querySelector("[data-pw-copy]").addEventListener("click", function () { showToast(copyText(msg) ? "Copied \u00b7 paste it into a text to them" : "Couldn\u2019t copy \u00b7 long-press the password to select it"); });
+    }, function (e) {
+      box.innerHTML = '<div class="pw-out" style="border-color:var(--notinterested)">' + escapeHtml((e && e.message) || "Couldn\u2019t reset it.") + '</div>';
+    });
+  }
   function inviteCode() { var a = "abcdefghjkmnpqrstuvwxyz23456789", o = ""; for (var i = 0; i < 10; i++) o += a[Math.floor(Math.random() * a.length)]; return o; }
   function authFail(id, t) { var m = document.getElementById("authMsg"); m.textContent = t; m.style.display = ""; var b = document.getElementById(id); if (b) { b.disabled = false; b.textContent = b.getAttribute("data-label") || b.textContent; } }
   async function dropUser(user) { try { await user.delete(); } catch (e) { try { await TEAM.auth.signOut(); } catch (e2) {} } }
@@ -11467,9 +11597,12 @@
   async function officeSignup() {
     var v = function (id) { return document.getElementById(id).value.trim(); };
     var name = v("suOffice"), slug = officeSlug(name), ind = v("suInd"), me = v("suName"), user = usernameClean(v("suUser")), pw = document.getElementById("suPw").value, pw2 = document.getElementById("suPw2").value;
+    var phone = fmtPhone(v("suPhone")), email = v("suEmail").toLowerCase();
     var btn = document.getElementById("suGo"); btn.setAttribute("data-label", btn.textContent);
     if (!name || slug.length < 3) return authFail("suGo", "Enter your office or company name (at least 3 letters).");
     if (!me) return authFail("suGo", "Enter your name.");
+    if (!validPhone(phone)) return authFail("suGo", "Enter your mobile number, with area code.");
+    if (!validEmail(email)) return authFail("suGo", "Enter a valid email address.");
     if (!/^[a-z0-9._-]{3,30}$/.test(user)) return authFail("suGo", "Username: 3\u201330 letters or numbers, no spaces.");
     if (pw.length < 8) return authFail("suGo", "Use at least 8 characters for your password.");
     if (pw !== pw2) return authFail("suGo", "The two passwords don\u2019t match.");
@@ -11482,12 +11615,12 @@
     try {
       TEAM.office = slug;
       await TEAM.db.collection("offices").doc(slug).set({ name: name, industry: ind, ownerUid: cred.user.uid, plan: "trial", trialEnds: now + 7 * 86400000, createdAt: now, invite: inviteCode(), locked: false, seats: 0 });
-      await tcol("members").doc(cred.user.uid).set({ username: user, name: me, role: "admin", active: true, createdAt: now, lastSeen: now });
+      await tcol("members").doc(cred.user.uid).set({ username: user, name: me, role: "admin", active: true, createdAt: now, lastSeen: now, phone: phone, email: email });
     } catch (e) {
       TEAM.office = null; await dropUser(cred.user); setTimeout(function () { TEAM.creating = false; }, 300);
       return authFail("suGo", (e && e.code) === "permission-denied" ? "An office with that name already exists. If it\u2019s yours, sign in. Otherwise add a word to the name (your city, for example)." : "Couldn\u2019t set up the office (" + ((e && e.code) || "unknown") + "). Check your connection and try again.");
     }
-    try { window.localStorage.setItem("vpex_industry", ind); window.localStorage.setItem("vpex_company", name); } catch (e) {}
+    try { window.localStorage.setItem("vpex_industry", ind); window.localStorage.setItem("vpex_company", name); window.sessionStorage.setItem("vpex_signup_email", email); } catch (e) {}
     setOffice(slug);
     location.replace(location.pathname + "?o=" + slug);
     location.reload();
@@ -11542,7 +11675,8 @@
   function payUrl(d, office) {
     var b = TEAM.billing || {}, link = d && d.founding ? (b.foundingLink || b.payLink) : (b.payLink || b.foundingLink);
     if (!link) return "";
-    return link + (link.indexOf("?") < 0 ? "?" : "&") + "client_reference_id=" + encodeURIComponent(office);
+    var em = checkoutEmail();
+    return link + (link.indexOf("?") < 0 ? "?" : "&") + "client_reference_id=" + encodeURIComponent(office) + (em ? "&prefilled_email=" + encodeURIComponent(em) : "");
   }
   // Seats = active logins. When they change, the billing connector sets the Stripe subscription to match.
   function activeSeats() { var m = TEAM.members || {}; return Object.keys(m).filter(function (k) { return m[k] && m[k].active; }).length; }
@@ -11566,7 +11700,7 @@
     var date = function (t) { return new Date(t).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }); };
     var dd = function (n) { return n + " day" + (n === 1 ? "" : "s"); };
     var line = { trial: "Free trial \u00b7 " + dd(st.days) + " left", grace: "Trial ended \u00b7 " + dd(st.days) + " to add payment", locked: "Paused until payment is added",
-      paid: d.paidThrough ? (autoBilled(d) ? "Paid \u00b7 renews automatically around " + date(d.paidThrough) : "Paid through " + date(d.paidThrough)) : "Paid",
+      paid: d.paidThrough ? (autoBilled(d) && d.payFailed ? "Your last payment didn\u2019t go through \u00b7 update your card to keep going" : autoBilled(d) && d.cancelAtEnd ? "Paid \u00b7 cancels on " + date(d.cancelAt || d.paidThrough) : autoBilled(d) ? "Paid \u00b7 renews automatically around " + date(d.paidThrough) : "Paid through " + date(d.paidThrough)) : "Paid",
       pastdue: (autoBilled(d) ? "Your last payment didn\u2019t go through \u00b7 " : "Payment due \u00b7 ") + dd(st.days) + " left before the office pauses", free: "Free plan", paused: "Paused by VPEX" }[st.kind] || "";
     var showPay = st.kind !== "paused" && st.kind !== "free" && !autoBilled(d);
     featOpen('<h3>Billing</h3><p class="modal-sub">' + escapeHtml(d.name || officeTitle(TEAM.office)) + '</p>' +
@@ -11574,10 +11708,16 @@
       (function () { var n = Math.max(1, activeSeats()), p = officePrice(d);
         return '<div class="bl-total"><span>' + n + ' active login' + (n === 1 ? '' : 's') + ' \u00d7 $' + p + '</span><b>$' + (n * p).toLocaleString() + ' / month</b></div>' +
           '<p class="oc-note">Every active login counts as a rep. Add or turn off reps in Team &amp; access and your bill updates automatically; Stripe charges or credits the difference for the rest of the month.</p>'; })() +
+      (showPay && activeSeats() > 1 ? '<p class="oc-note">If checkout shows fewer reps than you have, VPEX corrects it the moment you pay and Stripe charges the difference.</p>' : '') +
       (showPay ? '<button class="btn-primary" id="blPay" type="button" style="width:100%;margin-top:14px">Add payment</button>' : '') +
+      (autoBilled(d) && d.payFailed ? '<button class="btn-primary" id="blFix" type="button" style="width:100%;margin-top:14px">Update card</button>' : '') +
+      (function () { var c = myContact(); if (!TEAM.office || !c.known) return '';
+        return '<div class="bl-contact"><div><b>Billing contact</b>' + (c.phone || c.email ? escapeHtml([c.phone, c.email].filter(Boolean).join(" \u00b7 ")) : 'None yet \u00b7 add one so VPEX can reach you') + '</div><button class="btn-secondary" id="blContact" type="button">' + (c.phone || c.email ? 'Edit' : 'Add') + '</button></div>'; })() +
       (b.portalLink && d.stripeCustomer ? '<a class="btn-secondary" id="blManage" href="' + escapeHtml(b.portalLink) + '" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:10px">Manage billing</a><p class="oc-note">Update your card, download invoices, change how many reps you pay for, or cancel. Stripe emails you a sign-in link.</p>' : '') +
       '<p class="oc-note">Payments are handled by Stripe. VPEX never sees your card number.</p>');
     var bp = document.getElementById("blPay"); if (bp) bp.addEventListener("click", payNow);
+    var bf = document.getElementById("blFix"); if (bf) bf.addEventListener("click", payNow);
+    var bc = document.getElementById("blContact"); if (bc) bc.addEventListener("click", function () { openContactEdit(false); });
   }
   function payNow() {
     var od = TEAM.officeDoc || {}, b = TEAM.billing || {};
@@ -11588,11 +11728,15 @@
     }
     var u = payUrl(TEAM.officeDoc, TEAM.office);
     if (!u) { showToast("Payment link coming soon \u00b7 We\u2019ll text you a link to add payment", { kind: "info" }); return; }
-    showToast("Opening secure checkout \u00b7 Your office switches on as soon as payment comes through", { kind: "info" });
+    showToast("Opening secure checkout \u00b7 Your office switches on as soon as payment comes through" + (activeSeats() > 1 ? ". If checkout shows 1 rep, VPEX adds the rest right after you pay" : ""), { kind: "info" });
     window.open(u, "_blank", "noopener");
   }
   function teamWatchBilling() {
-    TEAM.unsub.push(TEAM.db.collection("config").doc("billing").onSnapshot(function (snap) { TEAM.billing = snap.exists ? (snap.data() || {}) : {}; TEAM.billingLoaded = true; maybeBuyNow(); }, function () {}));
+    TEAM.unsub.push(TEAM.db.collection("config").doc("billing").onSnapshot(function (snap) {
+      TEAM.billing = snap.exists ? (snap.data() || {}) : {}; TEAM.billingLoaded = true;
+      try { window.localStorage.setItem("vpex_support", JSON.stringify({ phone: TEAM.billing.supportPhone || "", email: TEAM.billing.supportEmail || "" })); } catch (e) {}
+      maybeBuyNow();
+    }, function () {}));
   }
   // "Already sold? Buy now" on the sales page: the office is created, then checkout opens in the same tab
   function maybeBuyNow() {
@@ -11606,7 +11750,9 @@
   function billingPillsHtml() {
     var st = myOfficeState(); if (!st) return "";
     var d = function (n) { return n + " day" + (n === 1 ? "" : "s"); };
-    if (autoBilled(TEAM.officeDoc) && st.kind !== "pastdue") return "";
+    if (autoBilled(TEAM.officeDoc) && TEAM.officeDoc.payFailed && st.kind !== "pastdue") return isAdmin() ? '<button class="need-pill warn" type="button" data-need="pay">Card declined \u00b7 Update card</button>' : "";
+    if (autoBilled(TEAM.officeDoc) && st.kind !== "pastdue") return needsContact() ? '<button class="need-pill" type="button" data-need="contact">Add your phone and email</button>' : "";
+    if (needsContact() && st.kind === "trial" && st.days > 5) return '<button class="need-pill" type="button" data-need="contact">Add your phone and email</button>';
     if (st.kind === "trial" && st.days > 5 && isAdmin()) return '<button class="need-pill" type="button" data-need="pay">Free trial \u00b7 ' + d(st.days) + ' left \u00b7 Pay now</button>';
     if (st.kind === "trial" && st.days <= 5 && isAdmin()) return '<button class="need-pill" type="button" data-need="pay">Trial \u00b7 ' + d(st.days) + ' left \u00b7 Add payment</button>';
     if (st.kind === "grace") return isAdmin() ? '<button class="need-pill warn" type="button" data-need="pay">Trial ended \u00b7 ' + d(st.days) + ' to add payment</button>' : '<span class="need-pill warn">Trial ended \u00b7 ask your admin to add payment</span>';
@@ -11732,7 +11878,7 @@
     teamDetachData();
     clearInterval(TEAM.heartbeat); clearInterval(TEAM.dayTimer); clearTimeout(TEAM.flushTimer);
     TEAM.me = null; TEAM.ready = false; TEAM.members = {}; TEAM.lastSent = {}; TEAM.fastSig = {}; TEAM.lastCk = {}; TEAM.days = {}; TEAM.myClaimId = null; teamForgetHistory();
-    TEAM.office = null; TEAM.officeDoc = null;
+    TEAM.office = null; TEAM.officeDoc = null; TEAM.contactAsked = false;
     var pse = document.getElementById("pausedScreen"); if (pse) pse.style.display = "none";
     STORAGE_KEY = "dovetail_team_signedout";
     state = defaultState();
@@ -11797,6 +11943,15 @@
       seatsMaybeChanged();
       if (DEMO && isAdmin() && m.dR2 && m.dR2.workLoc === undefined) [["dR2", "office"], ["dR3", "remote"], ["dR1", "remote"]].forEach(function (x) { setWorkLoc(x[0], x[1]); });
       if (TEAM.me && m[TEAM.me.uid]) TEAM.me.workLoc = m[TEAM.me.uid].workLoc;
+      if (needsContact() && !TEAM.contactAsked) {
+        TEAM.contactAsked = true;
+        var askedAt = 0; try { askedAt = Number(window.localStorage.getItem("vpex_contact_asked_" + TEAM.me.uid) || 0); } catch (e) {}
+        if (Date.now() - askedAt > 20 * 3600000) setTimeout(function () {
+          if (!needsContact() || document.querySelector(".modal-overlay.show")) return;
+          try { window.localStorage.setItem("vpex_contact_asked_" + TEAM.me.uid, String(Date.now())); } catch (e) {}
+          openContactEdit(true);
+        }, 2500);
+      }
       var smo = document.getElementById("scoreModal"); if (smo && smo.classList.contains("show")) renderScoreboard();
       teamRenderSoon();
       if (isAdmin()) syncRoster();
@@ -12381,8 +12536,9 @@
           : '<div class="tm-actions"><select class="tm-role" data-tm-role="' + m.uid + '" aria-label="Role">' + ["rep", "manager", "admin"].map(function (r) {
               return '<option value="' + r + '"' + ((m.role || "rep") === r ? ' selected' : '') + '>' + { rep: "Rep", manager: "Manager", admin: "Admin" }[r] + '</option>'; }).join("") + '</select>' +
             '<button class="btn-secondary" data-tm-toggle="' + m.uid + '">' + (m.active ? 'Turn off' : 'Turn on') + '</button>' +
+            ((m.role || "rep") !== "admin" || isOwnerMaster() ? '<button class="btn-secondary" data-tm-pw="' + m.uid + '">New password</button>' : '') +
             '<button class="btn-secondary danger-link" data-tm-remove="' + m.uid + '">Remove</button></div>') +
-      '</div>';
+      '</div>' + '<div class="tm-pw-out" data-tm-pwbox="' + m.uid + '"></div>';
     }).join("");
     body.innerHTML =
       '<button class="close-x" id="teamClose">&times;</button>' +
@@ -12441,6 +12597,13 @@
         tcol("members").doc(id).update({ active: !m.active }).then(function () {
           showToast(m.active ? (m.name + " is signed out and locked out") : (m.name + " can sign in again"));
         }).catch(function () { showToast("Couldn\u2019t change access. Check your connection."); });
+      });
+    });
+    body.querySelectorAll("[data-tm-pw]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var id = b.getAttribute("data-tm-pw"), m = TEAM.members[id]; if (!m) return;
+        var box = body.querySelector('[data-tm-pwbox="' + id + '"]');
+        showConfirm("Set a new password for " + (m.name || m.username) + "? Their current password stops working, and you\u2019ll text them the new one.", function () { resetLoginPassword(TEAM.office, Object.assign({ uid: id }, m), box, m.phone || ""); }, "Set new password");
       });
     });
     body.querySelectorAll("[data-tm-remove]").forEach(function (b) {
@@ -14152,7 +14315,10 @@
     for (var k = 0; k < 7; k++) days.push(new Date(now - k * DAY).toISOString().slice(0, 10));
     await Promise.all(qs.docs.map(async function (doc) {
       var d = doc.data() || {}, o = { id: doc.id, d: d, st: officeState(d, now), reps: 0, calls: 0, last: 0 };
-      try { var ms = await db.collection("offices").doc(doc.id).collection("members").get(); ms.docs.forEach(function (m) { var x = m.data() || {}; if (x.active) o.reps++; if ((x.lastSeen || 0) > o.last) o.last = x.lastSeen; }); } catch (e) {}
+      o.members = [];
+      try { var ms = await db.collection("offices").doc(doc.id).collection("members").get(); ms.docs.forEach(function (m) { var x = m.data() || {}; x.uid = m.id; o.members.push(x); if (x.active) o.reps++; if ((x.lastSeen || 0) > o.last) o.last = x.lastSeen; }); } catch (e) {}
+      o.members.sort(function (a, b) { return (a.uid === d.ownerUid ? -1 : b.uid === d.ownerUid ? 1 : 0) || ((a.role === "admin" ? 0 : 1) - (b.role === "admin" ? 0 : 1)) || String(a.name || "").localeCompare(String(b.name || "")); });
+      o.owner = o.members.filter(function (x) { return x.uid === d.ownerUid; })[0] || o.members.filter(function (x) { return x.role === "admin"; })[0] || null;
       try { var cn = await Promise.all(days.map(function (k) { return db.collection("offices").doc(doc.id).collection("callDays").doc("n_" + k).get(); }));
         cn.forEach(function (sn) { if (sn.exists) o.calls += Number((sn.data() || {}).c) || 0; }); } catch (e) {}
       out.push(o);
@@ -14175,6 +14341,14 @@
         var d = o.d, st = o.st, ind = INDUSTRIES[d.industry] ? INDUSTRIES[d.industry].name : (d.industry || "");
         return '<div class="oc-card" data-oc="' + escapeHtml(o.id) + '">' +
           '<div class="oc-top"><div class="oc-name"><b>' + escapeHtml(d.name || o.id) + '</b><span>' + escapeHtml(o.id) + (ind ? ' \u00b7 ' + escapeHtml(ind) : '') + '</span></div>' + ocStatusChip(st, d) + '</div>' +
+          (function () { var w = o.owner; if (!w) return '<div class="oc-who"><span class="oc-none">No admin login found</span></div>';
+            var dig = String(w.phone || "").replace(/[^0-9+]/g, "");
+            return '<div class="oc-who"><b>' + escapeHtml(w.name || w.username || "") + '</b>' + (w.username ? '<span class="oc-none">' + escapeHtml(w.username) + '</span>' : '') +
+              (dig ? '<a href="tel:' + escapeHtml(dig) + '">Call ' + escapeHtml(w.phone) + '</a><a href="sms:' + escapeHtml(dig) + '">Text</a>' : '') +
+              (w.email ? '<a href="mailto:' + escapeHtml(w.email) + '">Email</a>' : '') +
+              (!dig && !w.email ? '<span class="oc-none">No phone or email yet \u00b7 they\u2019re asked for it next time they open VPEX</span>' : '') + '</div>'; })() +
+          (d.stripeSub && !d.cancelled && d.payFailed ? '<div class="oc-auto oc-drift">Card declined \u00b7 Stripe is retrying; they see Update card in the app</div>' : '') +
+          (d.stripeSub && !d.cancelled && d.cancelAtEnd ? '<div class="oc-auto oc-drift">Set to cancel' + (d.cancelAt ? ' on ' + escapeHtml(new Date(d.cancelAt).toLocaleDateString([], { month: "short", day: "numeric" })) : '') + '</div>' : '') +
           (d.stripeSub ? '<div class="oc-auto">' + (d.cancelled ? 'Cancelled in Stripe' : 'Card on file \u00b7 renews automatically') + (d.seatsPaid ? ' \u00b7 ' + d.seatsPaid + ' rep' + (d.seatsPaid === 1 ? '' : 's') + ' paid' : '') + '</div>' +
             (!d.cancelled && d.seatsPaid && d.seatsPaid !== o.reps ? '<div class="oc-auto oc-drift">' + o.reps + ' active now \u00b7 seats update within the hour</div>' : '') +
             (d.stripeSubPrev ? '<div class="oc-auto oc-drift">Paid twice: cancel the older subscription in Stripe (' + escapeHtml(d.stripeSubPrev) + ')</div>' : '') : '') +
@@ -14184,9 +14358,10 @@
             '<button type="button" class="btn-secondary" data-oc-act="trial">+7 trial days</button>' +
             '<button type="button" class="btn-secondary" data-oc-act="founding">' + (d.founding ? 'Standard price' : 'Founding price') + '</button>' +
             '<button type="button" class="btn-secondary" data-oc-act="free">' + (d.plan === "comp" ? 'End free' : 'Free') + '</button>' +
+            '<button type="button" class="btn-secondary" data-oc-act="pw">Reset a password</button>' +
             '<button type="button" class="btn-secondary danger-link" data-oc-act="lock">' + (d.locked ? 'Unpause' : 'Pause') + '</button>' +
             '<button type="button" class="btn-secondary danger-link" data-oc-act="delete">Delete</button>' +
-          '</div></div>';
+          '</div><div class="oc-pwbox" data-oc-pwbox="' + escapeHtml(o.id) + '"></div></div>';
       }).join("") : '<div class="pipe-empty">No offices yet. Share your link: ' + escapeHtml(TEAM_LINK) + '</div>') +
       '<div class="settings-heading" style="margin:20px 0 6px">Billing</div>' +
       '<div class="oc-bill">' +
@@ -14196,6 +14371,8 @@
         '<label for="ocFLink">Founding payment link</label><input id="ocFLink" type="url" autocapitalize="none" spellcheck="false" placeholder="https://buy.stripe.com/..." value="' + escapeHtml(b.foundingLink || "") + '">' +
         '<label for="ocConn">Billing connector address</label><input id="ocConn" type="url" autocapitalize="none" spellcheck="false" placeholder="https://vpex-billing.yourname.workers.dev" value="' + escapeHtml(b.connectorUrl || "") + '">' +
         '<label for="ocPortal">Customer portal link (Manage billing)</label><input id="ocPortal" type="url" autocapitalize="none" spellcheck="false" placeholder="https://billing.stripe.com/p/login/..." value="' + escapeHtml(b.portalLink || "") + '">' +
+        '<label for="ocSupPhone">Support phone (admins who forget their password text this)</label><input id="ocSupPhone" type="tel" inputmode="tel" value="' + escapeHtml(b.supportPhone || "") + '" placeholder="(305) 555-0100">' +
+        '<label for="ocSupEmail">Support email</label><input id="ocSupEmail" type="email" inputmode="email" autocapitalize="none" spellcheck="false" value="' + escapeHtml(b.supportEmail || SUPPORT_EMAIL) + '" placeholder="support@vpexdialer.com">' +
         '<div class="field-error" id="ocErr"></div><button class="btn-primary" id="ocSave" type="button" style="width:100%;margin-top:12px">Save billing</button>' +
         '<p class="oc-note">Once the billing connector is set up, offices switch to paid by themselves when they pay. Without it, Stripe shows the office code as the reference: tap Mark paid on that office here.</p>' +
       '</div>';
@@ -14205,7 +14382,10 @@
     document.getElementById("ocSave").addEventListener("click", function () {
       var v = function (id) { return document.getElementById(id).value.trim(); }, bad = [v("ocLink"), v("ocFLink"), v("ocPortal"), v("ocConn")].some(function (x) { return x && !/^https:\/\//.test(x); });
       if (bad) { document.getElementById("ocErr").textContent = "Links start with https://"; return; }
-      var val = { price: Number(v("ocPrice")) || 49, payLink: v("ocLink"), foundingPrice: Number(v("ocFPrice")) || 29, foundingLink: v("ocFLink"), portalLink: v("ocPortal"), connectorUrl: v("ocConn").replace(/\/+$/, ""), updatedAt: Date.now() };
+      if (v("ocSupPhone") && !validPhone(v("ocSupPhone"))) { document.getElementById("ocErr").textContent = "The support phone needs an area code."; return; }
+      if (v("ocSupEmail") && !validEmail(v("ocSupEmail"))) { document.getElementById("ocErr").textContent = "That support email doesn\u2019t look right."; return; }
+      var val = { price: Number(v("ocPrice")) || 49, payLink: v("ocLink"), foundingPrice: Number(v("ocFPrice")) || 29, foundingLink: v("ocFLink"), portalLink: v("ocPortal"), connectorUrl: v("ocConn").replace(/\/+$/, ""),
+        supportPhone: v("ocSupPhone") ? fmtPhone(v("ocSupPhone")) : "", supportEmail: v("ocSupEmail").toLowerCase(), updatedAt: Date.now() };
       TEAM.db.collection("config").doc("billing").set(val, { merge: true }).then(function () { TEAM.billing = Object.assign({}, TEAM.billing, val); showToast("Billing saved"); ocRender(); },
         function () { document.getElementById("ocErr").textContent = "Couldn\u2019t save. Check your connection and that the new security rules are published."; });
     });
@@ -14228,6 +14408,24 @@
   }
   function ocAction(id, act) {
     var o = OC.list.filter(function (x) { return x.id === id; })[0]; if (!o) return;
+    if (act === "pw") {
+      var box = document.querySelector('[data-oc-pwbox="' + id + '"]'); if (!box) return;
+      if (box.innerHTML) { box.innerHTML = ""; return; }
+      var ms = (o.members || []).filter(function (m) { return m.username; });
+      box.innerHTML = '<div class="oc-pw">' + (ms.length ? ms.map(function (m) {
+        return '<div class="oc-pw-row"><div><b>' + escapeHtml(m.name || m.username) + '</b><br><span>' + escapeHtml(m.username) + ' \u00b7 ' + ({ admin: "Admin", manager: "Manager" }[m.role] || "Rep") + (m.active ? '' : ' \u00b7 access off') + '</span></div>' +
+          '<button type="button" class="btn-secondary" data-oc-pw-uid="' + escapeHtml(m.uid) + '">New password</button></div>';
+      }).join("") : '<span class="oc-none">No logins in this office.</span>') + '<div data-oc-pw-out></div></div>';
+      box.querySelectorAll("[data-oc-pw-uid]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var m = (o.members || []).filter(function (x) { return x.uid === btn.getAttribute("data-oc-pw-uid"); })[0]; if (!m) return;
+          showConfirm("Set a new password for " + (m.name || m.username) + " at " + (o.d.name || id) + "? Their current password stops working.", function () {
+            resetLoginPassword(id, m, box.querySelector("[data-oc-pw-out]"), m.phone || (o.owner && o.owner.uid === m.uid ? o.owner.phone : ""));
+          }, "Set new password");
+        });
+      });
+      return;
+    }
     if (act === "delete") {
       showConfirm("Delete " + (o.d.name || id) + " for good? Its leads, notes, call history and every rep login stop working right away. This can\u2019t be undone.", function () { ocDelete(o); }, "Delete office");
       return;
@@ -15358,6 +15556,7 @@
     document.getElementById("submitUpload").addEventListener("click", commitUpload);
     document.getElementById("cancelUpload").addEventListener("click", function () { resetUploadTab(); closeLoadModal(); });
     document.getElementById("authGo").addEventListener("click", authSubmit);
+    document.getElementById("authForgot").addEventListener("click", showForgot);
     ["authPw", "authPw2"].forEach(function (id) {
       document.getElementById(id).addEventListener("keydown", function (e) { if (e.key === "Enter") authSubmit(); });
     });
@@ -15388,6 +15587,7 @@
     document.getElementById("jnGo").addEventListener("click", officeJoin);
     document.getElementById("suOffice").addEventListener("input", function () { var sl = officeSlug(this.value); document.getElementById("suSlug").textContent = sl ? "Office code: " + sl + " \u2014 reps use it to sign in" : ""; });
     ["suPw2", "jnPw2"].forEach(function (id) { document.getElementById(id).addEventListener("keydown", function (e) { if (e.key === "Enter") (id === "suPw2" ? officeSignup : officeJoin)(); }); });
+    document.getElementById("suPhone").addEventListener("blur", function () { if (validPhone(this.value)) this.value = fmtPhone(this.value); });
     document.getElementById("signOutBtn").addEventListener("click", function () {
       closeMenuModal();
       showConfirm("Sign out of " + SHORT_NAME + " on this phone?", teamSignOut, "Sign out");
