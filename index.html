@@ -3,12 +3,23 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-12-07">
+<meta name="vpex-build" content="2026-12-08">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="VPEX">
-<meta name="robots" content="noindex, nofollow">
+<meta name="robots" content="index, follow">
+<meta name="description" content="VPEX is the power dialer for sales floors. Reps call from their own phones while VPEX handles the shared list, the follow-ups and a live scoreboard. $49 per rep a month, 7 days free.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="VPEX">
+<meta property="og:title" content="VPEX: the power dialer for sales floors">
+<meta property="og:description" content="Reps call from their own phones. VPEX handles the shared list, the follow-ups and a live scoreboard. 7 days free, no card.">
+<meta property="og:url" content="https://vpexdialer.com/">
+<meta property="og:image" content="https://vpexdialer.com/vpex-og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" href="vpex-icon-64.png">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -17,7 +28,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="VPEX">
 <meta name="theme-color" content="#12151A">
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2312151A'/%3E%3Ctext x='50' y='68' font-size='54' text-anchor='middle'%3E%F0%9F%93%9E%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="vpex-icon-180.png">
 <title>VPEX Dialer</title>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -5882,6 +5893,54 @@
   .hero-price span { font-size: 14px; font-weight: 600; }
   .hero-price em { flex-basis: 100%; font-style: normal; font-size: 12.5px; color: var(--text-faint); }
   .hero-demo { width: 100%; margin-top: 12px; padding: 13px; }
+  .hero-sec { margin-top: 24px; }
+  .hero-sec h2, .auth-faq h2 { font-family: var(--font-display, inherit); font-size: 20px; line-height: 1.15; letter-spacing: -0.01em; font-weight: 800; margin: 0 0 12px; }
+  .hero-demos { display: flex; flex-wrap: wrap; gap: 8px; }
+  .hero-demos button { flex: 1 1 auto; min-height: 44px; padding: 10px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-raised); color: var(--text); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .hero-note { margin: 10px 0 0; font-size: 12.5px; color: var(--text-faint); }
+  .hero-steps { list-style: none; counter-reset: hs; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+  .hero-steps li { counter-increment: hs; position: relative; padding-left: 40px; font-size: 14px; line-height: 1.5; color: var(--text-dim); min-height: 28px; }
+  .hero-steps li::before { content: counter(hs); position: absolute; left: 0; top: 0; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--accent); color: #fff; font-weight: 800; font-size: 14px; }
+  .hero-steps b { color: var(--text); }
+  .hero-founder { margin: 14px 0 0; font-size: 13px; color: var(--text-faint); }
+  .auth-faq { margin-top: 28px; text-align: left; }
+  .auth-faq details { border-top: 1px solid var(--border); }
+  .auth-faq details:last-child { border-bottom: 1px solid var(--border); }
+  .auth-faq summary { list-style: none; cursor: pointer; padding: 14px 28px 14px 0; position: relative; font-size: 14.5px; font-weight: 700; color: var(--text); }
+  .auth-faq summary::-webkit-details-marker { display: none; }
+  .auth-faq summary::after { content: "+"; position: absolute; right: 4px; top: 11px; font-size: 20px; font-weight: 500; color: var(--text-faint); }
+  .auth-faq details[open] summary::after { content: "\2212"; }
+  .auth-faq p { margin: 0 0 14px; font-size: 14px; line-height: 1.5; color: var(--text-dim); }
+  .setup-bar, .setup-card { margin: 0 0 12px; padding: 14px 16px; border-radius: var(--radius-m, 14px); border: 1px solid var(--border); background: var(--surface-raised); text-align: left; }
+  .setup-card { margin: 4px auto 0; max-width: 460px; }
+  .sb-top { display: flex; align-items: center; gap: 10px; }
+  .sb-top b { font-size: 15px; flex: 1; }
+  .sb-top span { font-size: 12.5px; color: var(--text-faint); white-space: nowrap; }
+  .sb-x { flex: none; width: 32px; height: 32px; border-radius: 50%; border: 0; background: transparent; color: var(--text-faint); font-size: 20px; line-height: 1; cursor: pointer; }
+  .sb-prog { height: 6px; border-radius: 3px; background: var(--border); margin: 10px 0 12px; overflow: hidden; }
+  .sb-prog i { display: block; height: 100%; border-radius: 3px; background: var(--interested); }
+  .sb-next { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 13.5px; color: var(--text-dim); }
+  .sb-next b { color: var(--text); }
+  .sb-next .btn-primary, .sb-next .btn-secondary { flex: none; width: auto; margin: 0; padding: 10px 14px; font-size: 13.5px; }
+  .sb-solo { background: none; border: 0; padding: 4px 0; color: var(--text-faint); font-family: inherit; font-size: 12.5px; text-decoration: underline; cursor: pointer; }
+  .sc-step { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-top: 1px solid var(--border); }
+  .sc-step:first-of-type { border-top: 0; }
+  .sc-dot { flex: none; width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: var(--text-faint); }
+  .sc-step.done .sc-dot { border-color: var(--interested); background: var(--interested); color: #fff; }
+  .sc-body { flex: 1; min-width: 0; }
+  .sc-body b { display: block; font-size: 14.5px; }
+  .sc-step.done .sc-body b { color: var(--text-faint); text-decoration: line-through; }
+  .sc-body span { display: block; margin-top: 2px; font-size: 12.5px; line-height: 1.45; color: var(--text-faint); }
+  .sc-body .btn-primary, .sc-body .btn-secondary { width: auto; margin: 10px 0 0; padding: 11px 16px; font-size: 14px; }
+  .oc-new { flex: none; margin-left: 6px; padding: 1px 7px; border-radius: 999px; background: var(--accent); color: #fff; font-style: normal; font-size: 11px; font-weight: 800; vertical-align: 2px; }
+  .oc-fresh { margin: 8px 0 0; font-size: 13px; font-weight: 700; color: var(--accent); }
+  .oc-next { margin-top: 6px; font-size: 12.5px; font-weight: 700; color: var(--callback); }
+  .oc-msg-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; }
+  .oc-msg-row + .oc-msg-row { border-top: 1px solid var(--border); }
+  .oc-msg-row div { min-width: 0; font-size: 13px; }
+  .oc-msg-row div span { display: block; color: var(--text-faint); font-size: 12px; line-height: 1.4; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .oc-msg-row em { font-style: normal; font-size: 10.5px; font-weight: 800; color: var(--interested); margin-left: 6px; }
+  .oc-msg-row a { flex: none; display: inline-flex; align-items: center; min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--border); color: var(--accent); font-weight: 700; font-size: 12.5px; text-decoration: none; }
   .ps-title { font-family: var(--font-display, inherit); font-size: 24px; line-height: 1.2; margin: 18px 0 8px; overflow-wrap: anywhere; }
   .ps-text { font-size: 15px; line-height: 1.5; color: var(--text-dim); margin: 0 0 6px; }
   .ps-btn { width: 100%; margin-top: 14px; padding: 13px; }
@@ -6943,9 +7002,28 @@
         <li><b>Calls go out from your reps' own phones.</b> No phone lines to buy and no shared numbers getting flagged.</li>
         <li><b>Follow-ups never slip.</b> VPEX nudges each rep at the exact time a lead asked for, with one tap to call.</li>
         <li><b>Your whole floor, live.</b> One shared list so nobody double-dials, and a scoreboard that updates as calls happen.</li>
+        <li><b>Calls at the right hour.</b> Every lead shows their local time, and anyone outside 8 AM to 9 PM their time is flagged.</li>
+        <li><b>Your numbers stay clean.</b> VPEX paces rapid-fire dialing and checks before a too-soon redial, so reps' numbers don't get labeled spam.</li>
+        <li><b>Built for teams.</b> Setter-to-closer handoffs, a sales coach for managers, and contests the whole floor sees live.</li>
       </ul>
       <div class="hero-price"><b>$49</b><span>per rep / month</span><em>7 days free · no card · cancel any time</em></div>
-      <button class="btn-secondary hero-demo" id="heroDemo" type="button">See a demo office first</button>
+      <div class="hero-sec">
+        <h2>See it with sample leads</h2>
+        <div class="hero-demos">
+          <button type="button" data-demo-ind="insurance">Insurance</button><button type="button" data-demo-ind="realestate">Real estate</button><button type="button" data-demo-ind="mca">Business funding</button><button type="button" data-demo-ind="auto">Auto</button><button type="button" data-demo-ind="solar">Solar</button>
+        </div>
+        <p class="hero-note">Opens a demo office for your industry. No signup.</p>
+        <button class="btn-secondary hero-demo" id="heroDemo" type="button" style="display:none">See a demo office first</button>
+      </div>
+      <div class="hero-sec">
+        <h2>Up and running in minutes</h2>
+        <ol class="hero-steps">
+          <li><b>Start your free trial.</b> Two minutes, no card.</li>
+          <li><b>Text your reps the invite link.</b> They pick a username and sign in on their own phones.</li>
+          <li><b>Load your list and dial.</b> Paste it or upload a spreadsheet. Duplicates and Do Not Call numbers are skipped.</li>
+        </ol>
+        <p class="hero-founder">Built by a former sales rep, for floors that live on the phone.</p>
+      </div>
     </div>
     <div class="auth-sub" id="authSub">Sign in to your team account</div>
     <div class="auth-msg" id="authMsg" style="display:none"></div>
@@ -6973,6 +7051,16 @@
       <div class="auth-hint" style="text-align:center;margin-top:10px">7 days free · no card needed · your reps call from their own phones</div>
       <button class="btn-secondary su-buy" id="suBuy" type="button">Already sold? Buy now</button>
       <button class="auth-link" id="suBack" type="button">Already have an office? Sign in</button>
+      <div class="auth-faq" id="authFaq">
+        <h2>Questions</h2>
+        <details><summary>Do my reps need to install anything?</summary><p>No. They open vpexdialer.com on their phone, sign in and tap to call. They can add it to their home screen like an app.</p></details>
+        <details><summary>Do we need to buy phone lines?</summary><p>No. Calls go out from each rep's own phone, so there's nothing to set up and no shared numbers to get flagged.</p></details>
+        <details><summary>What does it cost?</summary><p>$49 per rep, per month. Every active login counts as a rep. 7 days free with no card to start, and you can cancel any time.</p></details>
+        <details><summary>What happens when a rep leaves?</summary><p>Turn their access off in Team &amp; access. They're signed out within seconds and your bill drops by itself.</p></details>
+        <details><summary>Can I bring my own lead lists?</summary><p>Yes. Upload Excel, CSV, text or contacts, or paste a list. Numbers already in your list, or on your Do Not Call list, are skipped.</p></details>
+        <details><summary>Does it work for my industry?</summary><p>VPEX has versions for insurance, real estate, business funding, auto and solar, each in your floor's own words. Try the demo office for yours above.</p></details>
+        <details><summary>Can I see what my reps are doing?</summary><p>Yes. A live scoreboard, a daily recap, answer times by hour, and a sales coach that shows who needs help.</p></details>
+      </div>
     </div>
     <div id="authJoin" style="display:none">
       <label for="jnName">Your name</label>
@@ -7571,13 +7659,14 @@
       DocRef.prototype.onSnapshot = function (cb, e) { if (typeof cb !== "function") { cb = e; e = arguments[2]; } var l = { kind: "doc", path: this.path, cb: cb, err: e, app: this.app }; listeners.push(l); setTimeout(function () { fire(l); }, 0); return function () { var i = listeners.indexOf(l); if (i > -1) listeners.splice(i, 1); }; };
       function ColRef(app, path) { this.app = app; this.path = path; }
       ColRef.prototype.doc = function (id) { return new DocRef(this.app, this.path + "/" + id); };
-      ColRef.prototype.get = function (opts) { var a = this.app, p = this.path, f = this.filters, cache = opts && opts.source === "cache"; return Promise.resolve().then(function () {
+      ColRef.prototype.limit = function (n) { var q = new ColRef(this.app, this.path); q.filters = this.filters; q._limit = n; return q; };
+      ColRef.prototype.get = function (opts) { var a = this.app, p = this.path, f = this.filters, lim = this._limit || 0, cache = opts && opts.source === "cache"; return Promise.resolve().then(function () {
         if (!cache && window.__offline) throw err("unavailable");
         if (!cache) window.__mockServerQueries = (window.__mockServerQueries || []).concat([p + " " + JSON.stringify(f || [])]);
         if (!allowed(a, p, "read", f)) throw err("permission-denied");
         var db = load(FS), depth = p.split("/").length + 1;
         var docs = Object.keys(db).filter(function (k) { return k.indexOf(p + "/") === 0 && k.split("/").length === depth; })
-          .filter(function (k) { return (f || []).every(function (x) { return passes(k, db[k], x); }); }).sort().map(function (k) { return snapDoc(k, db[k]); });
+          .filter(function (k) { return (f || []).every(function (x) { return passes(k, db[k], x); }); }).sort().slice(0, lim || undefined).map(function (k) { return snapDoc(k, db[k]); });
         return { docs: docs, empty: !docs.length, size: docs.length, forEach: function (fn) { docs.forEach(fn); } }; }); };
       ColRef.prototype.where = function (field, op, val) { var q = new ColRef(this.app, this.path); q.filters = (this.filters || []).concat([[field && field.__docId ? "__name__" : field, val, op]]); return q; };
       ColRef.prototype.onSnapshot = function (cb, e) { if (typeof cb !== "function") { cb = e; e = arguments[2]; } var l = { kind: "col", path: this.path, cb: cb, err: e, app: this.app, filters: this.filters }; listeners.push(l); setTimeout(function () { fire(l); }, 0); return function () { var i = listeners.indexOf(l); if (i > -1) listeners.splice(i, 1); }; };
@@ -8226,7 +8315,62 @@
       var el = document.getElementById(x[0]); if (el) el.addEventListener("click", x[1]);
     });
   }
-  function lastFollowHtml() {
+  // ---- "Set up your floor": a new office's first steps, until they're done (or the admin hides it) ----
+  function lsGet(k) { try { return window.localStorage.getItem(k) || ""; } catch (e) { return ""; } }
+  function lsSet(k, v) { try { window.localStorage.setItem(k, v); } catch (e) {} }
+  function setupApplies() { return !!(TEAM.on && TEAM.office && TEAM.me && isAdmin() && !DEMO && !CUSTOMER.firebase && TEAM.officeDoc); }
+  function setupSteps() {
+    var m = TEAM.members || {}, me = TEAM.me ? TEAM.me.uid : "", st = myOfficeState() || {};
+    var others = Object.keys(m).filter(function (k) { return k !== me && m[k] && m[k].active; }).length;
+    var paid = st.kind === "paid" || st.kind === "free" || autoBilled(TEAM.officeDoc);
+    var dd = st.kind === "trial" ? (st.days === 1 ? "1 day" : st.days + " days") : "";
+    return [
+      { k: "leads", t: "Load your leads", d: state.leads.length > 0, sub: "Paste a list or upload a spreadsheet. Duplicates are skipped." },
+      { k: "invite", t: "Invite your reps", d: others > 0 || lsGet("vpex_setup_solo_" + TEAM.office) === "1", sub: "Text them the invite link. They pick a username and sign in on their own phones." },
+      { k: "call", t: "Make your first call", d: (state.callLog || []).length > 0, sub: "Tap Call on your first lead. VPEX sets the follow-up for you." },
+      { k: "pay", t: "Keep your floor running", d: paid, sub: (dd ? "Your free trial ends in " + dd + ". " : "") + "$" + officePrice(TEAM.officeDoc) + " per rep, per month. Add or turn off reps any time." }
+    ];
+  }
+  function setupVisible() {
+    if (!setupApplies() || lsGet("vpex_setup_hide_" + TEAM.office) === "1") return false;
+    var s = setupSteps(); return !(s[0].d && s[1].d && s[2].d);
+  }
+  function setupBarHtml() {
+    if (!setupVisible() || !state.leads.length) return "";
+    var s = setupSteps(), done = s.filter(function (x) { return x.d; }).length, nx = s.filter(function (x) { return !x.d; })[0];
+    var act = nx.k === "invite" ? '<button class="btn-primary" type="button" data-setup="invite">Send invite link</button>'
+      : nx.k === "pay" ? '<button class="btn-secondary" type="button" data-setup="pay">Add payment</button>' : '';
+    return '<div class="setup-bar"><div class="sb-top"><b>Set up your floor</b><span>' + done + ' of 4 done</span><button class="sb-x" type="button" data-setup="hide" aria-label="Hide setup steps">\u00d7</button></div>' +
+      '<div class="sb-prog"><i style="width:' + Math.round(done / 4 * 100) + '%"></i></div>' +
+      '<div class="sb-next"><span>Next: <b>' + escapeHtml(nx.t) + '</b>' + (nx.k === "call" ? ' \u00b7 tap Call below' : '') + '</span>' + act + '</div>' +
+      (nx.k === "invite" ? '<button class="sb-solo" type="button" data-setup="solo">It\u2019s just me for now</button>' : '') + '</div>';
+  }
+  function setupCardHtml() {
+    var s = setupSteps(), done = s.filter(function (x) { return x.d; }).length;
+    return '<div class="setup-card"><div class="sb-top"><b>Set up your floor</b><span>' + done + ' of 4 done</span></div>' +
+      '<div class="sb-prog"><i style="width:' + Math.round(done / 4 * 100) + '%"></i></div>' +
+      s.map(function (x, i) {
+        var btn = x.d ? '' : x.k === "leads" ? '<button class="btn-primary" id="emptyLoadBtn" type="button">Load leads</button>'
+          : x.k === "invite" ? '<button class="btn-secondary" id="emptyInviteBtn" type="button">Invite your reps</button>' : '';
+        return '<div class="sc-step' + (x.d ? ' done' : '') + '"><div class="sc-dot">' + (x.d ? '\u2713' : (i + 1)) + '</div><div class="sc-body"><b>' + escapeHtml(x.t) + '</b><span>' + escapeHtml(x.sub) + '</span>' + btn + '</div></div>';
+      }).join("") + '</div>';
+  }
+  function shareInvite() {
+    var link = inviteLink(); if (!link) { openTeamPanel(); return; }
+    var msg = "Join " + ((TEAM.officeDoc && TEAM.officeDoc.name) || officeTitle(TEAM.office)) + " on VPEX: " + link + "\nOpen it on your phone, pick a username and password, and you\u2019re in.";
+    if (navigator.share) { navigator.share({ text: msg }).catch(function () {}); return; }
+    showToast(copyText(msg) ? "Invite link copied \u00b7 text it to your reps" : "Open Team & access to copy the invite link");
+  }
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-setup]"); if (!b) return;
+    var k = b.getAttribute("data-setup");
+    if (k === "invite") shareInvite();
+    else if (k === "pay") payNow();
+    else if (k === "solo") { lsSet("vpex_setup_solo_" + TEAM.office, "1"); render(); }
+    else if (k === "hide") { lsSet("vpex_setup_hide_" + TEAM.office, "1"); render(); showToast("Setup steps hidden"); }
+  });
+  function lastFollowHtml() { return setupBarHtml() + lastFollowOnly(); }
+  function lastFollowOnly() {
     var lf = state.lastFollow; if (!lf) return "";
     var t = state.tasks.filter(function (x) { return x.id === lf.taskId; })[0], lead = t && findLeadById(t.leadId);
     if (!t || t.done || !lead) return "";
@@ -8793,7 +8937,7 @@
     document.getElementById("queueControls").style.display = "none";
     var dueN = dueTasks().length;
     var scb = document.getElementById("adminBtn");
-    if (scb) { var needN = TEAM.on && isAdmin() ? ((new Date().getHours() >= 17 && state.recapSeen !== localDateStr(new Date())) ? 1 : 0) + vaultPending().length + overdueWarm().length : 0; scb.setAttribute("data-badge", needN ? String(Math.min(needN, 99)) : ""); scb.setAttribute("aria-label", "Admin controls" + (needN ? ", " + needN + " need you" : "")); }
+    if (scb) { var needN = (isOwnerMaster() ? (TEAM.newOffices || 0) : 0) + (TEAM.on && isAdmin() ? ((new Date().getHours() >= 17 && state.recapSeen !== localDateStr(new Date())) ? 1 : 0) + vaultPending().length + overdueWarm().length : 0); scb.setAttribute("data-badge", needN ? String(Math.min(needN, 99)) : ""); scb.setAttribute("aria-label", "Admin controls" + (needN ? ", " + needN + " need you" : "")); }
     ntBadge();
     document.getElementById("viewTabTasks").setAttribute("data-badge", dueN ? String(dueN) : "");
 
@@ -9961,8 +10105,9 @@
       main.innerHTML =
         '<div class="empty">' +
           needsHtml(true) +
-          '<div class="glyph">☎</div>' +
+          (setupVisible() ? '' : '<div class="glyph">☎</div>') +
           (repView ? '<h2>No leads yet</h2><p>Your admin loads the call list. Leads show up here the moment they do.</p>' :
+          setupVisible() ? setupCardHtml() :
           '<h2>Load your leads to start dialing</h2>' +
           '<p>' + (hasImportData() ?
             "Import the Elite Investors list, paste a list, or add leads one at a time. Each call opens your phone's dialer — you stay in control of every call." :
@@ -11857,6 +12002,16 @@
     teamHeartbeat();
     TEAM.heartbeat = setInterval(teamHeartbeat, 5 * 60 * 1000);
     teamRetryCalls();
+    if (isOwnerMaster()) { ownerCheckNew(); clearInterval(TEAM.ownerTimer); TEAM.ownerTimer = setInterval(ownerCheckNew, 30 * 60000); }
+  }
+  // The owner's badge: offices that signed up since the console was last opened on this phone.
+  function ownerCheckNew() {
+    if (!isOwnerMaster() || !TEAM.db) return;
+    var since = Number(lsGet("vpex_oc_seen") || 0) || (Date.now() - 7 * DAY);
+    TEAM.db.collection("offices").where("createdAt", ">", since).get().then(function (qs) {
+      var n = qs.docs.length; if (n === (TEAM.newOffices || 0)) return;
+      TEAM.newOffices = n; render();
+    }, function () {});
   }
 
   function teamHeartbeat() {
@@ -11876,7 +12031,7 @@
     logSignout(reason || (msg ? "signed out" : "you signed out"), msg);
     clearTimeout(verifyTimer); clearTimeout(TEAM.retryTimer);
     teamDetachData();
-    clearInterval(TEAM.heartbeat); clearInterval(TEAM.dayTimer); clearTimeout(TEAM.flushTimer);
+    clearInterval(TEAM.heartbeat); clearInterval(TEAM.dayTimer); clearTimeout(TEAM.flushTimer); clearInterval(TEAM.ownerTimer); TEAM.newOffices = 0;
     TEAM.me = null; TEAM.ready = false; TEAM.members = {}; TEAM.lastSent = {}; TEAM.fastSig = {}; TEAM.lastCk = {}; TEAM.days = {}; TEAM.myClaimId = null; teamForgetHistory();
     TEAM.office = null; TEAM.officeDoc = null; TEAM.contactAsked = false;
     var pse = document.getElementById("pausedScreen"); if (pse) pse.style.display = "none";
@@ -14319,6 +14474,11 @@
       try { var ms = await db.collection("offices").doc(doc.id).collection("members").get(); ms.docs.forEach(function (m) { var x = m.data() || {}; x.uid = m.id; o.members.push(x); if (x.active) o.reps++; if ((x.lastSeen || 0) > o.last) o.last = x.lastSeen; }); } catch (e) {}
       o.members.sort(function (a, b) { return (a.uid === d.ownerUid ? -1 : b.uid === d.ownerUid ? 1 : 0) || ((a.role === "admin" ? 0 : 1) - (b.role === "admin" ? 0 : 1)) || String(a.name || "").localeCompare(String(b.name || "")); });
       o.owner = o.members.filter(function (x) { return x.uid === d.ownerUid; })[0] || o.members.filter(function (x) { return x.role === "admin"; })[0] || null;
+      o.leads = null; o.leadsMore = false;
+      try { var lq = db.collection("offices").doc(doc.id).collection("leadChunks"); lq = typeof lq.limit === "function" ? lq.limit(3) : lq;
+        var ls = await lq.get(); o.leads = 0; o.leadsMore = ls.docs.length >= 3;
+        ls.docs.forEach(function (x) { if (x.id.charAt(0) !== "_") o.leads += Object.keys((x.data() || {}).leads || {}).length; }); } catch (e) {}
+      o.isNew = (d.createdAt || 0) > (OC.seenBefore || 0);
       try { var cn = await Promise.all(days.map(function (k) { return db.collection("offices").doc(doc.id).collection("callDays").doc("n_" + k).get(); }));
         cn.forEach(function (sn) { if (sn.exists) o.calls += Number((sn.data() || {}).c) || 0; }); } catch (e) {}
       out.push(o);
@@ -14337,10 +14497,11 @@
     var dt = function (ms) { return ms ? new Date(ms).toLocaleDateString([], { month: "short", day: "numeric" }) : "never"; };
     box.innerHTML =
       '<div class="oc-tot"><div><b>$' + mrr.toLocaleString() + '</b><span>monthly revenue</span></div><div><b>' + paying.length + '</b><span>paying</span></div><div><b>' + trials + '</b><span>on trial</span></div><div><b>' + reps + '</b><span>reps</span></div></div>' +
+      (function () { var n = L.filter(function (o) { return o.isNew; }).length; return n ? '<p class="oc-fresh">' + n + ' new signup' + (n === 1 ? '' : 's') + ' since you last checked</p>' : ''; })() +
       (L.length ? L.map(function (o) {
         var d = o.d, st = o.st, ind = INDUSTRIES[d.industry] ? INDUSTRIES[d.industry].name : (d.industry || "");
         return '<div class="oc-card" data-oc="' + escapeHtml(o.id) + '">' +
-          '<div class="oc-top"><div class="oc-name"><b>' + escapeHtml(d.name || o.id) + '</b><span>' + escapeHtml(o.id) + (ind ? ' \u00b7 ' + escapeHtml(ind) : '') + '</span></div>' + ocStatusChip(st, d) + '</div>' +
+          '<div class="oc-top"><div class="oc-name"><b>' + escapeHtml(d.name || o.id) + (o.isNew ? '<em class="oc-new">New</em>' : '') + '</b><span>' + escapeHtml(o.id) + (ind ? ' \u00b7 ' + escapeHtml(ind) : '') + '</span></div>' + ocStatusChip(st, d) + '</div>' +
           (function () { var w = o.owner; if (!w) return '<div class="oc-who"><span class="oc-none">No admin login found</span></div>';
             var dig = String(w.phone || "").replace(/[^0-9+]/g, "");
             return '<div class="oc-who"><b>' + escapeHtml(w.name || w.username || "") + '</b>' + (w.username ? '<span class="oc-none">' + escapeHtml(w.username) + '</span>' : '') +
@@ -14352,12 +14513,14 @@
           (d.stripeSub ? '<div class="oc-auto">' + (d.cancelled ? 'Cancelled in Stripe' : 'Card on file \u00b7 renews automatically') + (d.seatsPaid ? ' \u00b7 ' + d.seatsPaid + ' rep' + (d.seatsPaid === 1 ? '' : 's') + ' paid' : '') + '</div>' +
             (!d.cancelled && d.seatsPaid && d.seatsPaid !== o.reps ? '<div class="oc-auto oc-drift">' + o.reps + ' active now \u00b7 seats update within the hour</div>' : '') +
             (d.stripeSubPrev ? '<div class="oc-auto oc-drift">Paid twice: cancel the older subscription in Stripe (' + escapeHtml(d.stripeSubPrev) + ')</div>' : '') : '') +
-          '<div class="oc-meta">' + o.reps + ' rep' + (o.reps === 1 ? '' : 's') + ' \u00b7 ' + o.calls + ' calls this week \u00b7 last active ' + escapeHtml(dt(o.last)) + ' \u00b7 $' + officePrice(d) + '/rep' + (d.founding ? ' (founding)' : '') + ' \u00b7 ' + (st.kind === "paid" || st.kind === "pastdue" ? '$' + (o.reps * officePrice(d)).toLocaleString() + '/mo' : 'joined ' + escapeHtml(dt(d.createdAt))) + '</div>' +
+          (function () { var nx = ocNext(o); return nx ? '<div class="oc-next">Next: ' + escapeHtml(nx.t) + '</div>' : ''; })() +
+          '<div class="oc-meta">' + (o.leads === null ? '' : o.leads === 0 ? 'No leads yet \u00b7 ' : o.leads + (o.leadsMore ? '+' : '') + ' leads \u00b7 ') + o.reps + ' rep' + (o.reps === 1 ? '' : 's') + ' \u00b7 ' + o.calls + ' calls this week \u00b7 last active ' + escapeHtml(dt(o.last)) + ' \u00b7 $' + officePrice(d) + '/rep' + (d.founding ? ' (founding)' : '') + ' \u00b7 ' + (st.kind === "paid" || st.kind === "pastdue" ? '$' + (o.reps * officePrice(d)).toLocaleString() + '/mo' : 'joined ' + escapeHtml(dt(d.createdAt))) + '</div>' +
           '<div class="oc-acts">' +
             '<button type="button" class="btn-primary" data-oc-act="paid">' + (d.plan === "paid" ? '+1 month paid' : 'Mark paid') + '</button>' +
             '<button type="button" class="btn-secondary" data-oc-act="trial">+7 trial days</button>' +
             '<button type="button" class="btn-secondary" data-oc-act="founding">' + (d.founding ? 'Standard price' : 'Founding price') + '</button>' +
             '<button type="button" class="btn-secondary" data-oc-act="free">' + (d.plan === "comp" ? 'End free' : 'Free') + '</button>' +
+            '<button type="button" class="btn-secondary" data-oc-act="msg">Text them</button>' +
             '<button type="button" class="btn-secondary" data-oc-act="pw">Reset a password</button>' +
             '<button type="button" class="btn-secondary danger-link" data-oc-act="lock">' + (d.locked ? 'Unpause' : 'Pause') + '</button>' +
             '<button type="button" class="btn-secondary danger-link" data-oc-act="delete">Delete</button>' +
@@ -14408,9 +14571,26 @@
   }
   function ocAction(id, act) {
     var o = OC.list.filter(function (x) { return x.id === id; })[0]; if (!o) return;
+    if (act === "msg") {
+      var mb = document.querySelector('[data-oc-pwbox="' + id + '"]'); if (!mb) return;
+      if (mb.getAttribute("data-open") === "msg") { mb.innerHTML = ""; mb.removeAttribute("data-open"); return; }
+      var w = o.owner || {}, dig = String(w.phone || "").replace(/[^0-9+]/g, ""), ios = /iP(hone|ad|od)/.test(navigator.userAgent), nx = ocNext(o);
+      var list = ocTexts(o).filter(function (x) { return x.k !== "declined" || (nx && nx.k === "declined"); }).filter(function (x) { return x.k !== "ended" || (nx && nx.k === "ended"); });
+      if (nx) list.sort(function (a, b) { return (b.k === nx.k) - (a.k === nx.k); });
+      mb.setAttribute("data-open", "msg"); mb.removeAttribute("data-pw");
+      mb.innerHTML = '<div class="oc-pw">' + (dig ? '' : '<p class="oc-note" style="margin:0 0 6px">No phone on file yet: Text opens a blank message. Email works if they gave one.</p>') +
+        list.map(function (x) {
+          var sms = "sms:" + dig + (ios ? "&" : "?") + "body=" + encodeURIComponent(x.b);
+          return '<div class="oc-msg-row"><div><b>' + escapeHtml(x.t) + '</b>' + (nx && x.k === nx.k ? '<em>Suggested</em>' : '') + '<span>' + escapeHtml(x.b) + '</span></div>' +
+            '<a href="' + escapeHtml(sms) + '">Text</a>' + (w.email ? '<a href="mailto:' + escapeHtml(w.email) + '?subject=' + encodeURIComponent("VPEX") + '&body=' + encodeURIComponent(x.b) + '">Email</a>' : '') + '</div>';
+        }).join("") + '</div>';
+      return;
+    }
     if (act === "pw") {
       var box = document.querySelector('[data-oc-pwbox="' + id + '"]'); if (!box) return;
-      if (box.innerHTML) { box.innerHTML = ""; return; }
+      box.removeAttribute("data-open");
+      if (box.innerHTML && box.getAttribute("data-pw") === "1") { box.innerHTML = ""; box.removeAttribute("data-pw"); return; }
+      box.setAttribute("data-pw", "1");
       var ms = (o.members || []).filter(function (m) { return m.username; });
       box.innerHTML = '<div class="oc-pw">' + (ms.length ? ms.map(function (m) {
         return '<div class="oc-pw-row"><div><b>' + escapeHtml(m.name || m.username) + '</b><br><span>' + escapeHtml(m.username) + ' \u00b7 ' + ({ admin: "Admin", manager: "Manager" }[m.role] || "Rep") + (m.active ? '' : ' \u00b7 access off') + '</span></div>' +
@@ -14445,13 +14625,41 @@
     if (act === "lock" && !d.locked) showConfirm("Pause " + (d.name || id) + "? Their team can\u2019t make changes until you unpause. Nothing is deleted.", go, "Pause office");
     else go();
   }
+  // What the owner should do next for an office, and texts ready to send for it.
+  function ocNext(o) {
+    var st = o.st, d = o.d;
+    if (d.stripeSub && !d.cancelled && d.payFailed) return { k: "declined", t: "Card declined \u00b7 ask them to update it" };
+    if (st.kind === "locked" && d.plan !== "paid") return { k: "ended", t: "Trial ended \u00b7 win them back or extend the trial" };
+    if (st.kind !== "trial") return null;
+    if (o.leads === 0) return { k: "leads", t: "No leads yet \u00b7 offer to load their list" };
+    if (o.reps <= 1) return { k: "reps", t: "Only the admin so far \u00b7 get their reps invited" };
+    if (!o.calls) return { k: "checkin", t: "No calls this week \u00b7 check in" };
+    if (st.days <= 2) return { k: "ending", t: "Trial ends " + (st.days <= 1 ? "tomorrow" : "in " + st.days + " days") + " \u00b7 ask for the sale" };
+    return { k: "founding", t: "Dialing \u00b7 a good time to offer founding pricing" };
+  }
+  function ocTexts(o) {
+    var d = o.d, st = o.st, w = o.owner || {}, first = firstName(w.name || w.username || "") || "there", off = d.name || o.id, price = officePrice(d);
+    var when = st.kind === "trial" ? (st.days <= 1 ? "tomorrow" : "in " + st.days + " days") : "soon";
+    return [
+      { k: "welcome", t: "Welcome", b: "Hi " + first + ", it's Vincent, founder of VPEX. Welcome aboard! Want a quick 5-minute call to load your list and get your reps signed in? You'll be dialing today." },
+      { k: "leads", t: "Help loading leads", b: "Hi " + first + ", Vincent from VPEX. I can load your lead list for you so " + off + " is ready to dial. Just text me the spreadsheet or email it to support@vpexdialer.com." },
+      { k: "reps", t: "Invite your reps", b: "Hi " + first + ", quick tip from VPEX: open the menu, tap Team & access, and text your reps the invite link. They pick a username and they're dialing in a minute." },
+      { k: "checkin", t: "Check-in", b: "Hi " + first + ", it's Vincent from VPEX. How's the floor liking it so far? Anything I can set up for you?" },
+      { k: "ending", t: "Trial ending", b: "Hi " + first + ", your VPEX trial ends " + when + ". To keep " + off + " dialing, open VPEX and tap Add payment. It's $" + price + " a rep, and you can add or turn off reps any time." },
+      { k: "founding", t: "Founding price", b: "Hi " + first + ", since " + off + " is one of our first offices, I can turn on founding pricing: $" + (Number((TEAM.billing || {}).foundingPrice) || 29) + " a rep instead of $" + (Number((TEAM.billing || {}).price) || 49) + ". Want me to set that up?" },
+      { k: "ended", t: "Trial ended", b: "Hi " + first + ", your VPEX trial ended, but everything " + off + " loaded is saved. Tap Add payment in the app and you're right back where you left off. Want a few more trial days instead?" },
+      { k: "declined", t: "Card declined", b: "Hi " + first + ", heads up from VPEX: your last payment didn't go through. Open VPEX and tap Update card to keep your floor running." }
+    ];
+  }
   function openOwnerConsole() {
+    OC.seenBefore = Number(lsGet("vpex_oc_seen") || 0);
     var b = featOpen('<h3>VPEX offices</h3><p class="modal-sub">Every office on VPEX. Offices that need you come first.</p><div id="ocBody"><div class="pipe-empty">Loading offices\u2026</div></div>' +
       '<div class="oc-bill oc-rules"><div class="settings-heading" style="margin:18px 0 4px">Security rules</div><p class="oc-note" style="margin:0 0 10px">Paste these into Firebase whenever VPEX gets an update that asks for it. They keep every office walled off from every other office.</p>' +
       '<div class="modal-actions"><button type="button" class="btn-primary" id="ocCopyRules">Copy rules</button><a class="btn-secondary" href="https://console.firebase.google.com/project/dovetail-f863c/firestore/rules" target="_blank" rel="noopener">Open Firebase rules</a></div></div>');
     var ocr = b && b.querySelector ? b.querySelector("#ocCopyRules") : document.getElementById("ocCopyRules");
     if (ocr) ocr.addEventListener("click", function () { showToast(copyText(VAULT_RULES) ? "Rules copied \u2014 paste them into Firebase and tap Publish" : "Couldn\u2019t copy"); });
-    ocLoad().then(function (list) { OC.list = list; ocRender(); }, function (e) {
+    // The newest signup counts as seen, even if this phone's clock runs a little slow.
+    ocLoad().then(function (list) { OC.list = list; ocRender(); lsSet("vpex_oc_seen", String(list.reduce(function (m, o) { return Math.max(m, Number((o.d || {}).createdAt) || 0); }, Date.now()))); if (TEAM.newOffices) { TEAM.newOffices = 0; render(); } }, function (e) {
       var box = document.getElementById("ocBody"); if (box) box.innerHTML = '<div class="pipe-empty">Couldn\u2019t load offices (' + escapeHtml((e && e.code) || "error") + '). Publish the new security rules, then try again.</div>';
     });
   }
@@ -14494,7 +14702,11 @@
         // Only the page header changes; the app code below is copied exactly as is.
         var out = src.slice(0, hi).replace(/<script id="customerConfig" type="application\/json">[\s\S]*?<\/script>/, function () { return '<script id="customerConfig" type="application/json">' + json + '<\/script>'; })
           .replace(/<title>[^<]*<\/title>/, function () { return "<title>" + escapeHtml(c.app) + "</title>"; })
-          .replace(/(apple-mobile-web-app-title" content=")[^"]*/g, function (m0, a) { return a + escapeHtml(c.app); }) + src.slice(hi);
+          .replace(/(apple-mobile-web-app-title" content=")[^"]*/g, function (m0, a) { return a + escapeHtml(c.app); })
+          // VPEX's own link preview, search listing and icon files stay with VPEX; the copy draws its own icon.
+          .replace(/<meta (?:property="og:|name="twitter:|name="description")[^>]*>\n?/g, "")
+          .replace(/<link rel="(?:icon|apple-touch-icon)"[^>]*vpex-icon[^>]*>\n?/g, "")
+          .replace(/(<meta name="robots" content=")[^"]*/, function (m0, a) { return a + "noindex, nofollow"; }) + src.slice(hi);
         if (out.indexOf("var CUSTOMER = ") < 0 || out.length < src.length * 0.99) throw new Error("copy check");
         var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([out], { type: "text/html" })); a.download = "index.html";
         document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
@@ -14520,6 +14732,8 @@
     document.getElementById("installDone").addEventListener("click", function () { state.installHideUntil = Date.now() + 30 * 86400000; saveState(); featClose(); render(); });
   }
   (function makeAppIcon() {
+    // The real VPEX icons ship as files (vpex-icon-180.png); only a renamed copy of the app draws its own.
+    if (!CUSTOMER.app) return;
     try {
       var c = document.createElement("canvas"); c.width = c.height = 180; var g = c.getContext("2d"), grd = g.createLinearGradient(0, 0, 180, 180);
       grd.addColorStop(0, "#1B2A41"); grd.addColorStop(1, "#0B1220"); g.fillStyle = grd; g.fillRect(0, 0, 180, 180);
@@ -15261,7 +15475,8 @@
         admin && row("hubExport", '<path d="M12 4v11M7 10l5 5 5-5"/><path d="M5 20h14"/>', "Export call log", "A CSV of every call"),
         admin && row("hubBackup", '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 4v6h8V4"/>', "Full backup", "Leads, calls and follow-ups in one file"),
         admin && TEAM.office && row("hubBilling", '<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><path d="M7 15h3"/>', "Billing", "Plan, payment and invoices"),
-        admin && isOwnerMaster() && row("hubOffices", '<path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 9h.01M15 9h.01M9 13h.01M15 13h.01M9 17h.01M15 17h.01"/>', "VPEX offices", "Every customer office, trials and billing"),
+        admin && isOwnerMaster() && row("hubOffices", '<path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 9h.01M15 9h.01M9 13h.01M15 13h.01M9 17h.01M15 17h.01"/>', "VPEX offices",
+          TEAM.newOffices ? TEAM.newOffices + " new signup" + (TEAM.newOffices === 1 ? "" : "s") + " since you last checked" : "Every customer office, trials and billing", TEAM.newOffices ? String(TEAM.newOffices) : "", !!TEAM.newOffices),
         admin && isOwnerMaster() && row("hubCustomer", '<rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 18v3"/>', "Customer copy", "Branded app for another office")
       ]]
     ];
@@ -15580,6 +15795,10 @@
     });
     document.getElementById("heroSignin").addEventListener("click", function () { document.getElementById("suBack").click(); document.getElementById("authScreen").scrollTop = 0; });
     document.getElementById("heroCta").addEventListener("click", function () { var f = document.getElementById("authSub"); if (f && f.scrollIntoView) f.scrollIntoView({ behavior: "smooth", block: "start" }); setTimeout(function () { try { document.getElementById("suOffice").focus({ preventScroll: true }); } catch (e) {} }, 450); });
+    document.querySelectorAll("[data-demo-ind]").forEach(function (b) { b.addEventListener("click", function () {
+      try { window.localStorage.setItem("dovetail_demo", "1"); } catch (e) {}
+      location.hash = "demo-" + b.getAttribute("data-demo-ind"); location.reload();
+    }); });
     document.getElementById("heroDemo").addEventListener("click", function () { var k = document.getElementById("suInd").value; try { window.localStorage.setItem("dovetail_demo", "1"); } catch (e) {} location.hash = k && k !== "investments" ? "demo-" + k : "demo"; location.reload(); });
     document.getElementById("psPay").addEventListener("click", payNow);
     document.getElementById("psExport").addEventListener("click", function () { try { exportBackup(); } catch (e) { showToast("Couldn\u2019t build the file", { kind: "err" }); } });
