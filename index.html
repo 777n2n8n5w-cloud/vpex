@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-12-09">
+<meta name="vpex-build" content="2026-12-10">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -58,13 +58,13 @@
   /* Auto follows the phone's light/dark setting, in Flow. */
   :root:not([data-theme]), :root[data-theme="flow"] {
     --bg: #0D1224; --surface: #141B34; --surface-raised: #1B2344; --border: #283258;
-    --text: #EDF0FB; --text-dim: #A2AACB; --text-faint: #7680A6;
-    --accent: #5A80FF; --accent-dim: #3E64E6; --accent-text: #FFFFFF;
+    --text: #EDF0FB; --text-dim: #A2AACB; --text-faint: #8A93B8; --accent-fill: #4469F2;
+    --accent: #6388FF; --accent-dim: #3E64E6; --accent-text: #FFFFFF;
     --interested: #34C98F; --notinterested: #F0627C; --voicemail: #E3AE45; --noanswer: #8A95BC; --badnum: #E58052; --callback: #7FA6FF; --danger: #F0627C;
     --gold: #FFC94D; --horizon-k: 1;
-    --call-bg: linear-gradient(180deg, #5A80FF 0%, #3E64E6 100%);
+    --call-bg: linear-gradient(180deg, #4469F2 0%, #3354D6 100%);
     --call-shadow: 0 12px 30px rgba(62,100,230,0.45);
-    --tab-active-bg: linear-gradient(180deg, #5A80FF, #3E64E6);
+    --tab-active-bg: linear-gradient(180deg, #4469F2, #3354D6);
     --card-shadow: 0 22px 44px rgba(3,6,20,0.55);
     --header-bg: rgba(13,18,36,0.6); --header-blur: saturate(170%) blur(18px);
     --font-body: 'Archivo', system-ui, -apple-system, sans-serif;
@@ -75,10 +75,10 @@
   @media (prefers-color-scheme: light) {
     :root:not([data-theme]) {
     --bg: #ECEFF7; --surface: #FFFFFF; --surface-raised: #F5F7FD; --border: #D4DAEB;
-    --text: #11172E; --text-dim: #535E80; --text-faint: #6F7898;
+    --text: #11172E; --text-dim: #535E80; --text-faint: #626B8A; --accent-fill: #2F5BEB;
     --accent: #2F5BEB; --accent-dim: #4C73F0; --accent-text: #FFFFFF;
-    --interested: #128458; --notinterested: #C2334F; --voicemail: #946500; --noanswer: #5A6383; --badnum: #B04E26; --callback: #3B63CF; --danger: #C2334F;
-    --gold: #C38A00; --horizon-k: 0.55;
+    --interested: #0F7A50; --notinterested: #C2334F; --voicemail: #946500; --noanswer: #5A6383; --badnum: #B04E26; --callback: #3B63CF; --danger: #C2334F;
+    --gold: #9A6F10; --horizon-k: 0.55;
     --call-bg: linear-gradient(180deg, #3B66F0 0%, #2550DD 100%);
     --call-shadow: 0 12px 26px rgba(37,80,221,0.30);
     --tab-active-bg: linear-gradient(180deg, #3B66F0, #2550DD);
@@ -92,10 +92,10 @@
   }
   :root[data-theme="flowlight"] {
     --bg: #ECEFF7; --surface: #FFFFFF; --surface-raised: #F5F7FD; --border: #D4DAEB;
-    --text: #11172E; --text-dim: #535E80; --text-faint: #6F7898;
+    --text: #11172E; --text-dim: #535E80; --text-faint: #626B8A; --accent-fill: #2F5BEB;
     --accent: #2F5BEB; --accent-dim: #4C73F0; --accent-text: #FFFFFF;
-    --interested: #128458; --notinterested: #C2334F; --voicemail: #946500; --noanswer: #5A6383; --badnum: #B04E26; --callback: #3B63CF; --danger: #C2334F;
-    --gold: #C38A00; --horizon-k: 0.55;
+    --interested: #0F7A50; --notinterested: #C2334F; --voicemail: #946500; --noanswer: #5A6383; --badnum: #B04E26; --callback: #3B63CF; --danger: #C2334F;
+    --gold: #9A6F10; --horizon-k: 0.55;
     --call-bg: linear-gradient(180deg, #3B66F0 0%, #2550DD 100%);
     --call-shadow: 0 12px 26px rgba(37,80,221,0.30);
     --tab-active-bg: linear-gradient(180deg, #3B66F0, #2550DD);
@@ -4883,7 +4883,7 @@
   }
   .view-tab {
     flex: 1 1 auto;   /* sized by its label, so a badge like "Tasks 73" always shows */
-    min-width: 0;
+    min-width: 0; min-height: 34px;
     padding: 9px 2px;
     border: none;
     background: transparent;
@@ -4898,7 +4898,7 @@
     text-overflow: ellipsis;
   }
   .view-tab.active {
-    background: var(--accent);
+    background: var(--accent-fill, var(--accent));
     color: var(--accent-text);
   }
 
@@ -4928,13 +4928,13 @@
     font-family: inherit;
   }
   .filter-chip.active {
-    background: var(--accent);
+    background: var(--accent-fill, var(--accent));
     border-color: var(--accent);
     color: var(--accent-text);
   }
   .chip-n {
     font-size: 11px;
-    opacity: 0.85;
+    opacity: 1;
     font-weight: 700;
   }
   .hist-list {
@@ -5030,7 +5030,7 @@
   }
   .deal-bar-fill {
     height: 100%;
-    background: var(--accent);
+    background: var(--accent-fill, var(--accent));
     transition: width 0.4s ease;
   }
   .stage-section { margin-top: 18px; }
@@ -5076,7 +5076,8 @@
     display: flex; align-items: center; justify-content: center;
   }
   .pipe-delete-btn svg { width: 12px; height: 12px; }
-  .pipe-item-controls { display: flex; gap: 6px; }
+  .pipe-item-controls { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pipe-item-controls .pipe-select { min-width: 0; }
   .pipe-select, .pipe-amount {
     background: var(--surface-raised);
     border: 1px solid var(--border);
@@ -5088,6 +5089,14 @@
   }
   .pipe-amount { width: 96px; }
   .pipe-select { flex: 1; }
+  .pipe-item-name { min-height: 34px; padding: 6px 0; text-align: left; }
+  #toggleQueueBtn { min-height: 34px; padding: 6px 10px; }
+  /* form controls inside sheets: a full-size tap target, 16px text so iPhone doesn't zoom */
+  :where(.modal) :where(select:not(.lead-stage-select):not(.auth-select), input[type="number"], input[type="date"], input[type="time"], input[type="url"], input:not([type])) {
+    min-height: 40px; box-sizing: border-box; padding: 8px 10px; border-radius: var(--radius-s); border: 1px solid var(--border);
+    background-color: var(--surface-raised); color: var(--text); font-family: inherit; font-size: 15px; }
+  .tm-loc select { min-height: 36px; }
+  .modal label + input[type="url"] { width: 100%; }
   .pipe-empty {
     text-align: center;
     color: var(--text-faint);
@@ -5164,7 +5173,7 @@
   }
   .bar-fill {
     height: 100%;
-    background: var(--accent);
+    background: var(--accent-fill, var(--accent));
     width: 0%;
     transition: width 0.35s ease;
   }
@@ -5235,11 +5244,11 @@
   .skip-btn {
     background: none;
     border: none;
-    color: var(--text-faint);
+    color: var(--text-dim);
     font-size: 12.5px;
     cursor: pointer;
     text-decoration: underline;
-    padding: 4px;
+    padding: 4px 6px; min-height: 34px; display: inline-flex; align-items: center;
   }
   .lead-name {
     font-size: 24px;
@@ -5318,7 +5327,7 @@
     gap: 9px;
     flex: 1;
     padding: 16px;
-    background: var(--accent);
+    background: var(--accent-fill, var(--accent));
     color: var(--accent-text);
     border: none;
     border-radius: var(--radius-m);
@@ -5552,23 +5561,25 @@
     color: var(--text-dim); font-size: 13px; font-weight: 600; cursor: pointer;
     font-family: inherit;
   }
-  .tab-btn.active { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+  .tab-btn.active { background: var(--accent-fill, var(--accent)); color: var(--accent-text); border-color: var(--accent-fill, var(--accent)); }
   .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
   .btn-primary, .btn-secondary {
     flex: 1; padding: 13px; border-radius: var(--radius-s);
     font-size: 14.5px; font-weight: 600; cursor: pointer; border: none;
     font-family: inherit;
   }
-  .btn-primary { background: var(--accent); color: var(--accent-text); }
+  .btn-primary { background: var(--accent-fill, var(--accent)); color: var(--accent-text); }
   .btn-secondary { background: var(--surface-raised); color: var(--text); border: 1px solid var(--border); }
   .field-error {
     font-size: 12px; color: var(--danger); margin-top: 8px; min-height: 16px;
   }
   .close-x {
-    position: absolute; top: 16px; right: 16px;
-    background: none; border: none; color: var(--text-faint);
-    font-size: 20px; cursor: pointer; line-height: 1;
+    position: absolute; top: 6px; right: 6px; min-width: 44px; min-height: 44px; padding: 0;
+    display: flex; align-items: center; justify-content: center; border-radius: 50%;
+    background: none; border: none; color: var(--text-dim);
+    font-size: 24px; cursor: pointer; line-height: 1;
   }
+  .close-x:active { background: var(--surface-raised); }
   .modal { position: relative; }
 
   .theme-swatch-row {
@@ -5630,7 +5641,7 @@
   .goal-wrap { display: inline-flex; align-items: center; }
   .goal-btn {
     background: none; border: 1px dashed var(--border); color: var(--text-dim); font-family: inherit;
-    font-size: 12px; font-weight: 600; padding: 4px 9px; border-radius: 14px; cursor: pointer; min-height: 28px;
+    font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 14px; cursor: pointer; min-height: 32px;
   }
   .goal-btn:active { transform: scale(0.96); }
   .goal-input {
@@ -5676,10 +5687,36 @@
   .filter-chip.active .now-dot { background: var(--accent-text); }
   .lead-where {
     display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600;
-    padding: 5px 10px; border-radius: 20px; margin: -2px 0 12px;
+    padding: 5px 10px; border-radius: 20px; margin: -2px 0 10px;
     background: var(--surface-raised); border: 1px solid var(--border); color: var(--text-dim);
   }
   .lead-where .lw-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-faint); }
+  .qf-row { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 6px; width: 100%; min-height: 32px; margin: -8px 0 8px; padding: 0; border: 0; background: none; font: inherit; text-align: left; cursor: pointer; color: var(--text); }
+  /* one swipeable line under the phone number: their local time, then the qualifying answers */
+  .lead-meta { display: flex; align-items: center; gap: 6px; margin: -2px -4px 10px; padding: 0 4px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .lead-meta::-webkit-scrollbar { display: none; }
+  .lead-meta .lead-where { margin: 0; flex: none; white-space: nowrap; }
+  .lead-meta .qf-row { margin: 0; width: auto; flex: none; flex-wrap: nowrap; min-height: 30px; }
+  .lead-meta .qf-row.empty { padding: 5px 11px; }
+  .qf-chip { padding: 5px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 600; background: color-mix(in srgb, var(--accent) 12%, var(--surface-raised)); border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border)); color: var(--text); white-space: nowrap; }
+  .qf-chip.more { background: var(--surface-raised); border-color: var(--border); color: var(--text-dim); }
+  .qf-edit { font-size: 12.5px; font-weight: 700; color: var(--accent); padding: 5px 4px; }
+  .qf-row.empty { display: inline-flex; flex-wrap: nowrap; width: auto; gap: 7px; padding: 6px 12px; border-radius: 999px; border: 1px dashed var(--border); font-size: 12.5px; font-weight: 600; color: var(--text-dim); }
+  .qf-plus { font-weight: 800; color: var(--accent); }
+  .qf-form { display: grid; gap: 14px; margin: 14px 0 6px; text-align: left; }
+  .qf-field { display: grid; gap: 7px; margin: 0; }
+  .qf-l { font-size: 12.5px; font-weight: 700; color: var(--text-dim); }
+  .qf-opts { display: flex; flex-wrap: wrap; gap: 7px; }
+  .qf-opt { min-height: 38px; padding: 8px 13px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-raised); color: var(--text); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .qf-opt.on { background: var(--accent-fill, var(--accent)); border-color: var(--accent-fill, var(--accent)); color: var(--accent-text, #fff); }
+  .qf-field input { width: 100%; box-sizing: border-box; font-size: 16px; padding: 11px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-raised); color: var(--text); font-family: inherit; }
+  .qf-note { margin: 0; padding: 10px 12px; border-radius: 10px; font-size: 13px; line-height: 1.45; background: color-mix(in srgb, var(--voicemail) 14%, transparent); border: 1px solid color-mix(in srgb, var(--voicemail) 40%, var(--border)); color: var(--text); }
+  .lp-qf { margin-top: 14px; padding: 14px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface-raised); }
+  .lp-qf .qf-form { margin: 10px 0 0; } .lp-qf .qf-opt { background: var(--surface); }
+  .lp-qf .qf-opt.on { background: var(--accent-fill, var(--accent)); border-color: var(--accent-fill, var(--accent)); color: var(--accent-text, #fff); }
+  .modal .qf-form label.qf-field { display: grid; margin: 0; font-size: inherit; font-weight: inherit; color: inherit; }
+  .modal .qf-form .qf-field input { margin: 0; }
+  .lp-qf-head { font-size: 13px; font-weight: 800; color: var(--text); }
   .lead-where.ok .lw-dot { background: var(--interested); }
   .lead-where.late { color: var(--notinterested); border-color: var(--notinterested); }
   .lead-where.late .lw-dot { background: var(--notinterested); }
@@ -5725,7 +5762,7 @@
   .pipe-meta { font-size: 12px; color: var(--text-faint); margin: -4px 0 8px; line-height: 1.4; }
   .pipe-call, .task-actions .task-call {
     flex: none; width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
-    background: var(--accent); color: var(--accent-text); border: 0; text-decoration: none;
+    background: var(--accent-fill, var(--accent)); color: var(--accent-text); border: 0; text-decoration: none;
   }
   .pipe-call svg, .task-actions .task-call svg { width: 15px; height: 15px; }
   .pipe-sched {
@@ -5834,7 +5871,7 @@
     animation: cardIn 0.25s cubic-bezier(.2,.8,.2,1);
   }
   .tp-head { display: flex; gap: 10px; align-items: flex-start; }
-  .tp-ico { flex: none; width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: var(--accent-text); display: flex; align-items: center; justify-content: center; }
+  .tp-ico { flex: none; width: 32px; height: 32px; border-radius: 50%; background: var(--accent-fill, var(--accent)); color: var(--accent-text); display: flex; align-items: center; justify-content: center; }
   .tp-ico svg { width: 16px; height: 16px; }
   .tp-titles { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
   .tp-titles b { font-size: 14px; }
@@ -5870,7 +5907,7 @@
   .auth-card input { width: 100%; box-sizing: border-box; font-size: 17px; padding: 13px 14px; border-radius: 10px; border: 1px solid var(--border);
     background: var(--surface); color: var(--text); font-family: inherit; }
   .auth-card .btn-primary { width: 100%; margin-top: 20px; padding: 15px; font-size: 16px; border-radius: 10px; }
-  .auth-link { display: block; margin: 18px auto 0; background: none; border: 0; color: var(--text-dim); font-family: inherit; font-size: 13.5px; text-decoration: underline; cursor: pointer; }
+  .auth-link { display: block; margin: 10px auto 0; padding: 9px 6px; min-height: 36px; background: none; border: 0; color: var(--text-dim); font-family: inherit; font-size: 13.5px; text-decoration: underline; cursor: pointer; }
   .auth-msg { background: var(--surface); border: 1px solid var(--notinterested); color: var(--text); border-radius: 10px; padding: 11px 13px; font-size: 14px; line-height: 1.45; margin-bottom: 8px; }
   .auth-connecting { color: var(--text-dim); font-size: 15px; padding: 20px 0; }
   .paused-screen { z-index: 190; }
@@ -5978,7 +6015,7 @@
   .vb-row { display: grid; grid-template-columns: 22px 64px 1fr 30px; align-items: center; gap: 10px; padding: 8px 0; font-size: 14px; }
   .vb-n { width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; font-size: 12px; font-weight: 800; background: var(--surface-raised); color: var(--text-dim); }
   .vb-row:first-of-type .vb-n { background: var(--lp-gold); color: var(--lp-ink); }
-  .vb-bar { height: 8px; border-radius: 99px; background: var(--surface-raised); overflow: hidden; } .vb-bar i { display: block; height: 100%; border-radius: inherit; background: var(--accent); }
+  .vb-bar { height: 8px; border-radius: 99px; background: var(--surface-raised); overflow: hidden; } .vb-bar i { display: block; height: 100%; border-radius: inherit; background: var(--accent-fill, var(--accent)); }
   .vb-row:first-of-type .vb-bar i { background: var(--lp-gold); }
   .vb-c { text-align: right; font-weight: 800; font-variant-numeric: tabular-nums; }
   .vb-foot { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 12.5px; color: var(--text-dim); }
@@ -6101,7 +6138,7 @@
   .sb-next { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 13.5px; color: var(--text-dim); }
   .sb-next b { color: var(--text); }
   .sb-next .btn-primary, .sb-next .btn-secondary { flex: none; width: auto; margin: 0; padding: 10px 14px; font-size: 13.5px; }
-  .sb-solo { background: none; border: 0; padding: 4px 0; color: var(--text-faint); font-family: inherit; font-size: 12.5px; text-decoration: underline; cursor: pointer; }
+  .sb-solo { background: none; border: 0; padding: 8px 0; min-height: 34px; color: var(--text-faint); font-family: inherit; font-size: 12.5px; text-decoration: underline; cursor: pointer; }
   .sc-step { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-top: 1px solid var(--border); }
   .sc-step:first-of-type { border-top: 0; }
   .sc-dot { flex: none; width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: var(--text-faint); }
@@ -6111,7 +6148,7 @@
   .sc-step.done .sc-body b { color: var(--text-faint); text-decoration: line-through; }
   .sc-body span { display: block; margin-top: 2px; font-size: 12.5px; line-height: 1.45; color: var(--text-faint); }
   .sc-body .btn-primary, .sc-body .btn-secondary { width: auto; margin: 10px 0 0; padding: 11px 16px; font-size: 14px; }
-  .oc-new { flex: none; margin-left: 6px; padding: 1px 7px; border-radius: 999px; background: var(--accent); color: #fff; font-style: normal; font-size: 11px; font-weight: 800; vertical-align: 2px; }
+  .oc-new { flex: none; margin-left: 6px; padding: 1px 7px; border-radius: 999px; background: var(--accent-fill, var(--accent)); color: #fff; font-style: normal; font-size: 11px; font-weight: 800; vertical-align: 2px; }
   .oc-fresh { margin: 8px 0 0; font-size: 13px; font-weight: 700; color: var(--accent); }
   .oc-next { margin-top: 6px; font-size: 12.5px; font-weight: 700; color: var(--callback); }
   .oc-msg-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; }
@@ -6176,7 +6213,7 @@
   .pw-out a.btn-primary, .pw-out a.btn-secondary { display: flex; align-items: center; justify-content: center; text-align: center; text-decoration: none; }
   .auth-forgot { margin-top: 12px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface-raised); font-size: 13.5px; line-height: 1.5; text-align: left; }
   .auth-forgot p { margin: 0 0 8px; } .auth-forgot p:last-child { margin-bottom: 0; }
-  .auth-support { display: block; margin: 18px auto 0; text-align: center; font-size: 13px; color: var(--text-dim); text-decoration: underline; overflow-wrap: anywhere; }
+  .auth-support { display: block; margin: 12px auto 0; padding: 10px 4px; text-align: center; font-size: 13px; color: var(--text-dim); text-decoration: underline; overflow-wrap: anywhere; }
   .auth-forgot .btn-secondary { display: block; text-align: center; text-decoration: none; margin-top: 8px; }
   .bl-contact { margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border); font-size: 13px; line-height: 1.4; }
   .bl-contact b { display: block; font-size: 13.5px; }
@@ -6225,7 +6262,7 @@
   .score-btn[data-badge]:not([data-badge=""])::after { content: ""; position: absolute; top: 5px; right: 5px; width: 8px; height: 8px; border-radius: 50%; background: var(--notinterested); }
   .sb-seg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 4px; border-radius: 10px; background: var(--surface-raised); border: 1px solid var(--border); margin: 6px 0 12px; }
   .sb-tab { background: none; border: 0; border-radius: 7px; padding: 8px 2px; font-family: inherit; font-size: 12px; font-weight: 600; color: var(--text-dim); cursor: pointer; }
-  .sb-tab.active { background: var(--accent); color: var(--accent-text); }
+  .sb-tab.active { background: var(--accent-fill, var(--accent)); color: var(--accent-text); }
   .sb-card { border: 1px solid var(--border); background: var(--surface-raised); border-radius: 12px; padding: 11px 12px; margin-bottom: 8px; }
   .sb-card.sb-total { border-color: var(--accent); }
   .sb-card.off { opacity: 0.6; }
@@ -6235,7 +6272,7 @@
   .sb-big { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; flex: none; }
   .sb-big small { font-size: 11.5px; font-weight: 600; color: var(--text-faint); }
   .sb-bar { height: 5px; border-radius: 3px; background: var(--border); margin: 7px 0 8px; overflow: hidden; }
-  .sb-bar span { display: block; height: 100%; border-radius: 3px; background: var(--accent); }
+  .sb-bar span { display: block; height: 100%; border-radius: 3px; background: var(--accent-fill, var(--accent)); }
   .sb-stats { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; color: var(--text-dim); margin-top: 4px; }
   .sb-stats b { color: var(--text); }
   .sb-stats .warn, .sb-stats .warn b { color: var(--notinterested); }
@@ -6245,7 +6282,7 @@
   .ans-row { display: grid; grid-template-columns: 46px 1fr 78px; gap: 8px; align-items: center; font-size: 12.5px; }
   .ans-h { color: var(--text-dim); font-weight: 600; }
   .ans-bar { height: 10px; border-radius: 5px; background: var(--border); overflow: hidden; }
-  .ans-bar span { display: block; height: 100%; border-radius: 5px; background: var(--accent); }
+  .ans-bar span { display: block; height: 100%; border-radius: 5px; background: var(--accent-fill, var(--accent)); }
   .ans-v { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
   .ans-v small { color: var(--text-faint); font-weight: 500; }
 
@@ -6260,7 +6297,7 @@
   .hub-tile { width: 100%; display: flex; align-items: center; gap: 12px; padding: 13px 12px; margin-bottom: 8px; border-radius: 12px; cursor: pointer;
     border: 1px solid var(--border); background: var(--surface-raised); color: var(--text); font-family: inherit; text-align: left; }
   .hub-tile.hot { border-color: var(--accent); }
-  .hub-ico { flex: none; width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: var(--accent); color: var(--accent-text); }
+  .hub-ico { flex: none; width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: var(--accent-fill, var(--accent)); color: var(--accent-text); }
   .hub-ico svg { width: 19px; height: 19px; }
   .hub-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
   .hub-txt b { font-size: 15px; }
@@ -6314,7 +6351,7 @@
   .is-row.done { opacity: 0.7; }
   .is-num { flex: none; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;
     background: var(--border); color: var(--text); }
-  .is-row.next .is-num { background: var(--accent); color: var(--accent-text); }
+  .is-row.next .is-num { background: var(--accent-fill, var(--accent)); color: var(--accent-text); }
   .is-row.done .is-num { background: var(--interested); color: #fff; }
   .is-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
   .is-txt b { font-size: 13.5px; }
@@ -6418,7 +6455,7 @@
   .lead-name-row .lead-name { flex: 1; min-width: 0; }
   .star-btn { flex: none; background: none; border: 1px solid var(--border); color: var(--text-faint); border-radius: 999px; min-width: 38px; min-height: 38px; font-size: 18px; line-height: 1; cursor: pointer; font-family: inherit; }
   .star-btn.on { color: var(--voicemail); border-color: var(--voicemail); }
-  .lp-star { min-height: 0; padding: 6px 12px; font-size: 13px; margin: 2px 0 8px; }
+  .lp-star { min-height: 36px; padding: 6px 12px; font-size: 13px; margin: 2px 0 8px; color: var(--text-dim); }
   .win-chip { display: inline-block; margin-top: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--surface-raised); border: 1px solid var(--callback); color: var(--text-dim); }
   .hot-strip { margin: 0 0 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--voicemail); background: var(--surface); }
   .hot-head { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--voicemail); margin-bottom: 6px; }
@@ -6435,7 +6472,7 @@
   .goal-bars { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
   .gb-top { display: flex; justify-content: space-between; font-size: 13px; } .gb-top b { font-variant-numeric: tabular-nums; }
   .gb-track { position: relative; height: 8px; border-radius: 4px; background: var(--border); margin: 5px 0 3px; overflow: visible; }
-  .gb-track span { display: block; height: 100%; border-radius: 4px; background: var(--accent); }
+  .gb-track span { display: block; height: 100%; border-radius: 4px; background: var(--accent-fill, var(--accent)); }
   .gb-track i { position: absolute; top: -3px; width: 2px; height: 14px; background: var(--text-faint); }
   .gb small { font-size: 11.5px; } .gb small.ok { color: var(--interested); } .gb small.behind { color: var(--notinterested); }
   .goal-rep { padding: 10px 0; border-top: 1px solid var(--border); }
@@ -6454,7 +6491,7 @@
 
   .demo-pill { position: relative; z-index: 5; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;
     padding: 6px 12px; background: #111827; color: #F9FAFB; font-size: 12.5px; font-weight: 600; }
-  .demo-pill button { border: 0; border-radius: 999px; padding: 6px 12px; background: #E9C46A; color: #111827; font-weight: 700; font-size: 12.5px; font-family: inherit; cursor: pointer; }
+  .demo-pill button { border: 0; border-radius: 999px; padding: 6px 14px; min-height: 32px; background: #E9C46A; color: #111827; font-weight: 700; font-size: 12.5px; font-family: inherit; cursor: pointer; }
   .cu-steps { margin: 0; padding-left: 20px; font-size: 13.5px; color: var(--text-dim); display: flex; flex-direction: column; gap: 6px; }
   .cu-steps b { color: var(--text); }
 
@@ -6541,7 +6578,7 @@
   .need-pill { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; min-height: 34px; padding: 6px 12px; border-radius: 999px;
     border: 1px solid var(--border); background: var(--surface); color: var(--text); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
     text-align: left; line-height: 1.3; overflow-wrap: anywhere; }
-  .need-pill.go { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+  .need-pill.go { background: var(--accent-fill, var(--accent)); border-color: var(--accent-fill, var(--accent)); color: var(--accent-text); }
   .need-pill.warn { border-color: var(--notinterested, #c0392b); color: var(--notinterested, #c0392b); }
   .hot-star { color: var(--voicemail); margin-right: 3px; font-size: 12px; }
   .filter-chip.active .hot-star { color: var(--accent-text); }
@@ -6555,7 +6592,7 @@
   .pipe-parked button, .lp-parked button { flex: none; background: none; border: 1px solid var(--accent); color: var(--accent); border-radius: 999px; padding: 5px 12px; font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
   .seg { display: flex; gap: 6px; margin: 6px 0 0; }
   .seg-b { flex: 1 1 0; min-height: 40px; border-radius: var(--radius-s); border: 1px solid var(--border); background: var(--surface); color: var(--text); font: inherit; font-weight: 600; cursor: pointer; }
-  .seg-b.on { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+  .seg-b.on { background: var(--accent-fill, var(--accent)); border-color: var(--accent-fill, var(--accent)); color: var(--accent-text); }
   .fu-lbl { margin-top: 14px; font-size: 13px; font-weight: 600; color: var(--text); }
   .fu-hint { margin: 6px 0 0; font-size: 12px; line-height: 1.5; color: var(--text-faint); }
   .fu-facts { margin: 14px 0 0; padding-left: 18px; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); }
@@ -6581,7 +6618,7 @@
   .loc-card span { display: block; color: var(--text-dim); font-size: 12px; margin-top: 2px; }
   .loc-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
   .loc-btn { flex: 1 1 auto; padding: 10px 12px; border-radius: var(--radius-s); border: 1px solid var(--border); background: var(--surface-raised, var(--surface)); color: var(--text); font: inherit; font-weight: 600; cursor: pointer; }
-  .loc-btn.active { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+  .loc-btn.active { background: var(--accent-fill, var(--accent)); color: var(--accent-text); border-color: var(--accent-fill, var(--accent)); }
   .loc-chip { border: 1px solid var(--border); background: none; color: var(--text-dim); border-radius: 999px; padding: 1px 8px; font: inherit; font-size: 11px; cursor: pointer; }
   .loc-badge { display: inline-block; font-size: 10.5px; font-weight: 600; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--border); color: var(--text-dim); vertical-align: 1px; }
   .loc-badge.loc-remote, .loc-chip.loc-remote { color: var(--accent); border-color: var(--accent); }
@@ -6610,7 +6647,7 @@
   .last-follow .lf-txt b { color: var(--text); font-weight: 600; }
   .last-follow .lf-act { display: flex; align-items: center; gap: 12px; flex: none; }
   .last-follow .link-btn { background: none; border: none; padding: 6px 0; color: var(--accent); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; }
-  .last-follow .lf-x { background: none; border: 1px solid var(--border); color: var(--text-dim); border-radius: 50%; width: 28px; height: 28px; font-size: 13px; cursor: pointer; }
+  .last-follow .lf-x { background: none; border: 1px solid var(--border); color: var(--text-dim); border-radius: 50%; width: 36px; height: 36px; font-size: 14px; cursor: pointer; }
   .toast {
     position: fixed;
     bottom: calc(20px + env(safe-area-inset-bottom, 0px));
@@ -6847,7 +6884,7 @@
   .deal-track { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 12.5px; color: var(--text-dim); }
   .dt-steps { display: inline-flex; align-items: center; gap: 4px; }
   .dt-steps i { width: 18px; height: 5px; border-radius: 3px; background: var(--border); }
-  .dt-steps i.on { background: var(--accent); }
+  .dt-steps i.on { background: var(--accent-fill, var(--accent)); }
   .dt-steps i.cur { width: 26px; box-shadow: 0 0 0 3px var(--surface-raised); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
   .deal-track.won .dt-steps i.on { background: var(--gold); }
   .deal-track.won .dt-steps i.cur { box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 30%, transparent); }
@@ -6887,7 +6924,7 @@
   body.st-live .card .hint { color: var(--text); font-size: 14px; font-weight: 700; margin-top: 14px; }
 
   /* Runs (follow-ups, hot, interested) keep a thin accent rail on the card so you know you're in one */
-  body.st-run #mainArea .card::before { content: ""; position: absolute; left: 18px; right: 18px; top: 0; height: 3px; border-radius: 0 0 3px 3px; background: var(--accent); }
+  body.st-run #mainArea .card::before { content: ""; position: absolute; left: 18px; right: 18px; top: 0; height: 3px; border-radius: 0 0 3px 3px; background: var(--accent-fill, var(--accent)); }
 
   /* Flow theme type: Archivo, expanded for names and numbers */
   :root:not([data-theme]) .lead-name, :root[data-theme="flow"] .lead-name, :root[data-theme="flowlight"] .lead-name { font-stretch: 118%; font-weight: 780; }
@@ -7004,7 +7041,7 @@
   .hub-ic svg { width: 17px; height: 17px; }
   .hub-cat .hub-ic { width: 38px; height: 38px; border-radius: 11px; }
   .hub-cat .hub-ic svg { width: 19px; height: 19px; }
-  .hub-back { margin: -6px 0 6px -6px; padding: 6px; background: none; border: 0; color: var(--accent); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .hub-back { margin: -10px 0 4px -8px; padding: 10px 8px; min-height: 42px; background: none; border: 0; color: var(--accent); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
   .hub-view-h { margin: 0 0 14px; }
   .hub-group { border: 1px solid var(--border); border-radius: var(--radius-m, 14px); background: var(--surface-raised); overflow: hidden; }
   .hub-row { position: relative; width: 100%; min-height: 60px; display: flex; align-items: center; gap: 12px; padding: 11px 12px; margin: 0;
@@ -7012,6 +7049,8 @@
   .hub-row + .hub-row::before { content: ""; position: absolute; top: 0; left: 56px; right: 0; height: 1px; background: var(--border); }
   .hub-row:active { background: var(--surface); background: color-mix(in srgb, var(--text) 6%, transparent); }
   .hub-row:focus-visible, .hub-need:focus-visible, .hub-cat:focus-visible, .hub-back:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  /* keyboard users always see where they are (mouse and touch taps don't show it) */
+  :where(button, a[href], select, input, textarea, summary, [tabindex]):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .hub-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
   .hub-t b { font-size: 15px; font-weight: 600; line-height: 1.25; }
   .hub-t span { font-size: 12.5px; line-height: 1.35; color: var(--text-dim); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
@@ -7142,6 +7181,14 @@
   /* Motion off (Settings) or reduced motion: everything still works, nothing moves */
   html[data-motion="off"] #horizon, html[data-motion="off"] .rh-pop { animation: none !important; transition: none !important; }
   @media (prefers-reduced-motion: reduce) { #horizon, .rh-pop, .rhythm .rh-track .bar-fill { animation: none !important; transition: none !important; } }
+  /* Themes with deep red or violet accents: buttons keep the deep color, text links use a lighter tint so they stay readable */
+  :root[data-theme="afterparty"] { --accent-fill: #6A48F0; --accent: #8C72F3; }
+  :root[data-theme="christmas"] { --accent-fill: #D12F42; --accent: #DF6D7B; }
+  :root[data-theme="july4"] { --accent-fill: #D42A36; --accent: #E27078; }
+  :root[data-theme="hd_pres"] { --accent-fill: #C93242; --accent: #DA747E; }
+  :root[data-theme="hd_memorial"] { --accent-fill: #C7353F; --accent: #D77077; }
+  :root[data-theme="hd_june"] { --accent-fill: #CF3529; --accent: #DB655C; }
+  :root[data-theme="poleposition"] { --accent-fill: #D40600; --accent: #E35D59; }
 </style>
 </head>
 <body>
@@ -7502,7 +7549,7 @@
         <button class="hub-cat admin-only set-data-cat" type="button" data-set-cat="data" style="--hc:var(--noanswer)"><span class="hub-cat-top"><span class="hub-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5.5" rx="8" ry="3"/><path d="M4 5.5v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/><path d="M4 11.5v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></span><span class="hub-n" data-set-n="data"></span></span><b>Data</b><span class="hub-cat-sub" data-set-sum="data"></span></button>
       </div>
       <div class="set-foot">
-        <div>Build 2026-11-25 · Team · Updates install automatically after midnight.</div>
+        <div id="setBuild">Updates install automatically after midnight.</div>
         <div id="updNote"></div>
       </div>
     </div>
@@ -7751,12 +7798,12 @@
       words: {}, steps: [["docs", "Docs sent", 1], ["returned", "Docs returned", 5], ["funded", "Account funded", 10]],
       demo: { lists: ["Spring list", "Referral list"], note: function (n, st) { return "Account value $" + (50 + n % 900) + ",000 | " + st; }, deals: ["Pre-IPO AI chips", "Series E fintech", "Defense tech", "Payments platform", "Data platform"], amt: 25000, interest: "Late-stage tech", company: "Northgate Capital Partners" } },
     realestate: { target: 3000000, name: "Real estate", one: "Client", many: "Clients", deal: "Deal", deals: "Deals", example: "14 Oak St", fund: "closed", money: "in sales", amount: "Sale price", wants: "e.g. 3 bd in Holmdel, under $700K", dateLabel: "Add a closing anniversary or date",
-      words: { Pitched: "Showing", Objection: "Negotiating", Committed: "Under contract", Funded: "Sold", Closed: "Commission paid" },
+      words: { Pitched: "Appointment set", Objection: "Negotiating", Committed: "Under contract", Funded: "Sold", Closed: "Commission paid" },
       steps: [["offer", "Offer accepted", 1], ["inspect", "Inspection done", 10], ["appraisal", "Appraisal in", 21], ["closed", "Deal closed", 30]],
       demo: { lists: ["Expired listings", "FSBO"], note: function (n, st) { return (n % 2 ? "Expired listing" : "For sale by owner") + " | " + (2 + n % 4) + " bd, asking $" + (300 + n % 600) + "K | " + st; }, deals: ["14 Oak St", "88 Shore Rd", "7 Elm Ct", "210 Bay Ave", "35 Park Pl"], amt: 50000, company: "Shoreline Realty Group", interest: "Move-up buyer in 2 years" } },
     mca: { target: 500000, name: "MCA / business funding", one: "Merchant", many: "Merchants", deal: "Advance", deals: "Advances", example: "$75K advance", fund: "funded", money: "funded", amount: "Advance amount", wants: "e.g. renewal at 50% paid, equipment", dateLabel: "Add a renewal date",
-      words: { Pitched: "Offer sent", Objection: "Negotiating", Committed: "Approved", Closed: "Paid off" },
-      steps: [["app", "Application in", 1], ["stmts", "Bank statements in", 2], ["contract", "Contract signed", 4], ["funded", "Funded", 6]],
+      words: { Pitched: "App sent", Objection: "Negotiating", Committed: "Submitted", Closed: "Paid off" },
+      steps: [["approved", "Approved", 2], ["accepted", "Offer accepted", 3], ["contract", "Contract signed", 4], ["funded", "Funded", 6]],
       demo: { lists: ["UCC leads", "Aged leads"], note: function (n, st) { return ["Restaurant", "Trucking", "Auto repair", "Dental office", "Retail"][n % 5] + " | $" + (20 + n % 180) + "K/mo revenue | " + st; }, deals: ["$75K advance", "$120K advance", "$40K advance", "$250K advance", "$60K renewal"], amt: 10000, company: "Summit Business Funding", interest: "Renewal when 50% paid" } },
     auto: { target: 150000, name: "Auto sales", one: "Customer", many: "Customers", deal: "Sale", deals: "Sales", example: "2024 Camry LE", fund: "delivered", money: "in sales", amount: "Vehicle price", wants: "e.g. SUV under $40K, trade-in 2016 Accord", dateLabel: "Add a lease-end or service date",
       words: { Qualified: "Appointment set", Pitched: "Test drive", Objection: "Negotiating", Committed: "Sold", Funded: "Delivered", Closed: "Completed" },
@@ -7768,7 +7815,7 @@
       demo: { lists: ["Aged leads", "Turning 65"], note: function (n, st) { return ["Term life", "Final expense", "Medicare supplement", "Home + auto", "IUL"][n % 5] + " | age " + (30 + n % 45) + " | " + st; }, deals: ["Term life $500K", "Final expense $15K", "Medicare supplement", "Home + auto bundle", "IUL $250K"], amt: 1000, company: "Harbor Insurance Group", interest: "Annual review in March" } },
     solar: { target: 250000, name: "Solar / home improvement", one: "Homeowner", many: "Homeowners", deal: "Project", deals: "Projects", example: "8.2 kW system", fund: "install", money: "in contracts", amount: "Contract value", wants: "e.g. battery add-on, EV charger", dateLabel: "Add an install anniversary or date",
       words: { Pitched: "Proposal sent", Objection: "Financing", Committed: "Signed", Funded: "Installed", Closed: "Activated" },
-      steps: [["site", "Site survey", 7], ["permit", "Permit approved", 30], ["install", "Installed", 60], ["pto", "Permission to operate", 90]],
+      steps: [["cancel", "Cancel period over", 3], ["site", "Site survey", 7], ["permit", "Permit approved", 30], ["install", "Installed", 60], ["pto", "Permission to operate", 90]],
       demo: { lists: ["Door knock leads", "Web leads"], note: function (n, st) { return "Electric bill $" + (120 + n % 280) + "/mo | " + (n % 3 ? "owns home" : "south-facing roof") + " | " + st; }, deals: ["8.2 kW system", "6.4 kW system", "10.5 kW + battery", "Roof + 7 kW", "12 kW system"], amt: 5000, company: "Bright Sun Solar", interest: "Battery add-on next year" } }
   };
   function reEsc(t) { return String(t).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
@@ -7792,6 +7839,113 @@
   })();
   var WORD_RE = Object.keys(WORDMAP).length ? new RegExp("\\b(" + Object.keys(WORDMAP).sort(function (a, b) { return b.length - a.length; }).map(reEsc).join("|") + ")\\b", "g") : null;
   if (DEMO && !CUSTOMER.company && IND.demo.company) COMPANY = IND.demo.company;   // a believable company for each industry's demo
+
+  /* ----- Qualifying details: the questions each industry asks on the first call ----- */
+  // c = choices (tap one), t = typed answer. h = spreadsheet column names that fill it on upload. s = how the answer reads on the card.
+  var YN_Y = /^(y|yes|true|1|x|smoker|own|owner|homeowner)$/i, YN_N = /^(n|no|false|0|non-?smoker|rent|renter)$/i;
+  var QUALIFY = {
+    insurance: [
+      { k: "product", l: "Product", c: ["Term life", "Whole life", "Final expense", "IUL", "Annuity", "Medicare", "Home & auto"], h: /^(product|policy ?type|plan ?type|coverage ?type|line of business|product ?interest)$/i },
+      { k: "age", l: "Age", t: "num", ph: "62", s: "Age {v}", h: /^(age|dob|d\.o\.b\.?|date of birth|birth ?date|birthday)$/i },
+      { k: "coverage", l: "Coverage", t: "text", ph: "$250K", s: "{v} coverage", h: /(coverage|face ?amount|death ?benefit)/i },
+      { k: "budget", l: "Budget a month", t: "text", ph: "$80", s: "{v}/mo budget", h: /(budget|monthly ?premium)/i },
+      { k: "tobacco", l: "Tobacco", c: ["No", "Yes"], yn: 1, s: "Tobacco: {v}", h: /(tobacco|smoker|nicotine)/i },
+      { k: "carrier", l: "Current carrier", t: "text", ph: "None", s: "Has {v}", h: /(carrier|insurer|current ?(company|insurance|provider|policy))/i },
+      { k: "xdate", l: "Renewal or X-date", t: "text", ph: "Mar 2027", s: "Renews {v}", h: /(x-?date|expir|renewal)/i }
+    ],
+    realestate: [
+      { k: "side", l: "Buying or selling", c: ["Buying", "Selling", "Both"], h: /^(buy(ing|er)?\s*(\/|or)?\s*sell(ing|er)?|lead ?type|intent)$/i },
+      { k: "address", l: "Property", t: "text", ph: "14 Oak St, Holmdel", h: /(property|listing ?address|subject)/i },
+      { k: "price", l: "Price range", t: "text", ph: "$450K–$600K", h: /(price|asking|value|budget)/i },
+      { k: "timeframe", l: "Timeframe", c: ["Now", "1–3 months", "3–6 months", "6+ months"], s: "Timeframe: {v}", h: /(time ?frame|timeline|move ?date)/i },
+      { k: "financing", l: "Financing", c: ["Pre-approved", "Needs a lender", "Cash"], h: /(pre-?approv|financing|lender|mortgage)/i },
+      { k: "agent", l: "Has an agent", c: ["No", "Yes"], yn: 1, s: "Has an agent: {v}", h: /^(has ?(an )?agent|working with (an )?agent|represented)$/i },
+      { k: "why", l: "Why moving", t: "text", ph: "New job, growing family", h: /(motivation|reason|why)/i }
+    ],
+    mca: [
+      { k: "business", l: "Business", t: "text", ph: "Joe’s Pizza LLC", h: /(business ?name|dba|legal ?name|company ?name)/i },
+      { k: "industry", l: "Industry", t: "text", ph: "Restaurant", h: /^(industry|business ?type|type of business|sic|naics)$/i },
+      { k: "revenue", l: "Monthly revenue", t: "text", ph: "$60K", s: "{v}/mo revenue", h: /(revenue|monthly ?sales|gross ?sales|deposits)/i },
+      { k: "tib", l: "Time in business", c: ["Under 6 mo", "6–12 mo", "1–2 yr", "2+ yr"], s: "{v} in business", h: /(time in business|years in business|^tib$|business ?start|start ?date|established|years ?open)/i },
+      { k: "credit", l: "Credit", c: ["Under 550", "550–649", "650–699", "700+"], s: "Credit {v}", h: /(credit ?score|fico|^credit$)/i },
+      { k: "positions", l: "Open advances", c: ["None", "1", "2", "3+"], h: /(positions|open ?advances|existing ?(advances|balances|loans)|stack)/i },
+      { k: "need", l: "Amount needed", t: "text", ph: "$75K", s: "Needs {v}", h: /(amount ?(requested|needed)|funding ?(amount|needed)|loan ?amount|requested)/i }
+    ],
+    auto: [
+      { k: "vehicle", l: "Vehicle wanted", t: "text", ph: "2024 RAV4", h: /(vehicle|year ?make|^model$|car of interest)/i },
+      { k: "condition", l: "New or used", c: ["New", "Used", "Either"], h: /(new ?\/? ?used|condition)/i },
+      { k: "trade", l: "Trade-in", t: "text", ph: "2016 Accord, 90K mi", s: "Trade: {v}", h: /trade/i },
+      { k: "payment", l: "Payment budget", t: "text", ph: "$450/mo", s: "{v} budget", h: /(payment|budget)/i },
+      { k: "credit", l: "Credit", c: ["Excellent", "Good", "Fair", "Rebuilding"], s: "{v} credit", h: /(credit ?score|fico|^credit$)/i },
+      { k: "timeframe", l: "Buying", c: ["This week", "This month", "1–3 months", "Just looking"], h: /(time ?frame|purchase ?(date|time)|buying)/i },
+      { k: "leaseEnd", l: "Lease or loan ends", t: "text", ph: "May 2027", s: "Lease ends {v}", h: /(lease ?end|maturity|loan ?end|term ?end)/i }
+    ],
+    solar: [
+      { k: "owner", l: "Owns the home", c: ["Yes", "No"], yn: 1, h: /(home ?own|owner|own ?\/ ?rent|rent ?\/ ?own)/i },
+      { k: "bill", l: "Electric bill a month", t: "text", ph: "$220", s: "{v}/mo bill", h: /(bill|avg ?(monthly ?)?usage|monthly ?cost|electric ?(cost|spend))/i },
+      { k: "utility", l: "Utility", t: "text", ph: "PSE&G", h: /(utility|power ?company|electric ?(company|provider)|provider)/i },
+      { k: "roof", l: "Roof age", c: ["Under 10 yr", "10–20 yr", "20+ yr"], s: "Roof {v}", h: /roof/i },
+      { k: "shade", l: "Shade", c: ["None", "Some", "Heavy"], h: /shad/i },
+      { k: "credit", l: "Credit 650+", c: ["Yes", "No", "Not sure"], s: "Credit 650+: {v}", h: /(credit ?score|fico|^credit$)/i },
+      { k: "owners", l: "All owners at the appointment", c: ["Yes", "Not yet"], h: /(decision|spouse|all owners)/i }
+    ],
+    investments: [
+      { k: "accredited", l: "Accredited", c: ["Yes", "No", "Not sure"], s: "Accredited: {v}", h: /accredit/i },
+      { k: "check", l: "Check size", t: "text", ph: "$50K", s: "{v} check", h: /(check|ticket|investment ?(size|amount))/i },
+      { k: "source", l: "Funds from", c: ["Cash", "IRA / 401(k)", "Other"], h: /(source of funds|funds ?from|ira)/i },
+      { k: "timeline", l: "Timeline", c: ["Now", "This quarter", "Later"], s: "Timeline: {v}", h: /(time ?line|time ?frame)/i },
+      { k: "interest", l: "Interested in", t: "text", ph: "AI, late-stage tech", h: /(sector|interests?)/i }
+    ]
+  };
+  function qFields() { return QUALIFY[IND_KEY] || []; }
+  function qSum(f, v) {
+    if (f.k === "owner") return v === "Yes" ? "Homeowner" : v === "No" ? "Doesn’t own" : v;
+    if (f.k === "positions") return v === "None" ? "No open advances" : v + " open advance" + (v === "1" ? "" : "s");
+    if (f.k === "shade") return v === "None" ? "No shade" : v + " shade";
+    if (f.k === "owners") return v === "Yes" ? "All owners coming" : "Owners not confirmed";
+    if (f.k === "timeframe" && IND_KEY === "auto") return v === "Just looking" ? v : "Buying " + v.toLowerCase();
+    return f.s ? f.s.replace("{v}", v) : v;
+  }
+  function qMatch(h) { var F = qFields(); for (var i = 0; i < F.length; i++) if (F[i].h && F[i].h.test(h)) return F[i]; return null; }
+  function qNorm(f, v, h) {
+    v = String(v || "").trim(); if (!v) return "";
+    if (f.k === "age" && !/^\d{1,3}$/.test(v)) {   // a birth date column becomes an age
+      var d = new Date(v); if (isNaN(d)) return "";
+      var age = Math.floor((Date.now() - d.getTime()) / 31557600000); return age > 0 && age < 120 ? String(age) : "";
+    }
+    if (f.yn) { if (YN_Y.test(v)) return "Yes"; if (YN_N.test(v)) return "No"; }
+    var flat = function (x) { return x.toLowerCase().replace(/[\u2013\u2014-]/g, "-").replace(/\s+/g, ""); };
+    if (f.c) { var hit = f.c.filter(function (o) { return flat(o) === flat(v); })[0]; if (hit) return hit; }
+    return v.slice(0, 80);
+  }
+  function demoTalk(i) {
+    var T = {
+      insurance: ["Wants coverage for their spouse too", "Asked to compare with their current policy", "Retiring next year", "Prefers texts during work hours", "Family visiting this week, call back after"],
+      realestate: ["Inherited the house, wants it sold before winter", "Listing expired with another agent, unhappy with the photos", "Downsizing once the kids move out", "Relocating for work in the spring", "Wants a pricing opinion first"],
+      mca: ["Needs inventory for the holidays", "Opening a second location", "Bank turned them down last month", "Equipment repair, needs it fast", "Paying off an older advance"],
+      auto: ["Wants to keep the payment about the same", "Second car for a new driver", "Lease turn-in next spring", "Prefers Saturday mornings", "Comparing with another dealer"],
+      solar: ["Bill jumped this summer", "Neighbor just went solar", "Wants a battery for outages", "Spouse handles the bills, book a time for both", "Asked about financing options"],
+      investments: ["Interested in AI infrastructure", "Wants to diversify out of public stocks", "Asked about lockup periods", "Prefers email for documents", "Referred by an existing client"]
+    }[IND_KEY] || [""];
+    return T[i % T.length];
+  }
+  // Demo offices show answers a rep would have gathered (fictional people, so nothing real is stored).
+  function demoQf(i) {
+    var h = (i * 2654435761) % 4294967296, pick = function (a, o) { return a[Math.floor((h / 7 + (o || 0) * 13) % a.length)]; };
+    if (i % 10 >= 7) return null;
+    var Q = {
+      insurance: { product: pick(["Term life", "Final expense", "Medicare", "Whole life", "Home & auto"]), age: String(32 + h % 44), tobacco: pick(["No", "No", "Yes"], 1), budget: pick(["$60", "$85", "$120", "$45"], 2) },
+      realestate: { side: pick(["Selling", "Buying", "Selling", "Both"]), timeframe: pick(["1–3 months", "3–6 months", "Now", "6+ months"], 1), price: pick(["$450K–$550K", "$600K–$750K", "$350K–$425K"], 2), agent: "No" },
+      mca: { business: pick(["Joe’s Pizza LLC", "Rivera Trucking", "Bright Smile Dental", "Main St Auto Repair", "Coastal Boutique"]), revenue: pick(["$45K", "$80K", "$120K", "$30K"], 1), tib: pick(["2+ yr", "1–2 yr", "2+ yr", "6–12 mo"], 2), positions: pick(["None", "1", "None", "2"], 3) },
+      auto: { vehicle: pick(["2024 Camry", "2023 RAV4", "2024 F-150", "2022 Accord", "2024 Tahoe"]), condition: pick(["New", "Used", "Either"], 1), trade: pick(["2016 Accord", "2014 Civic", "None", "2018 Altima"], 2), timeframe: pick(["This month", "This week", "1–3 months"], 3) },
+      solar: { owner: "Yes", bill: pick(["$180", "$240", "$310", "$150"], 1), roof: pick(["Under 10 yr", "10–20 yr", "Under 10 yr"], 2), credit: pick(["Yes", "Yes", "Not sure"], 3) },
+      investments: { accredited: pick(["Yes", "Yes", "Not sure"]), check: pick(["$50K", "$100K", "$25K", "$250K"], 1), timeline: pick(["This quarter", "Now", "Later"], 2) }
+    }[IND_KEY];
+    if (!Q) return null;
+    var keys = Object.keys(Q), keep = 2 + (i % 3), out = {};
+    keys.slice(0, keep).forEach(function (k) { out[k] = Q[k]; });
+    return out;
+  }
   function installDemoBackend() {
     (function () {
       var FS = "__mockfs", AU = "__mockauth";
@@ -7998,6 +8152,7 @@
       leads[id] = { id: id, name: pick(FN) + " " + pick(LN), phoneRaw: "(" + ph.slice(0, 3) + ") " + ph.slice(3, 6) + "-" + ph.slice(6), phone: "+1" + ph,
         notes: IND.demo.note(Math.floor(rnd() * 1000), st[0]), st: st[0], stage: "New Lead", amount: 0, status: "pending", outcome: null,
         calledAt: null, seq: i, tasks: [], texts: [], source: IND.demo.lists[i < 140 ? 0 : 1] };
+      var dq = demoQf(i); if (dq) { leads[id].qf = dq; leads[id].notes = demoTalk(i) + " | " + st[0]; }   // the rep's notes, alongside the details
       ids.push(id);
     }
     var OUT = [["noanswer", "No answer", 46], ["voicemail", "Voicemail", 22], ["notinterested", "Not interested", 14], ["interested", "Interested", 8], ["callback", "Callback", 6], ["badnum", "Bad number", 4]];
@@ -8034,7 +8189,7 @@
      ["Daniel Ross", 100000, "Committed", 11, "Payments platform"], ["Elena Morgan", 350000, "Funded", 35, "Data platform"]].forEach(function (v, k) {
       var o = k % 2 ? reps[k % 3] : me;
       db["vault/dv" + k] = { name: v[0], phone: "+1212555" + (1200 + k), phoneRaw: "(212) 555-" + (1200 + k), state: "NY", leadId: "", ownerUid: o.uid, ownerName: o.name, createdAt: now - v[3] * 86400000,
-        investments: [{ id: "di" + k, deal: IND.demo.deals[k], amount: Math.round(v[1] / 25000 * IND.demo.amt), date: new Date(now - v[3] * 86400000).toISOString().slice(0, 10), status: v[2], done: v[2] === "Committed" ? (k === 1 ? (function () { var o = {}; o[IND.steps[0][0]] = now; return o; })() : {}) : {} }],
+        investments: [{ id: "di" + k, deal: IND.demo.deals[k], amount: Math.round(v[1] / 25000 * IND.demo.amt), date: new Date(now - v[3] * 86400000).toISOString().slice(0, 10), status: v[2], done: v[2] === "Committed" ? (k === 1 ? (function () { var o = {}; o[IND.steps[0][0]] = now; return o; })() : {}) : (function () { var o = {}; IND.steps.forEach(function (st) { o[st[0]] = now - v[3] * 86400000; }); return o; })() }],
         keyDates: [], interests: IND.demo.interest, notes: "", lastContactAt: now - k * 9 * 86400000, nextReachOut: "", removalRequest: null, updatedAt: now };
     });
     // A week of handoffs (appointments) and note activity, so the scoreboard's remote vs in-office numbers are real.
@@ -8101,6 +8256,83 @@
   }
 
 (function () {
+  (function buildLabel() {
+    var el = document.getElementById("setBuild"), b = (document.querySelector('meta[name="vpex-build"]') || {}).content;
+    if (el && b) el.textContent = "Build " + b + " \u00b7 Updates install automatically after midnight.";
+  })();
+  (function noFocusZoom() {
+    try {
+      var ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1), m = document.querySelector('meta[name="viewport"]');
+      if (ios && m && !/maximum-scale/.test(m.content)) m.content += ", maximum-scale=1";
+    } catch (e) {}
+  })();
+  /* ----- Qualifying details on the dial card and the lead profile (the questions live in QUALIFY above) ----- */
+  function setQf(lead, k, v) {
+    v = String(v == null ? "" : v).trim().slice(0, 80);
+    var q = Object.assign({}, lead.qf || {});
+    if (v) q[k] = v; else delete q[k];
+    if (Object.keys(q).length) lead.qf = q; else delete lead.qf;
+    saveState();
+  }
+  function qfRowHtml(lead) {
+    var F = qFields(); if (!F.length) return "";
+    var q = lead.qf || {}, done = F.filter(function (f) { return q[f.k]; });
+    if (!done.length) return '<button type="button" class="qf-row empty" data-qf-open="' + lead.id + '" aria-label="Add qualifying details"><span class="qf-plus">+</span>Qualify: ' +
+      escapeHtml(F.slice(0, 3).map(function (f) { return f.l.toLowerCase(); }).join(", ")) + '…</button>';
+    return '<button type="button" class="qf-row" data-qf-open="' + lead.id + '" aria-label="Qualifying details, ' + done.length + ' of ' + F.length + ' answered. Edit">' +
+      done.slice(0, 4).map(function (f) { return '<span class="qf-chip">' + escapeHtml(qSum(f, q[f.k])) + '</span>'; }).join("") +
+      (done.length > 4 ? '<span class="qf-chip more">+' + (done.length - 4) + '</span>' : '') +
+      '<span class="qf-edit">' + (done.length < F.length ? done.length + ' of ' + F.length : 'Edit') + '</span></button>';
+  }
+  function qfFormHtml(lead) {
+    var q = lead.qf || {};
+    return '<div class="qf-form">' + qFields().map(function (f) {
+      var v = q[f.k] || "";
+      if (f.c) {
+        var opts = f.c.slice(); if (v && opts.indexOf(v) === -1) opts.push(v);
+        return '<div class="qf-field"><span class="qf-l">' + escapeHtml(f.l) + '</span><div class="qf-opts" role="group" aria-label="' + escapeHtml(f.l) + '">' +
+          opts.map(function (o) { return '<button type="button" class="qf-opt' + (o === v ? ' on' : '') + '" aria-pressed="' + (o === v) + '" data-qf-k="' + f.k + '" data-qf-v="' + escapeHtml(o) + '">' + escapeHtml(o) + '</button>'; }).join("") +
+          '</div></div>';
+      }
+      return '<label class="qf-field"><span class="qf-l">' + escapeHtml(f.l) + '</span><input type="text"' + (f.t === "num" ? ' inputmode="numeric"' : '') + ' data-qf-in="' + f.k + '" placeholder="' + escapeHtml(f.ph || "") + '" value="' + escapeHtml(v) + '" maxlength="80" autocomplete="off"></label>';
+    }).join("") + qfNoteHtml(q) + '</div>';
+  }
+  function qfNoteHtml(q) {
+    if (IND_KEY === "insurance" && q.product === "Medicare") return '<p class="qf-note">Medicare Advantage or Part D: get a signed Scope of Appointment before the sales meeting.</p>';
+    if (IND_KEY === "solar" && q.owner === "No") return '<p class="qf-note">Only the homeowner can sign for solar. Ask who owns the home and set the appointment with them.</p>';
+    if (IND_KEY === "realestate" && q.agent === "Yes") return '<p class="qf-note">They’re working with an agent. Don’t pitch your services while they’re under an agreement with someone else.</p>';
+    return "";
+  }
+  function wireQf(box, lead, onChange) {
+    box.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-qf-v]"); if (!b || !box.contains(b)) return;
+      var k = b.getAttribute("data-qf-k"), v = b.getAttribute("data-qf-v"), on = (lead.qf || {})[k] === v;
+      setQf(lead, k, on ? "" : v);
+      box.querySelectorAll('[data-qf-k="' + k + '"]').forEach(function (x) { var y = !on && x === b; x.classList.toggle("on", y); x.setAttribute("aria-pressed", String(y)); });
+      var nt = box.querySelector(".qf-note"), html = qfNoteHtml(lead.qf || {});
+      if (nt && !html) nt.remove(); else if (html) { if (nt) nt.outerHTML = html; else box.querySelector(".qf-form").insertAdjacentHTML("beforeend", html); }
+      if (onChange) onChange();
+    });
+    box.querySelectorAll("[data-qf-in]").forEach(function (inp) {
+      inp.addEventListener("input", function () { setQf(lead, inp.getAttribute("data-qf-in"), inp.value); });
+      inp.addEventListener("change", function () { if (onChange) onChange(); });
+    });
+  }
+  function openQualify(lead) {
+    var F = qFields(), q = lead.qf || {}, n = F.filter(function (f) { return q[f.k]; }).length;
+    var b = featOpen('<h3>Qualify ' + escapeHtml(firstName(lead.name)) + '</h3><p class="modal-sub">Ask as you talk. Every answer saves as you tap, and the whole team sees it.</p>' +
+      qfFormHtml(lead) + '<div class="modal-actions"><button class="btn-primary" type="button" id="qfDone" style="width:100%">Done</button></div>');
+    var box = b && b.querySelector ? b : document.getElementById("featModalBody");
+    wireQf(box, lead, null);
+    var finish = function () { featClose(); render(); };
+    document.getElementById("qfDone").addEventListener("click", finish);
+    document.getElementById("featClose").addEventListener("click", function () { render(); });
+    var first = box.querySelector("[data-qf-in]"); if (first && n === 0 && !("ontouchstart" in window)) first.focus();
+  }
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-qf-open]"); if (!b) return;
+    var lead = state.leads.filter(function (l) { return l.id === b.getAttribute("data-qf-open"); })[0]; if (lead) openQualify(lead);
+  });
   "use strict";
 
   // Embedded lead list: Elite Investors, imported from PDF
@@ -9452,6 +9684,10 @@
         return taskDueTs(a) - taskDueTs(b);
       });
   }
+  function isoNice(v) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(v || ""));
+    return m ? new Date(+m[1], +m[2] - 1, +m[3]).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : String(v || "");
+  }
   function dayLabel(d) {
     var ds = localDateStr(d);
     if (ds === localDateStr(new Date())) return "Today";
@@ -9625,7 +9861,7 @@
   }
   function textLinkHtml(lead, kind, body, cls, inner, id) {
     return '<a' + (id ? ' id="' + id + '"' : '') + ' target="' + telTarget() + '" rel="noopener" href="' + escapeHtml(smsHref(lead, body)) + '" class="' + cls + '"' +
-      ' data-text-lead="' + lead.id + '" data-text-kind="' + kind + '">' + inner + '</a>';
+      ' data-text-lead="' + lead.id + '" data-text-kind="' + kind + '" aria-label="Text ' + escapeHtml(firstName(lead.name)) + '">' + inner + '</a>';
   }
   function logText(leadId, kind, body) {
     textSettings();
@@ -9880,6 +10116,7 @@
       '<select id="lpStage">' + STAGES.map(function (s2) { return '<option' + (s2 === (lead.stage || "New Lead") ? " selected" : "") + '>' + s2 + '</option>'; }).join("") + '</select>' +
       '<label for="lpWindow">Best time to call (their time)</label><select id="lpWindow"><option value="">Any time</option>' + Object.keys(CALL_WINDOWS).map(function (k) {
         return '<option value="' + k + '"' + (lead.callWindow === k ? ' selected' : '') + '>' + CALL_WINDOWS[k][0] + ' \u00b7 ' + hourLabel(CALL_WINDOWS[k][1]) + '\u2013' + hourLabel(CALL_WINDOWS[k][2]) + '</option>'; }).join("") + '</select>' +
+      (qFields().length ? '<div class="lp-qf"><div class="lp-qf-head">Qualifying details</div>' + qfFormHtml(lead) + '</div>' : '') +
       '<label for="lpAmount">Deal amount ($)</label>' +
       '<input id="lpAmount" type="number" min="0" step="1000" inputmode="numeric" value="' + (Number(lead.amount) || 0) + '">' +
       '<label for="lpNotes">Notes</label>' +
@@ -9893,6 +10130,7 @@
       '<div class="modal-actions"><button class="btn-secondary" id="lpAddTask">+ Follow-up</button><button class="btn-primary" id="lpDone">Done</button></div>' +
       '<div class="lp-tl-head">Timeline</div>' +
       (items.length ? '<div class="lp-tl">' + items.map(function (x) { return x.html; }).join("") + '</div>' : '<div class="pipe-empty">No calls or follow-ups yet.</div>');
+    var lpq = body.querySelector(".lp-qf"); if (lpq) wireQf(lpq, lead, null);
     document.getElementById("lpClose").addEventListener("click", function () { closeLeadProfile(); });
     document.getElementById("lpDone").addEventListener("click", function () { closeLeadProfile(); });
     document.getElementById("lpInfo").addEventListener("click", function () { closeLeadProfile(true); openSendInfo(lead); });
@@ -10040,7 +10278,7 @@
       '</div>';
     });
     html += '</div>';
-    if (rows.length > shown.length) html += '<button class="btn-secondary" id="histMoreBtn" style="width:100%;margin-top:10px">Show more (' + (rows.length - shown.length) + ' older)</button>';
+    if (rows.length > shown.length) html += '<button class="btn-secondary" id="histMoreBtn" style="width:100%;margin-top:10px">Show more (' + (rows.length - shown.length).toLocaleString() + ' older)</button>';
     wrap.innerHTML = html;
     var more = document.getElementById("histMoreBtn");
     if (more) more.addEventListener("click", function () { historyLimit += 150; renderHistoryList(); });
@@ -10090,10 +10328,10 @@
               '<button class="pipe-delete-btn" data-delete-pipe="' + l.id + '" title="Remove lead">' + trashIconSvg() + '</button></div>' +
             '<div class="pipe-meta">' + escapeHtml(meta) + '</div>' +
             '<div class="pipe-item-controls">' +
-              '<select class="pipe-select" data-pipe-stage="' + l.id + '">' +
+              '<select class="pipe-select" data-pipe-stage="' + l.id + '" aria-label="Stage for ' + escapeHtml(l.name) + '">' +
                 STAGES.map(function (s2) { return '<option value="' + s2 + '"' + (s2 === stage ? " selected" : "") + '>' + s2 + '</option>'; }).join("") +
               '</select>' +
-              '<input class="pipe-amount" type="number" min="0" step="1000" inputmode="numeric" value="' + (Number(l.amount) || 0) + '" data-pipe-amount="' + l.id + '">' +
+              '<input class="pipe-amount" type="number" min="0" step="1000" inputmode="numeric" value="' + (Number(l.amount) || 0) + '" data-pipe-amount="' + l.id + '" aria-label="Amount for ' + escapeHtml(l.name) + '">' +
               callLinkHtml(l, "pipeline", next ? next.id : null, "pipe-call", callIconSvg()) +
             '</div>' +
             (l.stalled ? '<div class="pipe-parked"><span>Parked \u00b7 ' + escapeHtml(parkedWhy(l)) + '</span><button type="button" data-revive="' + l.id + '">Revive</button></div>'
@@ -10508,12 +10746,12 @@
         '<div class="lead-name-row"><div class="lead-name" data-open-lead="' + lead.id + '">' + escapeHtml(lead.name) + '</div>' + starBtnHtml(lead) + '</div>' +
         '<div class="lead-phone">' + escapeHtml(formatPhoneDisplay(lead.phoneRaw)) + '</div>' +
         (lead.callWindow ? '<div class="win-chip">Prefers ' + escapeHtml(windowLabel(lead)) + '</div>' : '') +
-        leadWhereWhenHtml(lead) +
+        '<div class="lead-meta">' + leadWhereWhenHtml(lead) + qfRowHtml(lead) + '</div>' +
         leadTrackHtml(lead) +
         flowGuideHtml(lead) +
         '<div class="lead-stage-row">' +
           '<span class="lead-stage-label">Pipeline stage</span>' +
-          '<select class="lead-stage-select" id="leadStageSelect">' +
+          '<select class="lead-stage-select" id="leadStageSelect" aria-label="Pipeline stage">' +
             STAGES.map(function (s2) { return '<option value="' + s2 + '"' + (s2 === (lead.stage || "New Lead") ? " selected" : "") + '>' + s2 + '</option>'; }).join("") +
           '</select>' +
         '</div>' +
@@ -10536,7 +10774,7 @@
           outcomeButtonHtml("badnum") +
           outcomeButtonHtml("callback") +
         '</div>' +
-        '<div class="hint">' + (state.awaitingOutcome ? "How did it go with " + escapeHtml(firstName(lead.name)) + "? Tap what happened." : "Tap Call, then log the outcome once you're off the line. If Call doesn't open your dialer, tap the copy icon and paste into your Phone app.") + '</div>' +
+        '<div class="hint">' + (state.awaitingOutcome ? "How did it go with " + escapeHtml(firstName(lead.name)) + "? Tap what happened." : "Tap Call, then tap what happened when you hang up. If Call doesn\u2019t open your phone, copy the number instead.") + '</div>' +
       '</div>' +
       autoAdvanceToggleHtml();
 
@@ -11061,12 +11299,12 @@
   }
 
   var HEAD = {
-    name: /^(full ?name|name|contact|contact ?name|client|client ?name|investor|investor ?name|lead|lead ?name|customer|customer ?name)$/i,
+    name: /^(full ?name|name|contact|contact ?name|client|client ?name|investor|investor ?name|lead|lead ?name|customer|customer ?name|owner ?name|merchant|merchant ?name|insured|insured ?name|applicant|applicant ?name|borrower ?name|homeowner ?name)$/i,
     first: /^(first|first ?name|given ?name|fname)$/i,
     last: /^(last|last ?name|surname|family ?name|lname)$/i,
     phone: /(phone|mobile|cell|tel\b|telephone|number|contact ?#)/i,
     email: /e-?mail/i,
-    company: /(company|firm|organi[sz]ation|employer|business|account ?name)/i,
+    company: /(company|firm|organi[sz]ation|employer|business ?name|^business$|dba|account ?name)/i,
     title: /^(title|job ?title|position)$/i,
     status: /^(lead ?status|status|lifecycle ?stage|stage|deal ?stage|disposition)$/i,
     address: /(address|street)/i,
@@ -11080,19 +11318,25 @@
   function rowsToLeads(rows) {
     var map = null, hIdx = -1;
     for (var r = 0; r < Math.min(rows.length, 5) && !map; r++) {
-      var m = { phone: [] }, hits = 0;
+      var m = { phone: [], extra: [] }, hits = 0;
       rows[r].forEach(function (cell, c) {
         var h = String(cell).trim();
         if (!h || h.length > 40 || /\d{5,}/.test(h)) return;
         if (/(account|lead|record|order|deal|customer|employee)\s*(number|no\.?|#|id)|number of|^id$/i.test(h)) return;
-        var keys = Object.keys(HEAD);
+        var keys = Object.keys(HEAD), hit = false;
+        if (qMatch(h) && !["name", "first", "last", "phone", "email", "state", "zip", "city"].some(function (k) { return HEAD[k].test(h); })) {
+          m.extra.push(c); hits++; return;   // an industry column (revenue, vehicle, electric bill...) fills that detail
+        }
         for (var i = 0; i < keys.length; i++) {
           var k = keys[i];
           if (!HEAD[k].test(h)) continue;
+          hit = true;
           if (k === "phone") { m.phone.push(c); hits++; }
           else if (m[k] === undefined) { m[k] = c; hits++; }
+          else m.extra.push(c);
           break;
         }
+        if (!hit) m.extra.push(c);   // any other column is kept in the notes, so nothing on the list is lost
       });
       if (m.phone.length && hits >= 2) { map = m; hIdx = r; }
     }
@@ -11103,6 +11347,7 @@
       map.phone.sort(function (a, b) { return (/mobile|cell/i.test(hr[b]) ? 1 : 0) - (/mobile|cell/i.test(hr[a]) ? 1 : 0); });
     }
     function at(row, c) { return c === undefined ? "" : String(row[c] == null ? "" : row[c]).trim(); }
+    var hdr = map ? rows[hIdx].map(function (x) { return String(x == null ? "" : x).trim(); }) : [];
     var leads = [], skipped = 0;
     rows.slice(hIdx + 1).forEach(function (row) {
       var name = "", phones = [], parts = [], st = "", stg = "";
@@ -11113,6 +11358,16 @@
         var place = [at(row, map.address), at(row, map.city), at(row, map.state), at(row, map.zip)].filter(Boolean).join(" ");
         stg = crmStage(at(row, map.status));
         parts = [at(row, map.company), at(row, map.title), at(row, map.email), place, at(row, map.notes), at(row, map.status) ? "Status: " + at(row, map.status) : ""];
+        var qf = {}, more = [];
+        (map.extra || []).forEach(function (c) {
+          var v = at(row, c), h = hdr[c]; if (!v) return;
+          var f = qMatch(h), nv = f && !qf[f.k] ? qNorm(f, v, h) : "";
+          if (nv) qf[f.k] = nv; else more.push(h + ": " + v.slice(0, 80));
+        });
+        if (IND_KEY === "mca" && !qf.business && at(row, map.company)) qf.business = at(row, map.company).slice(0, 80);
+        if (IND_KEY === "realestate" && !qf.address && place) qf.address = place.slice(0, 80);
+        if (!name) name = at(row, map.company) || qf.business || "";
+        if (more.length) parts.push(more.join(" | ").slice(0, 600));
       } else {
         row.forEach(function (cell) {
           var v = String(cell == null ? "" : cell).trim();
@@ -11124,7 +11379,9 @@
       }
       if (!phones.length) { skipped++; return; }
       if (phones.length > 1) parts.push("Alt: " + phones.slice(1).join(", "));
-      var nl = makeLead(name, phones[0], parts.filter(Boolean).join(" | "), st); if (stg) nl.stage = stg; leads.push(nl);
+      var nl = makeLead(name, phones[0], parts.filter(Boolean).join(" | "), st); if (stg) nl.stage = stg;
+      if (map && qf && Object.keys(qf).length) nl.qf = qf;
+      leads.push(nl);
     });
     return { leads: leads, skipped: skipped, crm: map ? crmDetect(rows[hIdx]) : "" };
   }
@@ -11860,7 +12117,7 @@
     if (view === "signup" && !wasHero && hv && !TEAM.heroPaused) { try { var pp = hv.play(); if (pp && pp.catch) pp.catch(function () {}); } catch (e) {} } else if (view !== "signup" && hv) { try { hv.pause(); } catch (e) {} }
     if (view === "signup") {
       var sel = document.getElementById("suInd");
-      if (!sel.options.length) sel.innerHTML = Object.keys(INDUSTRIES).filter(function (k) { return k !== "investments"; }).map(function (k) { return '<option value="' + k + '">' + escapeHtml(INDUSTRIES[k].name) + '</option>'; }).join("") + '<option value="investments">Investments / capital raising</option>';
+      if (!sel.options.length) sel.innerHTML = ["insurance", "realestate", "mca", "auto", "solar"].filter(function (k) { return INDUSTRIES[k]; }).map(function (k) { return '<option value="' + k + '">' + escapeHtml(INDUSTRIES[k].name) + '</option>'; }).join("") + '<option value="investments">Investments / capital raising</option>';
       document.getElementById("authSub").textContent = "Start your free trial";
     } else if (view === "join") {
       document.getElementById("authSub").textContent = "Join " + officeLabel() + " on VPEX";
@@ -13131,7 +13388,7 @@
     var opts = Object.keys(TEAM.members).map(function (k) { return TEAM.members[k]; })
       .sort(function (a, b) { return String(a.name).localeCompare(String(b.name)); })
       .map(function (m) { return '<option value="' + m.uid + '"' + (TEAM.histRep === m.uid ? ' selected' : '') + '>' + escapeHtml(m.name || m.username) + '</option>'; }).join("");
-    return '<div class="qc-order hx-rep"><span>Rep</span><select id="histRepSelect"><option value="all">Everyone</option>' + opts + '</select></div>';
+    return '<div class="qc-order hx-rep"><span>Rep</span><select id="histRepSelect" aria-label="Rep"><option value="all">Everyone</option>' + opts + '</select></div>';
   }
 
   function teamPrefsOnly() {
@@ -13242,7 +13499,7 @@
           '<div class="sb-top"><b>' + escapeHtml(r.name) + locBadge(locOf(r)) + (r.member && !r.member.active ? ' <em>(access off)</em>' : '') + '</b><span class="sb-big">' + r.calls + '<small> calls</small></span></div>' +
           '<div class="sb-bar"><span style="width:' + Math.round((r.calls / maxCalls) * 100) + '%"></span></div>' +
           '<div class="sb-stats"><span><b>' + r.reached + '</b> reached \u00b7 ' + pct(r.reached, r.calls) + '</span><span><b>' + r.interested + '</b> interested</span>' +
-          '<span><b>' + r.leads + '</b> leads</span>' + (r.followups ? '<span><b>' + r.followups + '</b> follow-ups</span>' : '') + (r.appts ? '<span><b>' + r.appts + '</b> appts</span>' : '') + (r.notes ? '<span><b>' + r.notes + '</b> notes</span>' : '') +
+          '<span><b>' + r.leads + '</b> leads</span>' + (r.followups ? '<span><b>' + r.followups + '</b> follow-up' + (r.followups === 1 ? '' : 's') + '</span>' : '') + (r.appts ? '<span><b>' + r.appts + '</b> appts</span>' : '') + (r.notes ? '<span><b>' + r.notes + '</b> notes</span>' : '') +
           (r.talk ? '<span><b>' + fmtTalk(r.talk) + '</b> on calls</span>' : '') + '<span><b>' + shortMoney(r.pipeline) + '</b> pipeline</span>' + (r.overdue ? '<span class="warn"><b>' + r.overdue + '</b> overdue</span>' : '') + '</div></div>';
       }).join("");
     } else if (scoreView === "recap") {
@@ -13251,11 +13508,11 @@
       var rec = recapData(recapDay);
       html += '<div class="sb-card sb-total"><div class="sb-top"><b>' + escapeHtml(rec.label) + '</b><span class="sb-big">' + rec.tot.calls + '<small> calls</small></span></div>' +
         '<div class="sb-stats"><span><b>' + rec.tot.reached + '</b> conversations \u00b7 ' + pct(rec.tot.reached, rec.tot.calls) + '</span><span><b>' + rec.tot.interested + '</b> interested</span>' +
-        '<span><b>' + rec.tot.dueNext + '</b> follow-ups ' + escapeHtml(rec.nextLabel) + '</span></div></div>';
+        '<span><b>' + rec.tot.dueNext + '</b> follow-up' + (rec.tot.dueNext === 1 ? '' : 's') + ' ' + escapeHtml(rec.nextLabel) + '</span></div></div>';
       html += rec.rows.map(function (r) {
         return '<div class="sb-card"><div class="sb-top"><b>' + escapeHtml(r.name) + '</b><span class="sb-big">' + r.calls + '<small> calls</small></span></div>' +
           '<div class="sb-stats"><span><b>' + r.reached + '</b> conversations \u00b7 ' + pct(r.reached, r.calls) + '</span><span><b>' + r.interested + '</b> interested</span>' +
-          '<span><b>' + r.dueNext + '</b> follow-ups ' + escapeHtml(rec.nextLabel) + '</span>' + (r.overdue ? '<span class="warn"><b>' + r.overdue + '</b> overdue</span>' : '') + '</div>' +
+          '<span><b>' + r.dueNext + '</b> follow-up' + (r.dueNext === 1 ? '' : 's') + ' ' + escapeHtml(rec.nextLabel) + '</span>' + (r.overdue ? '<span class="warn"><b>' + r.overdue + '</b> overdue</span>' : '') + '</div>' +
           (r.first ? '<div class="sb-sub">Calling ' + escapeHtml(timeShort(r.first)) + ' \u2013 ' + escapeHtml(timeShort(r.last)) + '</div>' : '<div class="sb-sub">No calls</div>') +
           (r.names.length ? '<div class="sb-sub">Interested: ' + escapeHtml(r.names.join(", ")) + '</div>' : '') + '</div>';
       }).join("");
@@ -13584,7 +13841,7 @@
     var el = document.getElementById("coachHeadline"); if (!el) return;
     var ctx = coachCtx(), me = coachFor(TEAM.on && TEAM.me ? TEAM.me.uid : null, ctx, true), goal = Number(state.dailyGoal) || 0;
     var warn = me.insights.filter(function (i) { return i.tone === "warn"; }).length;
-    el.textContent = me.s.today + (goal ? "/" + goal : "") + " today" + (warn ? " \u00b7 " + warn + " to fix" : me.s.today ? " \u00b7 on track" : "");
+    el.textContent = me.s.today + (goal ? "/" + goal : "") + " today" + (warn ? " \u00b7 " + warn + " to work on" : me.s.today ? " \u00b7 on track" : "");
   }
 
   /** ---------- Send info: text a few approved links to a lead ---------- **/
@@ -13871,7 +14128,7 @@
     if (TEAM.on && admin) {
       var opts = Object.keys(TEAM.members).map(function (k) { return TEAM.members[k]; }).sort(function (a, b) { return String(a.name).localeCompare(String(b.name)); })
         .map(function (m) { return '<option value="' + m.uid + '"' + (VAULT.who === m.uid ? ' selected' : '') + '>' + escapeHtml(m.name || m.username) + '</option>'; }).join("");
-      html += '<div class="qc-order hx-rep"><span>Rep</span><select id="vaultWho"><option value="all">Everyone</option>' + opts + '</select></div>';
+      html += '<div class="qc-order hx-rep"><span>Rep</span><select id="vaultWho" aria-label="Rep"><option value="all">Everyone</option>' + opts + '</select></div>';
     }
     var alerts = [];
     recs.forEach(function (r) { vaultAlerts(r).forEach(function (a) { alerts.push({ r: r, a: a }); }); });
@@ -14008,7 +14265,7 @@
     html += '<div class="settings-heading" style="margin:14px 0 6px">Investments</div>' +
       (invs.length ? invs.map(function (i) {
         if (VAULT.editInv === i.id) return invForm(i, "vie");
-        return '<button class="vi-row" data-vi-edit="' + i.id + '"><span><b>' + escapeHtml(i.deal || "Deal not named") + '</b><small>' + escapeHtml(i.date || "") + ' \u00b7 ' + escapeHtml(i.status || "") + (i.status === "Cancelled" || (!i.done && i.status !== "Closed") ? '' : ' \u00b7 ' + (invNextStep(i) ? invStepsDone(i) + '/' + CLOSE_STEPS.length + ' steps \u00b7 next: ' + escapeHtml(invNextStep(i).label) + ' by ' + escapeHtml(shortDate(invNextStep(i).due)) : 'all steps done')) + '</small></span><span class="vr-amt' + (i.status === "Cancelled" ? ' cancelled' : '') + '">' + fmtMoney(Number(i.amount) || 0) + '</span></button>';
+        return '<button class="vi-row" data-vi-edit="' + i.id + '"><span><b>' + escapeHtml(i.deal || "Deal not named") + '</b><small>' + escapeHtml(isoNice(i.date)) + ' \u00b7 ' + escapeHtml(i.status || "") + (i.status === "Cancelled" || i.status === "Funded" || i.status === "Closed" || !i.done ? '' : ' \u00b7 ' + (invNextStep(i) ? invStepsDone(i) + '/' + CLOSE_STEPS.length + ' steps \u00b7 next: ' + escapeHtml(invNextStep(i).label) + ' by ' + escapeHtml(shortDate(invNextStep(i).due)) : 'all steps done')) + '</small></span><span class="vr-amt' + (i.status === "Cancelled" ? ' cancelled' : '') + '">' + fmtMoney(Number(i.amount) || 0) + '</span></button>';
       }).join("") : '<div class="pipe-empty">No investments recorded yet.</div>') +
       (VAULT.addInv ? invForm({ status: "Committed" }, "via") : '<button class="btn-secondary" id="vAddInv" style="width:100%;margin-top:6px">+ Add investment</button>') +
       '<div class="settings-heading" style="margin:14px 0 6px">Key dates</div>' +
@@ -14439,7 +14696,7 @@
       .map(function (t) { return { t: t, l: m[t.leadId], a: assigneeOf(t), late: Math.floor((now - taskDueTs(t)) / 3600000) }; })
       .sort(function (x, y) { return y.late - x.late; });
   }
-  function lateText(h) { return h >= 48 ? Math.floor(h / 24) + " days late" : h + " hours late"; }
+  function lateText(h) { return h >= 36 ? Math.round(h / 24) + " days late" : h + " hours late"; }
   function overdueBannerHtml() {
     if (!TEAM.on || !canSeeTeam()) return "";
     var n = overdueWarm().length;
@@ -14453,7 +14710,7 @@
       (nCall ? '<button class="btn-primary od-run" id="odRunBtn" type="button">\u25b6 Call ' + (nCall === 1 ? 'it' : 'all ' + nCall) + ' now, closest to closing first</button>' : '') +
       (list.length ? list.map(function (x, n) {
         return '<div class="od-row"><div class="od-main"><b data-open-lead="' + x.l.id + '">' + escapeHtml(x.l.name) + '</b><span>' + escapeHtml(x.a ? x.a.name : "Unassigned") + ' \u00b7 ' + lateText(x.late) + ' \u00b7 ' + escapeHtml(x.l.stage || "") + (Number(x.l.amount) ? ' \u00b7 ' + fmtMoney(Number(x.l.amount)) : '') + '</span></div>' +
-          '<div class="od-move"><select data-od-sel="' + n + '">' + members.map(function (m) { return '<option value="' + m.uid + '"' + (x.a && x.a.uid === m.uid ? ' selected' : '') + '>' + escapeHtml(m.name || m.username) + '</option>'; }).join("") + '</select>' +
+          '<div class="od-move"><select data-od-sel="' + n + '" aria-label="Move to">' + members.map(function (m) { return '<option value="' + m.uid + '"' + (x.a && x.a.uid === m.uid ? ' selected' : '') + '>' + escapeHtml(m.name || m.username) + '</option>'; }).join("") + '</select>' +
           '<button class="btn-primary" data-od-go="' + n + '">Move</button></div></div>';
       }).join("") : '<div class="pipe-empty">Nothing overdue. Nice.</div>'));
     b.querySelectorAll("[data-od-go]").forEach(function (btn) {
@@ -15073,7 +15330,7 @@
       var h = Math.round(d[1] / mx * 62); return '<rect x="' + (i * (bw + 3)) + '" y="' + (66 - h) + '" width="' + bw + '" height="' + Math.max(h, 1) + '" rx="2"></rect>'; }).join("") + '</svg>';
     var kpi = function (label, v, now, before) { return '<div class="rp-kpi"><b>' + v + '</b><span>' + label + '</span>' + trendHtml(now, before) + '</div>'; };
     var reps = Object.keys(r.reps).map(function (k) { return r.reps[k]; }).sort(function (x, y) { return y.reached - x.reached || y.calls - x.calls; });
-    var b = featOpen('<div class="rp-head"><h3>Results report</h3><select id="rpKind"><option value="week">This week</option><option value="lastweek">Last week</option><option value="30">Last 30 days</option></select></div>' +
+    var b = featOpen('<div class="rp-head"><h3>Results report</h3><select id="rpKind" aria-label="Report period"><option value="week">This week</option><option value="lastweek">Last week</option><option value="30">Last 30 days</option></select></div>' +
       '<p class="modal-sub">' + escapeHtml(currentCompany()) + ' \u00b7 ' + rg.label + ' \u00b7 compared with the period before</p>' +
       '<div class="rp-grid">' + kpi("calls", r.calls, r.calls, pr.calls) + kpi("conversations", r.reached, r.reached, pr.reached) + kpi("interested", r.interested, r.interested, pr.interested) +
       kpi("committed", fmtMoney(r.committed), r.committed, pr.committed) + kpi("reach rate", pctN(r.reached, r.calls) + "%", 0, 0) + kpi("on the phone", r.talk ? fmtTalk(r.talk) : "\u2014", r.talk, pr.talk) + '</div>' +
@@ -15467,7 +15724,7 @@
       return { r: r, s: score(r.name, (r.phone || "") + " " + (r.phoneRaw || ""), (r.investments || []).map(function (i) { return i.deal; }).join(" ") + " " + (r.interests || "") + " " + (r.notes || "") + " " + (r.ownerName || "") + " " + (r.email || "")) };
     }).filter(function (x) { return x.s > 0; }).sort(function (a, b) { return (b.s - a.s) || String(a.r.name).localeCompare(String(b.r.name)); }).map(function (x) { return x.r; });
     var leads = state.leads.filter(function (l) { return !TEAM.on || canSeeTeam() || !l.owner || l.owner.uid === me; }).map(function (l) {
-      return { l: l, s: score(l.name, (l.phone || "") + " " + (l.phoneRaw || ""), [l.notes, l.source, l.stage, l.owner ? l.owner.name : "", l.email, l.company].filter(Boolean).join(" ")) };
+      return { l: l, s: score(l.name, (l.phone || "") + " " + (l.phoneRaw || ""), [l.notes, l.source, l.stage, l.owner ? l.owner.name : "", l.email, l.company].concat(l.qf ? Object.keys(l.qf).map(function (k) { return l.qf[k]; }) : []).filter(Boolean).join(" ")) };
     }).filter(function (x) { return x.s > 0; }).sort(function (a, b) {
       return (b.s - a.s) || (stageRank(b.l.stage) - stageRank(a.l.stage)) || String(a.l.name).localeCompare(String(b.l.name));
     }).map(function (x) { return x.l; });
