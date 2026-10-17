@@ -195,7 +195,7 @@ class IG:
         self.wait_ready(cid)
         return self.call("POST", self.user_id + "/media_publish", creation_id=cid)["id"]
 
-def post_item(ig, media, pk, it):
+def post_item(ig, media, pk, it, publish=True):
     t = it["type"]; cap = it.get("caption", "")
     if t == "image":
         p = dict(image_url=media.url(pk, it["image"]), caption=cap)
@@ -219,6 +219,8 @@ def post_item(ig, media, pk, it):
         cid = ig.call("POST", ig.user_id + "/media", media_type="STORIES", **{key: media.url(pk, it.get("video") or it["image"])})["id"]
     else:
         raise IGError("unknown post type " + t)
+    if not publish:                                # test mode: Instagram has fetched and processed it; stop before it goes live
+        ig.wait_ready(cid); return cid, ""
     mid = ig.publish(cid)
     link = ""
     try: link = ig.call("GET", mid, fields="permalink").get("permalink", "")
@@ -438,6 +440,33 @@ def check(state, ig):
     except IGError as e:
         log("couldn't read the posting limit:", e)
 
+# A test post that never goes live: the next feed post and the next story go through every step of posting (upload,
+# Instagram fetching and processing the media) except the final publish. Unpublished drafts expire on their own.
+def test(state, media, note, ig):
+    now = now_utc(); picked = {}
+    for when, pk, it in all_items(load_packs()):
+        if when < now - dt.timedelta(hours=1) or it.get("manual"): continue
+        if (state.get("posted", it["id"]) or {}).get("status") in ("posted", "missed", "reminded"): continue
+        picked.setdefault("story" if it["type"] == "story" else "feed", (when, pk, it))
+        if len(picked) == 2: break
+    if not picked: raise SystemExit("Nothing coming up to test with.")
+    ok, bad = [], []
+    for kind in ("feed", "story"):
+        if kind not in picked: continue
+        when, pk, it = picked[kind]
+        name = "%s (%s, due %s)" % (it.get("title", it["id"]), it["type"], when.astimezone(ZoneInfo("America/New_York")).strftime("%a %I:%M %p"))
+        miss = missing_media(pk, it)
+        if miss: bad.append(name + ": missing " + ", ".join(miss)); log("TEST FAILED:", bad[-1]); continue
+        t0 = time.time()
+        try:
+            post_item(ig, media, pk, it, publish=False)
+            ok.append(name); log("TEST PASSED: %s. Uploaded, and Instagram processed it in %d seconds. Not published." % (name, time.time() - t0))
+        except IGError as e:
+            bad.append(name + ": " + str(e)); log("TEST FAILED:", bad[-1])
+    if bad:
+        note.send("Instagram bot test failed", bad[0][:150]); raise SystemExit("Test failed: " + "; ".join(bad))
+    note.send("Instagram bot test passed", "%d test post%s went through Instagram without going live. Next real post: %s." % (len(ok), "" if len(ok) == 1 else "s", ok[0]))
+
 # Every post's numbers (not just this week), to learn what works. Saved to the bot's state for later weeks too.
 def insights(state, ig):
     acct = ig.me()
@@ -513,6 +542,7 @@ def main():
     if mode == "sync": return inventory(state, ig, mark=True)
     if mode == "report": return report(state, note, ig)
     media = Media(os.environ.get("BOT_MEDIA", "gcs"))
+    if mode == "test": return test(state, media, note, ig)
     run(state, media, note, ig)
 
 if __name__ == "__main__":
