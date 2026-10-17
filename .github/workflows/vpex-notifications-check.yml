@@ -1,17 +1,24 @@
 # Checks that VPEX's notification server is working, without buzzing anyone's phone:
 # the functions are live, the every-minute timer runs, and a test request gets picked up and answered.
-# Run it from the Actions tab: "Check VPEX notifications" > Run workflow.
+# Runs every morning and after every deploy; if something is wrong, Vincent's phone gets an alert.
+# Run it any time from the Actions tab: "Check VPEX notifications" > Run workflow.
 name: Check VPEX notifications
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "47 12 * * *"      # every day, 8:47 AM New York (7:47 in winter)
+  workflow_run:
+    workflows: ["Deploy VPEX notifications"]
+    types: [completed]
 
 permissions:
   contents: read
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     env:
       PROJECT: dovetail-f863c
@@ -23,6 +30,7 @@ jobs:
       - uses: google-github-actions/setup-gcloud@v2
 
       - name: Check
+        id: check
         run: |
           note()  { python3 -c "import sys; t=sys.stdin.read()[:6000]; print('::notice title=$1::' + t.replace('%','%25').replace('\r','').replace('\n','%0A'))"; }
           fail()  { echo "::error title=$1::$2"; BAD=1; }
@@ -102,5 +110,57 @@ jobs:
               s = '%s %s %s %s %s' % (e.get('timestamp','')[11:19], e.get('severity',''), e.get('resource',{}).get('labels',{}).get('service_name',''), msg[:300], json.dumps(extra)[:400] if extra else '')
               print(re.sub(r'(token|Bearer)[\\s:=\"]+[A-Za-z0-9_\\-:.]{20,}', r'\\1 [hidden]', s))" | note "Server log (last 2 hours)"
 
+          # 7. Alerts waiting to go out
+          Q=$(curl -s -X POST -H "Authorization: Bearer $T" -H "Content-Type: application/json" "$FS:runQuery" \
+            -d '{"structuredQuery":{"from":[{"collectionId":"pushQueue"}],"orderBy":[{"field":{"fieldPath":"at"}}],"limit":1}}' \
+            | python3 -c "
+          import sys, json, time
+          r = [x for x in json.load(sys.stdin) if 'document' in x]
+          if not r: print('none queued'); sys.exit()
+          at = int(r[0]['document']['fields']['at']['integerValue'])
+          print('next in %d min' % round((at - time.time() * 1000) / 60000))" 2>/dev/null || echo "?")
+          QN=$(curl -s -X POST -H "Authorization: Bearer $T" -H "Content-Type: application/json" "$FS:runAggregationQuery" \
+            -d '{"structuredAggregationQuery":{"structuredQuery":{"from":[{"collectionId":"pushQueue"}]},"aggregations":[{"count":{},"alias":"n"}]}}' \
+            | python3 -c "import sys,json; print(json.load(sys.stdin)[0]['result']['aggregateFields']['n']['integerValue'])" 2>/dev/null || echo "?")
+          echo "$QN follow-up alert(s) queued, $Q" | note "Queue"
+
+          # 8. Old build images get cleaned up, so storage costs stay near zero
+          gcloud artifacts repositories describe gcf-artifacts --location "$R" --project "$PROJECT" --format='value(sizeBytes,cleanupPolicies)' > /tmp/ar.txt 2>&1 || true
+          note "Build storage" < /tmp/ar.txt
+          if ! grep -qi "delete\|keep\|olderThan" /tmp/ar.txt; then
+            echo "::warning title=Build storage::No cleanup rule on the build images yet."
+          fi
+
           [ "$BAD" = "0" ] && echo "Everything checks out." | note "Result"
           exit $BAD
+
+      - name: Alert Vincent's phone
+        if: failure()
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          T=$(gcloud auth print-access-token)
+          python3 - "$T" <<'PY'
+          import json, os, sys, urllib.request
+          T, P = sys.argv[1], os.environ["PROJECT"]
+          def call(url, body):
+              req = urllib.request.Request(url, json.dumps(body).encode(), {"Authorization": "Bearer " + T, "Content-Type": "application/json"})
+              return json.load(urllib.request.urlopen(req, timeout=20))
+          users = call("https://identitytoolkit.googleapis.com/v1/projects/%s/accounts:lookup" % P, {"email": ["vincent@dovetail-f863c.firebaseapp.com"]}).get("users", [])
+          if not users: print("Owner login not found"); sys.exit(0)
+          uid = users[0]["localId"]
+          rows = call("https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents:runQuery" % P, {"structuredQuery": {"from": [{"collectionId": "pushTokens"}],
+              "where": {"fieldFilter": {"field": {"fieldPath": "uid"}, "op": "EQUAL", "value": {"stringValue": uid}}}}})
+          sent = 0
+          for r in rows:
+              tok = r.get("document", {}).get("fields", {}).get("token", {}).get("stringValue")
+              if not tok: continue
+              try:
+                  call("https://fcm.googleapis.com/v1/projects/%s/messages:send" % P, {"message": {"token": tok, "data": {"kind": "ops", "link": os.environ["RUN_URL"]},
+                      "webpush": {"headers": {"Urgency": "high", "TTL": "86400"}, "notification": {"title": "VPEX check failed", "body": "Something in notifications needs a look. Tap for details.",
+                      "icon": "https://vpexdialer.com/vpex-icon-192.png", "badge": "https://vpexdialer.com/vpex-icon-96.png", "tag": "vpex-ops"}, "fcmOptions": {"link": os.environ["RUN_URL"]}}}})
+                  sent += 1
+              except Exception as e:
+                  print("send failed:", str(e)[:200])
+          print("alerted", sent, "phone(s)")
+          PY
