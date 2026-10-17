@@ -11,9 +11,9 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "check = test the key and show the plan; run = post what's due now; report = the weekly report; inventory = what's already posted; sync = mark plan posts already on Instagram as done; insights = every post's numbers; test = a test post that never goes live; diagnose = why Instagram refuses the key"
+        description: "check = test the key and show the plan; run = post what's due now; report = the weekly report; inventory = what's already posted; sync = mark plan posts already on Instagram as done; insights = every post's numbers; test = a test post that never goes live; diagnose = why Instagram refuses the key; resend = send the last hand-off post to the phone again"
         type: choice
-        options: [check, test, diagnose, run, report, inventory, sync, insights]
+        options: [check, test, diagnose, resend, run, report, inventory, sync, insights]
         default: check
 
 concurrency:
