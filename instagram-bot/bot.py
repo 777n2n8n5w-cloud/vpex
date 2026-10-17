@@ -364,6 +364,7 @@ def run(state, media, note, ig):
     try:
         n = answer_comments(ig, state, None)
         if n: log(n, "comments answered")
+        state.set("meta", "comments", {"at": time.time()})
     except IGError as e:
         log("comments skipped:", e)
 
@@ -564,10 +565,24 @@ def diagnose(state):
         ask(name + ": recent media", "https://graph.instagram.com/v23.0/me/media", tok, fields="id,timestamp", limit="1")
         ask(name + ": refresh", REFRESH_URL, tok, grant_type="ig_refresh_token")
 
+# Keep traffic to Instagram low and steady (Meta locks developer accounts over unusual traffic): a scheduled run only
+# contacts Instagram when something is due, or to check comments at most once an hour.
+COMMENT_EVERY_MIN = float(os.environ.get("IG_COMMENT_EVERY_MIN", "60"))
+def quiet_run(state):
+    if os.environ.get("IG_ALWAYS_CONTACT") == "1": return False
+    now = now_utc()
+    for when, pk, it in all_items(load_packs()):
+        if when <= now and (state.get("posted", it["id"]) or {}).get("status") not in ("posted", "missed", "reminded", "failed"): return False
+    ago = (time.time() - ((state.get("meta", "comments") or {}).get("at") or 0)) / 60
+    if ago < COMMENT_EVERY_MIN:
+        log("Nothing due, and comments were checked %d minutes ago. Instagram not contacted this run." % ago); return True
+    return False
+
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "run"
     state = State(os.environ.get("BOT_STATE", "firestore"))
     if mode == "diagnose": return diagnose(state)
+    if mode == "run" and quiet_run(state): return
     note = Notify(os.environ.get("BOT_NOTIFY", "live"))
     ig = IG(get_token(state))
     try:
