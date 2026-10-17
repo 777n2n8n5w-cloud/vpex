@@ -142,7 +142,7 @@ jobs:
       - name: Alert Vincent's phone
         if: failure() || inputs.alert_dry_run
         env:
-          DRY: ${{ inputs.alert_dry_run && !failure() }}
+          DRY: ${{ inputs.alert_dry_run && steps.check.outcome == 'success' }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           T=$(gcloud auth print-access-token)
