@@ -1,0 +1,7 @@
+# built or unpacked locally; the sources are the .py files, stills, fonts and ig3/clips/*.mp4
+__pycache__/
+*/html/
+*/frames/
+*/out/
+ig3/clips/*/
+*.jpg.tmp
