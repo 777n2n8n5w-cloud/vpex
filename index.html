@@ -5698,6 +5698,9 @@
   .lead-meta { display: flex; align-items: center; gap: 6px; margin: -2px -4px 10px; padding: 0 4px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
   .lead-meta::-webkit-scrollbar { display: none; }
   .lead-meta .lead-where { margin: 0; flex: none; white-space: nowrap; }
+  /* a calling-hours warning gets the whole line and wraps, so the reason and the next allowed time are readable without swiping */
+  .lead-meta .lead-where.late { flex: 0 0 calc(100% - 8px); white-space: normal; line-height: 1.3; border-radius: 14px !important; }
+  .lead-where.late .lw-dot { flex: none; }
   .lead-meta .qf-row { margin: 0; width: auto; flex: none; flex-wrap: nowrap; min-height: 30px; }
   .lead-meta .qf-row.empty { padding: 5px 11px; }
   .qf-chip { padding: 5px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 600; background: color-mix(in srgb, var(--accent) 12%, var(--surface-raised)); border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border)); color: var(--text); white-space: nowrap; }
@@ -9594,6 +9597,8 @@
     var ft = state.focusTaskId ? state.tasks.filter(function (t) { return t.id === state.focusTaskId; })[0] : null;
     var warm = lead.outcome === "interested" || lead.outcome === "callback";
     if (lead.stalled) return "Parked: " + parkedWhy(lead) + ". Call only if something has changed.";
+    var clk = leadZone(lead).iana ? leadClock(lead) : null;
+    if (clk && !clk.ok) return "Not now: " + clk.why + ". Skip it; it comes back when calls are allowed.";
     if (ft && ft.pinned) return "They picked this time. Open with what they told you last call.";
     if (ft && state.followupRun && state.runKind === "overdue") {
       var who = assigneeOf(ft), late = Math.floor((Date.now() - taskDueTs(ft)) / 3600000);
@@ -12002,7 +12007,10 @@
     var rule = STATE_HOURS[z.st];
     if (rule && rule.max3 && l && l.id) {
       var c = calls24(l.id);
-      if (c.n >= 3) { r.ok = false; r.why = "3 calls in 24 hours is " + z.st + "’s limit, next after " + new Date(c.next).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); }
+      if (c.n >= 3) {
+        var nd = new Date(c.next), tm = nd.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+        r.ok = false; r.why = "3 calls in 24 hours is " + z.st + "’s limit, next after " + tm + (nd.toDateString() === new Date().toDateString() ? "" : " tomorrow");
+      }
     }
     return r;
   }
