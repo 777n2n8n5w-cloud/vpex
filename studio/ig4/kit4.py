@@ -61,10 +61,10 @@ def rows(items, dark=False, size=44, lw=300, gap=0, color=None):
 cover("W4-Cover-L", "Reel L cover: Pennsylvania changed the rules", lines([("PENNSYLVANIA", 92, PAPER), ("CHANGED", 150, PAPER), ("THE RULES.", 124, GOLD)], 480, 18) +
       at(0, 1040, '<div style="width: 1080px; text-align: center; font-family: %s; font-weight: 700; font-size: 54px; color: %s">9 AM–7 PM. No Sundays.</div>' % (ARCH, RED_D)))
 cover("W4-Cover-M", "Reel M cover: 4th call in Florida", at(0, 380, '<div style="width: 1080px; text-align: center; font-family: %s; font-weight: 800; font-size: 520px; line-height: .82; color: %s">4<span style="font-size: 200px">TH</span></div>' % (BIGS, RED_D)) +
-      lines([("CALL. SAME LEAD.", 92, PAPER), ("IN FLORIDA?", 132, GOLD)], 900, 16))
-cover("W4-Cover-N", "Reel N cover: 3 things that get you flagged", lines([("3 THINGS THAT", 96, PAPER), ("GET YOUR NUMBER", 88, PAPER)], 470, 16) +
+      lines([("CALL. SAME LEAD.", 80, PAPER), ("IN FLORIDA?", 124, GOLD)], 900, 16))
+cover("W4-Cover-N", "Reel N cover: 3 things that get you flagged", lines([("3 THINGS THAT", 84, PAPER), ("GET YOUR NUMBER", 76, PAPER)], 470, 16) +
       at(0, 720, '<div style="width: 1080px; text-align: center; font-family: %s; font-weight: 800; font-stretch: 110%%; font-size: 190px; line-height: .9; letter-spacing: -0.03em; color: %s">Spam<br>Likely.</div>' % (ARCH, RED_D)))
-cover("W4-Cover-O", "Reel O cover: Call me Tuesday at 2", lines([("SHE SAID", 104, PAPER), ("“CALL ME", 140, PAPER), ("TUESDAY AT 2.”", 112, GOLD)], 450, 16) +
+cover("W4-Cover-O", "Reel O cover: Call me Tuesday at 2", lines([("SHE SAID", 104, PAPER), ("“CALL ME", 128, PAPER), ("TUESDAY AT 2.”", 98, GOLD)], 450, 16) +
       at(0, 960, '<div style="width: 1080px; text-align: center; font-family: %s; font-weight: 800; font-size: 300px; line-height: 0.85; color: %s">2:00<span style="font-size: 110px; margin-left: 14px">PM</span></div>' % (BIGS, PAPER)))
 cover("W4-Cover-P", "Reel P cover: 8:30 AM", at(0, 400, '<div style="width: 1080px; text-align: center; font-family: %s; font-weight: 800; font-size: 400px; line-height: 0.85; color: %s">8:30<span style="font-size: 140px; margin-left: 16px">AM</span></div>' % (BIGS, GOLD)) +
       lines([("BEFORE THE", 104, PAPER), ("FIRST CALL.", 132, PAPER)], 800, 16))
