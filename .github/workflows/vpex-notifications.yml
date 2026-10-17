@@ -146,7 +146,24 @@ jobs:
           if [ -z "$RS" ]; then echo "No database rules published yet."; exit 0; fi
           curl -sf -H "Authorization: Bearer $T" "$API/$RS" | python3 -c "import sys,json; print(json.load(sys.stdin)['source']['files'][0]['content'], end='')" > /tmp/live-rules.txt || { echo "Couldn't read the live rules."; exit 0; }
           echo "Live rules: $RS"
-          if diff -u /tmp/live-rules.txt firestore-rules.txt; then echo "No change."; fi
+          note() { python3 -c "import sys; t=sys.stdin.read()[:6000]; print('::notice title=$1::' + t.replace('%','%25').replace('\r','').replace('\n','%0A'))"; }
+          if diff -u /tmp/live-rules.txt firestore-rules.txt > /tmp/rules.diff; then
+            echo "No change."
+            # Already the same: compare with the rules that were live before this repo's version went up
+            PREV=$(curl -sf -H "Authorization: Bearer $T" "$API/projects/$PROJECT/rulesets?pageSize=10" | python3 -c "
+          import sys, json
+          r = sorted(json.load(sys.stdin).get('rulesets', []), key=lambda x: x.get('createTime', ''), reverse=True)
+          names = [x['name'] for x in r]
+          cur = sys.argv[1]
+          i = names.index(cur) if cur in names else -1
+          print(names[i + 1] if 0 <= i < len(names) - 1 else '')" "$RS" 2>/dev/null || true)
+            if [ -n "$PREV" ] && curl -sf -H "Authorization: Bearer $T" "$API/$PREV" | python3 -c "import sys,json; print(json.load(sys.stdin)['source']['files'][0]['content'], end='')" > /tmp/prev-rules.txt; then
+              if diff -u /tmp/prev-rules.txt firestore-rules.txt > /tmp/prev.diff; then echo "Same as the rules before it too." | note "Database rules: no change"
+              else (echo "Compared with $PREV"; grep -E '^[-+][^-+]' /tmp/prev.diff) | note "Database rules: changes since the previous version"; fi
+            fi
+          else
+            grep -E '^[-+][^-+]' /tmp/rules.diff | note "Database rules: what this deploy changes"
+          fi
 
       - if: steps.has.outputs.go == 'yes'
         name: Deploy
