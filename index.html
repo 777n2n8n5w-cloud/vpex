@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-12-14">
+<meta name="vpex-build" content="2026-12-15">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -8321,7 +8321,7 @@
     }).join("") + qfNoteHtml(q) + '</div>';
   }
   function qfNoteHtml(q) {
-    if (IND_KEY === "insurance" && q.product === "Medicare") return '<p class="qf-note">Medicare Advantage or Part D: get a signed Scope of Appointment before the sales meeting.</p>';
+    if (IND_KEY === "insurance" && q.product === "Medicare") return '<p class="qf-note">Medicare Advantage or Part D: get the Scope of Appointment on record (signed, or recorded on the call) before the sales meeting.</p>';
     if (IND_KEY === "solar" && q.owner === "No") return '<p class="qf-note">Only the homeowner can sign for solar. Ask who owns the home and set the appointment with them.</p>';
     if (IND_KEY === "realestate" && q.agent === "Yes") return '<p class="qf-note">They’re working with an agent. Don’t pitch your services while they’re under an agreement with someone else.</p>';
     return "";
@@ -12387,6 +12387,52 @@
   });
 
   /* ----- start-up and sign-in ----- */
+  // The sign-in scripts didn't load (spotty signal, a blocker, a hiccup at Google). On the live site that used to
+  // drop everyone into an empty dialer saved on this phone only: no office, no sales page. Now: retry, then say so.
+  var FB_SCRIPTS = [["app", "firebase-app-compat.js"], ["auth", "firebase-auth-compat.js"], ["firestore", "firebase-firestore-compat.js"], ["messaging", "firebase-messaging-compat.js"]];
+  function fbReady() { return teamAvailable() && typeof firebase.auth === "function" && typeof firebase.firestore === "function"; }
+  function fbShouldRetry() {
+    if (!FIREBASE_CONFIG.apiKey || !/^https?:$/.test(location.protocol)) return false;   // saved copies (file://) keep the on-device mode
+    if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && !/fbretry/i.test(location.search)) return false;   // local test pages keep it unless asked
+    return true;
+  }
+  function fbLoadMissing(done) {
+    var i = 0, ok = true;
+    (function next() {
+      if (i >= FB_SCRIPTS.length) return done(ok && fbReady());
+      var s = FB_SCRIPTS[i++], have = s[0] === "app" ? !!(window.firebase && firebase.initializeApp) : !!(window.firebase && firebase[s[0]]);
+      if (have) return next();
+      if (s[0] !== "app" && !window.firebase) { ok = false; return next(); }
+      var el = document.createElement("script"), t = setTimeout(function () { el.onload = el.onerror = null; if (s[0] !== "messaging") ok = false; next(); }, 12000);
+      el.src = "https://www.gstatic.com/firebasejs/10.12.2/" + s[1];
+      el.onload = function () { clearTimeout(t); next(); };
+      el.onerror = function () { clearTimeout(t); if (s[0] !== "messaging") ok = false; next(); };   // notifications are optional; sign-in isn't
+      document.head.appendChild(el);
+    })();
+  }
+  function fbRetryBoot(tries) {
+    TEAM.on = true;
+    TEAM.noBackend = true;
+    document.body.classList.add("team-mode");
+    if (!tries) showAuthScreen("", true);
+    fbLoadMissing(function (ok) {
+      if (ok) { TEAM.noBackend = false; teamBoot(); return; }
+      if (tries < 2) { setTimeout(function () { fbRetryBoot(tries + 1); }, 2500 * (tries + 1)); return; }
+      showAuthScreen("Can’t reach VPEX right now. Check your signal, then tap Try again.", false);
+      var m = document.getElementById("authMsg"), b = document.createElement("button");
+      b.type = "button"; b.className = "btn-primary"; b.id = "fbRetryBtn"; b.textContent = "Try again"; b.style.marginTop = "10px"; b.style.width = "100%";
+      b.addEventListener("click", function () { location.reload(); });
+      m.appendChild(b);
+      TEAM.fbRetryBtn = b;
+      if (!TEAM.fbOnline) { TEAM.fbOnline = true; window.addEventListener("online", function () { if (TEAM.noBackend) location.reload(); }); }
+    });
+  }
+  function fbNotReady(id) {   // a form was sent before the sign-in scripts arrived
+    if (TEAM.auth) return false;
+    authFail(id, "Still connecting to VPEX. Check your signal and try again in a moment.");
+    if (TEAM.fbRetryBtn) document.getElementById("authMsg").appendChild(TEAM.fbRetryBtn);
+    return true;
+  }
   function teamBoot() {
     TEAM.on = true;
     document.body.classList.add("team-mode");
@@ -12489,6 +12535,7 @@
     return officeSlug(v.replace(/^https?:\/\/[^/]+\/?/i, ""));
   }
   function authSubmit() {
+    if (fbNotReady("authGo")) return;
     var msg = document.getElementById("authMsg"), btn = document.getElementById("authGo");
     var rawU = String(document.getElementById("authUser").value || "").trim();
     if (/@/.test(rawU) && /\.vpex\.app$/i.test(rawU)) { document.getElementById("authOffice").value = officeFromInput(rawU); rawU = rawU.split("@")[0]; }
@@ -12604,6 +12651,7 @@
   async function dropUser(user) { try { await user.delete(); } catch (e) { try { await TEAM.auth.signOut(); } catch (e2) {} } }
   // Start free trial: the admin login, the office record, then straight into the app
   async function officeSignup() {
+    if (fbNotReady("suGo")) return;
     var v = function (id) { return document.getElementById(id).value.trim(); };
     var name = v("suOffice"), slug = officeSlug(name), ind = v("suInd"), me = v("suName"), user = usernameClean(v("suUser")), pw = document.getElementById("suPw").value, pw2 = document.getElementById("suPw2").value;
     var phone = fmtPhone(v("suPhone")), email = v("suEmail").toLowerCase();
@@ -12636,6 +12684,7 @@
   }
   // Join by invite link: a rep makes their own login; the invite code in the link is what lets them in
   async function officeJoin() {
+    if (fbNotReady("jnGo")) return;
     var me = document.getElementById("jnName").value.trim(), user = usernameClean(document.getElementById("jnUser").value), pw = document.getElementById("jnPw").value, pw2 = document.getElementById("jnPw2").value;
     var btn = document.getElementById("jnGo"); btn.setAttribute("data-label", btn.textContent);
     if (!me) return authFail("jnGo", "Enter your name.");
@@ -16793,6 +16842,7 @@
     });
 
     if (teamAvailable()) teamBoot();
+    else if (fbShouldRetry()) fbRetryBoot(0);
     else { vaultStart(); render(); startCloudSync(); }
     setInterval(softRefresh, 60000);
     setTimeout(function () { updCheck(true); }, 4000);
