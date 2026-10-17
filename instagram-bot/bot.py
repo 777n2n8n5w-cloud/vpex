@@ -24,7 +24,31 @@ STORY_GRACE_H = float(os.environ.get("IG_STORY_GRACE_H", "3"))
 MAX_ATTEMPTS = 3
 SITE = "vpexdialer.com"
 
-def log(*a): print(*a, flush=True)
+# Keys never reach the logs (the repo is public): known keys are masked, and any access_token in a URL is hidden.
+SECRETS = set()
+OUT = []
+def scrub(s):
+    s = re.sub(r"(access_token=)[^&\s'\"]+", r"\1[hidden]", str(s))
+    for t in SECRETS:
+        if t and len(t) > 8: s = s.replace(t, "[hidden]")
+    return s
+def keep_secret(t):
+    if not t or t in SECRETS: return
+    SECRETS.add(t)
+    if os.environ.get("GITHUB_ACTIONS") == "true": print("::add-mask::" + t, flush=True)
+def log(*a):
+    line = scrub(" ".join(str(x) for x in a)); OUT.append(line); print(line, flush=True)
+def gh_enc(s): return s.replace("%", "%25").replace("\r", "").replace("\n", "%0A")
+# On GitHub, the run's output is also posted as notes on the run, so it can be read without the full log.
+def flush_notes(title):
+    if os.environ.get("GITHUB_ACTIONS") != "true" or not OUT: return
+    parts, cur = [], ""
+    for line in OUT:
+        if len(cur) + len(line) + 1 > 5500 and cur: parts.append(cur); cur = ""
+        cur += line[:5500] + "\n"
+    if cur: parts.append(cur)
+    parts = parts[:8]
+    for i, p in enumerate(parts): print("::notice title=%s %d of %d::%s" % (title, i + 1, len(parts), gh_enc(p)), flush=True)
 def now_utc(): return dt.datetime.now(dt.timezone.utc)
 
 # ---------------------------------------------------------------- state: Firestore (live) or a JSON file (tests)
@@ -147,7 +171,7 @@ class IG:
             try:
                 r = requests.request(method, url, params=params if method == "GET" else None, data=params if method != "GET" else None, timeout=60)
             except requests.RequestException as e:
-                if attempt == 2: raise IGError("network: " + str(e))
+                if attempt == 2: raise IGError("network: " + scrub(e))
                 time.sleep(5); continue
             try: j = r.json()
             except ValueError: j = {"error": {"message": r.text[:300]}}
@@ -233,15 +257,17 @@ class Notify:
 def get_token(state):
     sec = os.environ.get("IG_TOKEN", "").strip()
     if not sec: raise SystemExit("No Instagram key yet. Save it as the repository secret IG_TOKEN.")
+    keep_secret(sec)
     h = hashlib.sha256(sec.encode()).hexdigest()[:16]
     rec = state.get("meta", "token")
     tok = rec["token"] if rec and rec.get("from") == h and rec.get("token") else sec
+    keep_secret(tok)
     age = time.time() - ((rec or {}).get("refreshedAt") or 0)
     if not rec or rec.get("from") != h or age > 6 * 86400:
         try:
             r = requests.get(REFRESH_URL, params={"grant_type": "ig_refresh_token", "access_token": tok}, timeout=30).json()
             if r.get("access_token"):
-                tok = r["access_token"]; log("Instagram key refreshed; good for", int(r.get("expires_in", 0) / 86400), "days")
+                tok = r["access_token"]; keep_secret(tok); log("Instagram key refreshed; good for", int(r.get("expires_in", 0) / 86400), "days")
             else:
                 log("key refresh skipped:", (r.get("error") or {}).get("message", r))
         except Exception as e:
@@ -418,6 +444,8 @@ def main():
     try:
         ig.me()
     except IGError as e:
+        if str(e).startswith("network:"):          # Instagram or the network had a blip: try again next run, no alert
+            raise SystemExit("Couldn't reach Instagram this time (it tries again on the next run): " + str(e)[:300])
         note.send("Instagram bot can't sign in", "Instagram said: " + str(e)[:140] + ". The key may need renewing.")
         raise SystemExit("Instagram rejected the key: " + str(e))
     if mode == "check": return check(state, ig)
@@ -426,4 +454,16 @@ def main():
     run(state, media, note, ig)
 
 if __name__ == "__main__":
-    main()
+    _mode = sys.argv[1] if len(sys.argv) > 1 else "run"
+    try:
+        main()
+    except SystemExit as e:
+        if e.code not in (None, 0) and not isinstance(e.code, int):
+            log("Stopped: " + str(e.code))
+            if os.environ.get("GITHUB_ACTIONS") == "true": print("::error title=Instagram bot::" + gh_enc(scrub(e.code)), flush=True)
+        raise
+    except Exception:
+        log("Crashed: " + traceback.format_exc()[-1500:])
+        raise
+    finally:
+        flush_notes("Instagram bot (" + _mode + ")")
