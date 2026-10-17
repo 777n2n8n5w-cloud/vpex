@@ -10,7 +10,7 @@ Content lives in content packs under instagram/: a folder or a .zip holding plan
 State (what's posted, which comments were answered, the refreshed Instagram key) lives in Firestore under igBot/,
 which no app user can read. Media go to Instagram through short-lived private links from a Google Cloud bucket.
 """
-import os, sys, json, time, re, hashlib, zipfile, io, datetime as dt, mimetypes, traceback
+import os, sys, json, time, re, hashlib, zipfile, io, datetime as dt, mimetypes, traceback, secrets
 from zoneinfo import ZoneInfo
 import requests
 
@@ -592,49 +592,79 @@ HOW = {"reel": "Open Instagram, tap +, choose Reel, pick the video, paste the ca
        "carousel": "Open Instagram, tap +, choose Post, tap Select multiple, pick the images in order (1 to %d), paste the caption, Share.",
        "story": "Open Instagram, tap +, choose Story, pick it, Share. For a Reel you already posted, you can also open it and tap Share, then Add to story."}
 def esc(t): return (t or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
-def handoff_page(media, pk, it, when):
-    t = it["type"]; files = ([it["video"]] if it.get("video") else []) + ([it["image"]] if it.get("image") else []) + list(it.get("images") or [])
-    blocks, F = [], []
-    for i, f in enumerate(files):
-        u = media.url(pk, f, hours=48); vid = f.lower().endswith(".mp4")
-        F.append({"u": u, "n": "VPEX-%s-%d%s" % (re.sub(r"[^A-Za-z0-9]+", "-", it["id"]), i + 1, os.path.splitext(f)[1]), "t": "video/mp4" if vid else "image/jpeg"})
-        num = '<div class="n">%d of %d</div>' % (i + 1, len(files)) if len(files) > 1 else ""
-        if vid:
-            poster = (' poster="%s"' % esc(media.url(pk, it["cover"], hours=48))) if it.get("cover") else ""
-            blocks.append('%s<video src="%s"%s controls playsinline preload="metadata"></video>' % (num, esc(u), poster))
-        else:
-            blocks.append('%s<img src="%s" alt="">' % (num, esc(u)))
-    what = "the images" if len(files) > 1 else ("the video" if files and files[0].lower().endswith(".mp4") else "the image")
+DONE_URL = os.environ.get("IG_DONE_URL", "https://us-central1-" + PROJECT + ".cloudfunctions.net/igDone")
+def handoff_page(media, pk, it, when, key=""):
+    t = it["type"]; title = it.get("title", it["id"]); slug = re.sub(r"[^A-Za-z0-9]+", "-", it["id"])
+    groups, secs = [], []          # each group: files saved together with one button
+    def group(label, word, rels, show, btn):
+        F = []
+        for i, f in enumerate(rels):
+            vid = f.lower().endswith(".mp4")
+            F.append({"u": media.url(pk, f, hours=48), "n": "VPEX-%s-%s%s%s" % (slug, label.split()[-1].lower(), "-%d" % (i + 1) if len(rels) > 1 else "", os.path.splitext(f)[1]), "t": "video/mp4" if vid else "image/jpeg"})
+        gi = len(groups); groups.append(F)
+        prev = ""
+        for i, f in enumerate(F):
+            num = '<div class="n">%d of %d</div>' % (i + 1, len(F)) if len(F) > 1 else ""
+            poster = (' poster="%s"' % esc(media.url(pk, it["cover"], hours=48))) if f["t"] == "video/mp4" and it.get("cover") else ""
+            prev += num + ('<video src="%s"%s controls playsinline preload="metadata"></video>' % (esc(f["u"]), poster) if f["t"] == "video/mp4" else '<img src="%s" alt="">' % esc(f["u"]))
+        secs.append((label, '<button class="btn save" data-g="%d" data-label="%s" disabled>Getting it ready...</button><p class="tip">Opens your share sheet: tap <b>%s</b>.</p>%s' % (gi, esc(btn), word, prev if show else "")))
     cap = it.get("caption", "")
-    capbox = ('<h2>1. Copy the caption</h2><textarea id="cap" readonly>%s</textarea><button class="btn" id="copy">Copy caption</button>' % esc(cap)) if t != "story" else ""
-    how = HOW[t] % len(files) if t == "carousel" else HOW[t]
-    n1 = 2 if capbox else 1
+    if t != "story": secs.append(("Copy the caption", '<textarea id="cap" readonly>%s</textarea><button class="btn copy" data-src="cap">Copy caption</button>' % esc(cap)))
+    if it.get("video"): group("Save the video", "Save Video", [it["video"]], True, "Save the video")
+    if t == "reel" and it.get("cover"): group("Save the cover", "Save Image", [it["cover"]], True, "Save the cover")
+    if it.get("image"): group("Save the image", "Save Image", [it["image"]], True, "Save the image")
+    if it.get("images"): group("Save the images", "Save %d Images" % len(it["images"]), list(it["images"]), True, "Save all %d images" % len(it["images"]))
+    alts = [it["alt"]] if it.get("alt") and t != "reel" else list(it.get("alts") or [])
+    if alts and t != "story":
+        rows = "".join('<div class="alt"><div class="n">%s</div><textarea id="alt%d" readonly>%s</textarea><button class="btn ghost copy" data-src="alt%d">Copy alt text%s</button></div>' % (
+            ("Image %d of %d" % (i + 1, len(alts))) if len(alts) > 1 else "Alt text", i, esc(a), i, (" %d" % (i + 1)) if len(alts) > 1 else "") for i, a in enumerate(alts))
+        secs.append(("Optional: alt text", '<p class="tip">Helps people using screen readers. In Instagram, before you share, tap Advanced settings, then Write alt text, and paste.</p>' + rows))
+    steps = {"reel": ["Open Instagram, tap +, choose <b>Reel</b>, pick the video.", "Tap Next. Tap <b>Edit cover</b>, then <b>Add from camera roll</b>, and pick the cover.", "Paste the caption. Keep <b>Share to feed</b> on. Tap Share."],
+             "image": ["Open Instagram, tap +, choose <b>Post</b>, pick the image.", "Tap Next and paste the caption.", "Tap Share."],
+             "carousel": ["Open Instagram, tap +, choose <b>Post</b>, tap <b>Select multiple</b>.", "Pick the images in order, 1 to %d." % len(it.get("images") or []), "Tap Next, paste the caption, tap Share."],
+             "story": ["Open Instagram, tap +, choose <b>Story</b>, pick it, tap Share.", "For a Reel you already posted, you can instead open it, tap Share, then <b>Add to story</b>."]}[t]
+    secs.append(("Post it", "<ol>" + "".join("<li>%s</li>" % x for x in steps) + "</ol>"))
+    if key: secs.append(("Tap Done", '<button class="btn done-btn" id="done">Done, I posted it</button><p class="tip" id="donetip">Tells the bot this one is on Instagram.</p>'))
+    body, k = "", 0
+    for h, c in secs:
+        if h.startswith("Optional"): body += '<h2>%s</h2>%s' % (esc(h), c)
+        else: k += 1; body += '<h2>%d. %s</h2>%s' % (k, esc(h), c)
     html = """<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Post now: %(title)s</title>
 <style>body{margin:0;background:#0E1433;color:#F4F5F9;font:17px/1.45 -apple-system,system-ui,sans-serif}main{max-width:560px;margin:0 auto;padding:22px 16px 60px}
-.wm{color:#E8B94A;font-weight:800;letter-spacing:.04em}h1{font-size:26px;line-height:1.2;margin:10px 0 4px}.due{color:#C7CBE4;margin:0 0 8px}h2{font-size:18px;margin:26px 0 10px;color:#E8B94A}
-img,video{display:block;width:100%%;border-radius:14px;background:#000;margin-top:8px}.n{color:#C7CBE4;font-size:14px;margin-top:16px}.tip{color:#C7CBE4;font-size:14px;margin:8px 0 0}
-.btn{display:block;width:100%%;box-sizing:border-box;margin-top:10px;padding:15px;border:0;border-radius:12px;background:#E8B94A;color:#131A3E;font:700 17px -apple-system,system-ui,sans-serif;text-align:center;text-decoration:none}
-.btn[disabled]{opacity:.55}textarea{width:100%%;box-sizing:border-box;min-height:160px;border-radius:12px;border:0;padding:12px;font:15px/1.4 -apple-system,system-ui,sans-serif;background:#F4F5F9;color:#131A3E}
-.done{margin-top:28px;color:#C7CBE4;font-size:15px}a{color:#E8B94A}</style></head>
+.wm{color:#E8B94A;font-weight:800;letter-spacing:.04em}h1{font-size:26px;line-height:1.2;margin:10px 0 4px}.due{color:#C7CBE4;margin:0 0 8px}h2{font-size:18px;margin:28px 0 10px;color:#E8B94A}
+img,video{display:block;width:100%%;border-radius:14px;background:#000;margin-top:10px}.n{color:#C7CBE4;font-size:14px;margin-top:14px}.tip{color:#C7CBE4;font-size:14px;margin:8px 0 0}
+.btn{display:block;width:100%%;box-sizing:border-box;margin-top:10px;padding:15px;border:0;border-radius:12px;background:#E8B94A;color:#131A3E;font:700 17px -apple-system,system-ui,sans-serif;text-align:center}
+.btn.ghost{background:transparent;color:#E8B94A;box-shadow:inset 0 0 0 2px #E8B94A;padding:11px;font-size:15px}.btn[disabled]{opacity:.55}
+textarea{width:100%%;box-sizing:border-box;min-height:150px;border-radius:12px;border:0;padding:12px;font:15px/1.4 -apple-system,system-ui,sans-serif;background:#F4F5F9;color:#131A3E}.alt textarea{min-height:90px}
+ol{padding-left:22px;margin:0}li{margin:6px 0}.done-btn.ok{background:#2EB872;color:#fff;opacity:1}.done{margin-top:28px;color:#C7CBE4;font-size:15px}</style></head>
 <body><main><div class="wm">VPEX</div><h1>%(title)s</h1><p class="due">Due %(due)s. Instagram is blocking the bot right now, so this one is ready for you to post.</p>
-%(capbox)s<h2>%(n1)d. Save %(what)s</h2><button class="btn" id="save" disabled>Getting it ready...</button>
-<p class="tip" id="tip">Opens your share sheet. Tap <b>%(saveword)s</b>, or tap Instagram to post it straight from there.</p>%(blocks)s
-<h2>%(n2)d. Post it</h2><p>%(how)s</p><p class="done">That's it. The bot counts this one as done and won't post it again.</p></main>
+%(body)s<p class="done">The bot won't post this one again, even if you don't tap Done.</p></main>
 <script>
-const F = %(files)s; let files = null; const b = document.getElementById("save"), tip = document.getElementById("tip");
-Promise.all(F.map(f => fetch(f.u).then(r => { if (!r.ok) throw new Error(r.status); return r.blob(); }).then(x => new File([x], f.n, {type: f.t}))))
-  .then(x => { files = x; b.disabled = false; b.textContent = "Save to Photos"; })
-  .catch(() => { b.disabled = false; b.textContent = "Open it"; tip.textContent = "Couldn't prepare the file here. Open it, then tap the share button and Save."; });
-b.onclick = async () => {
-  if (files && navigator.canShare && navigator.canShare({files})) { try { await navigator.share({files}); } catch (e) {} }
-  else { location.href = F[0].u; }
+const G = %(groups)s, ready = G.map(() => null);
+document.querySelectorAll(".save").forEach(b => {
+  const g = +b.dataset.g;
+  Promise.all(G[g].map(f => fetch(f.u).then(r => { if (!r.ok) throw new Error(r.status); return r.blob(); }).then(x => new File([x], f.n, {type: f.t}))))
+    .then(x => { ready[g] = x; b.disabled = false; b.textContent = b.dataset.label; })
+    .catch(() => { b.disabled = false; b.textContent = "Open it"; b.nextElementSibling.textContent = "Couldn't prepare it here. Open it, then tap the share button and Save."; });
+  b.onclick = async () => {
+    const files = ready[g];
+    if (files && navigator.canShare && navigator.canShare({files})) { try { await navigator.share({files}); } catch (e) {} }
+    else location.href = G[g][0].u;
+  };
+});
+const d = document.getElementById("done");
+if (d) d.onclick = async () => {
+  d.disabled = true; d.textContent = "Saving...";
+  try {
+    const r = await fetch(%(doneurl)s + "?id=" + encodeURIComponent(%(iid)s) + "&k=" + encodeURIComponent(%(key)s), {method: "POST"});
+    if (r.ok) { d.textContent = "Done \u2713"; d.classList.add("ok"); document.getElementById("donetip").textContent = "Marked as posted. Nice work."; }
+    else if (r.status === 403) { d.textContent = "Done \u2713"; document.getElementById("donetip").textContent = "This page is out of date, but this post already counts as done."; }
+    else throw new Error(r.status);
+  } catch (e) { d.disabled = false; d.textContent = "Try again"; document.getElementById("donetip").textContent = "Couldn't reach VPEX. It still counts as done; tap to try again."; }
 };
-const c = document.getElementById("copy");
-if (c) c.onclick = () => navigator.clipboard.writeText(document.getElementById("cap").value).then(() => { c.textContent = "Copied"; });
-</script></body></html>""" % {
-        "title": esc(it.get("title", it["id"])), "due": when.astimezone(ZoneInfo("America/New_York")).strftime("%a %b %d, %I:%M %p").replace(" 0", " "),
-        "capbox": capbox, "n1": n1, "n2": n1 + 1, "what": what, "saveword": "Save Video" if what == "the video" else ("Save %d Images" % len(files) if len(files) > 1 else "Save Image"),
-        "blocks": "".join(blocks), "how": esc(how), "files": json.dumps(F).replace("</", "<\\/")}
+document.querySelectorAll(".copy").forEach(c => c.onclick = () => navigator.clipboard.writeText(document.getElementById(c.dataset.src).value).then(() => { c.textContent = "Copied"; }));
+</script></body></html>""" % {"title": esc(title), "due": when.astimezone(ZoneInfo("America/New_York")).strftime("%a %b %d, %I:%M %p").replace(" 0", " "),
+        "body": body, "groups": json.dumps(groups).replace("</", "<\\/"), "doneurl": json.dumps(DONE_URL), "iid": json.dumps(it["id"]), "key": json.dumps(key)}
     return media.page(it["id"], html)
 
 # Send the latest handed-off post again (a fresh page and notification), without touching the schedule.
@@ -644,7 +674,9 @@ def resend(state, media, note):
     iid = max(recs)[1]
     for when, pk, it in all_items(load_packs()):
         if it["id"] == iid:
-            link = handoff_page(media, pk, it, when)
+            rec = state.get("posted", iid) or {}
+            if not rec.get("doneKey"): rec["doneKey"] = secrets.token_urlsafe(18); state.set("posted", iid, rec)
+            link = handoff_page(media, pk, it, when, rec["doneKey"])
             note.send("Post now: " + it.get("title", iid)[:60], "Here it is again. Tap to open it.", link)
             log("sent again:", it.get("title", iid)); return
     raise SystemExit("Couldn't find " + iid + " in the packs.")
@@ -665,9 +697,10 @@ def handoff(state, media, note, why):
         if since < (STORY_GAP_MIN if kind == "story" else FEED_GAP_MIN):
             log("waiting to hand off", iid, "- the last %s post went out %d minutes ago" % (kind, since)); continue
         if missing_media(pk, it): continue
-        link = handoff_page(media, pk, it, when)
+        key = secrets.token_urlsafe(18)
+        link = handoff_page(media, pk, it, when, key)
         note.send("Post now: " + it.get("title", iid)[:60], ("Tap to open it, save it and add it to your story." if kind == "story" else "Tap to open it: save, copy the caption, post.") + " Instagram is still blocking the bot.", link)
-        state.set("posted", iid, {"status": "handed", "at": time.time(), "title": it.get("title", iid)})
+        state.set("posted", iid, {"status": "handed", "at": time.time(), "title": it.get("title", iid), "doneKey": key})
         last[kind] = time.time(); state.set("meta", "last_post", last); sent = it.get("title", iid)
         break
     raise SystemExit("Instagram is blocking the bot (%s). %s" % (why, ("Sent \"%s\" to Vincent to post by hand." % sent) if sent else "Nothing to hand off this run."))
