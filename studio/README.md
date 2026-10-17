@@ -21,7 +21,7 @@ Everything that makes VPEX's Instagram posts: the brand kit, real app screenshot
 
    Check with `python3 reelN.py preview:NAME`, build with `python3 reelN.py NAME`, then add the sound with `python3 audioN.py`. Target about −14.5 LUFS, with peaks at or below −0.7 dBFS.
 7. **Pack:** in `make_packN.py`, set the times, captions and alt text, then run `PACK_OUT=/tmp/VPEX-Instagram-Week-N python3 make_packN.py`. It writes `plan.json`, the media and a zip.
-8. **Check before shipping:**
+8. **Check before shipping:** copy `instagram/*.zip` and the new zip into one folder, then run `python3 -I studio/tools/validate_packs.py FOLDER VPEX-Instagram-Week-N FIRST_DAY LAST_DAY`. It must end with `RESULT: PASS`. It checks:
    - Every item loads in the bot (no missing files).
    - Captions are 2,200 characters or less, with 30 hashtags or fewer. Alt text is 1,000 characters or less.
    - Images are JPEG; feed images are 4:5. Reels are H.264/AAC, 3–90 seconds.
@@ -39,7 +39,7 @@ Everything that makes VPEX's Instagram posts: the brand kit, real app screenshot
   - 14:30 and 21:00: original stories.
 - **A week** is Tuesday to Monday: 21 feed posts plus 35 stories (7 sticker, 14 shares, 14 originals).
 - **Never post in bursts.** On Oct 16, 5 posts within 20 minutes reached 4–8 people each, while spaced posts reached 60–130.
-- **Bridge:** `tools/replan_8day.py` re-timed weeks 3–4 when the cadence changed. The week 4b bridge pack covers Fri Oct 23 at 19:00 through Mon Oct 26. Week 5 starts Tue Oct 27.
+- **Bridge:** `tools/replan_8day.py` re-timed weeks 3–4 when the cadence changed. The week 4b bridge pack (`ig4/kit4b.py`, Reels S–V in `ig4/reel4.py`, `ig4/make_pack4b.py`) covers Fri Oct 23 at 19:00 through Mon Oct 26. Week 5 starts Tue Oct 27.
 
 ## What has worked (update this after every week's numbers)
 
@@ -57,5 +57,6 @@ Everything that makes VPEX's Instagram posts: the brand kit, real app screenshot
   - Every one says "Based on published state rules as of [month year]. Not legal advice."
   - State rules come from `STATE_HOURS` in `index.html`, so posts and the app always agree.
   - The national Do Not Call registry is not checked by VPEX; say so whenever it comes up.
+  - Medicare: for 2027 marketing (from Oct 1, 2026), CMS dropped the 48-hour wait, but a Scope of Appointment is still required before a Medicare Advantage or Part D sales appointment. Posts say "Based on the CMS final rule for 2027, as of [month year]. Not legal advice. Follow your carriers' guidelines."
 - **Fonts:** Archivo, Big Shoulders Display and Unbounded (`deck/fonts`, SIL Open Font License).
 - **Soundtracks:** synthesized in `audioN.py`, so there's no licensed music.

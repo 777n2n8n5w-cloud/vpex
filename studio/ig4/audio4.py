@@ -80,8 +80,9 @@ def make(name):
             place(fx, tick(1760, int(0.5 * SR)) * 0.7, s["t0"] + s["noteAt"] + 0.12, 0.24)
         elif s["type"] == "list":
             for i in range(len(s["rows"])): place(fx, tick(1400 + 80 * i), s["t0"] + i * s["per"], 0.22)
-        elif s["type"] in ("clip", "still") and media_t is None:
-            media_t = s["t0"]
+        elif s["type"] in ("clip", "still"):
+            if media_t is None: media_t = s["t0"]
+            else: place(fx, tick(1700), s["t0"], 0.16)          # a light tick on each cut between screens
         elif s["type"] == "end":
             end_t = s["t0"]
     media_t = media_t or dur * 0.55; end_t = end_t or dur - 2.8
@@ -119,7 +120,7 @@ def make(name):
     with wave.open(wav, "wb") as w: w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR); w.writeframes(pcm.tobytes())
     src = D + "/out/video/Reel-%s.mp4" % name
     out = D + "/out/video/Reel-%s-sound.mp4" % name
-    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", src, "-i", wav, "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-af", "loudnorm=I=-15:TP=-1.5:LRA=11,alimiter=limit=0.8:level=disabled", "-c:a", "aac", "-b:a", "160k", "-ar", "44100",
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", src, "-i", wav, "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-af", "loudnorm=I=-15:TP=-1.5:LRA=11,alimiter=limit=0.75:level=disabled", "-c:a", "aac", "-b:a", "160k", "-ar", "44100",
                     "-t", "%.3f" % dur, "-movflags", "+faststart", out], check=True)
     rms = float(np.sqrt(np.mean(mix ** 2)))
     print(name, "%.1fs" % dur, "rms %.3f" % rms, "->", os.path.basename(out))

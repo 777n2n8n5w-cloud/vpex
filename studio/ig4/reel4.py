@@ -71,6 +71,41 @@ REELS = {
     {"type": "still", "img": "pa_sunday", "dur": 2.3, "caps": [["Outside their state’s hours? Flagged.", 2.3, "g"]], "cam": [[0, 497, 1.55]]},
     {"type": "still", "img": "fl_cap", "dur": 2.3, "caps": [["Call limits, counted.", 2.3, "g"]], "cam": [[0, 497, 1.55]]},
     END],
+  # week 4b bridge (Oct 23-26): your floor's words, one industry at a time
+  "S-MedicareSOA": [
+    {"type": "words", "words": [["MEDICARE.", .55, "g"], ["THE 48-HOUR", .45], ["WAIT?", .4], ["GONE.", .7, "g"]]},
+    {"type": "words", "words": [["THE SCOPE OF", .45], ["APPOINTMENT?", .55], ["STILL", .35], ["REQUIRED.", .75, "r"]]},
+    {"type": "words", "words": [["NEW REPS", .42], ["FORGET.", .7, "r"]]},
+    FIX,
+    {"type": "still", "img": "q_medicare", "dur": 3.4, "caps": [["Medicare picked on the Qualify sheet?", 1.4], ["VPEX reminds the rep:", 0.8], ["Scope of Appointment first.", 1.2, "g"]],
+     "cam": [[0, 560, 1.0], [1.3, 724, 1.45]]},
+    {"type": "still", "img": "steps_insurance", "dur": 2.7, "caps": [["Then every step to the first premium.", 2.7, "g"]], "cam": [[0, 610, 1.38], [1.6, 610, 1.48]]},
+    END],
+  "T-SignedNotInstalled": [
+    {"type": "words", "words": [["SIGNED.", .55, "g"], ["ISN’T", .38], ["INSTALLED.", .75, "r"]]},
+    {"type": "words", "words": [["SITE SURVEY.", .45], ["PERMIT.", .4], ["INSTALL.", .4], ["PERMISSION", .42], ["TO OPERATE.", .65, "g"]]},
+    {"type": "words", "words": [["WHO’S", .32], ["CHASING", .4], ["EACH ONE?", .7, "r"]]},
+    FIX,
+    {"type": "still", "img": "q_solar_owner", "dur": 3.0, "caps": [["Talking to a renter?", 1.2], ["VPEX tells the rep to find the homeowner.", 1.8, "g"]], "cam": [[0, 420, 1.0], [1.1, 780, 1.45]]},
+    {"type": "still", "img": "steps_solar", "dur": 3.0, "caps": [["Every deal carries its checklist.", 1.5], ["Each step has a date.", 1.5, "g"]], "cam": [[0, 646, 1.38], [1.6, 646, 1.48]]},
+    END],
+  "U-TestDriveNotSold": [
+    {"type": "words", "words": [["TEST DRIVE.", .55], ["ISN’T", .38], ["SOLD.", .75, "r"]]},
+    {"type": "words", "words": [["CREDIT APP.", .45], ["APPROVED.", .42], ["SIGNED.", .42], ["DELIVERED.", .7, "g"]]},
+    {"type": "words", "words": [["WHICH STEP", .42], ["IS LATE?", .7, "r"]]},
+    FIX,
+    {"type": "still", "img": "steps_auto", "dur": 3.2, "caps": [["Every sale carries its checklist.", 1.5], ["A step runs late? It’s flagged.", 1.7, "g"]], "cam": [[0, 655, 1.45], [1.6, 420, 1.45]]},
+    {"type": "still", "img": "pipe_auto", "dur": 2.8, "caps": [["Your whole pipeline, by stage.", 1.3], ["Who needs a next step, counted.", 1.5, "g"]], "cam": [[0, 330, 1.0], [1.3, 215, 1.35]]},
+    END],
+  "V-YourFloorsWords": [
+    {"type": "words", "words": [["EVERY FLOOR", .5], ["SELLS", .35], ["DIFFERENTLY.", .75, "g"]]},
+    {"type": "still", "img": "steps_insurance", "dur": 1.6, "caps": [["Insurance: application to first premium.", 1.6]], "cam": [[0, 610, 1.4], [1.2, 610, 1.48]]},
+    {"type": "still", "img": "steps_realestate", "dur": 1.6, "caps": [["Real estate: offer to closing.", 1.6]], "cam": [[0, 610, 1.4], [1.2, 610, 1.48]]},
+    {"type": "still", "img": "steps_mca", "dur": 1.6, "caps": [["Business funding: approved to funded.", 1.6]], "cam": [[0, 655, 1.4], [1.2, 655, 1.48]]},
+    {"type": "still", "img": "steps_auto", "dur": 1.6, "caps": [["Auto: credit app to delivered.", 1.6]], "cam": [[0, 655, 1.4], [1.2, 655, 1.48]]},
+    {"type": "still", "img": "steps_solar", "dur": 1.7, "caps": [["Solar: signed to switched on.", 1.7]], "cam": [[0, 646, 1.4], [1.2, 646, 1.48]]},
+    {"type": "words", "words": [["ONE APP.", .5], ["YOUR FLOOR’S", .5], ["WORDS.", .75, "g"]]},
+    END],
 }
 
 PAGE = r'''<!doctype html><html><head><meta charset="utf-8"><style>
