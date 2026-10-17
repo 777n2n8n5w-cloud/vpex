@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-12-15">
+<meta name="vpex-build" content="2026-12-16">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -6517,6 +6517,8 @@
   .rp-bars { width: 100%; height: 70px; display: block; } .rp-bars rect { fill: var(--accent); }
   .rp-rep { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-top: 1px solid var(--border); font-size: 13.5px; } .rp-rep span { color: var(--text-dim); text-align: right; }
   .rp-rep.me b { color: var(--accent); }
+  .rp-int b { min-width: 0; flex: 0 1 auto; overflow-wrap: anywhere; } .rp-int b small { font-weight: 500; color: var(--text-dim); } .rp-int span { flex: 1 1 55%; }
+  .rp-more { margin: 6px 0 0; font-size: 12.5px; color: var(--text-dim); }
   .rp-actions { flex-wrap: wrap; }
   .contest-bar { display: flex; flex-direction: column; gap: 2px; width: 100%; text-align: left; margin: 0 0 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--voicemail);
     background: var(--surface-raised); color: var(--text); font-family: inherit; cursor: pointer; } .contest-bar b { font-size: 14px; } .contest-bar span { font-size: 12.5px; color: var(--text-dim); }
@@ -15685,11 +15687,11 @@
     return { a: ws, b: now + 1, label: "This week" };
   }
   function reportStats(a, b) {
-    var r = { calls: 0, reached: 0, interested: 0, callbacks: 0, talk: 0, committed: 0, deals: 0, handoffs: 0, reps: {}, days: {} };
+    var r = { calls: 0, reached: 0, interested: 0, callbacks: 0, talk: 0, committed: 0, deals: 0, handoffs: 0, reps: {}, days: {}, intl: {} };
     state.callLog.forEach(function (c) {
       var t = new Date(c.timestamp).getTime(); if (t < a || t >= b) return;
       if (TEAM.on && !canSeeTeam() && !myCall(c)) return;
-      r.calls++; if (CONTACT_OUTCOMES[c.outcomeKey]) r.reached++; if (c.outcomeKey === "interested") r.interested++; if (c.outcomeKey === "callback") r.callbacks++; r.talk += c.talk || 0;
+      r.calls++; if (CONTACT_OUTCOMES[c.outcomeKey]) r.reached++; if (c.outcomeKey === "interested") { r.interested++; var il = r.intl[c.leadId || c.name]; if (!il || il.at < t) r.intl[c.leadId || c.name] = { id: c.leadId, name: c.name, at: t, by: c.by ? c.by.name : "" }; } if (c.outcomeKey === "callback") r.callbacks++; r.talk += c.talk || 0;
       var k = c.by ? c.by.uid : "me", p = r.reps[k] || (r.reps[k] = { name: c.by ? c.by.name : "You", calls: 0, reached: 0, interested: 0 });
       p.calls++; if (CONTACT_OUTCOMES[c.outcomeKey]) p.reached++; if (c.outcomeKey === "interested") p.interested++;
       var dk = localDateStr(new Date(t)); r.days[dk] = (r.days[dk] || 0) + 1;
@@ -15722,13 +15724,22 @@
       var h = Math.round(d[1] / mx * 62); return '<rect x="' + (i * (bw + 3)) + '" y="' + (66 - h) + '" width="' + bw + '" height="' + Math.max(h, 1) + '" rx="2"></rect>'; }).join("") + '</svg>';
     var kpi = function (label, v, now, before) { return '<div class="rp-kpi"><b>' + v + '</b><span>' + label + '</span>' + trendHtml(now, before) + '</div>'; };
     var reps = Object.keys(r.reps).map(function (k) { return r.reps[k]; }).sort(function (x, y) { return y.reached - x.reached || y.calls - x.calls; });
+    // Who said yes this period, with what the rep learned on the call (the qualifying answers), newest first
+    var lm = leadMap(), QF = qFields(), ints = Object.keys(r.intl).map(function (k) { return r.intl[k]; }).sort(function (x, y) { return y.at - x.at; });
+    var intRow = function (x) {
+      var l = (x.id && lm[x.id]) || {}, q = l.qf || {}, got = QF.filter(function (f) { return q[f.k]; }).slice(0, 3).map(function (f) { return qSum(f, q[f.k]); });
+      return '<div class="rp-rep rp-int"><b>' + escapeHtml(l.name || x.name || "Lead") + (TEAM.on && canSeeTeam() && x.by ? ' <small>' + escapeHtml(firstName(x.by)) + '</small>' : '') + '</b><span>' +
+        (got.length ? escapeHtml(got.join(" \u00b7 ")) : QF.length ? 'Not qualified yet' : escapeHtml(l.stage || "")) + '</span></div>';
+    };
+    var intHtml = ints.length ? '<div class="settings-heading" style="margin:12px 0 4px">Interested \u00b7 what they told you</div>' + ints.slice(0, 8).map(intRow).join("") +
+      (ints.length > 8 ? '<p class="rp-more">+' + (ints.length - 8) + ' more interested this period</p>' : '') : '';
     var b = featOpen('<div class="rp-head"><h3>Results report</h3><select id="rpKind" aria-label="Report period"><option value="week">This week</option><option value="lastweek">Last week</option><option value="30">Last 30 days</option></select></div>' +
       '<p class="modal-sub">' + escapeHtml(currentCompany()) + ' \u00b7 ' + rg.label + ' \u00b7 compared with the period before</p>' +
       '<div class="rp-grid">' + kpi("calls", r.calls, r.calls, pr.calls) + kpi("conversations", r.reached, r.reached, pr.reached) + kpi("interested", r.interested, r.interested, pr.interested) +
       kpi("committed", fmtMoney(r.committed), r.committed, pr.committed) + kpi("reach rate", pctN(r.reached, r.calls) + "%", 0, 0) + kpi("on the phone", r.talk ? fmtTalk(r.talk) : "\u2014", r.talk, pr.talk) + '</div>' +
       '<div class="settings-heading" style="margin:12px 0 4px">Calls per day</div>' + bars +
       (reps.length > 1 || (reps.length && TEAM.on) ? '<div class="settings-heading" style="margin:12px 0 4px">By rep</div>' + reps.map(function (p) {
-        return '<div class="rp-rep"><b>' + escapeHtml(p.name) + '</b><span>' + p.calls + ' calls \u00b7 ' + p.reached + ' conversations \u00b7 ' + p.interested + ' interested</span></div>'; }).join("") : '') +
+        return '<div class="rp-rep"><b>' + escapeHtml(p.name) + '</b><span>' + p.calls + ' calls \u00b7 ' + p.reached + ' conversations \u00b7 ' + p.interested + ' interested</span></div>'; }).join("") : '') + intHtml +
       '<div class="modal-actions rp-actions"><button class="btn-secondary" id="rpCopy">Copy as text</button>' + (navigator.share ? '<button class="btn-secondary" id="rpShare">Share</button>' : '') + '<button class="btn-primary" id="rpPrint">Save as PDF</button></div>');
     var sel = document.getElementById("rpKind"); sel.value = kind; sel.addEventListener("change", function () { openReport(sel.value); });
     document.getElementById("rpCopy").addEventListener("click", function () { clipCopy(reportText(rg, r), function () { showToast("Report copied"); }); });
