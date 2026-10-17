@@ -6,6 +6,11 @@ name: Check VPEX notifications
 
 on:
   workflow_dispatch:
+    inputs:
+      alert_dry_run:
+        description: "Also test the phone alert without sending it"
+        type: boolean
+        default: false
   schedule:
     - cron: "47 12 * * *"      # every day, 8:47 AM New York (7:47 in winter)
   workflow_run:
@@ -135,8 +140,9 @@ jobs:
           exit $BAD
 
       - name: Alert Vincent's phone
-        if: failure()
+        if: failure() || inputs.alert_dry_run
         env:
+          DRY: ${{ inputs.alert_dry_run && !failure() }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           T=$(gcloud auth print-access-token)
@@ -155,6 +161,7 @@ jobs:
           for r in rows:
               tok = r.get("document", {}).get("fields", {}).get("token", {}).get("stringValue")
               if not tok: continue
+              if os.environ.get("DRY") == "true": sent += 1; continue
               try:
                   call("https://fcm.googleapis.com/v1/projects/%s/messages:send" % P, {"message": {"token": tok, "data": {"kind": "ops", "link": os.environ["RUN_URL"]},
                       "webpush": {"headers": {"Urgency": "high", "TTL": "86400"}, "notification": {"title": "VPEX check failed", "body": "Something in notifications needs a look. Tap for details.",
@@ -162,5 +169,6 @@ jobs:
                   sent += 1
               except Exception as e:
                   print("send failed:", str(e)[:200])
-          print("alerted", sent, "phone(s)")
+          msg = ("would alert %d phone(s) (dry run)" if os.environ.get("DRY") == "true" else "alerted %d phone(s)") % sent
+          print("::notice title=Phone alert::" + msg)
           PY
