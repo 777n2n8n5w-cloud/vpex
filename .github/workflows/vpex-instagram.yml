@@ -11,9 +11,9 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "check = test the key and show the plan; run = post what's due now; report = the weekly report"
+        description: "check = test the key and show the plan; run = post what's due now; report = the weekly report; inventory = what's already posted; sync = mark plan posts already on Instagram as done"
         type: choice
-        options: [check, run, report]
+        options: [check, run, report, inventory, sync]
         default: check
 
 concurrency:

@@ -436,6 +436,29 @@ def check(state, ig):
     except IGError as e:
         log("couldn't read the posting limit:", e)
 
+def _norm(t): return re.sub(r"[^a-z0-9]+", " ", (t or "").lower()).strip()[:60]
+
+# What's already on the account, matched against the plan, so nothing is posted twice.
+def inventory(state, ig, mark=False):
+    got = ig.call("GET", ig.user_id + "/media", fields="id,caption,media_type,media_product_type,timestamp,permalink", limit=50).get("data", [])
+    log("Last %d posts on @%s:" % (len(got), ig.username))
+    for m in got:
+        log("  %s  %-8s %s" % (m.get("timestamp", "")[:16].replace("T", " "), (m.get("media_product_type") or m.get("media_type") or "")[:8], (m.get("caption") or "(no caption)").replace("\n", " ")[:70]))
+    caps = {_norm(m.get("caption"))[:40]: m for m in got if m.get("caption")}
+    items = all_items(load_packs())
+    log("Plan items already on Instagram:")
+    n = 0
+    for when, pk, it in items:
+        if it["type"] == "story" or not it.get("caption"): continue
+        m = caps.get(_norm(it["caption"])[:40])
+        rec = state.get("posted", it["id"]) or {}
+        if m:
+            n += 1
+            log("  ON INSTAGRAM  %-10s %s  (%s)%s" % (it["id"], it.get("title", "")[:40], m.get("timestamp", "")[:10], "" if rec.get("status") == "posted" else (" -> marked posted" if mark else " -> not marked yet")))
+            if mark and rec.get("status") != "posted":
+                state.set("posted", it["id"], {"status": "posted", "media": m.get("id"), "by": "hand", "at": time.time()})
+    log("%d plan feed items found on Instagram." % n)
+
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "run"
     state = State(os.environ.get("BOT_STATE", "firestore"))
@@ -449,6 +472,8 @@ def main():
         note.send("Instagram bot can't sign in", "Instagram said: " + str(e)[:140] + ". The key may need renewing.")
         raise SystemExit("Instagram rejected the key: " + str(e))
     if mode == "check": return check(state, ig)
+    if mode == "inventory": return inventory(state, ig, mark=False)
+    if mode == "sync": return inventory(state, ig, mark=True)
     if mode == "report": return report(state, note, ig)
     media = Media(os.environ.get("BOT_MEDIA", "gcs"))
     run(state, media, note, ig)
