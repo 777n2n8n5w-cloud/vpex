@@ -218,7 +218,7 @@ exports.morningDigest = onSchedule({ schedule: "30 * * * *", timeZone: "Etc/UTC"
 
 // The Instagram bot's hand-off page: Vincent taps Done after posting by hand. Each page carries a one-time key that the bot
 // saved with that post, so only that page can mark that post. Nothing else can be read or changed through this.
-exports.igDone = onRequest({ invoker: "public", cors: true, maxInstances: 2, memory: "128MiB", timeoutSeconds: 20 }, async function (req, res) {
+exports.igDone = onRequest({ invoker: "public", cors: true, maxInstances: 2, timeoutSeconds: 20 }, async function (req, res) {
   const id = String(req.query.id || ""), k = String(req.query.k || "");
   if (req.method !== "POST" || !/^[A-Za-z0-9._-]{1,120}$/.test(id) || k.length < 16) { res.status(400).json({ ok: false }); return; }
   const ref = db.doc("igBot/posted/items/" + id);
