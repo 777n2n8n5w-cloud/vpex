@@ -162,6 +162,7 @@ exports.sendDue = onSchedule({ schedule: "every 1 minutes", timeZone: "Etc/UTC",
 });
 
 // "Send a test" in the app writes pushTests/{id}; this sends it to that person's phones and removes the request.
+const TEST_DELAY_MS = Number(process.env.TEST_DELAY_MS || 5000);
 exports.sendTest = onDocumentCreated({ document: "pushTests/{id}", retry: false }, async function (event) {
   const snap = event.data;
   if (!snap) return;
@@ -172,6 +173,7 @@ exports.sendTest = onDocumentCreated({ document: "pushTests/{id}", retry: false 
   const last = await gate.get();
   if (last.exists && now - (last.get("at") || 0) < 15000) return;   // one test every 15 seconds is plenty
   await gate.set({ at: now });
+  await new Promise(function (res) { setTimeout(res, TEST_DELAY_MS); });   // time to lock the phone and see it on the lock screen
   const r = await sendTo(d.uid, [L.testMessage(typeof d.office === "string" ? d.office : "")], 600);
   logger.info("test alert", { uid: d.uid, sent: r.sent, phones: r.phones });
 });

@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-12-11">
+<meta name="vpex-build" content="2026-12-12">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -9078,6 +9078,7 @@
   }
   async function pushWorker() {
     var reg = await pushTimeout(navigator.serviceWorker.register("firebase-messaging-sw.js"), 15000, "sw-register");
+    try { reg.update().catch(function () {}); } catch (e) {}   // pick up a newer worker right away
     await pushTimeout(navigator.serviceWorker.ready, 15000, "sw-ready");
     return reg;
   }
@@ -9132,18 +9133,18 @@
   function pushSendTest() {
     var b = document.getElementById("pushTest"); if (b) { b.disabled = true; b.textContent = "Sending…"; }
     TEAM.db.collection("pushTests").doc(TEAM.me.uid + "_" + Date.now().toString(36)).set({ uid: TEAM.me.uid, office: TEAM.office || "", at: Date.now() }).then(function () {
-      showToast("Test on its way · Lock your phone or switch apps to see it arrive", { kind: "bell" });
+      showToast("Test on its way · Lock your phone now. It arrives in about 5 seconds", { kind: "bell" });
     }).catch(function (e) { pushLogErr(e); showToast("Couldn’t send a test · Check your connection", { kind: "err" }); })
       .then(function () { setTimeout(function () { var b2 = document.getElementById("pushTest"); if (b2) { b2.disabled = false; b2.textContent = "Send a test"; } }, 4000); });
   }
-  // With VPEX open, Firebase hands the message to the page instead of the lock screen. Follow-ups and handoffs
+  // The notification worker shows every alert on the phone itself, and also tells an open VPEX. Follow-ups and handoffs
   // already show as banners in the open app, so only the test needs a banner here.
   function pushListen() {
-    if (PUSH.listening || !pushSdk() || !pushHasApi() || (pushIOS() && !isStandalone())) return;
+    if (PUSH.listening || !pushHasApi() || (pushIOS() && !isStandalone())) return;
     try {
-      firebase.messaging().onMessage(function (p) {
-        var d = (p && p.data) || {};
-        if (d.kind === "test") showToast("Test notification received · Notifications work on this phone", { kind: "bell", tone: "interested" });
+      navigator.serviceWorker.addEventListener("message", function (ev) {
+        var d = ev && ev.data && ev.data.vpexPush;
+        if (d && d.kind === "test" && document.visibilityState === "visible") showToast("Test notification received · Notifications work on this phone", { kind: "bell", tone: "interested" });
       });
       PUSH.listening = true;
     } catch (e) { pushLogErr(e); }
