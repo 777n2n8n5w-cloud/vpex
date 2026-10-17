@@ -1,0 +1,84 @@
+# Checks that VPEX's notification server is working, without buzzing anyone's phone:
+# the functions are live, the every-minute timer runs, and a test request gets picked up and answered.
+# Run it from the Actions tab: "Check VPEX notifications" > Run workflow.
+name: Check VPEX notifications
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PROJECT: dovetail-f863c
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Check
+        run: |
+          note()  { python3 -c "import sys; t=sys.stdin.read()[:6000]; print('::notice title=$1::' + t.replace('%','%25').replace('\r','').replace('\n','%0A'))"; }
+          fail()  { echo "::error title=$1::$2"; BAD=1; }
+          BAD=0
+          T=$(gcloud auth print-access-token)
+          FS="https://firestore.googleapis.com/v1/projects/$PROJECT/databases/(default)/documents"
+          LOC=$(gcloud firestore databases describe --database='(default)' --project "$PROJECT" --format='value(locationId)')
+          case "$LOC" in nam5|nam7) R=us-central1 ;; eur3) R=europe-west1 ;; *) R="$LOC" ;; esac
+
+          # 1. The functions
+          gcloud functions list --project "$PROJECT" --regions "$R" --format='value(name.basename(),state)' > /tmp/fns.txt 2>/tmp/fns.err || true
+          (echo "Region $R"; cat /tmp/fns.txt /tmp/fns.err) | note "Functions"
+          for f in queueFromOffice queueFromTeam sendDue sendTest; do
+            grep -q "^$f[[:space:]]*ACTIVE" /tmp/fns.txt || fail "Function $f" "$f isn't ACTIVE."
+          done
+
+          # 2. The every-minute timer
+          gcloud scheduler jobs list --project "$PROJECT" --location "$R" --format='value(name.basename(),state,lastAttemptTime,status.code)' > /tmp/jobs.txt 2>&1 || true
+          note "Timer" < /tmp/jobs.txt
+          grep -qi "senddue.*ENABLED" /tmp/jobs.txt || fail "Timer" "The every-minute timer for sendDue isn't enabled."
+          B=$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $T" "$FS/pushMeta/backfill")
+          [ "$B" = "200" ] && echo "The timer has run (backfill marker present)." | note "Timer ran" || fail "Timer ran" "No backfill marker yet (HTTP $B): sendDue hasn't finished a run."
+
+          # 3. A test request, for a made-up user with no phones: the server should pick it up and remove it
+          ID="ci-check-$(date +%s)"; NOW=$(($(date +%s%N)/1000000))
+          curl -sf -X POST -H "Authorization: Bearer $T" -H "Content-Type: application/json" "$FS/pushTests?documentId=$ID" \
+            -d "{\"fields\":{\"uid\":{\"stringValue\":\"vpex-ci-check\"},\"office\":{\"stringValue\":\"\"},\"at\":{\"integerValue\":\"$NOW\"}}}" > /dev/null \
+            || fail "Test request" "Couldn't write the test request."
+          GONE=no
+          for i in $(seq 1 24); do
+            sleep 5
+            C=$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $T" "$FS/pushTests/$ID")
+            if [ "$C" = "404" ]; then GONE=yes; echo "Picked up after about $((i*5)) seconds."; break; fi
+          done
+          if [ "$GONE" = "yes" ]; then
+            sleep 5
+            G=$(curl -s -H "Authorization: Bearer $T" "$FS/pushMeta/test_vpex-ci-check" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('fields',{}).get('at',{}).get('integerValue','none'))" 2>/dev/null || echo none)
+            if [ "$G" != "none" ] && [ "$G" -ge "$NOW" ] 2>/dev/null; then echo "Answered: the test went through to the sending step (no phones for this made-up user, so nothing was sent)." | note "Test request"
+            else fail "Test request" "Picked up, but the sending step didn't record a run."; fi
+            curl -s -X DELETE -H "Authorization: Bearer $T" "$FS/pushMeta/test_vpex-ci-check" > /dev/null || true
+          else
+            fail "Test request" "Nobody picked up the test request within 2 minutes (the database trigger isn't reaching sendTest)."
+            curl -s -X DELETE -H "Authorization: Bearer $T" "$FS/pushTests/$ID" > /dev/null || true
+          fi
+
+          # 4. Errors in the last hour
+          gcloud logging read 'resource.type="cloud_run_revision" AND severity>=ERROR' --project "$PROJECT" --freshness=1h --limit=15 \
+            --format='value(timestamp,resource.labels.service_name,textPayload,jsonPayload.message)' > /tmp/errs.txt 2>&1 || true
+          if [ -s /tmp/errs.txt ]; then note "Errors in the last hour" < /tmp/errs.txt; else echo "None." | note "Errors in the last hour"; fi
+
+          # 5. Phones signed up so far
+          N=$(curl -s -X POST -H "Authorization: Bearer $T" -H "Content-Type: application/json" \
+            "https://firestore.googleapis.com/v1/projects/$PROJECT/databases/(default)/documents:runAggregationQuery" \
+            -d '{"structuredAggregationQuery":{"structuredQuery":{"from":[{"collectionId":"pushTokens"}]},"aggregations":[{"count":{},"alias":"n"}]}}' \
+            | python3 -c "import sys,json; r=json.load(sys.stdin); print(r[0]['result']['aggregateFields']['n']['integerValue'])" 2>/dev/null || echo "?")
+          echo "$N phone(s) have alerts turned on." | note "Phones"
+
+          [ "$BAD" = "0" ] && echo "Everything checks out." | note "Result"
+          exit $BAD
