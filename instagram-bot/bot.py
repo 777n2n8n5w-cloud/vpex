@@ -41,6 +41,10 @@ def keep_secret(t):
     if os.environ.get("GITHUB_ACTIONS") == "true": print("::add-mask::" + t, flush=True)
 def log(*a):
     line = scrub(" ".join(str(x) for x in a)); OUT.append(line); print(line, flush=True)
+class SoftStop(Exception):
+    """A run that did all it could while Instagram blocks the bot or can't be reached: logged as a warning, the run stays green.
+    A red run every 15 minutes only buries real failures (and GitHub emails each one); Vincent gets the phone alert instead."""
+
 def gh_enc(s): return s.replace("%", "%25").replace("\r", "").replace("\n", "%0A")
 # On GitHub, the run's output is also posted as notes on the run, so it can be read without the full log.
 def flush_notes(title):
@@ -709,7 +713,7 @@ def handoff(state, media, note, why):
         state.set("posted", iid, {"status": "handed", "at": time.time(), "title": it.get("title", iid), "doneKey": key})
         last[kind] = time.time(); state.set("meta", "last_post", last); sent = it.get("title", iid)
         break
-    raise SystemExit("Instagram is blocking the bot (%s). %s" % (why, ("Sent \"%s\" to Vincent to post by hand." % sent) if sent else "Nothing to hand off this run."))
+    raise SoftStop("Instagram is blocking the bot (%s). %s" % (why, ("Sent \"%s\" to Vincent to post by hand." % sent) if sent else "Nothing to hand off this run."))
 
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "run"
@@ -723,7 +727,7 @@ def main():
         ig.me()
     except IGError as e:
         if str(e).startswith("network:"):          # Instagram or the network had a blip: try again next run, no alert
-            raise SystemExit("Couldn't reach Instagram this time (it tries again on the next run): " + str(e)[:300])
+            raise SoftStop("Couldn't reach Instagram this time (it tries again on the next run): " + str(e)[:300])
         detail = str(e).rstrip(".") + (" [code %s%s]" % (e.code, "/" + str(e.sub) if e.sub else "") if e.code else "")
         last = state.get("meta", "signin_alert") or {}
         if last.get("msg") != detail or time.time() - (last.get("at") or 0) > 12 * 3600:   # alert once, not every 15 minutes
@@ -747,6 +751,9 @@ if __name__ == "__main__":
     _mode = sys.argv[1] if len(sys.argv) > 1 else "run"
     try:
         main()
+    except SoftStop as e:
+        log("Stopped: " + str(e))
+        if os.environ.get("GITHUB_ACTIONS") == "true": print("::warning title=Instagram bot::" + gh_enc(scrub(str(e))), flush=True)
     except SystemExit as e:
         if e.code not in (None, 0) and not isinstance(e.code, int):
             log("Stopped: " + str(e.code))
