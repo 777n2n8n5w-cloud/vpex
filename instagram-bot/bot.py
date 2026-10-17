@@ -320,6 +320,8 @@ def run(state, media, note, ig):
         if when > now: continue
         rec = state.get("posted", iid) or {}
         if rec.get("status") in ("posted", "missed", "reminded"): continue
+        if it.get("posted_by_hand"):               # Vincent already posted this one himself
+            state.set("posted", iid, {"status": "posted", "by": "hand", "at": time.time(), "title": it.get("title", iid)}); continue
         late_h = (now - when).total_seconds() / 3600
         grace = STORY_GRACE_H if it["type"] == "story" else FEED_GRACE_H
         if it.get("manual"):
