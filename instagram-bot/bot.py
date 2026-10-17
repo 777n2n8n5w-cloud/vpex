@@ -177,7 +177,9 @@ class IG:
             except ValueError: j = {"error": {"message": r.text[:300]}}
             if r.status_code >= 500 and attempt < 2: time.sleep(5); continue
             if "error" in j:
-                e = j["error"]; raise IGError(e.get("message", "error"), e.get("code"), e.get("error_subcode"))
+                e = j["error"]; msg = e.get("message", "error")
+                extra = " ".join(x for x in (e.get("error_user_title"), e.get("error_user_msg")) if x)   # Instagram's plain-language reason, when it gives one
+                raise IGError(msg + (" (" + extra + ")" if extra else ""), e.get("code"), e.get("error_subcode"))
             return j
     def me(self):
         j = self.call("GET", "me", fields="user_id,username,followers_count,media_count")
@@ -534,8 +536,15 @@ def main():
     except IGError as e:
         if str(e).startswith("network:"):          # Instagram or the network had a blip: try again next run, no alert
             raise SystemExit("Couldn't reach Instagram this time (it tries again on the next run): " + str(e)[:300])
-        note.send("Instagram bot can't sign in", "Instagram said: " + str(e)[:140] + ". The key may need renewing.")
-        raise SystemExit("Instagram rejected the key: " + str(e))
+        detail = str(e).rstrip(".") + (" [code %s%s]" % (e.code, "/" + str(e.sub) if e.sub else "") if e.code else "")
+        last = state.get("meta", "signin_alert") or {}
+        if last.get("msg") != detail or time.time() - (last.get("at") or 0) > 12 * 3600:   # alert once, not every 15 minutes
+            note.send("Instagram bot can't sign in", "Instagram said: " + detail[:140] + ". Posting is paused until this is fixed.")
+            state.set("meta", "signin_alert", {"msg": detail, "at": time.time()})
+        raise SystemExit("Instagram rejected the key: " + detail)
+    if (state.get("meta", "signin_alert") or {}).get("msg"):
+        state.set("meta", "signin_alert", {}); note.send("Instagram bot is back", "Instagram accepted the key again. Posting picks up on the next run.")
+        log("Instagram accepted the key again.")
     if mode == "check": return check(state, ig)
     if mode == "inventory": return inventory(state, ig, mark=False)
     if mode == "insights": return insights(state, ig)
