@@ -26,16 +26,20 @@ Everything that makes VPEX's Instagram posts: the brand kit, real app screenshot
    - Captions are 2,200 characters or less, with 30 hashtags or fewer. Alt text is 1,000 characters or less.
    - Images are JPEG; feed images are 4:5. Reels are H.264/AAC, 3–90 seconds.
    - Item ids are unique across all packs (`wN-...`).
-   - Exactly 5 per day, with no two at the same minute.
+   - Exactly 3 feed posts plus 5 stories per day, with no two at the same minute.
 9. **Ship:** copy the zip to `instagram/`, push to main, then run the bot workflow in mode `check`. Every item should show "waiting".
 
 ## Schedule
 
-5 a day, New York time:
-- **Feed:** 12:30 and 6:30 PM, one Reel and one post or carousel.
-- **Stories:** 9 AM, 3 PM and 8 PM. The 9 AM story carries a sticker (poll, question or quiz). Stickers can't be added through the API, so those items are `manual` and the bot sends Vincent a reminder.
-
-Weeks run Tuesday to Monday. Week 5 starts Tue Oct 27, 2026. Never post in bursts: on Oct 16, 5 posts within 20 minutes reached 4–8 people each, while spaced posts reached 60–130.
+8 a day, New York time, since Oct 17, 2026: 3 feed posts and 5 stories.
+- **Feed:** 11:00, 15:30 and 19:00. Mix Reels with posts and carousels, and don't run two Reels back to back where you can help it.
+- **Stories:**
+  - 09:00: the sticker story (poll, question or quiz). Stickers can't be added through the API, so it's a `manual` item and the bot sends Vincent a reminder.
+  - 12:30 and 17:30: shares of that day's first two feed posts. For a Reel, post the Reel video itself as the story (`"video": ...`). For a post, use a 1080x1920 story version (`render<N>.py --story-versions`).
+  - 14:30 and 21:00: original stories.
+- **A week** is Tuesday to Monday: 21 feed posts plus 35 stories (7 sticker, 14 shares, 14 originals).
+- **Never post in bursts.** On Oct 16, 5 posts within 20 minutes reached 4–8 people each, while spaced posts reached 60–130.
+- **Bridge:** `tools/replan_8day.py` re-timed weeks 3–4 when the cadence changed. The week 4b bridge pack covers Fri Oct 23 at 19:00 through Mon Oct 26. Week 5 starts Tue Oct 27.
 
 ## What has worked (update this after every week's numbers)
 
