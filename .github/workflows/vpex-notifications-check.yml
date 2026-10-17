@@ -28,6 +28,8 @@ jobs:
     env:
       PROJECT: dovetail-f863c
     steps:
+      - uses: actions/checkout@v4
+
       - uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
@@ -138,6 +140,15 @@ jobs:
 
           [ "$BAD" = "0" ] && echo "Everything checks out." | note "Result"
           exit $BAD
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Follow-up queue diagnosis
+        run: |
+          npm install --prefix /tmp/diag firebase-admin@12 --no-audit --no-fund --silent
+          NODE_PATH=/tmp/diag/node_modules node scripts/queue-diag.js
 
       - name: Alert Vincent's phone
         if: failure() || inputs.alert_dry_run
