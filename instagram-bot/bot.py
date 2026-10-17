@@ -669,9 +669,15 @@ document.querySelectorAll(".copy").forEach(c => c.onclick = () => navigator.clip
 
 # Send the latest handed-off post again (a fresh page and notification), without touching the schedule.
 def resend(state, media, note):
-    recs = [(v.get("at") or 0, k) for k, v in state.all("posted").items() if v.get("status") == "handed"]
-    if not recs: raise SystemExit("Nothing has been handed off yet.")
-    iid = max(recs)[1]
+    want = os.environ.get("IG_ITEM", "").strip().lower()
+    if want:   # a plan id, or words from the title ("Reel I")
+        found = [it["id"] for _, _, it in all_items(load_packs()) if it["id"].lower() == want or (it.get("title") or "").lower().startswith(want)]
+        if not found: raise SystemExit("No post matches " + repr(want) + ".")
+        iid = found[0]
+    else:
+        recs = [(v.get("at") or 0, k) for k, v in state.all("posted").items() if v.get("status") == "handed"]
+        if not recs: raise SystemExit("Nothing has been handed off yet.")
+        iid = max(recs)[1]
     for when, pk, it in all_items(load_packs()):
         if it["id"] == iid:
             rec = state.get("posted", iid) or {}

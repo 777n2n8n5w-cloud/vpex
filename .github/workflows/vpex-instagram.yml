@@ -15,6 +15,10 @@ on:
         type: choice
         options: [check, test, diagnose, resend, run, report, inventory, sync, insights]
         default: check
+      item:
+        description: "resend only: which post (its plan id, or the start of its title, like Reel I). Empty = the last one sent."
+        required: false
+        default: ""
 
 concurrency:
   group: vpex-instagram
@@ -74,4 +78,5 @@ jobs:
           IG_TOKEN: ${{ secrets.IG_TOKEN }}
           GITHUB_TOKEN: ${{ github.token }}
           MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || (github.event.schedule == '5 13 * * 1' && 'report' || 'run') }}
+          IG_ITEM: ${{ inputs.item }}
         run: python instagram-bot/bot.py "$MODE"
