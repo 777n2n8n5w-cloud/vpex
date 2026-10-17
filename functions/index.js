@@ -3,6 +3,7 @@
 //    and send handoff alerts to the closer right away.
 //  - sendDue: every minute, send the follow-ups that just came due.
 //  - sendTest: the "Send a test" button in the app.
+//  - morningDigest: weekdays at 8:30 in each rep's time zone, what's waiting today.
 // Tokens live in pushTokens/{id} (written by the app, readable only here). The queue lives in pushQueue/{id}.
 "use strict";
 
@@ -176,4 +177,39 @@ exports.sendTest = onDocumentCreated({ document: "pushTests/{id}", retry: false 
   await new Promise(function (res) { setTimeout(res, TEST_DELAY_MS); });   // time to lock the phone and see it on the lock screen
   const r = await sendTo(d.uid, [L.testMessage(typeof d.office === "string" ? d.office : "")], 600);
   logger.info("test alert", { uid: d.uid, sent: r.sent, phones: r.phones });
+});
+
+// ---------- morning summary ----------
+// Weekdays in the 8 o'clock hour of each rep's own time zone: one notification with what's waiting today.
+exports.morningDigest = onSchedule({ schedule: "30 * * * *", timeZone: "Etc/UTC", retryCount: 0, timeoutSeconds: 300 }, async function () {
+  const now = Date.now();
+  const toks = await db.collection("pushTokens").get();
+  const people = new Map();
+  toks.docs.forEach(function (d) {
+    const uid = d.get("uid");
+    if (typeof uid !== "string" || people.has(uid)) return;
+    people.set(uid, { office: typeof d.get("office") === "string" ? d.get("office") : "", tz: L.safeTz(d.get("tz")) });
+  });
+  const officeCache = new Map(), chunkCache = new Map();
+  let sent = 0, due = 0;
+  for (const [uid, p] of people) {
+    const lp = L.localParts(now, p.tz);
+    if (!L.digestDue(lp)) continue;
+    due++;
+    if (!(await allowed(p.office, uid, now, officeCache))) continue;
+    try { await db.doc("pushMeta/digest_" + uid + "_" + lp.date).create({ at: now }); } catch (e) { continue; }   // already sent today
+    let chunks = chunkCache.get(p.office);
+    if (!chunks) {
+      const qs = await db.collection(p.office ? "offices/" + p.office + "/leadChunks" : "leadChunks").get();
+      chunks = qs.docs.filter(function (d) { return d.id.charAt(0) !== "_"; }).map(function (d) { return d.data(); });
+      chunkCache.set(p.office, chunks);
+    }
+    let name = "";
+    try { const m = await memberRef(p.office, uid).get(); name = (m.exists && m.get("name")) || ""; } catch (e) {}
+    const msg = L.digestMessage(name, L.digestCounts(chunks, uid, now, p.tz), p.office, p.tz);
+    if (!msg) continue;
+    const r = await sendTo(uid, [msg], 4 * 3600);
+    sent += r.sent;
+  }
+  logger.info("morning summary", { people: people.size, due, sent });
 });

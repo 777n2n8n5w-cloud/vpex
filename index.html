@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-12-12">
+<meta name="vpex-build" content="2026-12-13">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -7283,7 +7283,7 @@
           </div>
         </article>
         <article class="lp-feat">
-          <div class="lp-feat-copy"><h3>Calls at the right hour.</h3><p>Every lead shows their local time. Anyone outside 8 AM to 9 PM their time is flagged, and VPEX learns when your leads actually pick up.</p></div>
+          <div class="lp-feat-copy"><h3>Calls at the right hour.</h3><p>Every lead shows their local time. Anyone outside their state’s calling hours is flagged, including stricter states like Florida, Texas and Pennsylvania, and VPEX learns when your leads actually pick up.</p></div>
           <div class="lp-vig vig-time" aria-hidden="true">
             <div class="vt-row"><div><b>Mark Walsh</b><small>Newark, NJ</small></div><span class="vt-chip ok">11:01 AM</span></div>
             <div class="vt-row"><div><b>Rosa Diaz</b><small>San Diego, CA</small></div><span class="vt-chip ok">8:01 AM</span></div>
@@ -7600,12 +7600,12 @@
       <div class="hub-group set-gap">
         <button class="hub-row" id="openFuRulesBtn" type="button"><span class="hub-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.3-5.6"/><path d="M4 4v4h4"/><path d="M12 8v4l3 2"/></svg></span><span class="hub-t"><b>Follow-up rules</b><span id="fuRulesSummary"></span></span><span class="hub-go" aria-hidden="true">›</span></button>
       </div>
-      <p class="set-note">Every lead shows their local time. Anyone outside 8 AM–9 PM their time is flagged in red, because federal telemarketing rules restrict sales calls outside those hours.</p>
+      <p class="set-note">Every lead shows their local time. Anyone outside their state’s calling hours is flagged in red: 8 AM–9 PM under federal rules, and stricter in 20 states, such as Florida (8 AM–8 PM), Texas (from noon on Sundays) and Pennsylvania (9 AM–7 PM, never on Sundays). Florida, Maryland, Oklahoma and Oregon also allow only 3 sales calls to one person in 24 hours. Based on published state rules as of October 2026; not legal advice.</p>
     </div>
     <div class="hub-view set-view" data-set-view="texts" hidden style="--hc:var(--callback)">
       <button class="hub-back" type="button" data-set-back>‹ Settings</button>
       <h3 class="hub-view-h">Follow-up texts</h3>
-      <p class="tx-help">After a missed call or an interested lead, a ready-to-send text pops up. One tap opens Messages; you tap Send. Offered only 8 AM–9 PM their time, and missed-call texts go once per lead.</p>
+      <p class="tx-help">After a missed call or an interested lead, a ready-to-send text pops up. One tap opens Messages; you tap Send. Offered only during their state’s calling hours, and missed-call texts go once per lead.</p>
       <div class="set-card">
         <label for="txMyName" class="set-label">Your name</label>
         <input type="text" id="txMyName" class="set-input" autocomplete="name">
@@ -7621,7 +7621,12 @@
         <textarea id="txInterestedTpl" class="tx-tpl"></textarea>
         <div class="tx-prev" id="txInterestedPrev"></div>
       </div>
-      <p class="tx-help set-gap">Fill-ins: {first} first name · {name} full name · {me} your name · {company} your company · {next} their scheduled follow-up time.</p>
+      <div class="set-card set-gap">
+        <label class="up-check tx-toggle"><input type="checkbox" id="txConfirmOn"> Confirm the appointment after a handoff</label>
+        <textarea id="txConfirmTpl" class="tx-tpl"></textarea>
+        <div class="tx-prev" id="txConfirmPrev"></div>
+      </div>
+      <p class="tx-help set-gap">Fill-ins: {first} first name · {name} full name · {me} your name · {company} your company · {next} their scheduled follow-up time · {when} the appointment time · {closer} who they’re meeting.</p>
       <div class="hub-group">
         <button class="hub-row info-links-edit" id="infoLinksBtn" type="button"><span class="hub-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3L10 14"/><path d="M21 3l-7 18-4-7-7-4 18-7z"/></svg></span><span class="hub-t"><b>Info links for Send info</b><span>Pages your team can text to leads</span></span><span class="hub-go" aria-hidden="true">›</span></button>
         <button class="hub-row" id="txResetBtn" type="button"><span class="hub-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.3-5.6"/><path d="M4 4v4h4"/></svg></span><span class="hub-t"><b>Reset texts to default</b><span>Puts the original wording back</span></span><span class="hub-go" aria-hidden="true">›</span></button>
@@ -9169,7 +9174,8 @@
     var what = '<ul class="push-list">' +
       '<li>' + PUSH_BELL + '<span><b>Follow-ups and callbacks</b> the minute they come due</span></li>' +
       '<li>' + PUSH_BELL + '<span><b>Appointments</b> 10 minutes before they start</span></li>' +
-      '<li>' + PUSH_BELL + '<span><b>New handoffs</b> the moment a lead is handed to you</span></li></ul>';
+      '<li>' + PUSH_BELL + '<span><b>New handoffs</b> the moment a lead is handed to you</span></li>' +
+      '<li>' + PUSH_BELL + '<span><b>A morning summary</b> at 8:30 on weekdays with what’s waiting</span></li></ul>';
     var share = '<svg class="push-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Share"><path d="M12 15V3"/><path d="M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>';
     var h = "";
     if (st === "on") {
@@ -9363,7 +9369,7 @@
     var f = state.queueFilter || "all";
     var list = f === "all" ? all : all.filter(function (l) {
       var z = leadZone(l);
-      if (f === "now") return !!z.iana && zoneTime(z.iana).ok;
+      if (f === "now") return !!z.iana && leadClock(l).ok;
       return z.group === f;
     });
     var ql = state.queueList || "all";
@@ -9378,9 +9384,9 @@
   function callScore(l) {
     var z = leadZone(l);
     if (!z.iana) return 0.2;
-    var t = zoneTime(z.iana);
-    if (!t.ok) return 0;
-    return hourScore(t.hour);
+    var c = leadClock(l);
+    if (!c.ok) return 0;
+    return hourScore(c.t.hour);
   }
   function smartSort(list) {
     var a = list.map(function (l, i) { return { l: l, s: callScore(l), i: i, k: nxxOf(l) }; })
@@ -10004,14 +10010,32 @@
   // Texts open in Messages already written; you tap Send. Offered only
   // between 8 AM and 9 PM the lead's time, once per lead for missed calls,
   // and never to anyone marked "Do not text".
-  var DEFAULT_TEXTS = {
-    myName: "Vincent",
-    noAnswerOn: true,
-    afterVoicemail: false,
+  // What each industry's texts are about, so the defaults read like that kind of sales.
+  var IND_TEXT = {
+    insurance: { about: "your insurance quote", appt: "your policy review" },
+    realestate: { about: "your property", appt: "your appointment" },
+    mca: { about: "funding for your business", appt: "your funding call" },
+    auto: { about: "the vehicle you were looking at", appt: "your visit" },
+    solar: { about: "lowering your electric bill", appt: "your solar consultation" },
+    investments: { about: "", appt: "your call" }
+  };
+  var GENERIC_TEXTS = {
     noAnswerTpl: "Hi {first}, this is {me} with {company}. Sorry I missed you. I\u2019d love to find a better time to connect. Reply STOP and I won\u2019t reach out again.",
-    interestedOn: true,
     interestedTpl: "Hi {first}, it\u2019s {me} from {company}. Thank you for taking the time to speak with me today. I\u2019ll follow up {next} as we discussed. Feel free to text me here anytime. Reply STOP to opt out."
   };
+  var DEFAULT_TEXTS = (function () {
+    var it = IND_TEXT[IND_KEY] || IND_TEXT.investments, ab = it.about ? " about " + it.about : "";
+    return {
+      myName: "Vincent",
+      noAnswerOn: true,
+      afterVoicemail: false,
+      noAnswerTpl: "Hi {first}, this is {me} with {company}. Sorry I missed you" + ab + ". I\u2019d love to find a better time to connect. Reply STOP and I won\u2019t reach out again.",
+      interestedOn: true,
+      interestedTpl: "Hi {first}, it\u2019s {me} from {company}. Thank you for taking the time to speak with me today" + ab + ". I\u2019ll follow up {next} as we discussed. Feel free to text me here anytime. Reply STOP to opt out.",
+      confirmOn: true,
+      confirmTpl: "Hi {first}, it\u2019s {me} with {company}. You\u2019re all set for " + it.appt + " {when} with {closer}. If anything changes, just reply here. Reply STOP to opt out."
+    };
+  })();
   var pendingText = null;
   var leftAppCount = 0;
   window.addEventListener("blur", function () { leftAppCount++; });
@@ -10020,6 +10044,8 @@
   function textSettings() {
     if (!state.textSettings) state.textSettings = {};
     Object.keys(DEFAULT_TEXTS).forEach(function (k) { if (state.textSettings[k] === undefined) state.textSettings[k] = DEFAULT_TEXTS[k]; });
+    // Texts nobody edited (still the old one-size wording) switch to this industry's wording
+    Object.keys(GENERIC_TEXTS).forEach(function (k) { if (state.textSettings[k] === GENERIC_TEXTS[k]) state.textSettings[k] = DEFAULT_TEXTS[k]; });
     if (!Array.isArray(state.texts)) state.texts = [];
     return state.textSettings;
   }
@@ -10031,7 +10057,11 @@
   function nextPhrase(lead) {
     var t = openTasksFor(lead.id)[0];
     if (!t || !t.dueAt) return "";
-    var iana = leadIana(lead), p = zonedParts(t.dueAt, iana), n = zonedParts(Date.now(), iana);
+    return whenPhrase(lead, t.dueAt);
+  }
+  // "tomorrow at 10 AM" / "on Monday at 2:30 PM", in the lead's own time.
+  function whenPhrase(lead, ts) {
+    var iana = leadIana(lead), p = zonedParts(ts, iana), n = zonedParts(Date.now(), iana);
     var days = Math.round((Date.UTC(p.y, p.m, p.d) - Date.UTC(n.y, n.m, n.d)) / 86400000);
     var h12 = p.h % 12 || 12, time = h12 + (p.mi ? ":" + pad2(p.mi) : "") + (p.h < 12 ? " AM" : " PM");
     var day = days <= 0 ? "later today" : days === 1 ? "tomorrow" : "on " + ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][p.dow];
@@ -10054,9 +10084,12 @@
     window.__mockEditLead = function (id, k, v) { var l = findLeadById(id); if (l) { l[k] = v; saveState(); } };
     window.__mockLeads = function () { return state.leads.map(function (l) { return { id: l.id, name: l.name, notes: l.notes || "", status: l.status }; }); };
   }
-  function fillTemplate(tpl, lead, nextOverride) {
+  function fillTemplate(tpl, lead, nextOverride, extra) {
     var ts = textSettings();
+    extra = extra || {};
     return String(tpl || "")
+      .replace(/\{when\}/gi, extra.when || "soon")
+      .replace(/\{closer\}/gi, extra.closer || "our team")
       .replace(/\{first\}/gi, textFirstName(lead.name))
       .replace(/\{name\}/gi, lead.name || "")
       .replace(/\{me\}/gi, (ts.myName || "").trim())
@@ -10091,7 +10124,7 @@
       kind = "interested";
     } else return null;
     var z = leadZone(lead);
-    if (z.iana && !zoneTime(z.iana).ok) return { skipped: true };
+    if (z.iana && !leadClock(lead).ok) return { skipped: true };
     return { leadId: lead.id, kind: kind, body: fillTemplate(kind === "interested" ? ts.interestedTpl : ts.noAnswerTpl, lead) };
   }
   function renderTextPrompt() {
@@ -10127,7 +10160,7 @@
     }
     box.innerHTML =
       '<div class="tp-head"><span class="tp-ico">' + messageIconSvg() + '</span>' +
-        '<div class="tp-titles"><b>Text ' + escapeHtml(textFirstName(lead.name)) + (pendingText.kind === "interested" ? ' a thank-you?' : ' a quick note?') + '</b>' +
+        '<div class="tp-titles"><b>Text ' + escapeHtml(textFirstName(lead.name)) + (pendingText.kind === "interested" ? ' a thank-you?' : pendingText.kind === "confirm" ? ' a confirmation?' : ' a quick note?') + '</b>' +
         '<span>' + escapeHtml(pendingText.body) + '</span></div></div>' +
       '<div class="tp-actions"><button class="btn-secondary" id="tpLater">Not now</button>' +
         textLinkHtml(lead, pendingText.kind, pendingText.body, "btn-primary tp-send", messageIconSvg() + '<span>Send text</span>', "tpSend") + '</div>';
@@ -10144,6 +10177,7 @@
     function preview() {
       document.getElementById("txNoAnswerPrev").textContent = fillTemplate(document.getElementById("txNoAnswerTpl").value, sample, "tomorrow at 10 AM");
       document.getElementById("txInterestedPrev").textContent = fillTemplate(document.getElementById("txInterestedTpl").value, sample, "tomorrow at 10 AM");
+      document.getElementById("txConfirmPrev").textContent = fillTemplate(document.getElementById("txConfirmTpl").value, sample, null, { when: "tomorrow at 10 AM", closer: "Mia" });
     }
     document.getElementById("txMyName").value = ts.myName;
     document.getElementById("txNoAnswerOn").checked = !!ts.noAnswerOn;
@@ -10151,11 +10185,14 @@
     document.getElementById("txNoAnswerTpl").value = ts.noAnswerTpl;
     document.getElementById("txInterestedOn").checked = !!ts.interestedOn;
     document.getElementById("txInterestedTpl").value = ts.interestedTpl;
+    document.getElementById("txConfirmOn").checked = !!ts.confirmOn;
+    document.getElementById("txConfirmTpl").value = ts.confirmTpl;
     preview();
     if (wireTextSettings.done) return;
     wireTextSettings.done = true;
     [["txMyName", "myName", "value"], ["txNoAnswerTpl", "noAnswerTpl", "value"], ["txInterestedTpl", "interestedTpl", "value"],
-     ["txNoAnswerOn", "noAnswerOn", "checked"], ["txAfterVm", "afterVoicemail", "checked"], ["txInterestedOn", "interestedOn", "checked"]].forEach(function (f) {
+     ["txNoAnswerOn", "noAnswerOn", "checked"], ["txAfterVm", "afterVoicemail", "checked"], ["txInterestedOn", "interestedOn", "checked"],
+     ["txConfirmTpl", "confirmTpl", "value"], ["txConfirmOn", "confirmOn", "checked"]].forEach(function (f) {
       var el = document.getElementById(f[0]);
       el.addEventListener(f[2] === "checked" ? "change" : "input", function () {
         textSettings()[f[1]] = el[f[2]];
@@ -10292,7 +10329,7 @@
         '<b>' + escapeHtml(t.type || "Task") + (t.done ? ' \u2014 done' : ' \u2014 ' + escapeHtml(taskWhen(t, lead))) + '</b>' +
         (t.note ? '<span>' + escapeHtml(t.note) + '</span>' : '') + '</div></div>' };
     })).concat((state.texts || []).filter(function (x) { return x.leadId === id; }).map(function (x) {
-      var label = x.kind === "interested" ? "thank-you note" : x.kind === "noanswer" ? "missed-call note" : x.kind === "info" ? "info links" : "text";
+      var label = x.kind === "interested" ? "thank-you note" : x.kind === "noanswer" ? "missed-call note" : x.kind === "info" ? "info links" : x.kind === "confirm" ? "appointment confirmation" : "text";
       return { ts: new Date(x.timestamp).getTime(), html: '<div class="lp-tl-item"><span class="lp-tl-dot callback"></span><div>' +
         '<b>Text \u2014 ' + label + '</b><span>Opened in Messages \u00b7 ' + escapeHtml(fmtWhen(new Date(x.timestamp).getTime())) + '</span></div></div>' };
     })).sort(function (a, b) { return b.ts - a.ts; });
@@ -11247,13 +11284,18 @@
   /** ---------- CSV export ---------- **/
   function exportCsv() {
     if (state.callLog.length === 0) { showToast("No calls logged yet"); return; }
-    var rows = [["Name", "Phone", "Outcome", "Notes", "Time"]];
+    // One column per qualifying question for this industry, with each lead's current answers
+    var QF = qFields(), m = leadMap();
+    var rows = [["Name", "Phone", "Outcome", "Notes", "Time"].concat(QF.map(function (f) { return f.l; }))];
     state.callLog.forEach(function (c) {
-      rows.push([c.name, formatPhoneDisplay(c.phoneRaw || c.phone), c.outcome, c.notes || "", new Date(c.timestamp).toLocaleString()]);
+      var q = ((m[c.leadId] || {}).qf) || {};
+      rows.push([c.name, formatPhoneDisplay(c.phoneRaw || c.phone), c.outcome, c.notes || "", new Date(c.timestamp).toLocaleString()]
+        .concat(QF.map(function (f) { return q[f.k] || ""; })));
     });
     var csv = rows.map(function (r) {
       return r.map(function (cell) {
         var s = String(cell == null ? "" : cell);
+        if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;          // a spreadsheet would run it as a formula
         if (/[",\n]/.test(s)) s = '"' + s.replace(/"/g, '""') + '"';
         return s;
       }).join(",");
@@ -11880,20 +11922,99 @@
         else if (p.type === "timeZoneName") ab = p.value;
       });
       var h24 = (h % 12) + (/p/i.test(ap) ? 12 : 0);
-      r = { hour: h24, label: h + ":" + mi + " " + ap, abbr: ab, ok: h24 >= 8 && h24 < 21 };
+      var dp = new Intl.DateTimeFormat("en-US", { timeZone: iana, year: "numeric", month: "2-digit", day: "2-digit", weekday: "short" }).formatToParts(new Date()), dv = {};
+      dp.forEach(function (p) { dv[p.type] = p.value; });
+      r = { hour: h24, min: Number(mi) || 0, label: h + ":" + mi + " " + ap, abbr: ab, ok: h24 >= 8 && h24 < 21,
+        wd: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(dv.weekday), ymd: dv.year + "-" + dv.month + "-" + dv.day };
     } catch (e) {}
     tzCache[iana] = r;
+    return r;
+  }
+
+  // ---- Calling hours by state ----
+  // Federal rule: 8 AM–9 PM the lead's time. These states are stricter for sales calls (and texts). Reviewed Oct 2026
+  // against several published state-law summaries and law-firm notes; where they differed, VPEX uses the stricter reading.
+  // Rules that only cover autodialers or recorded messages are left out, since VPEX reps dial by hand. Not legal advice.
+  // h: [open, close) hours; sat / sunH: other hours that day; sun:false: no calls on Sunday; hol: no calls on legal holidays;
+  // max3: at most 3 sales calls to one person in 24 hours; from: the date a new law starts (before: the rule until then).
+  var STATE_HOURS = {
+    AL: { h: [8, 20], sun: false, hol: true },
+    CT: { h: [9, 20] },
+    FL: { h: [8, 20], max3: true },
+    KY: { h: [10, 21] },
+    LA: { h: [8, 20], sun: false, hol: true },
+    MA: { h: [8, 20] },
+    MD: { h: [8, 20], max3: true },
+    MI: { h: [9, 21] },
+    MN: { h: [9, 21] },
+    MS: { h: [8, 20], sun: false },
+    NM: { h: [9, 21] },
+    NV: { h: [9, 20] },
+    OK: { h: [8, 20], max3: true },
+    OR: { h: [8, 20], max3: true },
+    PA: { h: [9, 19], sun: false, from: "2026-10-18", before: { h: [8, 21] } },
+    RI: { h: [9, 18], sat: [10, 17], sun: false, hol: true },
+    SD: { h: [9, 21], sun: false },
+    TX: { h: [9, 21], sunH: [12, 21] },
+    WA: { h: [8, 20] },
+    WY: { h: [8, 20] }
+  };
+  var HOLIDAYS = {};
+  // Federal legal holidays (and the weekday they're observed on) for one year, as "YYYY-MM-DD".
+  function usHolidays(y) {
+    if (HOLIDAYS[y]) return HOLIDAYS[y];
+    var s = {};
+    function key(t) { return t.getUTCFullYear() + "-" + ("0" + (t.getUTCMonth() + 1)).slice(-2) + "-" + ("0" + t.getUTCDate()).slice(-2); }
+    function day(m, d) { return new Date(Date.UTC(y, m - 1, d)); }
+    function nth(m, wd, n) { var f = day(m, 1).getUTCDay(); return day(m, 1 + ((wd - f + 7) % 7) + (n - 1) * 7); }
+    function last(m, wd) { var e = new Date(Date.UTC(y, m, 0)); return new Date(e.getTime() - ((e.getUTCDay() - wd + 7) % 7) * 864e5); }
+    function fixed(m, d) { var t = day(m, d), w = t.getUTCDay(); s[key(t)] = 1; if (w === 6) s[key(day(m, d - 1))] = 1; if (w === 0) s[key(day(m, d + 1))] = 1; }
+    fixed(1, 1); fixed(6, 19); fixed(7, 4); fixed(11, 11); fixed(12, 25);
+    if (new Date(Date.UTC(y + 1, 0, 1)).getUTCDay() === 6) s[y + "-12-31"] = 1;      // next New Year's Day, observed
+    [nth(1, 1, 3), nth(2, 1, 3), last(5, 1), nth(9, 1, 1), nth(10, 1, 2), nth(11, 4, 4)].forEach(function (t) { s[key(t)] = 1; });
+    return (HOLIDAYS[y] = s);
+  }
+  function stateRule(st, ymd) { var r = STATE_HOURS[st]; if (!r) return null; return r.from && ymd < r.from ? (r.before || null) : r; }
+  function hourLabel(h) { return (h % 12 || 12) + (h < 12 || h === 24 ? " AM" : " PM"); }
+  // Today's calling window for a state, at the lead's local date.
+  function dayWindow(st, t) {
+    var r = stateRule(st, t.ymd);
+    if (!r) return { open: 8, close: 21, strict: false };
+    if (r.hol && usHolidays(Number(t.ymd.slice(0, 4)))[t.ymd]) return { closed: "holiday, no sales calls in " + st + " today", strict: true };
+    if (t.wd === 0 && r.sun === false) return { closed: "no sales calls on Sundays in " + st, strict: true };
+    var w = t.wd === 0 && r.sunH ? r.sunH : t.wd === 6 && r.sat ? r.sat : r.h;
+    return { open: w[0], close: w[1], strict: w[0] !== 8 || w[1] !== 21 };
+  }
+  // Calls to one lead in the last 24 hours, and when the next one is allowed under a 3-call limit.
+  function calls24(id) {
+    var a = leadCalls(id), now = Date.now(), w = [];
+    for (var i = a.length - 1; i >= 0; i--) { var ts = new Date(a[i].timestamp).getTime(); if (!(now - ts < 864e5)) break; w.unshift(ts); }
+    return { n: w.length, next: w.length >= 3 ? w[w.length - 3] + 864e5 : now };
+  }
+  // Can this lead get a sales call right now? ok, plus why not and today's window.
+  function leadClock(l) {
+    var z = leadZone(l);
+    if (!z.iana) return { iana: null, st: z.st, t: null, ok: true, why: "", win: "8 AM–9 PM" };
+    var t = zoneTime(z.iana), w = dayWindow(z.st, t), h = t.hour + t.min / 60;
+    var r = { iana: z.iana, st: z.st, t: t, ok: true, why: "", win: w.closed ? "" : hourLabel(w.open) + "–" + hourLabel(w.close), strict: w.strict };
+    if (w.closed) { r.ok = false; r.why = w.closed; return r; }
+    if (h < w.open || h >= w.close) { r.ok = false; r.why = "outside " + (w.strict ? z.st + " calling hours, " : "") + r.win; return r; }
+    var rule = STATE_HOURS[z.st];
+    if (rule && rule.max3 && l && l.id) {
+      var c = calls24(l.id);
+      if (c.n >= 3) { r.ok = false; r.why = "3 calls in 24 hours is " + z.st + "’s limit, next after " + new Date(c.next).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); }
+    }
     return r;
   }
 
   function leadWhereWhenHtml(l) {
     var z = leadZone(l);
     if (!z.iana) return '<div class="lead-where unknown"><span class="lw-dot"></span>Location unknown \u2014 check their local time</div>';
-    var t = zoneTime(z.iana);
-    return '<div class="lead-where ' + (t.ok ? "ok" : "late") + '"><span class="lw-dot"></span>' +
+    var c = leadClock(l), t = c.t;
+    return '<div class="lead-where ' + (c.ok ? "ok" : "late") + '"><span class="lw-dot"></span>' +
       z.st + ' \u00b7 ' + escapeHtml(t.label) + ' ' + escapeHtml(t.abbr) +
-      (t.ok ? ' local' : ' \u00b7 outside 8 AM\u20139 PM') +
-      (t.ok && callScore(l) >= 0.9 ? ' \u00b7 \u2605 prime hour' : '') + '</div>';
+      (c.ok ? ' local' : ' \u00b7 ' + escapeHtml(c.why)) +
+      (c.ok && callScore(l) >= 0.9 ? ' \u00b7 \u2605 prime hour' : '') + '</div>';
   }
 
   function localDateStr(d) {
@@ -11974,7 +12095,7 @@
     all.forEach(function (l) {
       var z = leadZone(l);
       counts[z.group]++;
-      if (z.iana && zoneTime(z.iana).ok) counts.now++;
+      if (z.iana && leadClock(l).ok) counts.now++;
       if (callScore(l) >= 0.9) counts.prime = (counts.prime || 0) + 1;
     });
     var f = state.queueFilter || "all";
@@ -14078,7 +14199,7 @@
   function openSendInfo(lead) {
     if (!lead) return;
     var cfg = infoCfg(), m = document.getElementById("infoModal"), b = document.getElementById("infoModalBody");
-    var z = leadZone(lead), late = z.iana && !zoneTime(z.iana).ok;
+    var z = leadZone(lead), clk = leadClock(lead), late = z.iana && !clk.ok;
     var head = '<button class="close-x" id="infoClose">&times;</button><h3>Send info to ' + escapeHtml(textFirstName(lead.name)) + '</h3>';
     if (lead.noText) {
       b.innerHTML = head + '<p class="modal-sub">Texts are turned off for ' + escapeHtml(lead.name) + ' (they asked not to be texted). You can change that in their profile.</p>';
@@ -14091,7 +14212,7 @@
       var introVal = fillTemplate(cfg.intro, lead).replace(/:\s*$/, ".") + (cfg.outro ? " " + cfg.outro : "");
       function picked() { return cfg.links.filter(function (l) { return infoSel[l.id]; }); }
       b.innerHTML = head +
-        (late ? '<div class="info-late">It\u2019s ' + escapeHtml(zoneTime(z.iana).label) + ' for ' + escapeHtml(textFirstName(lead.name)) + '. Texts go out between 8 AM and 9 PM their time, so send this later.</div>' : '') +
+        (late ? '<div class="info-late">It\u2019s ' + escapeHtml(clk.t.label) + ' for ' + escapeHtml(textFirstName(lead.name)) + ' (' + escapeHtml(clk.why) + '), so send this later.</div>' : '') +
         '<div class="sb-seg info-mode"><button class="sb-tab" data-imode="cards">Link cards</button><button class="sb-tab" data-imode="one">One text</button></div>' +
         '<div class="info-list">' + cfg.links.map(function (l) {
           return '<label class="info-item"><input type="checkbox" data-info-id="' + escapeHtml(l.id) + '"' + (infoSel[l.id] ? ' checked' : '') + '>' +
@@ -15736,7 +15857,11 @@
       state.tasks.push({ id: uid(), leadId: lead.id, leadName: lead.name, type: "Call", priority: "High", due: localDateStr(new Date(at)), dueAt: at,
         note: "Appointment \u2014 handoff from " + me.name + (note ? ": " + note : ""), done: false, auto: false, assignee: { uid: to.uid, name: to.name } });
       if (state.lastInterested && state.lastInterested.id === lead.id) state.lastInterested = null;
-      saveState(); featClose(); showToast(lead.name + " handed to " + firstName(to.name) + " for " + fmtAppt(at)); render();
+      saveState(); featClose(); showToast(lead.name + " handed to " + firstName(to.name) + " for " + fmtAppt(at));
+      var tsx = textSettings();
+      if (tsx.confirmOn && !lead.noText && !isDnc(lead) && (lead.phone || lead.phoneRaw) && (!leadZone(lead).iana || leadClock(lead).ok))
+        pendingText = { leadId: lead.id, kind: "confirm", body: fillTemplate(tsx.confirmTpl, lead, null, { when: whenPhrase(lead, at), closer: firstName(to.name) }) };
+      render(); renderTextPrompt();
     });
   }
   function handoffBannerHtml() {
@@ -16002,8 +16127,8 @@
       info.innerHTML = '<span class="kp-warn">On your team\u2019s Do Not Call list</span>'; go.innerHTML = off; return;
     }
     if (match) {
-      var z = leadZone(match), t = z.iana ? zoneTime(z.iana) : null;
-      info.innerHTML = '<b>' + escapeHtml(match.name) + '</b>' + (t ? ' \u00b7 ' + escapeHtml(t.label) + (t.ok ? '' : ' (outside 8 AM\u20139 PM)') : '');
+      var z = leadZone(match), kc = z.iana ? leadClock(match) : null;
+      info.innerHTML = '<b>' + escapeHtml(match.name) + '</b>' + (kc ? ' \u00b7 ' + escapeHtml(kc.t.label) + (kc.ok ? '' : ' (' + escapeHtml(kc.why) + ')') : '');
       go.innerHTML = callLinkHtml(match, "dial", null, "kp-call", KP_PHONE);
       var a = go.querySelector("a"); if (a) a.addEventListener("click", function (e) { setTimeout(function () { if (!e.defaultPrevented) kpRaw = ""; }, 0); });   // keep the number if pacing holds the call
       return;

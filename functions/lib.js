@@ -175,5 +175,56 @@ function officeFromEmail(email) {
   return m ? m[1] : "";
 }
 
+// ---------- morning summary ----------
+var DIGEST_HOUR = 8;       // weekdays, in the 8 o'clock hour of the rep's own time zone (the clock runs at half past)
+function localParts(ts, tz) {
+  var p = new Intl.DateTimeFormat("en-US", { timeZone: safeTz(tz), hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", weekday: "short" }).formatToParts(new Date(ts));
+  var g = function (k) { var x = p.filter(function (y) { return y.type === k; })[0]; return x ? x.value : ""; };
+  return { date: g("year") + "-" + g("month") + "-" + g("day"), hour: Number(g("hour")) % 24, weekday: g("weekday") };
+}
+function digestDue(lp) { return lp.hour === DIGEST_HOUR && lp.weekday !== "Sat" && lp.weekday !== "Sun"; }
+// First and last moments of the rep's local day, found to the minute (safe across clock changes).
+function localDayBounds(now, tz) {
+  var today = localParts(now, tz).date, lo, hi, mid;
+  lo = now; hi = now + 26 * 3600000;
+  while (hi - lo > 60000) { mid = Math.floor((lo + hi) / 2); if (localParts(mid, tz).date === today) lo = mid; else hi = mid; }
+  var end = Math.floor(lo / 60000) * 60000 + 60000;        // midnight always falls on a whole minute
+  lo = now - 26 * 3600000; hi = now;
+  while (hi - lo > 60000) { mid = Math.floor((lo + hi) / 2); if (localParts(mid, tz).date === today) hi = mid; else lo = mid; }
+  return { start: Math.floor(lo / 60000) * 60000 + 60000, end: end };
+}
+// What one rep has waiting today: open follow-ups due by the end of their day, and today's appointments.
+function digestCounts(chunks, uid, now, tz) {
+  var b = localDayBounds(now, tz), c = { waiting: 0, today: 0, appts: 0, firstAppt: null };
+  (chunks || []).forEach(function (data) {
+    var leads = (data && data.leads) || {};
+    Object.keys(leads).forEach(function (id) {
+      var lead = leads[id] || {};
+      if (lead.retired || lead.badNumber || lead.dnc) return;
+      (Array.isArray(lead.tasks) ? lead.tasks : []).forEach(function (t) {
+        if (!t || t.done || typeof t.dueAt !== "number" || !isFinite(t.dueAt)) return;
+        if (assigneeOf(t, lead) !== uid) return;
+        if (isAppt(t)) {
+          if (t.dueAt >= b.start && t.dueAt < b.end) { c.appts++; if (c.firstAppt == null || t.dueAt < c.firstAppt) c.firstAppt = t.dueAt; }
+          return;
+        }
+        if (t.dueAt < b.end) { c.waiting++; if (t.dueAt >= b.start) c.today++; }
+      });
+    });
+  });
+  return c;
+}
+function digestMessage(name, c, office, tz) {
+  if (!c || (!c.waiting && !c.appts)) return null;
+  var n = function (x) { return Number(x).toLocaleString("en-US"); }, bits = [];
+  if (c.waiting) bits.push(n(c.waiting) + " follow-up" + (c.waiting === 1 ? "" : "s") + " waiting" + (c.today && c.today < c.waiting ? " (" + n(c.today) + " new today)" : ""));
+  if (c.appts) bits.push(c.appts + " appointment" + (c.appts === 1 ? "" : "s") + " today, first at " +
+    new Intl.DateTimeFormat("en-US", { timeZone: safeTz(tz), hour: "numeric", minute: "2-digit" }).format(new Date(c.firstAppt)));
+  var fn = firstName(name);
+  return { kind: "digest", title: "Good morning" + (fn ? ", " + fn : ""), body: bits.join(" · ") + (c.waiting ? ". Tap to start dialing." : "."),
+    link: leadLink(office, ""), tag: "vpex-digest", leadId: "", office: office || "" };
+}
+
 module.exports = { APP_URL, STALE_MS, DROP_MS, APPT_LEAD_MS, queueId, notifyAt, assigneeOf, taskEntries, diffQueue, handoffEvents, officeOpen,
-  fmtWhen, leadLink, dueMessages, handoffMessage, testMessage, fcmMessage, deadToken, officeFromEmail, safeTz, firstName };
+  fmtWhen, leadLink, dueMessages, handoffMessage, testMessage, fcmMessage, deadToken, officeFromEmail, safeTz, firstName,
+  localParts, digestDue, localDayBounds, digestCounts, digestMessage };
