@@ -1,6 +1,7 @@
-# Puts VPEX's server code (functions/: notifications and the Instagram bot) and database rules (firestore-rules.txt) live in Firebase.
+# Puts VPEX's notification code (functions/) and database rules (firestore-rules.txt) live in Firebase.
+# Before the Firebase project is on the Blaze plan, only the database rules go live.
 # Runs by itself when those files change, or from the Actions tab: "Deploy VPEX notifications" > Run workflow.
-# Needs the repository secret FIREBASE_SERVICE_ACCOUNT (the Google key file's text). Optional: IG_TOKEN (the Instagram bot's key).
+# Needs the repository secret FIREBASE_SERVICE_ACCOUNT (the Google key file's text).
 name: Deploy VPEX notifications
 
 on:
@@ -10,7 +11,6 @@ on:
       - "functions/**"
       - "firebase.json"
       - "firestore-rules.txt"
-      - "scripts/**"
       - ".github/workflows/vpex-notifications.yml"
   workflow_dispatch:
 
@@ -33,7 +33,7 @@ jobs:
       - name: Anything to deploy?
         id: has
         run: |
-          if [ -f functions/index.js ] && [ -f firebase.json ]; then echo "go=yes" >> "$GITHUB_OUTPUT"; else echo "go=no" >> "$GITHUB_OUTPUT"; echo "::notice::The notification code isn't in the repo yet. Upload vpex-update.zip and this runs again by itself."; fi
+          if [ -f functions/index.js ] && [ -f firebase.json ]; then echo "go=yes" >> "$GITHUB_OUTPUT"; else echo "go=no" >> "$GITHUB_OUTPUT"; echo "::notice::The notification code isn't in the repo yet."; fi
 
       - if: steps.has.outputs.go == 'yes'
         name: Check the Google key
@@ -72,24 +72,27 @@ jobs:
 
       - if: steps.has.outputs.go == 'yes'
         name: Check the Blaze plan
+        id: bill
         run: |
           gcloud services enable cloudbilling.googleapis.com --project "$PROJECT" >/dev/null 2>&1 || true
           BILL=$(gcloud billing projects describe "$PROJECT" --format='value(billingEnabled)' 2>/dev/null || echo "unknown")
           echo "Billing on: $BILL"
-          if [ "$BILL" = "False" ]; then
-            echo "::error::The Firebase project isn't on the Blaze plan yet (no billing account linked). Finish the Blaze upgrade in the Firebase console, then run this again."
-            exit 1
-          fi
+          if [ "$BILL" = "False" ]; then echo "blaze=no" >> "$GITHUB_OUTPUT"; else echo "blaze=yes" >> "$GITHUB_OUTPUT"; fi
 
       - if: steps.has.outputs.go == 'yes'
         name: Turn on the Google services notifications use
         run: |
+          if [ "${{ steps.bill.outputs.blaze }}" != "yes" ]; then
+            gcloud services enable firestore.googleapis.com firebaserules.googleapis.com fcm.googleapis.com fcmregistrations.googleapis.com \
+              firebaseinstallations.googleapis.com --project "$PROJECT"
+            exit 0
+          fi
           gcloud services enable compute.googleapis.com cloudfunctions.googleapis.com cloudbuild.googleapis.com \
             artifactregistry.googleapis.com run.googleapis.com eventarc.googleapis.com pubsub.googleapis.com \
             cloudscheduler.googleapis.com firestore.googleapis.com firebaserules.googleapis.com iam.googleapis.com identitytoolkit.googleapis.com \
             fcm.googleapis.com fcmregistrations.googleapis.com firebaseinstallations.googleapis.com --project "$PROJECT"
 
-      - if: steps.has.outputs.go == 'yes'
+      - if: steps.has.outputs.go == 'yes' && steps.bill.outputs.blaze == 'yes'
         name: Give Google's build and event services the access they need
         run: |
           NUM=$(gcloud projects describe "$PROJECT" --format='value(projectNumber)')
@@ -117,7 +120,7 @@ jobs:
           bind "$COMPUTE" roles/firebaseauth.viewer
           bind "service-$NUM@gcp-sa-pubsub.iam.gserviceaccount.com" roles/iam.serviceAccountTokenCreator
 
-      - if: steps.has.outputs.go == 'yes'
+      - if: steps.has.outputs.go == 'yes' && steps.bill.outputs.blaze == 'yes'
         name: Find where the database lives
         run: |
           LOC=$(gcloud firestore databases describe --database='(default)' --project "$PROJECT" --format='value(locationId)')
@@ -130,20 +133,29 @@ jobs:
           echo "Database in $LOC, so the notification code runs in $R"
           echo "FN_REGION=$R" > functions/.env
 
-      - if: steps.has.outputs.go == 'yes'
+      - if: steps.has.outputs.go == 'yes' && steps.bill.outputs.blaze == 'yes'
         name: Install
         run: npm install --prefix functions --no-audit --no-fund
 
       - if: steps.has.outputs.go == 'yes'
-        name: Save the Instagram key for the bot
-        env:
-          IG_TOKEN: ${{ secrets.IG_TOKEN }}
-          NODE_PATH: functions/node_modules
-        run: node scripts/seed-ig-token.js
+        name: Show how the database rules change
+        run: |
+          T=$(gcloud auth print-access-token)
+          API=https://firebaserules.googleapis.com/v1
+          RS=$(curl -sf -H "Authorization: Bearer $T" "$API/projects/$PROJECT/releases/cloud.firestore" | python3 -c "import sys,json; print(json.load(sys.stdin).get('rulesetName',''))" 2>/dev/null || true)
+          if [ -z "$RS" ]; then echo "No database rules published yet."; exit 0; fi
+          curl -sf -H "Authorization: Bearer $T" "$API/$RS" | python3 -c "import sys,json; print(json.load(sys.stdin)['source']['files'][0]['content'], end='')" > /tmp/live-rules.txt || { echo "Couldn't read the live rules."; exit 0; }
+          echo "Live rules: $RS"
+          if diff -u /tmp/live-rules.txt firestore-rules.txt; then echo "No change."; fi
 
       - if: steps.has.outputs.go == 'yes'
         name: Deploy
         run: |
+          if [ "${{ steps.bill.outputs.blaze }}" != "yes" ]; then
+            npx --yes firebase-tools@latest deploy --only firestore:rules --project "$PROJECT" --force --non-interactive
+            echo "::error::Database rules are live. The notification code needs the Firebase project on the Blaze plan: upgrade it in the Firebase console, then run this again."
+            exit 1
+          fi
           for i in 1 2 3; do
             if npx --yes firebase-tools@latest deploy --only functions,firestore:rules --project "$PROJECT" --force --non-interactive; then
               echo "Notifications are live."

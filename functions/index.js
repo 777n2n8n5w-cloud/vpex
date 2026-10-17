@@ -3,7 +3,6 @@
 //    and send handoff alerts to the closer right away.
 //  - sendDue: every minute, send the follow-ups that just came due.
 //  - sendTest: the "Send a test" button in the app.
-//  - igTick / igReport: VPEX's Instagram bot (see igbot.js).
 // Tokens live in pushTokens/{id} (written by the app, readable only here). The queue lives in pushQueue/{id}.
 "use strict";
 
@@ -13,7 +12,6 @@ const { setGlobalOptions } = require("firebase-functions/v2");
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
 const L = require("./lib");
-const IG = require("./igbot");
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -177,17 +175,3 @@ exports.sendTest = onDocumentCreated({ document: "pushTests/{id}", retry: false 
   const r = await sendTo(d.uid, [L.testMessage(typeof d.office === "string" ? d.office : "")], 600);
   logger.info("test alert", { uid: d.uid, sent: r.sent, phones: r.phones });
 });
-
-// ---------- VPEX's Instagram bot ----------
-// Tells the VPEX owner's phone what the bot did (posted, skipped, a sticker story to post by hand, the weekly report).
-const OWNER_EMAIL = "vincent@dovetail-f863c.firebaseapp.com";
-let ownerUidCache = null;
-async function notifyOwner(title, body, tag, link) {
-  try {
-    if (!ownerUidCache) ownerUidCache = (await admin.auth().getUserByEmail(OWNER_EMAIL)).uid;
-    await sendTo(ownerUidCache, [{ kind: "igbot", title: String(title).slice(0, 110), body: String(body).slice(0, 240), link: link || L.APP_URL + "?legacy=1&ig=1", tag: tag || "igbot", leadId: "", office: "" }], 86400);
-  } catch (e) { logger.warn("owner notice failed", { err: String(e) }); }
-}
-const bot = IG.makeBot({ db, fetch: function (u, o) { return fetch(u, o); }, logger, notifyOwner, increment: function (n) { return admin.firestore.FieldValue.increment(n); } });
-exports.igTick = onSchedule({ schedule: "every 5 minutes", timeZone: "Etc/UTC", retryCount: 0, timeoutSeconds: 300 }, function () { return bot.tick(); });
-exports.igReport = onSchedule({ schedule: "0 9 * * 1", timeZone: "America/New_York", retryCount: 0, timeoutSeconds: 300 }, function () { return bot.report(); });

@@ -67,14 +67,6 @@ service cloud.firestore {
         && request.resource.data.office is string && request.resource.data.office.size() <= 40
         && request.resource.data.at is int;
     }
-    // ---- VPEX's Instagram bot: run by the server; only VPEX's owner can see it and switch it ----
-    match /igBot/{id} {
-      allow read: if isOwner();
-      allow write: if isOwner() && id == 'settings'
-        && request.resource.data.keys().hasOnly(['paused', 'dm', 'updatedAt']);
-    }
-    match /igPosts/{id} { allow read: if isOwner(); }
-    match /igReports/{id} { allow read: if isOwner(); }
     // ---- Every other office: offices/{office}/... Only logins made for that office (name@office.vpex.app) can see it ----
     function inOffice(office) {
       return signedIn() && office.matches('^[a-z0-9-]{3,32}$') && request.auth.token.email is string
