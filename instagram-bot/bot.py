@@ -96,8 +96,8 @@ class Media:
                 b = self.client.create_bucket(b, location="US")
                 log("made the media bucket", name)
             self.bucket = b
-    def url(self, pack, rel):
-        key = pack.name + "/" + rel
+    def url(self, pack, rel, hours=6):
+        key = pack.name + "/" + rel + "|" + str(hours)
         if key in self.cache: return self.cache[key]
         data = pack.read(rel)
         ctype = mimetypes.guess_type(rel)[0] or "application/octet-stream"
@@ -108,9 +108,16 @@ class Media:
         else:
             blob = self.bucket.blob(obj)
             if not blob.exists(): blob.upload_from_string(data, content_type=ctype)
-            u = blob.generate_signed_url(version="v4", expiration=dt.timedelta(hours=6), method="GET")
+            u = blob.generate_signed_url(version="v4", expiration=dt.timedelta(hours=hours), method="GET")
         self.cache[key] = u
         return u
+    def page(self, name, html, hours=24):
+        obj = "handoff/" + re.sub(r"[^A-Za-z0-9._-]", "_", name) + "-" + hashlib.sha1(html.encode()).hexdigest()[:10] + ".html"
+        if self.spec.startswith("local:"):
+            p = os.path.join(self.dir, obj); os.makedirs(os.path.dirname(p), exist_ok=True); open(p, "w").write(html)
+            return self.base.rstrip("/") + "/" + obj
+        blob = self.bucket.blob(obj); blob.upload_from_string(html.encode(), content_type="text/html; charset=utf-8")
+        return blob.generate_signed_url(version="v4", expiration=dt.timedelta(hours=hours), method="GET")
 
 # ---------------------------------------------------------------- content packs
 class Pack:
@@ -326,7 +333,7 @@ def run(state, media, note, ig):
         iid = it["id"]
         if when > now: continue
         rec = state.get("posted", iid) or {}
-        if rec.get("status") in ("posted", "missed", "reminded"): continue
+        if rec.get("status") in ("posted", "missed", "reminded", "handed"): continue
         if it.get("posted_by_hand"):               # Vincent already posted this one himself
             state.set("posted", iid, {"status": "posted", "by": "hand", "at": time.time(), "title": it.get("title", iid)}); continue
         late_h = (now - when).total_seconds() / 3600
@@ -458,7 +465,7 @@ def test(state, media, note, ig):
     now = now_utc(); picked = {}
     for when, pk, it in all_items(load_packs()):
         if when < now - dt.timedelta(hours=1) or it.get("manual"): continue
-        if (state.get("posted", it["id"]) or {}).get("status") in ("posted", "missed", "reminded"): continue
+        if (state.get("posted", it["id"]) or {}).get("status") in ("posted", "missed", "reminded", "handed"): continue
         picked.setdefault("story" if it["type"] == "story" else "feed", (when, pk, it))
         if len(picked) == 2: break
     if not picked: raise SystemExit("Nothing coming up to test with.")
@@ -572,11 +579,66 @@ def quiet_run(state):
     if os.environ.get("IG_ALWAYS_CONTACT") == "1": return False
     now = now_utc()
     for when, pk, it in all_items(load_packs()):
-        if when <= now and (state.get("posted", it["id"]) or {}).get("status") not in ("posted", "missed", "reminded", "failed"): return False
+        if when <= now and (state.get("posted", it["id"]) or {}).get("status") not in ("posted", "missed", "reminded", "failed", "handed"): return False
     ago = (time.time() - ((state.get("meta", "comments") or {}).get("at") or 0)) / 60
     if ago < COMMENT_EVERY_MIN:
         log("Nothing due, and comments were checked %d minutes ago. Instagram not contacted this run." % ago); return True
     return False
+
+# While Instagram refuses the bot, each post still goes out on schedule: Vincent gets a notification that opens a page
+# with the media to save and the caption to copy. Same timing and spacing rules as the bot; handed-off posts count as done.
+HOW = {"reel": "Open Instagram, tap +, choose Reel, pick the video, paste the caption, Share.",
+       "image": "Open Instagram, tap +, choose Post, pick the image, paste the caption, Share.",
+       "carousel": "Open Instagram, tap +, choose Post, tap Select multiple, pick the images in order (1 to %d), paste the caption, Share.",
+       "story": "Open Instagram, tap +, choose Story, pick it, Share. For a Reel you already posted, you can also open it and tap Share, then Add to story."}
+def esc(t): return (t or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+def handoff_page(media, pk, it, when):
+    t = it["type"]; files = ([it["video"]] if it.get("video") else []) + ([it["image"]] if it.get("image") else []) + list(it.get("images") or [])
+    blocks = []
+    for i, f in enumerate(files):
+        u = esc(media.url(pk, f, hours=48)); num = '<div class="n">%d of %d</div>' % (i + 1, len(files)) if len(files) > 1 else ""
+        if f.lower().endswith(".mp4"):
+            poster = (' poster="%s"' % esc(media.url(pk, it["cover"], hours=48))) if it.get("cover") else ""
+            blocks.append('%s<video src="%s"%s controls playsinline preload="metadata"></video><a class="btn" href="%s">Open the video to save it</a><p class="tip">In the player, tap Share, then Save Video.</p>' % (num, u, poster, u))
+        else:
+            blocks.append('%s<img src="%s" alt=""><p class="tip">Press and hold the image, then tap Save to Photos.</p>' % (num, u))
+    cap = it.get("caption", "")
+    capbox = ('<h2>2. Copy the caption</h2><textarea id="cap" readonly>%s</textarea><button class="btn" onclick="navigator.clipboard.writeText(document.getElementById(\'cap\').value).then(()=>{this.textContent=\'Copied\'})">Copy caption</button>' % esc(cap)) if t != "story" else ""
+    how = HOW[t] % len(files) if t == "carousel" else HOW[t]
+    html = """<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Post now: %s</title>
+<style>body{margin:0;background:#0E1433;color:#F4F5F9;font:17px/1.45 -apple-system,system-ui,sans-serif}main{max-width:560px;margin:0 auto;padding:22px 16px 60px}
+.wm{color:#E8B94A;font-weight:800;letter-spacing:.04em}h1{font-size:26px;line-height:1.2;margin:10px 0 4px}.due{color:#C7CBE4;margin:0 0 18px}h2{font-size:18px;margin:26px 0 10px;color:#E8B94A}
+img,video{display:block;width:100%%;border-radius:14px;background:#000;margin-top:8px}.n{color:#C7CBE4;font-size:14px;margin-top:16px}.tip{color:#C7CBE4;font-size:14px;margin:6px 0 0}
+.btn{display:block;width:100%%;box-sizing:border-box;margin-top:10px;padding:14px;border:0;border-radius:12px;background:#E8B94A;color:#131A3E;font:700 17px -apple-system,system-ui,sans-serif;text-align:center;text-decoration:none}
+textarea{width:100%%;box-sizing:border-box;min-height:180px;border-radius:12px;border:0;padding:12px;font:15px/1.4 -apple-system,system-ui,sans-serif;background:#F4F5F9;color:#131A3E}.done{margin-top:28px;color:#C7CBE4;font-size:15px}</style></head>
+<body><main><div class="wm">VPEX</div><h1>%s</h1><p class="due">Due %s. Instagram is blocking the bot right now, so this one is ready for you to post.</p>
+<h2>1. Save %s</h2>%s%s<h2>%d. Post it</h2><p>%s</p><p class="done">That's it. The bot counts this one as done and won't post it again.</p></main></body></html>""" % (
+        esc(it.get("title", it["id"])), esc(it.get("title", it["id"])), when.astimezone(ZoneInfo("America/New_York")).strftime("%a %b %d, %I:%M %p").replace(" 0", " "),
+        "the images" if len(files) > 1 else ("the video" if files and files[0].lower().endswith(".mp4") else "the image"), "".join(blocks), capbox, 3 if capbox else 2, esc(how))
+    return media.page(it["id"], html)
+
+def handoff(state, media, note, why):
+    now = now_utc(); last = state.get("meta", "last_post") or {}; sent = None
+    for when, pk, it in all_items(load_packs()):
+        iid = it["id"]; rec = state.get("posted", iid) or {}
+        if when > now or rec.get("status") in ("posted", "missed", "reminded", "handed", "failed") or it.get("posted_by_hand"): continue
+        if it.get("manual"):
+            note.send("Time to post: " + it.get("title", iid), it.get("note", "Post it from the content pack."), "https://" + SITE + "/")
+            state.set("posted", iid, {"status": "reminded", "at": time.time()}); continue
+        late_h = (now - when).total_seconds() / 3600
+        if late_h > (STORY_GRACE_H if it["type"] == "story" else FEED_GRACE_H):
+            state.set("posted", iid, {"status": "missed", "at": time.time(), "lateHours": round(late_h, 1)}); log("missed (too late now):", iid); continue
+        kind = "story" if it["type"] == "story" else "feed"
+        since = (time.time() - (last.get(kind) or 0)) / 60
+        if since < (STORY_GAP_MIN if kind == "story" else FEED_GAP_MIN):
+            log("waiting to hand off", iid, "- the last %s post went out %d minutes ago" % (kind, since)); continue
+        if missing_media(pk, it): continue
+        link = handoff_page(media, pk, it, when)
+        note.send("Post now: " + it.get("title", iid)[:60], ("Tap to open it, save it and add it to your story." if kind == "story" else "Tap to open it: save, copy the caption, post.") + " Instagram is still blocking the bot.", link)
+        state.set("posted", iid, {"status": "handed", "at": time.time(), "title": it.get("title", iid)})
+        last[kind] = time.time(); state.set("meta", "last_post", last); sent = it.get("title", iid)
+        break
+    raise SystemExit("Instagram is blocking the bot (%s). %s" % (why, ("Sent \"%s\" to Vincent to post by hand." % sent) if sent else "Nothing to hand off this run."))
 
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "run"
@@ -593,8 +655,9 @@ def main():
         detail = str(e).rstrip(".") + (" [code %s%s]" % (e.code, "/" + str(e.sub) if e.sub else "") if e.code else "")
         last = state.get("meta", "signin_alert") or {}
         if last.get("msg") != detail or time.time() - (last.get("at") or 0) > 12 * 3600:   # alert once, not every 15 minutes
-            note.send("Instagram bot can't sign in", "Instagram said: " + detail[:140] + ". Posting is paused until this is fixed.")
+            note.send("Instagram bot can't sign in", "Instagram said: " + detail[:110] + ". Until it's fixed, the bot sends you each post ready to post by hand.")
             state.set("meta", "signin_alert", {"msg": detail, "at": time.time()})
+        if mode == "run": return handoff(state, Media(os.environ.get("BOT_MEDIA", "gcs")), note, detail)
         raise SystemExit("Instagram rejected the key: " + detail)
     if (state.get("meta", "signin_alert") or {}).get("msg"):
         state.set("meta", "signin_alert", {}); note.send("Instagram bot is back", "Instagram accepted the key again. Posting picks up on the next run.")
