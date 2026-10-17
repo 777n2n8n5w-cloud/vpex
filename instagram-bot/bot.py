@@ -535,9 +535,39 @@ def inventory(state, ig, mark=False):
                 state.set("posted", it["id"], {"status": "posted", "media": m.get("id"), "by": "hand", "at": time.time()})
     log("%d plan feed items found on Instagram." % n)
 
+
+# Find out why Instagram refuses the key: the same question asked several ways, with Meta's full answer (never the key).
+def diagnose(state):
+    sec = os.environ.get("IG_TOKEN", "").strip(); keep_secret(sec)
+    h = hashlib.sha256(sec.encode()).hexdigest()[:16]
+    rec = state.get("meta", "token") or {}
+    stored = rec.get("token") if rec.get("from") == h else None
+    if stored: keep_secret(stored)
+    log("Key in GitHub: %d characters, starts %s. Saved working key: %s, refreshed %s hours ago." % (len(sec), sec[:4] + "...", "same lineage" if stored else "none", round((time.time() - (rec.get("refreshedAt") or 0)) / 3600, 1) if stored else "-"))
+    try: log("This runner's internet address:", requests.get("https://api.ipify.org", timeout=10).text[:40])
+    except Exception as e: log("couldn't read the runner address:", e)
+    def ask(label, url, tok, **params):
+        params["access_token"] = tok
+        try:
+            r = requests.get(url, params=params, timeout=30)
+            try: j = r.json()
+            except ValueError: j = {"raw": r.text[:200]}
+            if "error" in j:
+                e = j["error"]; log("%-34s HTTP %s  %s | type=%s code=%s subcode=%s %s trace=%s" % (label, r.status_code, e.get("message"), e.get("type"), e.get("code"), e.get("error_subcode"), (e.get("error_user_title") or "") + " " + (e.get("error_user_msg") or ""), e.get("fbtrace_id")))
+            else: log("%-34s HTTP %s  OK %s" % (label, r.status_code, scrub(json.dumps({k: v for k, v in j.items() if k in ("username", "user_id", "id", "expires_in", "account_type")}))))
+        except Exception as e: log("%-34s failed: %s" % (label, scrub(e)))
+    for name, tok in (("saved key", stored), ("GitHub key", sec)):
+        if not tok or (name == "GitHub key" and tok == stored): continue
+        ask(name + ": /me v23.0", "https://graph.instagram.com/v23.0/me", tok, fields="user_id,username,account_type")
+        ask(name + ": /me v21.0", "https://graph.instagram.com/v21.0/me", tok, fields="user_id,username")
+        ask(name + ": /me no version", "https://graph.instagram.com/me", tok, fields="id,username")
+        ask(name + ": recent media", "https://graph.instagram.com/v23.0/me/media", tok, fields="id,timestamp", limit="1")
+        ask(name + ": refresh", REFRESH_URL, tok, grant_type="ig_refresh_token")
+
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "run"
     state = State(os.environ.get("BOT_STATE", "firestore"))
+    if mode == "diagnose": return diagnose(state)
     note = Notify(os.environ.get("BOT_NOTIFY", "live"))
     ig = IG(get_token(state))
     try:
