@@ -1,0 +1,159 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isOwner() {
+      return signedIn() && request.auth.token.email == 'vincent@dovetail-f863c.firebaseapp.com';
+    }
+    // ---- Original team: the top-level collections ----
+    function memberPath() { return /databases/$(database)/documents/members/$(request.auth.uid); }
+    function isActive() {
+      return isOwner() || (signedIn() && exists(memberPath()) && get(memberPath()).data.active == true);
+    }
+    function isAdmin() {
+      return isOwner() || (isActive() && get(memberPath()).data.role == 'admin');
+    }
+    match /members/{uid} {
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == uid);
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin()
+        || (signedIn() && request.auth.uid == uid && isActive()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastSeen']));
+    }
+    match /leadChunks/{chunkId} {
+      allow read: if isActive();
+      allow create: if isAdmin() || (isActive() && chunkId == 'r_' + request.auth.uid);
+      allow delete: if isAdmin();
+      allow update: if isAdmin()
+        || (isActive() && chunkId == 'r_' + request.auth.uid
+            && request.resource.data.leads.keys().hasAll(resource.data.leads.keys()))
+        || (isActive() && chunkId != '_team'
+            && request.resource.data.leads.keys().hasAll(resource.data.leads.keys())
+            && resource.data.leads.keys().hasAll(request.resource.data.leads.keys()));
+    }
+    match /callDays/{day} {
+      allow read, create: if isActive();
+      allow update: if isAdmin()
+        || (isActive() && request.resource.data.calls.keys().hasAll(resource.data.calls.keys()));
+      allow delete: if isAdmin();
+    }
+    match /vault/{id} {
+      allow read: if isAdmin() || (isActive() && resource.data.ownerUid == request.auth.uid);
+      allow create: if isAdmin() || (isActive() && request.resource.data.ownerUid == request.auth.uid);
+      allow update: if isAdmin()
+        || (isActive()
+            && resource.data.ownerUid == request.auth.uid
+            && request.resource.data.ownerUid == request.auth.uid
+            && request.resource.data.investments.size() >= resource.data.investments.size());
+      allow delete: if isAdmin();
+    }
+    // ---- Notifications: each phone saves its own push token; only VPEX's server reads them ----
+    match /pushTokens/{id} {
+      allow create, update: if signedIn() && id.size() <= 64
+        && request.resource.data.keys().hasOnly(['uid', 'office', 'token', 'ua', 'tz', 'at'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.token is string && request.resource.data.token.size() > 0 && request.resource.data.token.size() <= 4096
+        && request.resource.data.office is string && request.resource.data.office.size() <= 40
+        && request.resource.data.ua is string && request.resource.data.ua.size() <= 40
+        && request.resource.data.tz is string && request.resource.data.tz.size() <= 64
+        && request.resource.data.at is int;
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+    // "Send a test" in the app: a request the server answers and removes
+    match /pushTests/{id} {
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['uid', 'office', 'at'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.office is string && request.resource.data.office.size() <= 40
+        && request.resource.data.at is int;
+    }
+    // ---- VPEX's Instagram bot: run by the server; only VPEX's owner can see it and switch it ----
+    match /igBot/{id} {
+      allow read: if isOwner();
+      allow write: if isOwner() && id == 'settings'
+        && request.resource.data.keys().hasOnly(['paused', 'dm', 'updatedAt']);
+    }
+    match /igPosts/{id} { allow read: if isOwner(); }
+    match /igReports/{id} { allow read: if isOwner(); }
+    // ---- Every other office: offices/{office}/... Only logins made for that office (name@office.vpex.app) can see it ----
+    function inOffice(office) {
+      return signedIn() && office.matches('^[a-z0-9-]{3,32}$') && request.auth.token.email is string
+        && request.auth.token.email.matches('^[a-z0-9._-]+@' + office + '\\.vpex\\.app$');
+    }
+    function officeDoc(office) { return get(/databases/$(database)/documents/offices/$(office)).data; }
+    function oMemberPath(office) { return /databases/$(database)/documents/offices/$(office)/members/$(request.auth.uid); }
+    function oActive(office) {
+      return inOffice(office) && exists(oMemberPath(office)) && get(oMemberPath(office)).data.active == true;
+    }
+    function oAdmin(office) { return oActive(office) && get(oMemberPath(office)).data.role == 'admin'; }
+    // Open = not paused by VPEX, and on a trial, paid (plus 7 days' grace for a failed card) or free.
+    function oOpen(office) {
+      let d = officeDoc(office);
+      let t = request.time.toMillis();
+      return d.get('locked', false) != true && (d.plan == 'comp'
+        || (d.plan == 'paid' && t < d.get('paidThrough', 99999999999999) + 604800000)
+        || (d.plan == 'trial' && t < d.trialEnds));
+    }
+    // Billing settings (price, payment links): everyone signed in can read, only VPEX's owner can change.
+    match /config/{id} {
+      allow read: if signedIn();
+      allow write: if isOwner();
+    }
+    match /offices/{office} {
+      allow get: if isOwner() || oActive(office) || (inOffice(office) && resource.data.ownerUid == request.auth.uid);
+      allow list: if isOwner();
+      allow create: if inOffice(office)
+        && request.resource.data.keys().hasOnly(['name', 'industry', 'ownerUid', 'plan', 'trialEnds', 'createdAt', 'invite', 'locked', 'seats'])
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.plan == 'trial'
+        && request.resource.data.locked == false
+        && request.resource.data.trialEnds is int
+        && request.resource.data.trialEnds <= request.time.toMillis() + 691200000;
+      allow update: if isOwner()
+        || (oAdmin(office) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'industry', 'invite', 'updatedAt', 'themeDefault']));
+      allow delete: if isOwner();
+      match /members/{uid} {
+        allow read: if isOwner() || oAdmin(office) || (inOffice(office) && request.auth.uid == uid);
+        allow create: if oAdmin(office)
+          || (inOffice(office) && request.auth.uid == uid
+              && officeDoc(office).ownerUid == uid && request.resource.data.role == 'admin')
+          || (inOffice(office) && request.auth.uid == uid
+              && request.resource.data.role == 'rep'
+              && request.resource.data.invite is string && request.resource.data.invite.size() >= 6
+              && request.resource.data.invite == officeDoc(office).invite);
+        allow delete: if isOwner() || oAdmin(office);
+        allow update: if oAdmin(office)
+          || (oActive(office) && request.auth.uid == uid
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastSeen']));
+      }
+      match /leadChunks/{chunkId} {
+        allow read: if isOwner() || oActive(office);
+        allow create: if oOpen(office) && (oAdmin(office) || (oActive(office) && chunkId == 'r_' + request.auth.uid));
+        allow delete: if isOwner() || oAdmin(office);
+        allow update: if oOpen(office) && (oAdmin(office)
+          || (oActive(office) && chunkId == 'r_' + request.auth.uid
+              && request.resource.data.leads.keys().hasAll(resource.data.leads.keys()))
+          || (oActive(office) && chunkId != '_team'
+              && request.resource.data.leads.keys().hasAll(resource.data.leads.keys())
+              && resource.data.leads.keys().hasAll(request.resource.data.leads.keys())));
+      }
+      match /callDays/{day} {
+        allow read: if isOwner() || oActive(office);
+        allow create: if oOpen(office) && oActive(office);
+        allow update: if oOpen(office) && (oAdmin(office)
+          || (oActive(office) && request.resource.data.calls.keys().hasAll(resource.data.calls.keys())));
+        allow delete: if isOwner() || oAdmin(office);
+      }
+      match /vault/{id} {
+        allow read: if isOwner() || oAdmin(office) || (oActive(office) && resource.data.ownerUid == request.auth.uid);
+        allow create: if oOpen(office) && (oAdmin(office) || (oActive(office) && request.resource.data.ownerUid == request.auth.uid));
+        allow update: if oOpen(office) && (oAdmin(office)
+          || (oActive(office)
+              && resource.data.ownerUid == request.auth.uid
+              && request.resource.data.ownerUid == request.auth.uid
+              && request.resource.data.investments.size() >= resource.data.investments.size()));
+        allow delete: if isOwner() || oAdmin(office);
+      }
+    }
+  }
+}

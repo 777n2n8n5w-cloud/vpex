@@ -1,0 +1,155 @@
+# Puts VPEX's server code (functions/: notifications and the Instagram bot) and database rules (firestore-rules.txt) live in Firebase.
+# Runs by itself when those files change, or from the Actions tab: "Deploy VPEX notifications" > Run workflow.
+# Needs the repository secret FIREBASE_SERVICE_ACCOUNT (the Google key file's text). Optional: IG_TOKEN (the Instagram bot's key).
+name: Deploy VPEX notifications
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "functions/**"
+      - "firebase.json"
+      - "firestore-rules.txt"
+      - "scripts/**"
+      - ".github/workflows/vpex-notifications.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: vpex-notifications
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PROJECT: dovetail-f863c
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Anything to deploy?
+        id: has
+        run: |
+          if [ -f functions/index.js ] && [ -f firebase.json ]; then echo "go=yes" >> "$GITHUB_OUTPUT"; else echo "go=no" >> "$GITHUB_OUTPUT"; echo "::notice::The notification code isn't in the repo yet. Upload vpex-update.zip and this runs again by itself."; fi
+
+      - if: steps.has.outputs.go == 'yes'
+        name: Check the Google key
+        env:
+          SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$SA" ]; then
+            echo "::error::No key yet. Add a repository secret named FIREBASE_SERVICE_ACCOUNT (Settings > Secrets and variables > Actions), then run this again."
+            exit 1
+          fi
+          printf '%s' "$SA" | python3 -c "
+          import sys, json
+          try:
+              d = json.load(sys.stdin)
+          except Exception:
+              print('::error::The FIREBASE_SERVICE_ACCOUNT secret is not the key file text. Paste the whole file, from { to }.'); sys.exit(1)
+          if d.get('type') != 'service_account' or not d.get('private_key'):
+              print('::error::That secret is not a service account key.'); sys.exit(1)
+          print('Key belongs to', d.get('client_email'), 'in project', d.get('project_id'))
+          if d.get('project_id') != 'dovetail-f863c':
+              print('::error::This key is for project ' + str(d.get('project_id')) + ', not dovetail-f863c.'); sys.exit(1)
+          "
+
+      - if: steps.has.outputs.go == 'yes'
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      - if: steps.has.outputs.go == 'yes'
+        uses: google-github-actions/setup-gcloud@v2
+
+      - if: steps.has.outputs.go == 'yes'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - if: steps.has.outputs.go == 'yes'
+        name: Check the Blaze plan
+        run: |
+          gcloud services enable cloudbilling.googleapis.com --project "$PROJECT" >/dev/null 2>&1 || true
+          BILL=$(gcloud billing projects describe "$PROJECT" --format='value(billingEnabled)' 2>/dev/null || echo "unknown")
+          echo "Billing on: $BILL"
+          if [ "$BILL" = "False" ]; then
+            echo "::error::The Firebase project isn't on the Blaze plan yet (no billing account linked). Finish the Blaze upgrade in the Firebase console, then run this again."
+            exit 1
+          fi
+
+      - if: steps.has.outputs.go == 'yes'
+        name: Turn on the Google services notifications use
+        run: |
+          gcloud services enable compute.googleapis.com cloudfunctions.googleapis.com cloudbuild.googleapis.com \
+            artifactregistry.googleapis.com run.googleapis.com eventarc.googleapis.com pubsub.googleapis.com \
+            cloudscheduler.googleapis.com firestore.googleapis.com firebaserules.googleapis.com iam.googleapis.com identitytoolkit.googleapis.com \
+            fcm.googleapis.com fcmregistrations.googleapis.com firebaseinstallations.googleapis.com --project "$PROJECT"
+
+      - if: steps.has.outputs.go == 'yes'
+        name: Give Google's build and event services the access they need
+        run: |
+          NUM=$(gcloud projects describe "$PROJECT" --format='value(projectNumber)')
+          COMPUTE="$NUM-compute@developer.gserviceaccount.com"
+          for i in 1 2 3 4 5 6 7 8 9; do
+            gcloud iam service-accounts describe "$COMPUTE" --project "$PROJECT" >/dev/null 2>&1 && break
+            echo "Waiting for Google to create the default service account ($i)..."; sleep 20
+          done
+          gcloud beta services identity create --service=pubsub.googleapis.com --project "$PROJECT" >/dev/null 2>&1 || true
+          gcloud beta services identity create --service=eventarc.googleapis.com --project "$PROJECT" >/dev/null 2>&1 || true
+          bind() {
+            if gcloud projects add-iam-policy-binding "$PROJECT" --member="serviceAccount:$1" --role="$2" --condition=None --quiet >/dev/null 2>&1; then
+              echo "ok  $2  ->  $1"
+            else
+              echo "::warning::Couldn't give $2 to $1 (the deploy may still work)."
+            fi
+          }
+          bind "$COMPUTE" roles/cloudbuild.builds.builder
+          bind "$COMPUTE" roles/logging.logWriter
+          bind "$COMPUTE" roles/artifactregistry.writer
+          bind "$COMPUTE" roles/eventarc.eventReceiver
+          bind "$COMPUTE" roles/run.invoker
+          bind "$COMPUTE" roles/datastore.user
+          bind "$COMPUTE" roles/firebasecloudmessaging.admin
+          bind "$COMPUTE" roles/firebaseauth.viewer
+          bind "service-$NUM@gcp-sa-pubsub.iam.gserviceaccount.com" roles/iam.serviceAccountTokenCreator
+
+      - if: steps.has.outputs.go == 'yes'
+        name: Find where the database lives
+        run: |
+          LOC=$(gcloud firestore databases describe --database='(default)' --project "$PROJECT" --format='value(locationId)')
+          case "$LOC" in
+            nam5|nam7) R=us-central1 ;;
+            eur3) R=europe-west1 ;;
+            "") echo "::error::Couldn't read where the database lives."; exit 1 ;;
+            *) R="$LOC" ;;
+          esac
+          echo "Database in $LOC, so the notification code runs in $R"
+          echo "FN_REGION=$R" > functions/.env
+
+      - if: steps.has.outputs.go == 'yes'
+        name: Install
+        run: npm install --prefix functions --no-audit --no-fund
+
+      - if: steps.has.outputs.go == 'yes'
+        name: Save the Instagram key for the bot
+        env:
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          NODE_PATH: functions/node_modules
+        run: node scripts/seed-ig-token.js
+
+      - if: steps.has.outputs.go == 'yes'
+        name: Deploy
+        run: |
+          for i in 1 2 3; do
+            if npx --yes firebase-tools@latest deploy --only functions,firestore:rules --project "$PROJECT" --force --non-interactive; then
+              echo "Notifications are live."
+              exit 0
+            fi
+            echo "Attempt $i didn't finish. The first deploy often has to wait while Google switches new services on. Trying again in 2 minutes."
+            sleep 120
+          done
+          exit 1

@@ -1,0 +1,77 @@
+# VPEX's Instagram bot: posts the plan in instagram/ on schedule, answers DEMO and price comments,
+# reminds Vincent about sticker stories, and posts a report every Monday.
+# Needs two repository secrets: IG_TOKEN (the Instagram key) and FIREBASE_SERVICE_ACCOUNT (the Google key).
+# Pause it by adding an empty file named PAUSE to the instagram folder. Test it from the Actions tab: Run workflow > check.
+name: VPEX Instagram bot
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"      # every 15 minutes: post what's due, answer comments
+    - cron: "5 13 * * 1"        # Mondays 9:05 AM New York (8:05 in winter): the weekly report
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "check = test the key and show the plan; run = post what's due now; report = the weekly report"
+        type: choice
+        options: [check, run, report]
+        default: check
+
+concurrency:
+  group: vpex-instagram
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      PROJECT: dovetail-f863c
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wait for the keys
+        id: gate
+        env:
+          IG: ${{ secrets.IG_TOKEN }}
+          SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$IG" ] || [ -z "$SA" ]; then
+            echo "ready=no" >> "$GITHUB_OUTPUT"
+            echo "::notice::The bot is waiting for the IG_TOKEN and FIREBASE_SERVICE_ACCOUNT repository secrets."
+          else
+            echo "ready=yes" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.gate.outputs.ready == 'yes'
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      - if: steps.gate.outputs.ready == 'yes'
+        uses: google-github-actions/setup-gcloud@v2
+
+      - if: steps.gate.outputs.ready == 'yes'
+        name: Turn on storage and the database
+        run: gcloud services enable storage.googleapis.com firestore.googleapis.com fcm.googleapis.com --project "$PROJECT" >/dev/null
+
+      - if: steps.gate.outputs.ready == 'yes'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: instagram-bot/requirements.txt
+
+      - if: steps.gate.outputs.ready == 'yes'
+        run: pip install -q -r instagram-bot/requirements.txt
+
+      - if: steps.gate.outputs.ready == 'yes'
+        name: Run the bot
+        env:
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+          MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || (github.event.schedule == '5 13 * * 1' && 'report' || 'run') }}
+        run: python instagram-bot/bot.py "$MODE"

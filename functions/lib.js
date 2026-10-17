@@ -1,0 +1,179 @@
+// VPEX notifications: the plain logic (no Firebase calls), so it can be tested on its own.
+"use strict";
+
+const APP_URL = "https://vpexdialer.com/";
+const STALE_MS = 2 * 60 * 1000;          // a follow-up that came due more than 2 minutes ago is never queued
+const DROP_MS = 6 * 60 * 60 * 1000;      // a queued alert more than 6 hours late is dropped instead of sent
+const APPT_LEAD_MS = 10 * 60 * 1000;     // appointment reminders go out 10 minutes early
+
+function str(v, max) { v = v == null ? "" : String(v); return max && v.length > max ? v.slice(0, max - 1) + "…" : v; }
+function firstName(n) { return str(n).trim().split(/\s+/)[0] || ""; }
+function isUid(u) { return typeof u === "string" && u.length >= 6 && u !== "me"; }
+
+// Doc ids can't hold "/"; office "" means VPEX's original team (top-level collections).
+function queueId(office, taskId) { return ((office || "_") + "__" + str(taskId)).replace(/[\/#\[\]\.\s]/g, "_").slice(0, 300); }
+
+function isAppt(t) { return /^Appointment/.test(str(t && t.note)); }
+
+// When (if ever) a task should ping the person it's assigned to.
+function notifyAt(t, lead) {
+  if (!t || t.done || typeof t.dueAt !== "number" || !isFinite(t.dueAt)) return null;
+  if (lead && (lead.retired || lead.badNumber)) return null;
+  // Routine "try again" calls after a no answer or voicemail stay in the dialer's queue; they don't buzz the phone.
+  if (t.auto && t.type === "Call" && /^Try \d+/.test(str(t.note))) return null;
+  return isAppt(t) ? t.dueAt - APPT_LEAD_MS : t.dueAt;
+}
+
+function assigneeOf(t, lead) {
+  var u = t && t.assignee && t.assignee.uid;
+  if (!isUid(u)) u = lead && lead.owner && lead.owner.uid;
+  return isUid(u) ? u : null;
+}
+
+// Everything in one lead record that should become a queued alert, keyed by queue doc id.
+function taskEntries(office, chunkId, data, now) {
+  var out = new Map();
+  var leads = (data && data.leads) || {};
+  Object.keys(leads).forEach(function (leadId) {
+    var lead = leads[leadId] || {};
+    (Array.isArray(lead.tasks) ? lead.tasks : []).forEach(function (t) {
+      if (!t || !t.id) return;
+      var at = notifyAt(t, lead), uid = assigneeOf(t, lead);
+      if (at == null || !uid) return;
+      var e = {
+        office: office || "", ck: chunkId, leadId: leadId, taskId: str(t.id, 120), uid: uid, at: at, dueAt: t.dueAt,
+        leadName: str(lead.name || t.leadName || "a lead", 80), type: str(t.type || "Follow-up", 30), note: str(t.note, 200), appt: isAppt(t)
+      };
+      e.sig = [e.at, e.uid, e.note, e.leadName, e.type].join("|");
+      out.set(queueId(office, t.id), e);
+    });
+  });
+  return out;
+}
+
+// What one write to a lead record changes in the queue. Only tasks that are new or changed are (re)queued,
+// so saving a record never re-sends an alert that already went out.
+function diffQueue(office, chunkId, before, after, now) {
+  var was = taskEntries(office, chunkId, before, now), will = taskEntries(office, chunkId, after, now);
+  var upserts = [], removes = [];
+  will.forEach(function (e, k) {
+    var o = was.get(k);
+    if (o && o.sig === e.sig) return;
+    if (e.at < now - STALE_MS) { if (o) removes.push(k); return; }      // already past: the app shows it, no late buzz
+    upserts.push(Object.assign({ id: k }, e));
+  });
+  was.forEach(function (e, k) { if (!will.has(k)) removes.push(k); });
+  return { upserts: upserts, removes: removes };
+}
+
+// Handoffs that just landed on a closer (sent right away, once).
+function handoffEvents(office, before, after, now) {
+  var out = [], bl = (before && before.leads) || {}, al = (after && after.leads) || {};
+  Object.keys(al).forEach(function (id) {
+    var lead = al[id] || {}, h = lead.handoff;
+    if (!h || h.seen || !h.to || !isUid(h.to.uid) || typeof h.at !== "number") return;
+    if (now - h.at > DROP_MS || h.at - now > 5 * 60 * 1000) return;
+    var p = (bl[id] || {}).handoff;
+    if (p && p.at === h.at && p.to && p.to.uid === h.to.uid) return;
+    out.push({ leadId: id, lead: lead, h: h, key: ((office || "_") + "__h_" + id + "_" + h.at).replace(/[\/#\[\]\.\s]/g, "_").slice(0, 300) });
+  });
+  return out;
+}
+
+// Open = not paused, and on a trial, paid (plus 7 days' grace) or free. Same test as the security rules.
+function officeOpen(d, now) {
+  if (!d) return false;
+  if (d.locked === true) return false;
+  if (d.plan === "comp") return true;
+  if (d.plan === "paid") return now < (typeof d.paidThrough === "number" ? d.paidThrough : 99999999999999) + 7 * 86400000;
+  if (d.plan === "trial") return typeof d.trialEnds === "number" && now < d.trialEnds;
+  return false;
+}
+
+function safeTz(tz) {
+  try { if (tz) { new Intl.DateTimeFormat("en-US", { timeZone: tz }); return tz; } } catch (e) {}
+  return "America/New_York";
+}
+function fmtWhen(ts, tz, now) {
+  tz = safeTz(tz);
+  var day = function (t) { return new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(t)); };
+  var time = new Intl.DateTimeFormat("en-US", { timeZone: tz, hour: "numeric", minute: "2-digit" }).format(new Date(ts));
+  var d = day(ts), n = day(now || Date.now()), tm = day((now || Date.now()) + 86400000);
+  if (d === n) return "today " + time;
+  if (d === tm) return "tomorrow " + time;
+  return new Intl.DateTimeFormat("en-US", { timeZone: tz, weekday: "short", month: "short", day: "numeric" }).format(new Date(ts)) + ", " + time;
+}
+
+function leadLink(office, leadId) {
+  var q = [];
+  if (office) q.push("o=" + encodeURIComponent(office));
+  if (leadId) q.push("open=" + encodeURIComponent(leadId));
+  return APP_URL + (q.length ? "?" + q.join("&") : "");
+}
+
+// The first part of a task note, the way the app shows it ("Interested — follow up while it's warm" -> that line).
+function why(note) {
+  var w = str(note).split(" · ")[0].trim();
+  return w.length > 90 ? w.slice(0, 89) + "…" : w;
+}
+
+// One person's alerts from one run of the clock, turned into notifications. Appointments stay separate;
+// three or more follow-ups due at once become one summary instead of a stack of buzzes.
+function dueMessages(items) {
+  var appts = items.filter(function (i) { return i.appt; }), rest = items.filter(function (i) { return !i.appt; });
+  var out = appts.map(function (i) {
+    var n = str(i.note).replace(/^Appointment\s*[—-]\s*/, "");
+    return { kind: "appt", title: "Appointment in 10 min: " + i.leadName, body: n ? n.charAt(0).toUpperCase() + n.slice(1) : "Tap to open their file.", link: leadLink(i.office, i.leadId), tag: "vpex-lead-" + i.leadId, leadId: i.leadId, office: i.office };
+  });
+  if (rest.length >= 3) {
+    var names = rest.slice(0, 3).map(function (i) { return i.leadName; });
+    out.push({ kind: "due", title: rest.length + " follow-ups due now", body: names.join(", ") + (rest.length > 3 ? " and " + (rest.length - 3) + " more" : "") + ". Tap to start.",
+      link: leadLink(rest[0].office, ""), tag: "vpex-due", leadId: "", office: rest[0].office });
+  } else {
+    rest.forEach(function (i) {
+      var cb = /callback/i.test(i.note), fu = i.type === "Follow-up";
+      var w = why(i.note);
+      var title = (cb ? "Callback due: " : fu ? "Follow-up due: " : (i.type && i.type !== "Call" ? i.type + " due: " : "Call due: ")) + i.leadName;
+      var body = cb ? "They asked you to call back now." : (w && !/^interested$/i.test(w) ? w : "Tap to open and call.");
+      out.push({ kind: "due", title: title, body: body, link: leadLink(i.office, i.leadId), tag: "vpex-lead-" + i.leadId, leadId: i.leadId, office: i.office });
+    });
+  }
+  return out;
+}
+
+function handoffMessage(office, ev, tz, now) {
+  var h = ev.h, from = firstName(h.from && h.from.name) || "Your team";
+  var body = (typeof h.apptAt === "number" ? "Appointment " + fmtWhen(h.apptAt, tz, now) : "Tap to open their file.") + (h.note ? " · " + str(h.note, 120) : "");
+  return { kind: "handoff", title: "New handoff from " + from + ": " + str(ev.lead.name || "a lead", 60), body: body, link: leadLink(office, ev.leadId), tag: "vpex-lead-" + ev.leadId, leadId: ev.leadId, office: office || "" };
+}
+
+function testMessage(office) {
+  return { kind: "test", title: "Notifications are on", body: "Follow-ups and handoffs will show up here, even when VPEX is closed.", link: leadLink(office, ""), tag: "vpex-test", leadId: "", office: office || "" };
+}
+
+// The message Firebase Cloud Messaging sends to one phone.
+function fcmMessage(token, m, ttlSec) {
+  return {
+    token: token,
+    data: { kind: m.kind, leadId: m.leadId || "", office: m.office || "", link: m.link },
+    webpush: {
+      headers: { Urgency: "high", TTL: String(ttlSec || 3600) },
+      notification: { title: m.title, body: m.body, icon: APP_URL + "vpex-icon-192.png", badge: APP_URL + "vpex-icon-96.png", tag: m.tag, renotify: true },
+      fcmOptions: { link: m.link }
+    }
+  };
+}
+
+// Tokens that will never work again (app removed, notifications turned off): delete them.
+function deadToken(code) {
+  return code === "messaging/registration-token-not-registered" || code === "messaging/invalid-registration-token" || code === "messaging/invalid-argument";
+}
+
+// Office slug from a login email (name@office.vpex.app); "" for VPEX's original team.
+function officeFromEmail(email) {
+  var m = /@([a-z0-9-]{3,32})\.vpex\.app$/.exec(String(email || "").toLowerCase());
+  return m ? m[1] : "";
+}
+
+module.exports = { APP_URL, STALE_MS, DROP_MS, APPT_LEAD_MS, queueId, notifyAt, assigneeOf, taskEntries, diffQueue, handoffEvents, officeOpen,
+  fmtWhen, leadLink, dueMessages, handoffMessage, testMessage, fcmMessage, deadToken, officeFromEmail, safeTz, firstName };

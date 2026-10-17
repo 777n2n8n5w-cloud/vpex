@@ -1,0 +1,12 @@
+{
+  "name": "VPEX",
+  "short_name": "VPEX",
+  "description": "The power dialer for sales floors.",
+  "display": "standalone",
+  "background_color": "#0E1433",
+  "theme_color": "#0E1433",
+  "icons": [
+    { "src": "vpex-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "vpex-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

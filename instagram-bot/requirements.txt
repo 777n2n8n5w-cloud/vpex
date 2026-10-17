@@ -1,0 +1,4 @@
+requests>=2.31
+google-cloud-storage>=2.14
+google-cloud-firestore>=2.14
+firebase-admin>=6.4

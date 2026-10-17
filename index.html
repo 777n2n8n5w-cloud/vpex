@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-12-10">
+<meta name="vpex-build" content="2026-12-11">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -20,9 +20,11 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" type="image/png" href="vpex-icon-64.png">
+<link rel="manifest" href="manifest.webmanifest">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
 <meta name="format-detection" content="telephone=yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -6494,6 +6496,15 @@
   .demo-pill button { border: 0; border-radius: 999px; padding: 6px 14px; min-height: 32px; background: #E9C46A; color: #111827; font-weight: 700; font-size: 12.5px; font-family: inherit; cursor: pointer; }
   .cu-steps { margin: 0; padding-left: 20px; font-size: 13.5px; color: var(--text-dim); display: flex; flex-direction: column; gap: 6px; }
   .cu-steps b { color: var(--text); }
+  .push-list { margin: 14px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .push-list li { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; line-height: 1.45; color: var(--text-dim); }
+  .push-list li b { color: var(--text); }
+  .push-list svg { flex: none; width: 18px; height: 18px; margin-top: 1px; color: var(--accent); }
+  .push-state { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--surface-raised); color: var(--text-dim); }
+  .push-state.on { background: color-mix(in srgb, var(--interested) 16%, transparent); color: var(--interested); }
+  .push-state i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .push-err { margin-top: 12px; font-size: 11.5px; line-height: 1.45; color: var(--text-faint); word-break: break-word; }
+  .push-share { display: inline-block; width: 15px; height: 15px; vertical-align: -2px; color: var(--accent); }
 
   .rp-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-right: 34px; } .rp-head select { width: auto; }
   .rp-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
@@ -7557,6 +7568,7 @@
       <button class="hub-back" type="button" data-set-back>‹ Settings</button>
       <h3 class="hub-view-h">Account</h3>
       <div class="hub-group">
+        <button class="hub-row" id="pushRowBtn" type="button" hidden><span class="hub-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg></span><span class="hub-t"><b>Notifications</b><span id="pushRowSub">Off · tap to turn on</span></span><span class="hub-go" aria-hidden="true">›</span></button>
         <button class="hub-row" id="lockToggleBtn" type="button"><span class="hub-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><span class="hub-t"><b>Face ID lock</b><span id="lockToggleSub">Off · tap to turn on</span></span><span class="hub-go" aria-hidden="true">›</span></button>
         <button class="hub-row" id="changePwBtn" type="button"><span class="hub-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9"/><path d="M17 6l3 3"/></svg></span><span class="hub-t"><b>Change my password</b><span>Pick a new one any time</span></span><span class="hub-go" aria-hidden="true">›</span></button>
         <button class="hub-row set-danger" id="signOutBtn" type="button"><span class="hub-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></span><span class="hub-t"><b>Sign out</b><span>You can sign back in with your username</span></span><span class="hub-go" aria-hidden="true">›</span></button>
@@ -7963,6 +7975,7 @@
         var u = app._user; if (!u) return false;
         if (app._authBroken) return false;
         var r = relOf(path), uo = emailOffice(u.email), full = path;
+        if (/^push(Tokens|Tests)\//.test(path)) return op !== "read";                  // notifications: anyone signed in writes their own (write() checks); only the server reads
         if (path === "config" || path.indexOf("config/") === 0) return op === "read" || isOwnerEmail(u.email);
         if (path === "offices") return isOwnerEmail(u.email);
         if (isOwnerEmail(u.email)) { if (op === "read") return r.office ? true : (path.indexOf("vault") === 0 ? !window.__noVaultRules : true); if (!r.office) return true; return r.rel === "" || op === "delete"; }
@@ -8026,6 +8039,8 @@
           if (!allowed(app, path, op || "write")) throw err("permission-denied");
           var db = load(FS), before = clone(db[path]); fn(db); var after = db[path];
           window.__mockWrites = (window.__mockWrites || 0) + 1;
+          if (/^pushTokens\//.test(path) && (after ? (after.uid !== app._user.uid || !sameKeys(after, { uid: 1, office: 1, token: 1, ua: 1, tz: 1, at: 1 })) : (!before || before.uid !== app._user.uid))) throw err("permission-denied");
+          if (/^pushTests\//.test(path) && (before || !after || after.uid !== app._user.uid || !sameKeys(after, { uid: 1, office: 1, at: 1 }))) throw err("permission-denied");
           var r = relOf(path), me0 = app._user.uid, owner = isOwnerEmail(app._user.email);
           if (r.office && !owner) {
             var od = db["offices/" + r.office];
@@ -8786,6 +8801,7 @@
       if (l && !l.handoff && closers().some(function (m) { return m.uid !== TEAM.me.uid; })) p.push('<button class="need-pill" type="button" data-handoff="' + l.id + '">\u21aa Hand ' + escapeHtml(firstName(l.name)) + ' to a closer?</button>');
       if (canSeeTeam()) { var od = overdueWarm().length; if (od) p.push('<button class="need-pill warn" type="button" data-need="overdue">\u25b6 Call ' + od + ' late follow-up' + (od === 1 ? '' : 's') + '</button>'); }
       if (secCfg().requireLock && !lockCred() && lockSupported()) p.push('<button class="need-pill warn" type="button" data-need="lock">Turn on Face ID</button>');
+      if (pushPromptDue()) p.push('<button class="need-pill" type="button" data-need="push">\uD83D\uDD14 Get follow-up alerts</button>');
     }
     if (TEAM.on && TEAM.me && TEAM.office) { var bp = billingPillsHtml(); if (bp) p.unshift(bp); }
     if (spamSignal(TEAM.on && TEAM.me ? TEAM.me.uid : null)) p.push('<button class="need-pill warn" type="button" data-need="spam">\u26a0 Spam risk \u00b7 slow down</button>');
@@ -8802,6 +8818,7 @@
     var b = e.target.closest && e.target.closest("[data-need]"); if (!b) return;
     if (b.getAttribute("data-need") === "pay") { payNow(); return; }
     if (b.getAttribute("data-need") === "contact") { openContactEdit(false); return; }
+    if (b.getAttribute("data-need") === "push") { state.pushAsked = true; saveState(); pushSheet(); render(); return; }
     var k = b.getAttribute("data-need");
     if (k === "overdue") startFollowupRun("overdue");
     else if (k === "lock") lockSetup().then(function () { render(); });
@@ -9009,6 +9026,198 @@
     var n = dueTasks().length; if (n === ntBadgeN) return; ntBadgeN = n;
     try { (n ? navigator.setAppBadge(n) : navigator.clearAppBadge()).catch(function () {}); } catch (e) {}
   }
+
+  /* ----- Notifications on the phone, even when VPEX is closed -----
+     The app saves this phone's push token in pushTokens/{id}; Firebase (functions/) sends follow-ups when they come due,
+     appointments 10 minutes early and new handoffs right away. iPhone allows this only for Home Screen web apps (iOS 16.4+). */
+  var PUSH_KEY = "vpex_push", PUSH_ERR = "vpex_push_err";
+  // The public half of the project's Web Push key (Firebase console > Project settings > Cloud Messaging > Web Push certificates).
+  var PUSH_VAPID = "BD2yZOyICh81uxztHdHOfyZKP7JpmepIs3m-_58TlWD6u6pvhDN04IZeUZarptJX8mgs6Z7vcDEDaiHFgR4Ki9Y";
+  var PUSH = { busy: false, booted: false, listening: false };
+  var PUSH_BELL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>';
+  function pushIOS() { return /iPad|iPhone|iPod/.test(navigator.userAgent || "") || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); }
+  function pushHasApi() { return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window; }
+  function pushSdk() { return !!(window.firebase && typeof window.firebase.messaging === "function"); }
+  function pushTeamOk() { return !!(TEAM.on && TEAM.me && TEAM.db && !DEMO && !CUSTOMER.firebase) && (location.protocol === "https:" || /^(localhost|127\.0\.0\.1)$/.test(location.hostname)); }
+  function pushSaved() { try { var x = JSON.parse(window.localStorage.getItem(PUSH_KEY) || "null"); return x && TEAM.me && x.uid === TEAM.me.uid ? x : null; } catch (e) { return null; } }
+  function pushLogErr(e) {
+    var m = (e && (e.code || e.name) ? (e.code || e.name) + ": " : "") + String((e && e.message) || e || "unknown");
+    try { window.localStorage.setItem(PUSH_ERR, JSON.stringify({ at: Date.now(), m: m.slice(0, 300) })); } catch (x) {}
+    try { console.warn("[push]", m); } catch (x) {}
+  }
+  function pushLastErr() { try { var x = JSON.parse(window.localStorage.getItem(PUSH_ERR) || "null"); return x && Date.now() - x.at < 3 * 86400000 ? x : null; } catch (e) { return null; } }
+  // What this phone can do: na (not signed in to a team), install (iPhone, not on the Home Screen yet), update (old iOS),
+  // unsupported (browser can't), blocked (said no), on, off.
+  function pushStatus() {
+    if (!pushTeamOk()) return "na";
+    if (pushIOS() && !isStandalone()) return "install";
+    if (!pushHasApi() || !pushSdk()) return pushIOS() ? "update" : "unsupported";
+    if (Notification.permission === "denied") return "blocked";
+    if (Notification.permission === "granted" && pushSaved()) return "on";
+    return "off";
+  }
+  function pushPromptDue() { var st = pushStatus(); return (st === "off" || st === "install") && !state.pushAsked && TEAM.ready; }
+  function pushRefreshUi() {
+    var row = document.getElementById("pushRowBtn"), sub = document.getElementById("pushRowSub"); if (!row) return;
+    var st = pushStatus();
+    row.hidden = st === "na";
+    if (sub) sub.textContent = { on: "On for this phone", off: "Off · tap to turn on", install: "Add " + SHORT_NAME + " to your Home Screen first", update: "Needs iOS 16.4 or newer",
+      unsupported: "Not available in this browser", blocked: "Blocked in your phone’s settings" }[st] || "";
+  }
+  function pushTimeout(p, ms, code) { return Promise.race([p, new Promise(function (res, rej) { setTimeout(function () { rej({ code: code || "timeout", message: "took longer than " + Math.round(ms / 1000) + "s" }); }, ms); })]); }
+  async function pushTokenId(token) {
+    try {
+      var buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
+      return Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, "0"); }).join("").slice(0, 40);
+    } catch (e) { var h = 0; for (var i = 0; i < token.length; i++) h = ((h << 5) - h + token.charCodeAt(i)) | 0; return "t" + (h >>> 0).toString(36) + "_" + token.length; }
+  }
+  function pushDevice() {
+    var u = navigator.userAgent || "";
+    if (/iPad/.test(u) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)) return "iPad";
+    return /iPhone/.test(u) ? "iPhone" : /Android/.test(u) ? "Android" : /Macintosh/.test(u) ? "Mac" : /Windows/.test(u) ? "Windows" : "Browser";
+  }
+  async function pushWorker() {
+    var reg = await pushTimeout(navigator.serviceWorker.register("firebase-messaging-sw.js"), 15000, "sw-register");
+    await pushTimeout(navigator.serviceWorker.ready, 15000, "sw-ready");
+    return reg;
+  }
+  async function pushGetToken() {
+    var reg = await pushWorker();
+    var token = await pushTimeout(firebase.messaging().getToken(PUSH_VAPID ? { vapidKey: PUSH_VAPID, serviceWorkerRegistration: reg } : { serviceWorkerRegistration: reg }), 20000, "token-timeout");
+    if (!token) throw { code: "no-token", message: "Firebase returned no token" };
+    return token;
+  }
+  async function pushSave(token) {
+    var id = await pushTokenId(token), tz = "";
+    try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch (e) {}
+    await pushTimeout(TEAM.db.collection("pushTokens").doc(id).set({ uid: TEAM.me.uid, office: TEAM.office || "", token: token, ua: pushDevice(), tz: tz.slice(0, 64), at: Date.now() }), 15000, "save-timeout");
+    window.localStorage.setItem(PUSH_KEY, JSON.stringify({ uid: TEAM.me.uid, id: id, token: token, at: Date.now() }));
+    try { window.localStorage.removeItem(PUSH_ERR); } catch (e) {}
+    return id;
+  }
+  function pushAsk() {
+    return new Promise(function (res) {
+      if (Notification.permission === "granted") return res("granted");
+      var r = Notification.requestPermission(res);          // older Safari answers through the callback
+      if (r && typeof r.then === "function") r.then(res, function () { res("default"); });
+    });
+  }
+  // Must run straight from a tap: iPhone only shows the permission question for a tap.
+  function pushTurnOn() {
+    if (PUSH.busy) return;
+    var st = pushStatus();
+    if (st !== "off" && st !== "on") { pushSheet(); return; }
+    PUSH.busy = true; pushSheetBusy(true);
+    pushAsk().then(function (p) {
+      if (p !== "granted") throw { code: p === "denied" ? "blocked" : "dismissed" };
+      return pushGetToken();
+    }).then(pushSave).then(function () {
+      PUSH.busy = false; pushListen(); pushRefreshUi(); render(); pushSheet();
+      showToast("Notifications turned on · Follow-ups and handoffs will reach this phone", { kind: "ok" });
+    }).catch(function (e) {
+      PUSH.busy = false; pushRefreshUi();
+      var code = e && e.code;
+      if (code === "blocked") { pushSheet(); showToast("Notifications are blocked · Turn them on in your phone’s settings", { kind: "warn" }); }
+      else if (code === "dismissed") { pushSheetBusy(false); showToast("Notifications are still off", { kind: "warn" }); }
+      else { pushLogErr(e); pushSheet(); showToast("Couldn’t turn on notifications · Check your connection and try again", { kind: "err" }); }
+    });
+  }
+  async function pushTurnOff(silent) {
+    var x = pushSaved();
+    try { if (x && pushSdk() && pushHasApi()) await pushTimeout(firebase.messaging().deleteToken(), 8000, "delete-timeout"); } catch (e) {}
+    try { if (x && x.id && TEAM.db) await pushTimeout(TEAM.db.collection("pushTokens").doc(x.id).delete(), 8000, "delete-timeout"); } catch (e) {}
+    try { window.localStorage.removeItem(PUSH_KEY); } catch (e) {}
+    if (!silent) { pushRefreshUi(); render(); pushSheet(); showToast("Notifications turned off for this phone"); }
+  }
+  function pushSendTest() {
+    var b = document.getElementById("pushTest"); if (b) { b.disabled = true; b.textContent = "Sending…"; }
+    TEAM.db.collection("pushTests").doc(TEAM.me.uid + "_" + Date.now().toString(36)).set({ uid: TEAM.me.uid, office: TEAM.office || "", at: Date.now() }).then(function () {
+      showToast("Test on its way · Lock your phone or switch apps to see it arrive", { kind: "bell" });
+    }).catch(function (e) { pushLogErr(e); showToast("Couldn’t send a test · Check your connection", { kind: "err" }); })
+      .then(function () { setTimeout(function () { var b2 = document.getElementById("pushTest"); if (b2) { b2.disabled = false; b2.textContent = "Send a test"; } }, 4000); });
+  }
+  // With VPEX open, Firebase hands the message to the page instead of the lock screen. Follow-ups and handoffs
+  // already show as banners in the open app, so only the test needs a banner here.
+  function pushListen() {
+    if (PUSH.listening || !pushSdk() || !pushHasApi() || (pushIOS() && !isStandalone())) return;
+    try {
+      firebase.messaging().onMessage(function (p) {
+        var d = (p && p.data) || {};
+        if (d.kind === "test") showToast("Test notification received · Notifications work on this phone", { kind: "bell", tone: "interested" });
+      });
+      PUSH.listening = true;
+    } catch (e) { pushLogErr(e); }
+  }
+  // Each time the app opens: keep this phone's token current (they change now and then), quietly.
+  function pushBoot() {
+    if (PUSH.booted || !pushTeamOk() || !TEAM.ready) return;
+    PUSH.booted = true;
+    pushRefreshUi();
+    if (pushStatus() !== "on") return;
+    pushListen();
+    var x = pushSaved();
+    pushGetToken().then(function (tok) {
+      if (tok === x.token && Date.now() - (x.at || 0) < 3 * 86400000) return;
+      return pushSave(tok).then(function (id) { if (x.id && id !== x.id) return TEAM.db.collection("pushTokens").doc(x.id).delete().catch(function () {}); });
+    }).catch(function (e) { pushLogErr(e); });
+  }
+  setInterval(pushBoot, 3000);
+  function pushSheetBusy(on) { var b = document.getElementById("pushOn"); if (b) { b.disabled = !!on; b.textContent = on ? "Turning on…" : "Turn on notifications"; } }
+  function pushSheet() {
+    var st = pushStatus(), err = pushLastErr(), ios = pushIOS();
+    var what = '<ul class="push-list">' +
+      '<li>' + PUSH_BELL + '<span><b>Follow-ups and callbacks</b> the minute they come due</span></li>' +
+      '<li>' + PUSH_BELL + '<span><b>Appointments</b> 10 minutes before they start</span></li>' +
+      '<li>' + PUSH_BELL + '<span><b>New handoffs</b> the moment a lead is handed to you</span></li></ul>';
+    var share = '<svg class="push-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Share"><path d="M12 15V3"/><path d="M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>';
+    var h = "";
+    if (st === "on") {
+      h = '<h3>Notifications</h3><span class="push-state on"><i></i>On for this phone</span><p class="modal-sub" style="margin-top:10px">' + escapeHtml(SHORT_NAME) + ' sends these to this phone, even when the app is closed:</p>' + what +
+        '<div class="modal-actions"><button class="btn-primary" id="pushTest" style="width:100%">Send a test</button><button class="btn-secondary" id="pushOff" style="width:100%">Turn off</button></div>';
+    } else if (st === "off") {
+      h = '<h3>Turn on notifications</h3><p class="modal-sub">Get a notification on this ' + (ios ? "iPhone" : "device") + ', even when ' + escapeHtml(SHORT_NAME) + ' is closed:</p>' + what +
+        '<p class="fu-hint">Routine next tries after a no answer stay in your call queue. They don’t buzz your phone.</p>' +
+        '<div class="modal-actions"><button class="btn-primary" id="pushOn" style="width:100%">Turn on notifications</button></div>';
+    } else if (st === "install") {
+      h = '<h3>Get notifications on your iPhone</h3><p class="modal-sub">iPhone sends notifications only to apps on your Home Screen. It takes about 10 seconds, one time:</p>' +
+        '<ol class="cu-steps" style="margin-top:12px"><li>Tap the <b>Share</b> button ' + share + ' in Safari.</li><li>Scroll down and tap <b>Add to Home Screen</b>, then <b>Add</b>.</li><li>Open ' + escapeHtml(SHORT_NAME) + ' from the new icon, sign in, then come back here: Settings, Account, <b>Notifications</b>.</li></ol>' +
+        what + '<div class="modal-actions"><button class="btn-secondary" id="pushOk" style="width:100%">Got it</button></div>';
+    } else if (st === "update") {
+      h = '<h3>Update your iPhone first</h3><p class="modal-sub">Notifications from Home Screen apps need iOS 16.4 or newer. Open <b>Settings</b>, <b>General</b>, <b>Software Update</b>, then open ' + escapeHtml(SHORT_NAME) + ' from your Home Screen again.</p>' +
+        '<div class="modal-actions"><button class="btn-secondary" id="pushOk" style="width:100%">Got it</button></div>';
+    } else if (st === "blocked") {
+      h = '<h3>Notifications are blocked</h3><p class="modal-sub">This ' + (ios ? "iPhone" : "browser") + ' was told not to show ' + escapeHtml(SHORT_NAME) + ' notifications. To allow them:</p>' +
+        (ios ? '<ol class="cu-steps" style="margin-top:12px"><li>Open your iPhone’s <b>Settings</b>, then <b>Notifications</b>.</li><li>Tap <b>' + escapeHtml(SHORT_NAME) + '</b> and turn on <b>Allow Notifications</b>.</li><li>Come back and tap <b>Try again</b>.</li></ol>'
+             : '<ol class="cu-steps" style="margin-top:12px"><li>Tap the icon to the left of the web address.</li><li>Set <b>Notifications</b> to <b>Allow</b>.</li><li>Tap <b>Try again</b>.</li></ol>') +
+        '<div class="modal-actions"><button class="btn-primary" id="pushRetry" style="width:100%">Try again</button></div>';
+    } else if (st === "unsupported") {
+      h = '<h3>Notifications</h3><p class="modal-sub">This browser can’t show notifications from websites. Use Chrome, Edge, Firefox or Safari, or put ' + escapeHtml(SHORT_NAME) + ' on your phone’s Home Screen.</p>' +
+        '<div class="modal-actions"><button class="btn-secondary" id="pushOk" style="width:100%">Got it</button></div>';
+    } else return;
+    if (err && st !== "on") h += '<div class="push-err">Last problem: ' + escapeHtml(err.m) + '</div>';
+    featOpen(h);
+    var on = function (id, fn) { var el = document.getElementById(id); if (el) el.addEventListener("click", fn); };
+    on("pushOn", pushTurnOn);
+    on("pushOff", function () { pushTurnOff(false); });
+    on("pushTest", pushSendTest);
+    on("pushOk", featClose);
+    on("pushRetry", function () { if (Notification.permission === "denied") { pushSheet(); showToast("Still blocked · Allow notifications in Settings first", { kind: "warn" }); } else pushTurnOn(); });
+  }
+  // A tap on a notification opens VPEX at ?open=<lead id>: show that lead as soon as the list has loaded.
+  var PUSH_OPEN = (function () {
+    try {
+      var q = new URLSearchParams(location.search), v = q.get("open") || "";
+      if (v) { q.delete("open"); var rest = q.toString(); history.replaceState(null, "", location.pathname + (rest ? "?" + rest : "") + location.hash); }
+      return v.slice(0, 80);
+    } catch (e) { return ""; }
+  })();
+  if (PUSH_OPEN) (function () {
+    var tries = 0, iv = setInterval(function () {
+      tries++;
+      if (TEAM.ready && state && state.leads && findLeadById(PUSH_OPEN)) { clearInterval(iv); var id = PUSH_OPEN; PUSH_OPEN = ""; setTimeout(function () { openLeadProfile(id); }, 300); return; }
+      if (tries > 120) clearInterval(iv);
+    }, 500);
+  })();
 
   // In-page confirmation, used instead of window.confirm() everywhere in this
   // app. Native confirm() dialogs can be silently blocked or auto-dismissed in
@@ -12546,6 +12755,7 @@
 
   async function teamSignOut() {
     teamReleaseClaim();
+    try { await pushTurnOff(true); } catch (e) {}
     try { await teamFlush(); } catch (e) {}
     await forceSignOut("");
   }
@@ -12559,6 +12769,7 @@
     clearInterval(TEAM.heartbeat); clearInterval(TEAM.dayTimer); clearTimeout(TEAM.flushTimer); clearInterval(TEAM.ownerTimer); TEAM.newOffices = 0;
     TEAM.me = null; TEAM.ready = false; TEAM.members = {}; TEAM.lastSent = {}; TEAM.fastSig = {}; TEAM.lastCk = {}; TEAM.days = {}; TEAM.myClaimId = null; teamForgetHistory();
     TEAM.office = null; TEAM.officeDoc = null; TEAM.contactAsked = false;
+    PUSH.booted = false;
     var pse = document.getElementById("pausedScreen"); if (pse) pse.style.display = "none";
     STORAGE_KEY = "dovetail_team_signedout";
     state = defaultState();
@@ -14951,6 +15162,7 @@
     b.style.display = lockSupported() ? "" : "none";
     var ls = document.getElementById("lockToggleSub");
     if (ls) ls.textContent = lockCred() ? "On \u00b7 tap to turn off" : "Off \u00b7 tap to turn on"; else b.textContent = lockCred() ? "Face ID lock: On (tap to turn off)" : "Turn on Face ID lock";
+    pushRefreshUi();
   }
   function openSecurity() {
     var c = secCfg();
@@ -15231,6 +15443,7 @@
           // VPEX's own link preview, search listing and icon files stay with VPEX; the copy draws its own icon.
           .replace(/<meta (?:property="og:|name="twitter:|name="description")[^>]*>\n?/g, "")
           .replace(/<link rel="(?:icon|apple-touch-icon)"[^>]*vpex-icon[^>]*>\n?/g, "")
+          .replace(/<link rel="manifest"[^>]*>\n?/g, "")
           .replace(/(<meta name="robots" content=")[^"]*/, function (m0, a) { return a + "noindex, nofollow"; }) + src.slice(hi);
         if (out.indexOf("var CUSTOMER = ") < 0 || out.length < src.length * 0.99) throw new Error("copy check");
         var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([out], { type: "text/html" })); a.download = "index.html";
@@ -16428,6 +16641,7 @@
         } else on();
       });
     })();
+    document.getElementById("pushRowBtn").addEventListener("click", function () { closeMenuModal(); pushSheet(); });
     document.getElementById("setAutoAdvance").addEventListener("change", function (e) { state.autoAdvance = e.target.checked; saveState(); showToast(state.autoAdvance ? "Auto-advance on" : "Auto-advance off"); });
     document.getElementById("openFuRulesBtn").addEventListener("click", function () { closeMenuModal(); openFuRules(); });
 
