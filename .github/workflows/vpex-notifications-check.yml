@@ -39,7 +39,21 @@ jobs:
       - name: Check
         id: check
         run: |
-          note()  { python3 -c "import sys; t=sys.stdin.read()[:6000]; print('::notice title=$1::' + t.replace('%','%25').replace('\r','').replace('\n','%0A'))"; }
+          # GitHub keeps only 10 notes per step, so sections are collected and posted together at the end
+          note()  { { echo "■ $1"; cat; echo; } >> /tmp/summary.txt; }
+          flush() { python3 - <<'PY'
+          t = open("/tmp/summary.txt").read() if __import__("os").path.exists("/tmp/summary.txt") else ""
+          parts, cur = [], ""
+          for sec in t.split("■ ")[1:]:
+              sec = "■ " + sec
+              if len(cur) + len(sec) > 5500 and cur: parts.append(cur); cur = ""
+              cur += sec[:5500]
+          if cur: parts.append(cur)
+          for i, p in enumerate(parts[:8]):
+              print("::notice title=Check details %d of %d::" % (i + 1, len(parts[:8])) + p.replace("%", "%25").replace("\r", "").replace("\n", "%0A"))
+          PY
+          }
+          trap flush EXIT
           fail()  { echo "::error title=$1::$2"; BAD=1; }
           BAD=0
           T=$(gcloud auth print-access-token)
