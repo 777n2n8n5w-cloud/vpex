@@ -4,12 +4,14 @@
 //  - sendDue: every minute, send the follow-ups that just came due.
 //  - sendTest: the "Send a test" button in the app.
 //  - morningDigest: weekdays at 8:30 in each rep's time zone, what's waiting today.
+//  - igDone: the "Done" button on an Instagram hand-off page (marks that post as posted by hand; needs the page's own key).
 // Tokens live in pushTokens/{id} (written by the app, readable only here). The queue lives in pushQueue/{id}.
 "use strict";
 
 const { onDocumentWritten, onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { setGlobalOptions } = require("firebase-functions/v2");
+const { onRequest } = require("firebase-functions/v2/https");
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
 const L = require("./lib");
@@ -212,4 +214,26 @@ exports.morningDigest = onSchedule({ schedule: "30 * * * *", timeZone: "Etc/UTC"
     sent += r.sent;
   }
   logger.info("morning summary", { people: people.size, due, sent });
+});
+
+// The Instagram bot's hand-off page: Vincent taps Done after posting by hand. Each page carries a one-time key that the bot
+// saved with that post, so only that page can mark that post. Nothing else can be read or changed through this.
+exports.igDone = onRequest({ invoker: "public", cors: true, maxInstances: 2, memory: "128MiB", timeoutSeconds: 20 }, async function (req, res) {
+  const id = String(req.query.id || ""), k = String(req.query.k || "");
+  if (req.method !== "POST" || !/^[A-Za-z0-9._-]{1,120}$/.test(id) || k.length < 16) { res.status(400).json({ ok: false }); return; }
+  const ref = db.doc("igBot/posted/items/" + id);
+  try {
+    const out = await db.runTransaction(async function (t) {
+      const s = await t.get(ref);
+      if (!s.exists || !s.get("doneKey") || s.get("doneKey") !== k) return "denied";
+      if (s.get("by") === "hand" && s.get("status") === "posted") return "already";
+      t.update(ref, { status: "posted", by: "hand", doneAt: Date.now() / 1000 });
+      return "ok";
+    });
+    if (out === "denied") { res.status(403).json({ ok: false }); return; }
+    res.json({ ok: true, already: out === "already" });
+  } catch (e) {
+    logger.error("igDone failed", { id: id, err: String(e) });
+    res.status(500).json({ ok: false });
+  }
 });
