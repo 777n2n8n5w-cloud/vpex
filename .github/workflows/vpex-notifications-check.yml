@@ -64,9 +64,13 @@ jobs:
           # 1. The functions
           gcloud functions list --project "$PROJECT" --regions "$R" --format='value(name.basename(),state)' > /tmp/fns.txt 2>/tmp/fns.err || true
           (echo "Region $R"; cat /tmp/fns.txt /tmp/fns.err) | note "Functions"
-          for f in queueFromOffice queueFromTeam sendDue sendTest; do
+          for f in queueFromOffice queueFromTeam sendDue sendTest igDone; do
             grep -q "^$f[[:space:]]*ACTIVE" /tmp/fns.txt || fail "Function $f" "$f isn't ACTIVE."
           done
+          # The Instagram hand-off page's Done button: reachable from a phone, and it refuses a wrong key
+          D=$(curl -s -o /dev/null -w '%{http_code}' -X POST "https://$R-$PROJECT.cloudfunctions.net/igDone?id=ci-check&k=not-a-real-key-123456")
+          echo "Done button endpoint answered HTTP $D to a wrong key (403 = right)." | note "Done button"
+          [ "$D" = "403" ] || fail "Done button" "igDone answered $D to a wrong key; it should be 403."
 
           # 2. The every-minute timer
           gcloud scheduler jobs list --project "$PROJECT" --location "$R" --format='value(name.basename(),state,lastAttemptTime,status.code)' > /tmp/jobs.txt 2>&1 || true
