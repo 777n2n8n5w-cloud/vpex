@@ -438,6 +438,40 @@ def check(state, ig):
     except IGError as e:
         log("couldn't read the posting limit:", e)
 
+# Every post's numbers (not just this week), to learn what works. Saved to the bot's state for later weeks too.
+def insights(state, ig):
+    acct = ig.me()
+    media = ig.call("GET", ig.user_id + "/media", fields="id,caption,media_type,media_product_type,timestamp,permalink,like_count,comments_count", limit=50).get("data", [])
+    rows = []
+    for m in media:
+        ins = {}
+        mets = ["reach", "views", "saved", "shares", "total_interactions", "follows", "profile_visits"]
+        if (m.get("media_product_type") or "").upper() == "REELS": mets += ["ig_reels_avg_watch_time"]
+        for metric in mets:
+            try:
+                d = ig.call("GET", m["id"] + "/insights", metric=metric).get("data", [])
+                if d: ins[metric] = d[0].get("values", [{}])[0].get("value", d[0].get("total_value", {}).get("value", 0)) or 0
+            except IGError:
+                pass
+        ts = m.get("timestamp", "")
+        try: local = dt.datetime.fromisoformat(ts.replace("+0000", "+00:00")).astimezone(ZoneInfo("America/New_York"))
+        except Exception: local = None
+        rows.append({"id": m["id"], "when": local.strftime("%a %b %d %I:%M %p") if local else ts, "hour": local.hour if local else None,
+                     "type": (m.get("media_product_type") or m.get("media_type") or "").upper(), "hook": (m.get("caption") or "").strip().split("\n")[0][:70],
+                     "reach": ins.get("reach", 0), "views": ins.get("views", 0), "saves": ins.get("saved", 0), "shares": ins.get("shares", 0),
+                     "likes": m.get("like_count", 0) or 0, "comments": m.get("comments_count", 0) or 0, "follows": ins.get("follows", 0),
+                     "visits": ins.get("profile_visits", 0), "watch_ms": ins.get("ig_reels_avg_watch_time", 0)})
+    log("@%s: %s followers, %d posts" % (acct.get("username"), acct.get("followers_count"), len(rows)))
+    log("when | type | reach | views | likes | comments | saves | shares | follows | profile visits | avg watch s | hook")
+    for r in rows:
+        log("%s | %s | %d | %d | %d | %d | %d | %d | %d | %d | %.1f | %s" % (r["when"], r["type"][:6], r["reach"], r["views"], r["likes"], r["comments"], r["saves"], r["shares"], r["follows"], r["visits"], (r["watch_ms"] or 0) / 1000.0, r["hook"]))
+    def avg(xs, k): return sum(x[k] for x in xs) / len(xs) if xs else 0
+    for t in sorted(set(r["type"] for r in rows)):
+        g = [r for r in rows if r["type"] == t]
+        log("%s: %d posts, avg reach %.0f, views %.0f, likes %.1f, saves %.1f, shares %.1f" % (t, len(g), avg(g, "reach"), avg(g, "views"), avg(g, "likes"), avg(g, "saves"), avg(g, "shares")))
+    state.set("meta", "insights", {"at": time.time(), "followers": acct.get("followers_count"), "rows": rows})
+    return rows
+
 def _norm(t): return re.sub(r"[^a-z0-9]+", " ", (t or "").lower()).strip()[:60]
 
 # What's already on the account, matched against the plan, so nothing is posted twice.
@@ -475,6 +509,7 @@ def main():
         raise SystemExit("Instagram rejected the key: " + str(e))
     if mode == "check": return check(state, ig)
     if mode == "inventory": return inventory(state, ig, mark=False)
+    if mode == "insights": return insights(state, ig)
     if mode == "sync": return inventory(state, ig, mark=True)
     if mode == "report": return report(state, note, ig)
     media = Media(os.environ.get("BOT_MEDIA", "gcs"))
