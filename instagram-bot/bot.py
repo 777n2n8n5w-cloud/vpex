@@ -21,6 +21,9 @@ OWNER_EMAIL = os.environ.get("OWNER_EMAIL", "vincent@dovetail-f863c.firebaseapp.
 CONTENT_DIR = os.environ.get("IG_CONTENT", os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "instagram"))
 FEED_GRACE_H = float(os.environ.get("IG_FEED_GRACE_H", "12"))   # a feed post more than this late is skipped, not dumped late
 STORY_GRACE_H = float(os.environ.get("IG_STORY_GRACE_H", "3"))
+# never post in bursts (5 posts in 20 minutes reached 4-8 people each): after an outage, catch up with this much space
+FEED_GAP_MIN = float(os.environ.get("IG_FEED_GAP_MIN", "120"))
+STORY_GAP_MIN = float(os.environ.get("IG_STORY_GAP_MIN", "60"))
 MAX_ATTEMPTS = 3
 SITE = "vpexdialer.com"
 
@@ -340,10 +343,16 @@ def run(state, media, note, ig):
             note.send("Instagram bot: files missing", it.get("title", iid) + " needs " + ", ".join(miss)); continue
         tries = rec.get("attempts", 0)
         if tries >= MAX_ATTEMPTS: continue
+        kind = "story" if it["type"] == "story" else "feed"
+        last = state.get("meta", "last_post") or {}
+        since = (time.time() - (last.get(kind) or 0)) / 60
+        if since < (STORY_GAP_MIN if kind == "story" else FEED_GAP_MIN):
+            log("waiting to post", iid, "- the last %s post went up %d minutes ago" % (kind, since)); continue
         try:
             log("posting", iid, "(" + it["type"] + ")")
             mid, link = post_item(ig, media, pk, it)
             state.set("posted", iid, {"status": "posted", "at": time.time(), "mediaId": mid, "permalink": link, "title": it.get("title", iid)})
+            last[kind] = time.time(); state.set("meta", "last_post", last)
             log("posted", iid, link)
             if it["type"] != "story": note.send("Posted: " + it.get("title", iid), "It's live on Instagram. Tap to see it.", link or "https://www.instagram.com/")
         except IGError as e:
