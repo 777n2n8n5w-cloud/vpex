@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-12-16">
+<meta name="vpex-build" content="2026-12-17">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -16474,7 +16474,9 @@
   function opsAllowed() { return !!(TEAM.on && TEAM.me && (isAdmin() || isManager())); }
   function opsCallTs(c) {
     if (opsTs) { var v = opsTs.get(c); if (v !== undefined) return v; }
-    var t = Date.parse(c.timestamp); if (opsTs && t === t) opsTs.set(c, t);
+    var v = c.timestamp, t = typeof v === "number" ? v : Date.parse(v);
+    if (t !== t && v) t = new Date(v).getTime();   // any older or odd format still counts
+    if (opsTs && t === t) opsTs.set(c, t);
     return t;
   }
   // The call-log pass is the heavy part on big floors, so it runs only when a call arrives or the minute changes.
