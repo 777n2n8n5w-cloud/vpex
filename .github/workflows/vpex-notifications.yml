@@ -1,4 +1,5 @@
-# Puts VPEX's notification code (functions/) and database rules (firestore-rules.txt) live in Firebase.
+# Puts VPEX's notification code (functions/), database rules (firestore-rules.txt) and the rules for
+# lead files (storage-rules.txt, tested first) live in Firebase. Sets up the file store the first time.
 # Before the Firebase project is on the Blaze plan, only the database rules go live.
 # Runs by itself when those files change, or from the Actions tab: "Deploy VPEX notifications" > Run workflow.
 # Needs the repository secret FIREBASE_SERVICE_ACCOUNT (the Google key file's text).
@@ -11,6 +12,8 @@ on:
       - "functions/**"
       - "firebase.json"
       - "firestore-rules.txt"
+      - "storage-rules.txt"
+      - "tools/storage_rules_test.py"
       - ".github/workflows/vpex-notifications.yml"
   workflow_dispatch:
 
@@ -90,7 +93,8 @@ jobs:
           gcloud services enable compute.googleapis.com cloudfunctions.googleapis.com cloudbuild.googleapis.com \
             artifactregistry.googleapis.com run.googleapis.com eventarc.googleapis.com pubsub.googleapis.com \
             cloudscheduler.googleapis.com firestore.googleapis.com firebaserules.googleapis.com iam.googleapis.com identitytoolkit.googleapis.com \
-            fcm.googleapis.com fcmregistrations.googleapis.com firebaseinstallations.googleapis.com --project "$PROJECT"
+            fcm.googleapis.com fcmregistrations.googleapis.com firebaseinstallations.googleapis.com \
+            storage.googleapis.com firebasestorage.googleapis.com --project "$PROJECT"
 
       - if: steps.has.outputs.go == 'yes' && steps.bill.outputs.blaze == 'yes'
         name: Give Google's build and event services the access they need
@@ -119,6 +123,9 @@ jobs:
           bind "$COMPUTE" roles/firebasecloudmessaging.admin
           bind "$COMPUTE" roles/firebaseauth.viewer
           bind "service-$NUM@gcp-sa-pubsub.iam.gserviceaccount.com" roles/iam.serviceAccountTokenCreator
+          # The rules for lead files look up who's an active login in the database
+          gcloud beta services identity create --service=firebasestorage.googleapis.com --project "$PROJECT" >/dev/null 2>&1 || true
+          bind "service-$NUM@gcp-sa-firebasestorage.iam.gserviceaccount.com" roles/firebaserules.firestoreServiceAgent
 
       - if: steps.has.outputs.go == 'yes' && steps.bill.outputs.blaze == 'yes'
         name: Find where the database lives
@@ -165,6 +172,34 @@ jobs:
             grep -E '^[-+][^-+]' /tmp/rules.diff | note "Database rules: what this deploy changes"
           fi
 
+      - if: steps.has.outputs.go == 'yes' && steps.bill.outputs.blaze == 'yes'
+        name: Set up the file store for lead files
+        id: files
+        run: |
+          T=$(gcloud auth print-access-token)
+          API="https://firebasestorage.googleapis.com/v1beta/projects/$PROJECT/defaultBucket"
+          name() { python3 -c "import sys,json; print(json.load(sys.stdin).get('bucket',{}).get('name','').split('/')[-1])"; }
+          B=$(curl -sf -H "Authorization: Bearer $T" "$API" | name || true)
+          if [ -z "$B" ]; then
+            LOC=$(gcloud firestore databases describe --database='(default)' --project "$PROJECT" --format='value(locationId)')
+            case "$LOC" in nam5|nam7|us-central1) BL=US-CENTRAL1 ;; us-east1) BL=US-EAST1 ;; us-west1) BL=US-WEST1 ;; eur3) BL=EUROPE-WEST1 ;; *) BL=$(echo "$LOC" | tr a-z A-Z) ;; esac
+            echo "No file store yet. Making one in $BL, next to the database ($LOC)."
+            for i in 1 2 3; do
+              B=$(curl -s -X POST -H "Authorization: Bearer $T" -H "Content-Type: application/json" "$API" -d "{\"location\":\"$BL\"}" | tee /tmp/bucket.json | name || true)
+              [ -n "$B" ] && break
+              B=$(curl -sf -H "Authorization: Bearer $T" "$API" | name || true)
+              [ -n "$B" ] && break
+              echo "Not yet:"; head -c 600 /tmp/bucket.json; echo; sleep 30
+            done
+          fi
+          if [ -z "$B" ]; then echo "::error title=Lead files::Couldn't make the file store for lead files."; echo "ok=no" >> "$GITHUB_OUTPUT"; exit 0; fi
+          echo "File store: $B"
+          echo "ok=yes" >> "$GITHUB_OUTPUT"
+
+      - if: steps.has.outputs.go == 'yes'
+        name: Test the rules for lead files
+        run: python3 tools/storage_rules_test.py
+
       - if: steps.has.outputs.go == 'yes'
         name: Deploy
         run: |
@@ -180,5 +215,18 @@ jobs:
             fi
             echo "Attempt $i didn't finish. The first deploy often has to wait while Google switches new services on. Trying again in 2 minutes."
             sleep 120
+          done
+          exit 1
+
+      - if: steps.has.outputs.go == 'yes' && steps.files.outputs.ok == 'yes'
+        name: Put the rules for lead files live
+        run: |
+          for i in 1 2 3; do
+            if npx --yes firebase-tools@latest deploy --only storage --project "$PROJECT" --force --non-interactive; then
+              echo "Lead files are on: only each office's active logins can open, add or delete them."
+              exit 0
+            fi
+            echo "Attempt $i didn't finish. A new file store can take a minute to be ready. Trying again in 1 minute."
+            sleep 60
           done
           exit 1

@@ -1,0 +1,55 @@
+rules_version = '2';
+// Who can open, add and delete the photos and documents attached to leads.
+// Same people as the database rules (firestore-rules.txt): only an office's own active logins see its files.
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() { return request.auth != null; }
+    function isOwner() {
+      return signedIn() && request.auth.token.email == 'vincent@dovetail-f863c.firebaseapp.com';
+    }
+    // A new file: a photo or an office document, 20 MB at most, labelled with who added it and which lead it's for.
+    function okFile(lead) {
+      return request.resource.size > 0 && request.resource.size <= 20 * 1024 * 1024
+        && request.resource.contentType.matches('image/[a-z0-9.+-]+|application/pdf|application/msword|application/vnd[.]ms-excel|application/rtf|application/vnd[.]openxmlformats-officedocument[.](wordprocessingml[.]document|spreadsheetml[.]sheet)|text/(csv|plain|rtf)')
+        && request.resource.metadata.uid == request.auth.uid
+        && request.resource.metadata.lead == lead;
+    }
+    function addedBy() { return resource.metadata.uid == request.auth.uid; }
+
+    // ---- Original team: logins listed in the top-level members ----
+    function tPath() { return /databases/(default)/documents/members/$(request.auth.uid); }
+    function tActive() {
+      return isOwner() || (signedIn() && firestore.exists(tPath()) && firestore.get(tPath()).data.active == true);
+    }
+    function tAdmin() { return isOwner() || (tActive() && firestore.get(tPath()).data.role == 'admin'); }
+    match /team/leadFiles/{lead}/{file} {
+      allow get: if tActive();
+      allow create: if tActive() && okFile(lead);
+      allow delete: if tAdmin() || (tActive() && addedBy());
+    }
+
+    // ---- Every other office: offices/{office}/... Only logins made for that office (name@office.vpex.app) ----
+    function inOffice(office) {
+      return signedIn() && office.matches('^[a-z0-9-]{3,32}$') && request.auth.token.email is string
+        && request.auth.token.email.matches('^[a-z0-9._-]+@' + office + '\\.vpex\\.app$');
+    }
+    function oPath(office) { return /databases/(default)/documents/offices/$(office)/members/$(request.auth.uid); }
+    function oActive(office) {
+      return inOffice(office) && firestore.exists(oPath(office)) && firestore.get(oPath(office)).data.active == true;
+    }
+    function oAdmin(office) { return oActive(office) && firestore.get(oPath(office)).data.role == 'admin'; }
+    function oDoc(office) { return firestore.get(/databases/(default)/documents/offices/$(office)).data; }
+    // Open = not paused by VPEX, and on a trial, paid (plus 7 days' grace for a failed card) or free.
+    function oOpen(office) {
+      return oDoc(office).get('locked', false) != true && (oDoc(office).plan == 'comp'
+        || (oDoc(office).plan == 'paid' && request.time.toMillis() < oDoc(office).get('paidThrough', 99999999999999) + 604800000)
+        || (oDoc(office).plan == 'trial' && request.time.toMillis() < oDoc(office).trialEnds));
+    }
+    match /offices/{office}/leadFiles/{lead}/{file} {
+      allow get: if isOwner() || oActive(office);
+      allow create: if oActive(office) && oOpen(office) && okFile(lead);
+      allow delete: if isOwner() || oAdmin(office) || (oActive(office) && addedBy());
+    }
+    // Anything else: nobody. (No listing folders, no changing a file in place.)
+  }
+}

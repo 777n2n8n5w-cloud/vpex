@@ -9,5 +9,8 @@
   ],
   "firestore": {
     "rules": "firestore-rules.txt"
+  },
+  "storage": {
+    "rules": "storage-rules.txt"
   }
 }
