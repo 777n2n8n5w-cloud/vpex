@@ -6634,7 +6634,7 @@
   .fu-picks { display: flex; gap: 6px; min-width: 0; }
   .fu-picks .seg-b { min-width: 0; padding: 0 4px; }
   /* ---- Files on a lead ---- */
-  .lf { margin-top: 14px; }
+  .lf { position: relative; margin-top: 14px; }
   .lf-head { display: flex; align-items: baseline; gap: 6px; margin: 0 0 6px; font-size: 12.5px; font-weight: 600; color: var(--text-dim); }
   .lf-head small { font-size: 12px; font-weight: 700; color: var(--text-faint); }
   .lf-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
@@ -6664,6 +6664,7 @@
   .lf-job.err small { color: var(--danger); font-weight: 600; }
   .lf-jb { display: flex; gap: 4px; margin-top: 6px; }
   .lf-jb button { min-height: 30px; padding: 0 9px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .lf-input { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; clip: rect(0 0 0 0); pointer-events: none; }
   .lf-note { margin: 6px 0 0; font-size: 12px; line-height: 1.4; color: var(--text-faint); }
   .modal-overlay.lfv-ov { z-index: 105; align-items: stretch; padding: 0; background: rgba(0, 0, 0, 0.96); }
   #confirmModal { z-index: 110; }
@@ -8514,18 +8515,20 @@
     if (WORD_RE) t = t.replace(WORD_RE, function (m, w, off, str) { return w === "Closed" && str.substr(off + 6, 5) === " Lost" ? w : WORDMAP[w]; });
     return t;
   }
-  function brandNode(n) {
-    if (n.nodeType === 3) { var p = n.parentNode; if (p && (/^(TEXTAREA|SCRIPT|STYLE)$/.test(p.nodeName) || (p.closest && p.closest("[data-raw]")))) return; var v = brandText(n.nodeValue); if (v !== n.nodeValue) n.nodeValue = v; return; }
+  // Text inside [data-raw] (the office's own words: call scripts, file names) is never swapped.
+  function brandNode(n, inner) {
+    if (!inner) { var top = n.nodeType === 3 ? n.parentNode : n; if (top && top.closest && top.closest("[data-raw]")) return; }
+    if (n.nodeType === 3) { var p = n.parentNode; if (p && /^(TEXTAREA|SCRIPT|STYLE)$/.test(p.nodeName)) return; var v = brandText(n.nodeValue); if (v !== n.nodeValue) n.nodeValue = v; return; }
     if (n.nodeType !== 1 || /^(SCRIPT|STYLE|TEXTAREA)$/.test(n.nodeName) || n.hasAttribute("data-raw")) return;
     if (n.nodeName === "OPTION" && !n.hasAttribute("value")) n.setAttribute("value", n.textContent);   // relabel only; the stored value stays
     ["placeholder", "aria-label", "title"].forEach(function (a) { if (n.hasAttribute(a)) { var v = brandText(n.getAttribute(a)); if (v !== n.getAttribute(a)) n.setAttribute(a, v); } });
-    for (var c = n.firstChild; c; c = c.nextSibling) brandNode(c);
+    for (var c = n.firstChild; c; c = c.nextSibling) brandNode(c, true);
   }
   if (CUSTOMER.app || CUSTOMER.company || WORD_RE) {
     document.title = APP_NAME;
     var startBrand = function () {
       brandNode(document.body);
-      new MutationObserver(function (ms) { ms.forEach(function (m) { if (m.type === "characterData") brandNode(m.target); else m.addedNodes.forEach(brandNode); }); })
+      new MutationObserver(function (ms) { ms.forEach(function (m) { if (m.type === "characterData") brandNode(m.target); else m.addedNodes.forEach(function (x) { brandNode(x); }); }); })
         .observe(document.body, { childList: true, subtree: true, characterData: true });
     };
     if (document.body) startBrand(); else document.addEventListener("DOMContentLoaded", startBrand);
@@ -10637,7 +10640,12 @@
   }
   function scriptCfg() {
     var raw = TEAM.on ? (TEAM.infoCfg || {}).script : state.callScript;
-    if (scriptCfg.raw !== raw) { scriptCfg.raw = raw; scriptCfg.val = scClean(raw); }
+    if (scriptCfg.raw !== raw) {
+      // a new copy of the office's settings arrives with every change to them; keep the same script object unless its words changed
+      var js = raw ? JSON.stringify([raw.steps, raw.objs]) : "";
+      scriptCfg.raw = raw;
+      if (js !== scriptCfg.js) { scriptCfg.js = js; scriptCfg.val = scClean(raw); }
+    }
     return scriptCfg.val;
   }
   function scCanEdit() { return !TEAM.on || isAdmin(); }
@@ -10936,6 +10944,7 @@
   function lfApi(path) { return "https://firebasestorage.googleapis.com/v0/b/" + FIREBASE_CONFIG.storageBucket + "/o" + (path ? "/" + encodeURIComponent(path) : ""); }
   function lfToken() { var u = TEAM.auth && TEAM.auth.currentUser; return u ? u.getIdToken() : Promise.reject(lfErr(401, "signedout")); }
   function lfXhr(method, url, body, headers, onProgress) {
+    var size = body && body.size || 0;
     return new Promise(function (res) {
       var x = new XMLHttpRequest();
       x.open(method, url, true);
@@ -10943,7 +10952,7 @@
       if (onProgress && x.upload) x.upload.onprogress = function (ev) { if (ev.lengthComputable) onProgress(ev.loaded / ev.total); };
       x.onload = function () { var j = null; try { j = JSON.parse(x.responseText || "null"); } catch (e) {} res({ status: x.status, json: j }); };
       x.onerror = x.ontimeout = function () { res({ status: 0, json: null }); };
-      x.timeout = 120000;
+      x.timeout = 60000 + Math.round(size / 20);   // a minute, plus a second per 20 KB
       x.send(body || null);
     });
   }
@@ -11077,13 +11086,17 @@
       if (!lead) { lfDel(path).catch(function () {}); if (p.thumb) lfDel(path + "_t").catch(function () {}); }
       else { lead.files = (lead.files || []).filter(function (f) { return f.id !== rec.id; }).concat([rec]); saveState(); }
       LF.up[job.leadId] = (LF.up[job.leadId] || []).filter(function (j) { return j !== job; });
+      if (lead && !lfShowing(job.leadId)) showToast("File added for " + firstName(lead.name) + ": " + name);
     } catch (e) {
       job.state = "err"; job.why = lfErrText(e);
+      var ln = findLeadById(job.leadId);
+      if (ln && !lfShowing(job.leadId)) showToast("A file for " + firstName(ln.name) + " didn\u2019t upload. Open their profile to try again.");
     }
     LF.busy = false;
     lfDraw(job.leadId);
     lfPump();
   }
+  function lfShowing(leadId) { var b = document.getElementById("lfBox"), m = document.getElementById("leadModal"); return !!(b && m && m.classList.contains("show") && b.getAttribute("data-lf-lead") === leadId); }
   function lfTick(job) {
     var el = document.querySelector('[data-lf-job="' + job.id + '"]');
     if (el) { el.style.setProperty("--p", job.pct); var s = el.querySelector("small"); if (s) s.textContent = job.pct >= 100 ? "Saving…" : "Uploading " + job.pct + "%"; }
@@ -11112,7 +11125,7 @@
         }).join("") +
         (full || ro ? '' : '<label class="lf-tile lf-add" for="lfInput" tabindex="0" role="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>' + (list.length || jobs.length ? 'Add' : 'Add a photo or file') + '</span></label>') +
       '</div>' +
-      '<input type="file" id="lfInput" multiple accept="' + LF_ACCEPT + '" hidden>' +
+      '<input type="file" id="lfInput" class="lf-input" multiple accept="' + LF_ACCEPT + '" tabindex="-1" aria-hidden="true">' +
       (mode === "local" ? '<p class="lf-note">' + (DEMO ? 'In the demo, files stay in this browser.' : 'Files stay on this phone.') + '</p>'
         : ro ? '<p class="lf-note">Your office is read-only, so files can’t be added right now.</p>'
         : !list.length && !jobs.length ? '<p class="lf-note">Photos, PDFs, Word and Excel files, up to 20 MB. Everyone in your office can open them.</p>' : '') +
@@ -17454,7 +17467,7 @@
   function updDue() { return !!(UPD.pending && Date.now() >= nextMidnight(UPD.pending.since)); }
   function updSafe() {
     var ae = document.activeElement;
-    return !state.awaitingOutcome && !(ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) && !document.querySelector(".modal-overlay.show") &&
+    return !state.awaitingOutcome && !LF.busy && !(ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) && !document.querySelector(".modal-overlay.show") &&
       !document.body.classList.contains("sync-lock") && !document.hidden;
   }
   function updRecentlyTried(build) {

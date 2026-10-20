@@ -175,6 +175,9 @@ const openEditorFromHub = async page => {
     const t = (await sheet(page)).text;
     check('real estate: script text shows exactly as written', /Our Investor clients have Committed buyers\. Objection handling is on step 3\./.test(t), t.slice(0, 300));
     check('real estate: starter talks about the home', /I saw your home was listed for sale/.test(t));
+    await page.keyboard.press('Escape');
+    await page.evaluate(() => document.querySelector('.lead-name[data-open-lead]').click()); await page.waitForTimeout(400);
+    check('real estate: the rest of the app still uses its words', /Add to Client Vault|Open in Client Vault/.test(await page.evaluate(() => document.getElementById('leadModalBody').innerText)));
     check('real estate: no page errors', errs.length === 0, errs);
     await ctx.close();
   }

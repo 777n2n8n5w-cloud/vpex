@@ -156,7 +156,7 @@ const viewer = page => page.evaluate(() => { const v = document.getElementById('
   {
     const { ctx, page, errs } = await open(br, { w: 390, s: 'dark' }, { cloud: true });
     const BUCKET = 'dovetail-f863c.firebasestorage.app', API = 'https://firebasestorage.googleapis.com/v0/b/' + BUCKET + '/o';
-    const store = {}, log = []; let mode = 'ok';
+    const store = {}, log = []; let mode = 'ok', delay = 0;
     const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': '*', 'Access-Control-Allow-Methods': 'GET,POST,DELETE,OPTIONS' };
     await page.route(u => u.href.indexOf(API) === 0, async route => {
       const rq = route.request(), u = new URL(rq.url()), h = rq.headers(), m = rq.method();
@@ -167,6 +167,7 @@ const viewer = page => page.evaluate(() => { const v = document.getElementById('
       if (mode === 'down') return route.abort('internetdisconnected');
       if (h['authorization'] !== 'Firebase token' && !u.searchParams.get('token')) return route.fulfill({ status: 401, headers: cors, body: '' });
       if (m === 'POST') {
+        if (delay) await new Promise(r => setTimeout(r, delay));
         const body = rq.postDataBuffer(), bd = /boundary=([^;]+)/.exec(h['content-type'])[1], txt = body.toString('latin1');
         const parts = txt.split('--' + bd), mdPart = parts[1], md = JSON.parse(mdPart.slice(mdPart.indexOf('\r\n\r\n') + 4).trim());
         const media = parts[2], start = txt.indexOf(media) + media.indexOf('\r\n\r\n') + 4, end = txt.lastIndexOf('\r\n--' + bd + '--');
@@ -219,12 +220,19 @@ const viewer = page => page.evaluate(() => { const v = document.getElementById('
     await click(page, '[data-lf-retry]'); await page.waitForTimeout(1200);
     t = await tiles(page);
     check('cloud: Retry uploads it', !t.some(x => /err/.test(x.cls)) && t.some(x => /Deny\.pdf/.test(x.text)), t.map(x => x.text));
+    // a file that finishes after the profile was closed says so
+    delay = 1500;
+    await page.setInputFiles('#lfInput', [{ name: 'Late.pdf', mimeType: 'application/pdf', buffer: PDF }]); await page.waitForTimeout(200);
+    await page.evaluate(() => document.getElementById('lpDone').click());
+    await page.waitForTimeout(2500); delay = 0;
+    check('cloud: a file that finishes later says so', /File added for \w+: Late\.pdf/.test(await toast(page)), await toast(page));
+    await openProfile(page);
     const before = Object.keys(store).length;
     await page.evaluate(() => [...document.querySelectorAll('#lfBox .lf-tile .lf-jb [data-lf-drop]')].forEach(b => b.click()));
     // removing the lead removes its files from storage
     await page.evaluate(() => document.getElementById('lpDone').click()); await page.waitForTimeout(300);
     await click(page, '#removeLeadBtn'); await click(page, '#confirmOkBtn'); await page.waitForTimeout(1200);
-    check('cloud: removing the lead deletes its files and previews', before === 3 && Object.keys(store).length === 0, Object.keys(store));
+    check('cloud: removing the lead deletes its files and previews', before === 4 && Object.keys(store).length === 0, Object.keys(store));
     check('cloud: no page errors', errs.length === 0, errs);
     await ctx.close();
   }

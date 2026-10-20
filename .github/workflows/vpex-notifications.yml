@@ -14,6 +14,7 @@ on:
       - "firestore-rules.txt"
       - "storage-rules.txt"
       - "tools/storage_rules_test.py"
+      - "tools/files_live_check.py"
       - ".github/workflows/vpex-notifications.yml"
   workflow_dispatch:
 
@@ -228,5 +229,16 @@ jobs:
             fi
             echo "Attempt $i didn't finish. A new file store can take a minute to be ready. Trying again in 1 minute."
             sleep 60
+          done
+          exit 1
+
+      - if: steps.has.outputs.go == 'yes' && steps.files.outputs.ok == 'yes'
+        name: Check lead files end to end
+        run: |
+          # A throwaway office and login upload, open and delete a file the way the app does; then everything is removed.
+          # New rules and access can take a minute or two to reach every Google server, so it tries up to 3 times.
+          for i in 1 2 3; do
+            if python3 tools/files_live_check.py; then exit 0; fi
+            [ "$i" = "3" ] || { echo "Trying again in 90 seconds."; sleep 90; }
           done
           exit 1
