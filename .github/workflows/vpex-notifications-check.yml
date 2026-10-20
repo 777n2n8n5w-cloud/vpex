@@ -156,6 +156,22 @@ jobs:
             echo "::warning title=Build storage::No cleanup rule on the build images yet."
           fi
 
+          # 9. Lead files: the file store exists, its rules are this repo's, and a signed-out request is refused
+          BK=$(curl -s -H "Authorization: Bearer $T" "https://firebasestorage.googleapis.com/v1beta/projects/$PROJECT/defaultBucket" | python3 -c "import sys,json; print(json.load(sys.stdin).get('bucket',{}).get('name','').split('/')[-1])" 2>/dev/null || true)
+          if [ -z "$BK" ]; then fail "Lead files" "There's no file store for lead files yet."
+          else
+            RS=$(curl -s -H "Authorization: Bearer $T" "https://firebaserules.googleapis.com/v1/projects/$PROJECT/releases/firebase.storage/$BK" | python3 -c "import sys,json; print(json.load(sys.stdin).get('rulesetName',''))" 2>/dev/null || true)
+            if [ -z "$RS" ]; then fail "Lead files" "The file store $BK has no rules published."
+            else
+              curl -s -H "Authorization: Bearer $T" "https://firebaserules.googleapis.com/v1/$RS" | python3 -c "import sys,json; print(json.load(sys.stdin)['source']['files'][0]['content'], end='')" > /tmp/live-storage.txt 2>/dev/null || true
+              if diff -q /tmp/live-storage.txt storage-rules.txt >/dev/null; then echo "File store $BK, rules live and the same as storage-rules.txt." | note "Lead files"
+              else fail "Lead files" "The live rules for lead files aren't the ones in storage-rules.txt."; fi
+            fi
+            A=$(curl -s -o /dev/null -w '%{http_code}' "https://firebasestorage.googleapis.com/v0/b/$BK/o/offices%2Fci-check%2FleadFiles%2Fx%2Fy")
+            echo "A signed-out request for a file got HTTP $A (403 = refused, right)." | note "Lead files: signed out"
+            [ "$A" = "403" ] || fail "Lead files" "A signed-out request got HTTP $A; it should be 403."
+          fi
+
           [ "$BAD" = "0" ] && echo "Everything checks out." | note "Result"
           exit $BAD
 

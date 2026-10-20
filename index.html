@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-12-24">
+<meta name="vpex-build" content="2026-12-25">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -6625,6 +6625,131 @@
   .seg { display: flex; gap: 6px; margin: 6px 0 0; }
   .seg-b { flex: 1 1 0; min-height: 40px; border-radius: var(--radius-s); border: 1px solid var(--border); background: var(--surface); color: var(--text); font: inherit; font-weight: 600; cursor: pointer; }
   .seg-b.on { background: var(--accent-fill, var(--accent)); border-color: var(--accent-fill, var(--accent)); color: var(--accent-text); }
+  .fu-step { display: grid; grid-template-columns: 44px 64px 44px minmax(0, 1fr); gap: 6px; align-items: center; margin-top: 6px; }
+  .fu-sb { height: 44px; border-radius: var(--radius-s); border: 1px solid var(--border); background: var(--surface); color: var(--text); font: inherit; font-size: 20px; font-weight: 600; cursor: pointer; }
+  .fu-sb:disabled { opacity: 0.4; cursor: default; }
+  .fu-num { height: 44px; width: 100%; box-sizing: border-box; text-align: center; font: inherit; font-size: 18px; font-weight: 700; border-radius: var(--radius-s); border: 1px solid var(--border); background: var(--surface-raised); color: var(--text); -moz-appearance: textfield; }
+  .fu-num::-webkit-outer-spin-button, .fu-num::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .fu-num.off { color: var(--text-faint); }
+  .fu-picks { display: flex; gap: 6px; min-width: 0; }
+  .fu-picks .seg-b { min-width: 0; padding: 0 4px; }
+  /* ---- Files on a lead ---- */
+  .lf { position: relative; margin-top: 14px; }
+  .lf-head { display: flex; align-items: baseline; gap: 6px; margin: 0 0 6px; font-size: 12.5px; font-weight: 600; color: var(--text-dim); }
+  .lf-head small { font-size: 12px; font-weight: 700; color: var(--text-faint); }
+  .lf-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  @media (min-width: 440px) { .lf-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .lf-tile { position: relative; box-sizing: border-box; aspect-ratio: 1 / 1; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: 8px; overflow: hidden;
+    border-radius: 12px; border: 1px solid var(--border); background: var(--surface-raised); color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+  .lf-tile:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .lf-tile.img { padding: 0; background: color-mix(in srgb, var(--text) 8%, var(--surface-raised)); }
+  .lf-tile.img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .lf-tile.img .lf-name { position: relative; padding: 20px 7px 6px; background: linear-gradient(transparent, rgba(0, 0, 0, 0.62)); color: #fff; font-size: 11.5px; }
+  .lf-tile.broken img { display: none; }
+  .lf-name { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 12px; font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
+  .lf-tile small { margin-top: 2px; font-size: 11px; color: var(--text-faint); }
+  .lf-ext { position: absolute; top: 8px; left: 8px; padding: 3px 6px; border-radius: 6px; font-size: 11px; font-weight: 800; color: #fff; background: #6B7280; }
+  .lf-ext.k-pdf { background: #D9483B; }
+  .lf-ext.k-doc, .lf-ext.k-rtf { background: #2F6FDE; }
+  .lf-ext.k-xls, .lf-ext.k-csv { background: #1E8E5A; }
+  .lf-ext.big { position: static; padding: 12px 16px; border-radius: 12px; font-size: 20px; }
+  .modal label.lf-add { display: flex; align-items: center; justify-content: center; gap: 4px; margin: 0; padding: 8px; border-style: dashed; border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+    background: color-mix(in srgb, var(--accent) 5%, transparent); color: var(--accent); font-size: 12px; font-weight: 600; text-align: center; line-height: 1.25; }
+  .lf-add svg { width: 22px; height: 22px; }
+  .lf-job { cursor: default; }
+  .lf-ring { position: absolute; top: 8px; left: 8px; width: 26px; height: 26px; border-radius: 50%;
+    background: conic-gradient(var(--accent) calc(var(--p, 0) * 1%), color-mix(in srgb, var(--accent) 18%, transparent) 0);
+    -webkit-mask: radial-gradient(circle, transparent 8px, #000 9px); mask: radial-gradient(circle, transparent 8px, #000 9px); }
+  .lf-job.err { border-color: color-mix(in srgb, var(--danger) 55%, var(--border)); }
+  .lf-job.err small { color: var(--danger); font-weight: 600; }
+  .lf-jb { display: flex; gap: 4px; margin-top: 6px; }
+  .lf-jb button { min-height: 30px; padding: 0 9px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .lf-input { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; clip: rect(0 0 0 0); pointer-events: none; }
+  .lf-note { margin: 6px 0 0; font-size: 12px; line-height: 1.4; color: var(--text-faint); }
+  .modal-overlay.lfv-ov { z-index: 105; align-items: stretch; padding: 0; background: rgba(0, 0, 0, 0.96); }
+  #confirmModal { z-index: 110; }
+  .lfv { box-sizing: border-box; display: flex; flex-direction: column; width: 100%; max-width: 760px; height: 100%; margin: 0 auto; color: #fff;
+    padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px); }
+  .lfv-top { display: flex; align-items: center; gap: 10px; padding: 10px 6px 10px 16px; }
+  .lfv-t { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .lfv-t b { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lfv-t span { font-size: 12.5px; color: rgba(255, 255, 255, 0.72); }
+  .lfv-x { flex: none; min-width: 44px; min-height: 44px; border: 0; border-radius: 50%; background: none; color: #fff; font-size: 28px; line-height: 1; cursor: pointer; }
+  .lfv-body { position: relative; flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 0 12px; }
+  .lfv-body img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 6px; }
+  .lfv-doc { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 20px; text-align: center; }
+  .lfv-doc b { font-size: 16px; overflow-wrap: anywhere; }
+  .lfv-wait { position: absolute; left: 0; right: 0; bottom: 12px; margin: 0; text-align: center; font-size: 13px; color: rgba(255, 255, 255, 0.75); }
+  .lfv-acts { display: flex; gap: 10px; padding: 12px 16px 16px; }
+  .lfv-acts .lfv-open { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+  .lfv-open[aria-disabled] { opacity: 0.5; pointer-events: none; }
+  .lfv-acts .lfv-del { flex: 0 0 auto; padding: 13px 20px; background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2); color: #FF8A80; }
+  /* ---- Call script: two buttons on the Dial card, a sheet reps read on the call, the admin editor ---- */
+  .sc-bar { display: flex; gap: 8px; margin: 10px 0 0; }
+  .sc-bar-b { flex: 1 1 0; min-width: 0; display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 42px; padding: 0 10px; border-radius: var(--radius-s);
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border)); background: color-mix(in srgb, var(--accent) 7%, var(--surface)); color: var(--text); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .sc-bar-b svg { flex: none; width: 17px; height: 17px; color: var(--accent); }
+  .sc-bar-b small { font-size: 12px; font-weight: 700; color: var(--text-faint); }
+  .sc-bar-b:active { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); }
+  .sc-bar-b span { white-space: nowrap; }
+  @media (max-width: 360px) { .sc-bar-b { gap: 6px; padding: 0 6px; } .sc-bar-b svg { display: none; } }
+  .sc-ov { background: rgba(0, 0, 0, 0.3); }
+  .modal.sc-sheet { display: flex; flex-direction: column; overflow: hidden; max-height: 82vh; max-height: 82dvh; padding: 16px 0 0; }
+  .sc-top { position: relative; padding: 0 20px 10px; border-bottom: 1px solid var(--border); }
+  .sc-top h3 { margin: 2px 40px 0 0; }
+  .sc-who { margin: 2px 0 0; font-size: 13px; color: var(--text-dim); }
+  .sc-who b { color: var(--text); }
+  .sc-tabs { margin-top: 12px; }
+  .seg-b small { font-size: 12px; font-weight: 700; opacity: 0.7; margin-left: 2px; }
+  .sc-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: 4px 20px 12px; }
+  .sc-steps { list-style: none; margin: 0; padding: 0; counter-reset: sc; }
+  .sc-st { position: relative; padding: 14px 0 6px 36px; counter-increment: sc; }
+  .sc-st + .sc-st { border-top: 1px solid var(--border); }
+  .sc-st::before { content: counter(sc); position: absolute; left: 0; top: 14px; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); font-size: 12.5px; font-weight: 700; }
+  .sc-st h4 { margin: 2px 0 6px; font-size: 13px; font-weight: 700; color: var(--text-dim); }
+  .sc-say p, .sc-a p { margin: 0 0 10px; font-size: 17px; line-height: 1.5; color: var(--text); }
+  .sc-say ul, .sc-a ul { margin: 0 0 10px; padding-left: 20px; font-size: 17px; line-height: 1.45; }
+  .sc-say li, .sc-a li { margin: 0 0 6px; }
+  .sc-fill { font-weight: 700; color: var(--accent); }
+  .sc-gap { padding: 0 3px; border-radius: 4px; background: color-mix(in srgb, var(--voicemail) 16%, transparent); color: color-mix(in srgb, var(--voicemail) 70%, var(--text)); font-weight: 600; }
+  .sc-find { -webkit-appearance: none; appearance: none; box-sizing: border-box; width: 100%; margin: 10px 0 2px; padding: 10px 12px; border-radius: var(--radius-s); border: 1px solid var(--border);
+    background: var(--surface-raised); color: var(--text); font: inherit; font-size: 15px; }
+  .sc-find:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .sc-o + .sc-o { border-top: 1px solid var(--border); }
+  .sc-q { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 52px; padding: 12px 0; border: 0; background: none; color: var(--text);
+    font: inherit; font-size: 16px; font-weight: 600; line-height: 1.35; text-align: left; cursor: pointer; }
+  .sc-q i { flex: none; width: 9px; height: 9px; margin-right: 4px; border-right: 2px solid var(--text-faint); border-bottom: 2px solid var(--text-faint); transform: rotate(45deg) translate(-2px, -2px); transition: transform 0.15s; }
+  .sc-o.on .sc-q { color: var(--accent); }
+  .sc-o.on .sc-q i { transform: rotate(-135deg) translate(-2px, -2px); border-color: var(--accent); }
+  .sc-a { padding: 0 0 8px 14px; border-left: 3px solid var(--accent); margin: 0 0 12px 2px; }
+  .sc-none { margin: 14px 0; font-size: 14px; color: var(--text-faint); }
+  .sc-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 20px calc(12px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--border); background: var(--surface); }
+  .modal label.sc-auto { display: inline-flex; align-items: center; gap: 8px; margin: 0; font-size: 13.5px; font-weight: 600; color: var(--text-dim); cursor: pointer; min-height: 40px; }
+  .sc-auto input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
+  .sc-edit { min-height: 40px; padding: 0 14px; border-radius: var(--radius-s); border: 1px solid var(--border); background: var(--surface-raised); color: var(--text); font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; }
+  .sce-modal .seg { margin-top: 2px; }
+  .sce-starter { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; padding: 14px; border-radius: 12px; border: 1px dashed color-mix(in srgb, var(--accent) 55%, var(--border));
+    background: color-mix(in srgb, var(--accent) 6%, transparent); }
+  .sce-starter b { font-size: 14.5px; }
+  .sce-starter span { font-size: 13px; line-height: 1.45; color: var(--text-dim); }
+  .sce-starter .btn-secondary { margin-top: 6px; }
+  .sce-list { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+  .sce-list:empty { display: none; }
+  .sce-card { padding: 10px 10px 4px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface-raised); }
+  .sce-top { display: flex; align-items: center; gap: 8px; }
+  .sce-n { flex: none; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 700;
+    background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); }
+  .modal .sce-card input[type="text"], .modal .sce-card textarea { background: var(--surface); }
+  .modal .sce-card input[type="text"] { font-weight: 600; }
+  .modal .sce-card textarea { margin-top: 8px; min-height: 88px; font-size: 14.5px; line-height: 1.45; }
+  .sce-tools { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 2px; margin-top: 2px; }
+  .sce-tools button { min-height: 36px; padding: 0 9px; border: 0; background: none; color: var(--text-dim); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; border-radius: 8px; }
+  .sce-tools button:active { background: var(--surface); }
+  .sce-tools .del { color: var(--danger); }
+  .sce-add { width: 100%; margin-top: 10px; }
+  .sce-help { margin: 14px 0 4px; }
+  .sce-reset { display: block; margin: 4px 0 0; padding: 8px 0; border: 0; background: none; color: var(--text-dim); font: inherit; font-size: 12.5px; text-decoration: underline; cursor: pointer; }
   .fu-lbl { margin-top: 14px; font-size: 13px; font-weight: 600; color: var(--text); }
   .fu-hint { margin: 6px 0 0; font-size: 12px; line-height: 1.5; color: var(--text-faint); }
   .fu-facts { margin: 14px 0 0; padding-left: 18px; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); }
@@ -7623,6 +7748,7 @@
       </div>
       <div class="hub-group set-gap">
         <button class="hub-row" id="openFuRulesBtn" type="button"><span class="hub-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.3-5.6"/><path d="M4 4v4h4"/><path d="M12 8v4l3 2"/></svg></span><span class="hub-t"><b>Follow-up rules</b><span id="fuRulesSummary"></span></span><span class="hub-go" aria-hidden="true">›</span></button>
+        <button class="hub-row" id="openScriptBtn" type="button"><span class="hub-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 12h7"/><path d="M9 16h7"/></svg></span><span class="hub-t"><b>Call script &amp; rebuttals</b><span id="scriptSummary"></span></span><span class="hub-go" aria-hidden="true">›</span></button>
       </div>
       <p class="set-note">Every lead shows their local time. Anyone outside their state’s calling hours is flagged in red, and tapping Call asks before it dials: 8 AM–9 PM under federal rules, and stricter in 20 states, such as Florida (8 AM–8 PM), Texas (from noon on Sundays) and Pennsylvania (9 AM–7 PM, never on Sundays). Florida, Maryland, Oklahoma and Oregon also allow only 3 sales calls to one person in 24 hours. Based on published state rules as of October 2026. Not legal advice.</p>
     </div>
@@ -7773,6 +7899,19 @@
   <div class="modal" id="featModalBody"></div>
 </div>
 
+<!-- A file attached to a lead -->
+<div class="modal-overlay lfv-ov" id="lfViewer">
+  <div class="lfv" id="lfViewerBody" data-raw role="dialog" aria-label="File"></div>
+</div>
+
+<!-- Call script: reps read it during a call; admins edit it -->
+<div class="modal-overlay sc-ov" id="scriptSheet">
+  <div class="modal sc-sheet" id="scriptSheetBody" data-raw></div>
+</div>
+<div class="modal-overlay" id="scriptModal">
+  <div class="modal sce-modal" id="scriptModalBody" data-raw></div>
+</div>
+
 <!-- Lead profile -->
 <div class="modal-overlay" id="leadModal">
   <div class="modal" id="leadModalBody"></div>
@@ -7860,6 +7999,97 @@
       steps: [["cancel", "Cancel period over", 3], ["site", "Site survey", 7], ["permit", "Permit approved", 30], ["install", "Installed", 60], ["pto", "Permission to operate", 90]],
       demo: { lists: ["Door knock leads", "Web leads"], note: function (n, st) { return "Electric bill $" + (120 + n % 280) + "/mo | " + (n % 3 ? "owns home" : "south-facing roof") + " | " + st; }, deals: ["8.2 kW system", "6.4 kW system", "10.5 kW + battery", "Roof + 7 kW", "12 kW system"], amt: 5000, company: "Bright Sun Solar", interest: "Battery add-on next year" } }
   };
+  // A ready-made script for each industry, so an admin starts from something and makes it theirs.
+  // [Brackets] are for the rep to fill in on the call.
+  function scStarter(ind) {
+    var S = {
+      investments: [[
+        ["Opener", "Hi {first}, this is {me} with {company}. Did I catch you at an OK time?"],
+        ["Why you're calling", "We work with investors on private companies, before they go public. I'm calling to see if that's something you'd like to hear about."],
+        ["Questions", "- Have you invested in private companies before?\n- When you look at an investment, what matters most to you?\n- Are you an accredited investor?"],
+        ["Next step", "Let me send you a short overview, then set up 15 minutes with [senior advisor]. Does tomorrow or Thursday work better?"],
+        ["Wrap up", "Great. You'll get an email from me today. Talk to you [day] at [time]."]
+      ], [
+        ["I'm not interested.", "That's fair. Is it the timing, or private investments in general? If it's the timing, I'm happy to check back when it suits you better."],
+        ["Just send me something.", "Happy to. So I send the right thing: what kind of companies do you usually like? I'll email it today and call in a couple of days to answer questions."],
+        ["I don't have money right now.", "Understood, and there's no commitment today. Would it help to see one now, so you know how it works when the timing is right?"],
+        ["I already have an advisor.", "That's great, most people we talk to do. We focus on private companies, which many advisors don't cover, so this could sit alongside what you have. Would you be open to a look?"],
+        ["I need to talk to my spouse.", "Of course. Would it help to set a time when you can both be on the call?"],
+        ["How did you get my number?", "It came from [where your list came from]. If you'd rather not hear from us, I'll mark you do-not-call right now."]
+      ]],
+      realestate: [[
+        ["Opener", "Hi {first}, this is {me} with {company}. I'm calling about your home. Is now an OK time?"],
+        ["Why you're calling", "I saw your home was listed for sale. Are you still thinking about selling?"],
+        ["Questions", "- If it sold, where would you move next?\n- When would you ideally like to be moved?\n- What do you think kept it from selling?"],
+        ["Next step", "I'd like to show you what I'd do differently to get it sold. Could I stop by for 20 minutes, today or tomorrow?"],
+        ["Wrap up", "Perfect. I'll see you [day] at [time], and I'll text you to confirm."]
+      ], [
+        ["I'm going to sell it myself.", "Lots of owners start that way. Can I ask what your plan is if it hasn't sold in the next month or two?"],
+        ["We're not selling anymore.", "Got it. Is that for good, or just for now? If things change, would it be OK if I checked in later this year?"],
+        ["I'll relist with my old agent.", "Loyalty is a good thing. Before you do, would a second opinion on price and marketing hurt? It's 20 minutes, with no obligation."],
+        ["Your commission is too high.", "I understand. What matters is what you walk away with. Let me show you what I'd expect you to net, and you decide."],
+        ["Call me in a few months.", "Will do. So I call at the right time, what's happening in a few months?"],
+        ["How did you get my number?", "It came from [where your list came from]. If you'd rather not hear from me, I'll mark you do-not-call right now."]
+      ]],
+      mca: [[
+        ["Opener", "Hi {first}, this is {me} with {company}. I work with business owners on working capital. Did I catch you at an OK time?"],
+        ["Why you're calling", "Are you looking for funding for anything right now, like inventory, payroll or equipment?"],
+        ["Questions", "- About how much does the business deposit each month?\n- How long have you been in business?\n- Do you have any advances or loans open right now?\n- How much would make a difference for you?"],
+        ["Next step", "The application is one page plus your last few bank statements. I'll text you the link now. Can you send it over today?"],
+        ["Wrap up", "Great. Once I have it, I'll call you with what you qualify for."]
+      ], [
+        ["I don't need money right now.", "Good to hear business is steady. Many owners set up funding before they need it, so it's there for a slow month or a big order. Want me to see what you'd qualify for, with no commitment?"],
+        ["The rates are too high.", "I hear you. Let's look at what it costs in dollars, next to what it would earn you. If it doesn't make sense, I'll tell you."],
+        ["I already have an advance.", "OK. How is it working for you? Depending on your balance, we may be able to help with more, or with better terms."],
+        ["I've been burned before.", "I'm sorry that happened. What went wrong? I'll walk you through every number up front, so there are no surprises."],
+        ["Just send me some info.", "Sure. The fastest way to real numbers is the one-page application. I'll text it to you now, and you'll see exactly what you qualify for."],
+        ["I need to talk to my partner.", "Makes sense. When could I get you both on a quick call?"]
+      ]],
+      auto: [[
+        ["Opener", "Hi {first}, this is {me} with {company}. You were looking at a vehicle with us. Is now an OK time?"],
+        ["Questions", "- Are you still in the market?\n- What are you driving now? Are you thinking of trading it in?\n- Is there a monthly payment you'd like to stay under?\n- Who else will be part of the decision?"],
+        ["Next step", "Let's get you in for a test drive. I'll have it ready. Does today after work or Saturday morning work better?"],
+        ["Wrap up", "You're all set for [day] at [time]. Bring your license, and the title if you're trading in."]
+      ], [
+        ["I'm just looking.", "That's the best time to come in. No pressure: you'll drive it and get real numbers. When's good this week?"],
+        ["I already bought a car.", "Congratulations! What did you go with? If you know anyone else who's looking, I'd be glad to help them."],
+        ["The price is too high.", "Let's look at it as a monthly payment with your trade-in. Where would it need to be to work for you?"],
+        ["Just send me your best price.", "Happy to. The price depends on your trade and financing, so 10 minutes in person gets you a real number. When could you stop by?"],
+        ["My credit isn't great.", "We work with lots of lenders and situations. The quickest way to know where you stand is a short credit application. Want me to text you the link?"],
+        ["I need to talk to my spouse.", "Of course. Would it help to come in together? I can set a time that works for both of you."]
+      ]],
+      insurance: [[
+        ["Opener", "Hi {first}, this is {me} with {company}. I'm following up on your request for an insurance quote. Did I catch you at an OK time?"],
+        ["Medicare calls", "If this is a Medicare call, read your required disclaimer here, before you talk about any plan's benefits."],
+        ["Questions", "- Who would the coverage be for?\n- Do you have any coverage now?\n- What made you start looking?\n- Is there a monthly budget you'd like to stay within?"],
+        ["Next step", "I can put together a quote in a few minutes. Do you have time now, or should I call you back at a set time?"],
+        ["Wrap up", "Great. I'll send you a summary, and we'll go over it [day] at [time]."]
+      ], [
+        ["I already have coverage.", "That's great. When did you last compare it? A quick side-by-side can't hurt, and if yours is better, I'll tell you."],
+        ["It's too expensive.", "I understand. Let's find coverage that fits your budget. What would feel comfortable each month?"],
+        ["I need to think about it.", "Of course. What part would you like to think over? Maybe I can answer it now."],
+        ["Just mail me something.", "I can do that. So it's useful, can I ask two quick questions? Then what you get is priced for you."],
+        ["I'm not interested.", "That's fair. Can I ask, has something changed since you asked for a quote?"],
+        ["I'll ask my kids first.", "That's a good idea. Would it help to set a time when they can be on the call too?"]
+      ]],
+      solar: [[
+        ["Opener", "Hi {first}, this is {me} with {company}. I'm calling about your electric bill. Is now an OK time?"],
+        ["Why you're calling", "We help homeowners see whether solar would lower what they pay for power. It's a quick check."],
+        ["Questions", "- Do you own your home?\n- About how much is your electric bill each month?\n- Have you looked into solar before?\n- Who else would be part of the decision?"],
+        ["Next step", "A consultant can show you real numbers for your roof and your bill. Is tomorrow afternoon or Thursday better? It's best if everyone on the decision is there."],
+        ["Wrap up", "You're set for [day] at [time]. Have a recent electric bill handy."]
+      ], [
+        ["It's too expensive.", "That's the most common worry. There are several ways to pay for it, and the consultant shows each one next to your current bill. Then you decide."],
+        ["I'm moving soon.", "Thanks for telling me. When are you planning to move? If it's a while off, it may still be worth a look."],
+        ["My roof is old.", "Good to know. The site survey checks the roof first, so you'd know if it needs work before anything else."],
+        ["I need to talk to my spouse.", "Of course. Let's set the consultation for a time when you can both be there."],
+        ["I rent my home.", "Thanks for telling me. Solar needs the owner's OK, so I'll take you off my list. Have a good day."],
+        ["I'm not interested.", "That's fair. Is it solar itself, or just the timing?"]
+      ]]
+    };
+    var p = S[ind] || S.investments;
+    return { steps: p[0].map(function (s, i) { return { id: "s" + (i + 1), t: s[0], x: s[1] }; }), objs: p[1].map(function (s, i) { return { id: "o" + (i + 1), q: s[0], a: s[1] }; }) };
+  }
   function reEsc(t) { return String(t).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
   var DEMO_IND = (function () { try { var m = /demo[-_]([a-z]+)/i.exec(location.hash); if (m && INDUSTRIES[m[1].toLowerCase()]) window.localStorage.setItem("dovetail_demo_ind", m[1].toLowerCase()); return window.localStorage.getItem("dovetail_demo_ind") || ""; } catch (e) { return ""; } })();
   var IND_KEY = INDUSTRIES[CUSTOMER.industry] ? CUSTOMER.industry : (DEMO && INDUSTRIES[DEMO_IND] ? DEMO_IND : (OFFICE && INDUSTRIES[OFFICE_IND] ? OFFICE_IND : "investments"));
@@ -8229,7 +8459,7 @@
     });
     var chunk = function (a, b) { var o = {}; ids.slice(a, b).forEach(function (id) { o[id] = leads[id]; }); return { leads: o }; };
     db["leadChunks/c001"] = chunk(0, 150); db["leadChunks/c002"] = chunk(150, 240);
-    db["leadChunks/_team"] = { goals: { dR1: { calls: 900, interested: 45, committed: 1000000 }, dR2: { calls: 800, interested: 40, committed: 750000 }, dR3: { calls: 900, interested: 45, committed: 1000000 } } };
+    db["leadChunks/_team"] = { script: Object.assign(scStarter(IND_KEY), { at: now, by: "You" }), goals: { dR1: { calls: 900, interested: 45, committed: 1000000 }, dR2: { calls: 800, interested: 40, committed: 750000 }, dR3: { calls: 900, interested: 45, committed: 1000000 } } };
     [["Catherine Hughes", 250000, "Funded", 20, "Pre-IPO AI chips"], ["Marcus Bennett", 500000, "Committed", 4, "Series E fintech"], ["Priya Patel", 150000, "Closed", 60, "Defense tech"],
      ["Daniel Ross", 100000, "Committed", 11, "Payments platform"], ["Elena Morgan", 350000, "Funded", 35, "Data platform"]].forEach(function (v, k) {
       var o = k % 2 ? reps[k % 3] : me;
@@ -8262,11 +8492,11 @@
   if (DEMO) {
     installDemoBackend();
     try {
-      if (!window.localStorage.getItem("__mockfs") || window.localStorage.getItem("dovetail_demo_v") !== "2:" + IND_KEY) {
+      if (!window.localStorage.getItem("__mockfs") || window.localStorage.getItem("dovetail_demo_v") !== "3:" + IND_KEY) {
         window.localStorage.removeItem("dovetail_team_dAdm");
         window.localStorage.setItem("__mockfs", JSON.stringify(demoSeed()));
         var da = {}; da["demo@" + BASE_DOMAIN] = { uid: "dAdm", pw: "demo" };
-        window.localStorage.setItem("__mockauth", JSON.stringify(da)); window.localStorage.setItem("dovetail_demo_v", "2:" + IND_KEY);
+        window.localStorage.setItem("__mockauth", JSON.stringify(da)); window.localStorage.setItem("dovetail_demo_v", "3:" + IND_KEY);
       }
       window.sessionStorage.setItem("__mocksess", JSON.stringify({ uid: "dAdm", email: "demo@" + BASE_DOMAIN }));
     } catch (e) {}
@@ -8275,6 +8505,7 @@
   function exitDemo(trialInd) {
     ["__mockfs", "__mockauth", "dovetail_demo", "dovetail_demo_v", "dovetail_demo_ind", "dovetail_team_dAdm"].forEach(function (k) { try { window.localStorage.removeItem(k); } catch (e) {} });
     try { window.sessionStorage.removeItem("__mocksess"); } catch (e) {}
+    try { window.indexedDB.deleteDatabase("vpex_demo_files"); } catch (e) {}
     location.replace(location.pathname + (typeof trialInd === "string" && /^[a-z]+$/.test(trialInd) ? "?trial=" + trialInd : ""));
   }
   function enterDemo() { try { window.localStorage.setItem("dovetail_demo", "1"); } catch (e) {} location.hash = "demo"; location.reload(); }
@@ -8284,18 +8515,20 @@
     if (WORD_RE) t = t.replace(WORD_RE, function (m, w, off, str) { return w === "Closed" && str.substr(off + 6, 5) === " Lost" ? w : WORDMAP[w]; });
     return t;
   }
-  function brandNode(n) {
+  // Text inside [data-raw] (the office's own words: call scripts, file names) is never swapped.
+  function brandNode(n, inner) {
+    if (!inner) { var top = n.nodeType === 3 ? n.parentNode : n; if (top && top.closest && top.closest("[data-raw]")) return; }
     if (n.nodeType === 3) { var p = n.parentNode; if (p && /^(TEXTAREA|SCRIPT|STYLE)$/.test(p.nodeName)) return; var v = brandText(n.nodeValue); if (v !== n.nodeValue) n.nodeValue = v; return; }
-    if (n.nodeType !== 1 || /^(SCRIPT|STYLE|TEXTAREA)$/.test(n.nodeName)) return;
+    if (n.nodeType !== 1 || /^(SCRIPT|STYLE|TEXTAREA)$/.test(n.nodeName) || n.hasAttribute("data-raw")) return;
     if (n.nodeName === "OPTION" && !n.hasAttribute("value")) n.setAttribute("value", n.textContent);   // relabel only; the stored value stays
     ["placeholder", "aria-label", "title"].forEach(function (a) { if (n.hasAttribute(a)) { var v = brandText(n.getAttribute(a)); if (v !== n.getAttribute(a)) n.setAttribute(a, v); } });
-    for (var c = n.firstChild; c; c = c.nextSibling) brandNode(c);
+    for (var c = n.firstChild; c; c = c.nextSibling) brandNode(c, true);
   }
   if (CUSTOMER.app || CUSTOMER.company || WORD_RE) {
     document.title = APP_NAME;
     var startBrand = function () {
       brandNode(document.body);
-      new MutationObserver(function (ms) { ms.forEach(function (m) { if (m.type === "characterData") brandNode(m.target); else m.addedNodes.forEach(brandNode); }); })
+      new MutationObserver(function (ms) { ms.forEach(function (m) { if (m.type === "characterData") brandNode(m.target); else m.addedNodes.forEach(function (x) { brandNode(x); }); }); })
         .observe(document.body, { childList: true, subtree: true, characterData: true });
     };
     if (document.body) startBrand(); else document.addEventListener("DOMContentLoaded", startBrand);
@@ -9556,7 +9789,8 @@
     if (TEAM.on && !isAdmin()) { showToast("Only your admin can remove leads"); return; }
     var lead = findLeadById(id);
     if (!lead) return;
-    showConfirm("Remove " + lead.name + " entirely? This deletes them from your queue and pipeline — their call history stays in History, but this can't be undone here.", function () {
+    showConfirm("Remove " + lead.name + " entirely? This deletes them from your queue and pipeline — their call history stays in History, but this can't be undone here." + ((lead.files || []).length ? " Their files are deleted too." : ""), function () {
+      lfPurge([lead]);
       state.leads = state.leads.filter(function (l) { return l.id !== id; });
       state.tasks = state.tasks.filter(function (t) { return t.leadId !== id; });
       state.completedStack = state.completedStack.filter(function (cid) { return cid !== id; });
@@ -9675,9 +9909,11 @@
     var aa = document.getElementById("setAutoAdvance"); if (aa) aa.checked = !!state.autoAdvance;
     var fb = document.getElementById("openFuRulesBtn"); if (fb) fb.hidden = TEAM.on && !isAdmin();
     var fs = document.getElementById("fuRulesSummary"); if (fs) fs.textContent = fuSummary();
+    var sb = document.getElementById("openScriptBtn"); if (sb) sb.hidden = !scCanEdit();
+    var ss = document.getElementById("scriptSummary"); if (ss) ss.textContent = scSummary();
   }
   function render() {
-    migrateHot(); syncSettingsBits(); flowState();
+    migrateHot(); syncSettingsBits(); flowState(); scRefresh();
     var total = totalCount();
     var done = doneCount();
     var lead = currentLead();
@@ -9780,12 +10016,15 @@
   // ---- Fast close: limit time spent on leads that aren't moving ----
   // tries: unanswered calls before a lead is parked; stall: follow-up calls without moving a stage before a
   // warm lead is parked (0 = never). Set by the admin in Follow-up rules.
-  var FU_DEFAULT = { tries: 4, stall: 3 };
-  var RETRY_GAPS = { 3: [0, 1], 4: [0, 1, 2], 6: [0, 1, 2, 3, 4] };
+  var FU_DEFAULT = { tries: 4, stall: 3 }, FU_MAX_TRIES = 30, FU_MAX_STALL = 20;
+  // Business days to wait before each retry: same day, then 1, 2, 3, 4 days, then at most a week apart.
+  // (3, 4 and 6 tries keep exactly the spacing they always had.)
+  function retryGaps(tries) { var g = []; for (var i = 0; i < tries - 1; i++) g.push(Math.min(i, 5)); return g; }
   function fuCfg() {
     var c = (TEAM.on ? (TEAM.infoCfg || {}).fu : state.fuCfg) || {};
     var t = Number(c.tries), st = c.stall === 0 || c.stall === "0" ? 0 : Number(c.stall);
-    return { tries: RETRY_GAPS[t] ? t : FU_DEFAULT.tries, stall: [0, 2, 3, 5].indexOf(st) > -1 ? st : FU_DEFAULT.stall };
+    var okT = t === Math.floor(t) && t >= 1 && t <= FU_MAX_TRIES, okS = st === 0 || (st === Math.floor(st) && st >= 1 && st <= FU_MAX_STALL);
+    return { tries: okT ? t : FU_DEFAULT.tries, stall: okS ? st : FU_DEFAULT.stall };
   }
   function maxTries() { return fuCfg().tries; }
   var STAGE_RANK = { "New Lead": 0, "Qualified": 1, "Pitched": 2, "Objection": 3, "Committed": 4 };
@@ -9908,7 +10147,7 @@
   function retrySlot(lead, n) {
     var p = zonedParts(Date.now(), leadIana(lead));
     var weekend = p.dow === 0 || p.dow === 6;
-    var gaps = RETRY_GAPS[maxTries()] || RETRY_GAP_DAYS;
+    var gaps = retryGaps(maxTries()); if (!gaps.length) gaps = RETRY_GAP_DAYS;
     var gap = gaps[Math.min(Math.max(n, 1), gaps.length) - 1];
     var hour = p.h < 13 ? 16 : 10;
     if (gap === 0) {
@@ -10039,10 +10278,11 @@
       if (n >= cfg.tries) {
         lead.exhausted = true;
         if (warmLead(lead)) { lead.stalled = now; lead.stallWhy = "noanswer"; }
-        if ((lead.recycled || 0) >= RECYCLE_MAX) { lead.retired = true; return cfg.tries + " tries, no answer \u2014 retired"; }
+        var triesTxt = cfg.tries === 1 ? "1 try" : cfg.tries + " tries";
+        if ((lead.recycled || 0) >= RECYCLE_MAX) { lead.retired = true; return triesTxt + ", no answer \u2014 retired"; }
         var rd = restDaysFrom(now);
         lead.restUntil = now + rd * 86400000;
-        return cfg.tries + " tries, no answer \u2014 parked" + (lead.stalled ? "" : ", back in the queue in " + rd + " days");
+        return triesTxt + ", no answer \u2014 parked" + (lead.stalled ? "" : ", back in the queue in " + rd + " days");
       }
       lead.exhausted = false;
       t = addAutoTask(lead, "Call", n <= 2 ? "High" : "Medium", retrySlot(lead, n),
@@ -10305,6 +10545,7 @@
     saveState();
     showToast("Dialing " + lead.phoneRaw + " \u2026");
     setTimeout(render, 50);
+    scAutoOpen();
     setTimeout(function () { if (!document.hidden) dialFallback(href); }, 400);
   }
   function focusTask(t, from) {
@@ -10372,7 +10613,7 @@
     var bits = [];
     if (last) bits.push("Called " + callsForLead(lead.id).length + "\u00d7 \u00b7 last: " + outcomeLabel(last.outcomeKey, last.outcome).toLowerCase() + " " + agoStr(last.timestamp));
     if (next) bits.push("Next: " + taskWhen(next, null));
-    if (lead.exhausted) bits.push(lead.retired ? "retired after " + ((lead.recycled || 0) + 1) + " rounds" : maxTries() + " tries made" + (lead.restUntil ? " \u00b7 back " + dayLabel(new Date(lead.restUntil)) : ""));
+    if (lead.exhausted) bits.push(lead.retired ? "retired after " + ((lead.recycled || 0) + 1) + " rounds" : (maxTries() === 1 ? "1 try" : maxTries() + " tries") + " made" + (lead.restUntil ? " \u00b7 back " + dayLabel(new Date(lead.restUntil)) : ""));
     if (lead.recycled && lead.status === "pending") bits.push("fresh try #" + (lead.recycled + 1));
     if (lead.released && lead.status === "pending") bits.push("back from " + lead.released.from);
     return '<div class="lead-track">' + escapeHtml(bits.join(" \u00b7 ")) + '</div>';
@@ -10380,6 +10621,597 @@
   function callLinkHtml(lead, from, taskId, cls, inner) {
     return '<a target="' + telTarget() + '" rel="noopener" href="' + telHref(lead.phone || normalizePhone(lead.phoneRaw)) + '" class="' + cls + '"' +
       ' data-call-lead="' + lead.id + '" data-from="' + from + '"' + (taskId ? ' data-task="' + taskId + '"' : '') + ' title="Call">' + inner + '</a>';
+  }
+
+  /** ---------- Call script and rebuttals ---------- **/
+  // An admin writes what reps say on a call and how to answer common objections. Reps open it
+  // from the Dial card before or during a call. It's one copy for the whole office, kept in the
+  // office's settings record (only admins can change it), so every phone shows the same words.
+  var SC_LIM = { steps: 15, objs: 40, t: 60, x: 3000, q: 120, a: 2000 };
+  var SC = { shown: false, tab: "script", open: "", q: "", leadId: null, cfg: null };
+  function scClean(s) {
+    if (!s || typeof s !== "object") return null;
+    var str = function (v, n) { return String(v == null ? "" : v).replace(/\r\n?/g, "\n").slice(0, n); };
+    var steps = (Array.isArray(s.steps) ? s.steps : []).map(function (x) { return x && typeof x === "object" ? { id: str(x.id, 24) || uid(), t: str(x.t, SC_LIM.t).trim(), x: str(x.x, SC_LIM.x).trim() } : null; })
+      .filter(function (x) { return x && (x.t || x.x); }).slice(0, SC_LIM.steps);
+    var objs = (Array.isArray(s.objs) ? s.objs : []).map(function (x) { return x && typeof x === "object" ? { id: str(x.id, 24) || uid(), q: str(x.q, SC_LIM.q).trim(), a: str(x.a, SC_LIM.a).trim() } : null; })
+      .filter(function (x) { return x && x.q && x.a; }).slice(0, SC_LIM.objs);
+    return steps.length || objs.length ? { steps: steps, objs: objs, at: Number(s.at) || 0, by: str(s.by, 60) } : null;
+  }
+  function scriptCfg() {
+    var raw = TEAM.on ? (TEAM.infoCfg || {}).script : state.callScript;
+    if (scriptCfg.raw !== raw) {
+      // a new copy of the office's settings arrives with every change to them; keep the same script object unless its words changed
+      var js = raw ? JSON.stringify([raw.steps, raw.objs]) : "";
+      scriptCfg.raw = raw;
+      if (js !== scriptCfg.js) { scriptCfg.js = js; scriptCfg.val = scClean(raw); }
+    }
+    return scriptCfg.val;
+  }
+  function scCanEdit() { return !TEAM.on || isAdmin(); }
+  function scSummary() {
+    var c = scriptCfg();
+    if (!c) return "What reps say on a call, and answers to objections";
+    var a = c.steps.length, b = c.objs.length;
+    return (a ? a + " step" + (a === 1 ? "" : "s") : "No script steps") + " · " + (b ? b + " rebuttal" + (b === 1 ? "" : "s") : "no rebuttals");
+  }
+  // The rep's words, with the lead's name and the rep's name filled in. [Brackets] stay visible
+  // as gaps to fill on the call. Blank lines start a new paragraph; lines starting "- " become a list.
+  function scFillHtml(text, lead) {
+    var me = (textSettings().myName || (TEAM.me ? firstName(TEAM.me.name) : "") || "").trim();
+    var vals = { first: lead ? textFirstName(lead.name) : "", name: lead ? lead.name || "" : "", me: me, company: currentCompany() };
+    var gap = { first: "their first name", name: "their name", me: "your name", company: "your company" };
+    function inline(s) {
+      return escapeHtml(s).replace(/\{(first|name|me|company)\}/gi, function (m, k) {
+        k = k.toLowerCase();
+        return vals[k] ? '<b class="sc-fill">' + escapeHtml(vals[k]) + '</b>' : '<span class="sc-gap">' + gap[k] + '</span>';
+      }).replace(/\[([^\]\n]{1,60})\]/g, '<span class="sc-gap">$1</span>');
+    }
+    return String(text || "").split(/\n\s*\n/).map(function (para) {
+      var lines = para.split("\n").filter(function (l) { return l.trim(); });
+      if (!lines.length) return "";
+      if (lines.every(function (l) { return /^\s*[-•*]\s+/.test(l); }))
+        return '<ul>' + lines.map(function (l) { return '<li>' + inline(l.replace(/^\s*[-•*]\s+/, "")) + '</li>'; }).join("") + '</ul>';
+      return '<p>' + lines.map(inline).join("<br>") + '</p>';
+    }).join("");
+  }
+  function scIcon(k) {
+    return k === "rebut"
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a7.5 7.5 0 0 1-11 6.6L4 20l1.6-5A7.5 7.5 0 1 1 21 11.5z"/><path d="M9 10h6"/><path d="M9 13.5h3.5"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 12h7"/><path d="M9 16h7"/></svg>';
+  }
+  // The two buttons on the Dial card. Nothing shows until the office has a script.
+  function scriptBarHtml() {
+    var c = scriptCfg();
+    if (!c) return "";
+    return '<div class="sc-bar">' +
+      (c.steps.length ? '<button type="button" class="sc-bar-b" data-sc-open="script">' + scIcon("script") + '<span>Script</span></button>' : '') +
+      (c.objs.length ? '<button type="button" class="sc-bar-b" data-sc-open="rebut">' + scIcon("rebut") + '<span>Rebuttals</span><small>' + c.objs.length + '</small></button>' : '') +
+      '</div>';
+  }
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-sc-open]");
+    if (b) openScript(b.getAttribute("data-sc-open"));
+  });
+  function openScript(tab) {
+    if (!scriptCfg() && !scCanEdit()) return;
+    if (tab) SC.tab = tab;
+    SC.open = ""; SC.q = "";
+    drawScript();
+    document.getElementById("scriptSheet").classList.add("show");
+    SC.shown = true;
+    var sc = document.getElementById("scScroll"); if (sc) sc.scrollTop = 0;
+  }
+  function closeScript() {
+    var m = document.getElementById("scriptSheet");
+    if (m) m.classList.remove("show");
+    SC.shown = false;
+  }
+  function drawScript() {
+    var c = scriptCfg(), lead = currentLead(), b = document.getElementById("scriptSheetBody");
+    SC.cfg = c; SC.leadId = lead ? lead.id : null;
+    if (!c) {
+      b.innerHTML = '<button class="close-x" id="scClose" aria-label="Close">&times;</button><h3>Call script</h3>' +
+        '<p class="modal-sub">No script yet. Write what your reps say on a call and how to answer objections, or start from the ' + escapeHtml(IND.name.toLowerCase()) + ' starter.</p>' +
+        '<div class="modal-actions"><button class="btn-primary" id="scWrite">Write the script</button></div>';
+      document.getElementById("scClose").addEventListener("click", closeScript);
+      document.getElementById("scWrite").addEventListener("click", function () { closeScript(); openScriptEditor(); });
+      return;
+    }
+    if (SC.tab === "script" && !c.steps.length) SC.tab = "rebut";
+    if (SC.tab === "rebut" && !c.objs.length) SC.tab = "script";
+    var tabs = c.steps.length && c.objs.length;
+    b.innerHTML =
+      '<div class="sc-top"><button class="close-x" id="scClose" aria-label="Close">&times;</button>' +
+        '<h3>' + (tabs ? 'Call script' : c.steps.length ? 'Call script' : 'Rebuttals') + '</h3>' +
+        (lead ? '<p class="sc-who">Talking to <b>' + escapeHtml(lead.name) + '</b></p>' : '') +
+        (tabs ? '<div class="seg sc-tabs" role="tablist">' +
+          '<button type="button" role="tab" class="seg-b' + (SC.tab === "script" ? ' on' : '') + '" data-sc-tab="script" aria-selected="' + (SC.tab === "script") + '">Script</button>' +
+          '<button type="button" role="tab" class="seg-b' + (SC.tab === "rebut" ? ' on' : '') + '" data-sc-tab="rebut" aria-selected="' + (SC.tab === "rebut") + '">Rebuttals <small>' + c.objs.length + '</small></button></div>' : '') +
+      '</div>' +
+      '<div class="sc-scroll" id="scScroll">' +
+        (SC.tab === "script"
+          ? '<ol class="sc-steps">' + c.steps.map(function (s) {
+              return '<li class="sc-st">' + (s.t ? '<h4>' + escapeHtml(s.t) + '</h4>' : '') + '<div class="sc-say">' + scFillHtml(s.x, lead) + '</div></li>';
+            }).join("") + '</ol>'
+          : (c.objs.length > 6 ? '<input type="search" class="sc-find" id="scFind" placeholder="Find an objection" aria-label="Find an objection" value="' + escapeHtml(SC.q) + '">' : '') +
+            '<div class="sc-objs" id="scObjs">' + c.objs.map(function (o) {
+              var on = SC.open === o.id;
+              return '<div class="sc-o' + (on ? ' on' : '') + '" data-sc-o="' + escapeHtml(o.id) + '" data-sc-text="' + escapeHtml((o.q + " " + o.a).toLowerCase()) + '">' +
+                '<button type="button" class="sc-q" aria-expanded="' + on + '"><span>“' + escapeHtml(o.q.replace(/^["“”]+|["“”]+$/g, "")) + '”</span><i aria-hidden="true"></i></button>' +
+                '<div class="sc-a"' + (on ? '' : ' hidden') + '>' + scFillHtml(o.a, lead) + '</div></div>';
+            }).join("") + '<p class="sc-none" id="scNone" hidden>No objection matches that.</p></div>') +
+      '</div>' +
+      '<div class="sc-foot">' +
+        '<label class="sc-auto"><input type="checkbox" id="scAuto"' + (state.scriptAuto ? ' checked' : '') + '> Open with every call</label>' +
+        (scCanEdit() ? '<button type="button" class="sc-edit" id="scEdit">Edit</button>' : '') +
+      '</div>';
+    document.getElementById("scClose").addEventListener("click", closeScript);
+    b.querySelectorAll("[data-sc-tab]").forEach(function (t) {
+      t.addEventListener("click", function () { SC.tab = t.getAttribute("data-sc-tab"); drawScript(); document.getElementById("scScroll").scrollTop = 0; });
+    });
+    b.querySelectorAll(".sc-q").forEach(function (q) {
+      q.addEventListener("click", function () {
+        var box = q.parentNode, id = box.getAttribute("data-sc-o"), on = SC.open !== id;
+        b.querySelectorAll(".sc-o").forEach(function (o) {
+          var me = o === box && on;
+          o.classList.toggle("on", me); o.querySelector(".sc-a").hidden = !me; o.querySelector(".sc-q").setAttribute("aria-expanded", me);
+        });
+        SC.open = on ? id : "";
+        if (on) { var sc = document.getElementById("scScroll"), r = box.getBoundingClientRect(), sr = sc.getBoundingClientRect(); if (r.top < sr.top || r.top > sr.top + sr.height * 0.45) sc.scrollTop += r.top - sr.top - 8; }
+      });
+    });
+    var find = document.getElementById("scFind");
+    if (find) {
+      var filter = function () {
+        SC.q = find.value;
+        var q = find.value.trim().toLowerCase(), n = 0;
+        b.querySelectorAll(".sc-o").forEach(function (o) { var hit = !q || o.getAttribute("data-sc-text").indexOf(q) >= 0; o.hidden = !hit; if (hit) n++; });
+        document.getElementById("scNone").hidden = n > 0;
+      };
+      find.addEventListener("input", filter); if (SC.q) filter();
+    }
+    document.getElementById("scAuto").addEventListener("change", function (e) {
+      state.scriptAuto = e.target.checked; saveState();
+      showToast(e.target.checked ? "The script opens each time you call" : "The script opens only when you tap it");
+    });
+    var ed = document.getElementById("scEdit"); if (ed) ed.addEventListener("click", function () { closeScript(); openScriptEditor(); });
+  }
+  // After Call is tapped: open the script, if the rep asked for that.
+  function scAutoOpen() { if (state.scriptAuto && scriptCfg() && (state.activeView || "dial") === "dial") setTimeout(function () { openScript(SC.tab === "rebut" ? "script" : SC.tab); }, 120); }
+  // Keep the open sheet in step with the Dial card (next lead, or an admin's edit).
+  function scRefresh() {
+    if (!SC.shown) return;
+    var lead = currentLead();
+    if (scriptCfg() !== SC.cfg || (lead ? lead.id : null) !== SC.leadId) {
+      var keepOpen = SC.open, sc = document.getElementById("scScroll"), top = sc ? sc.scrollTop : 0, same = (lead ? lead.id : null) === SC.leadId;
+      drawScript();
+      if (same) { SC.open = keepOpen; sc = document.getElementById("scScroll"); if (sc) sc.scrollTop = top; } else SC.open = "";
+    }
+  }
+
+  // The editor (admins; or the user on their own).
+  function openScriptEditor() {
+    if (!scCanEdit()) { showToast("Only an admin can change the call script"); return; }
+    closeMenuModal(); closeAdminHub(); closeScript();
+    var cur = scriptCfg() || { steps: [], objs: [] };
+    var ed = { tab: "script", steps: cur.steps.map(function (s) { return { id: s.id, t: s.t, x: s.x }; }), objs: cur.objs.map(function (o) { return { id: o.id, q: o.q, a: o.a }; }) };
+    var start = JSON.stringify([ed.steps, ed.objs]);
+    var m = document.getElementById("scriptModal"), b = document.getElementById("scriptModalBody");
+    function sync() {
+      b.querySelectorAll("[data-sce]").forEach(function (el) {
+        var k = el.getAttribute("data-sce").split(":"), list = k[0] === "s" ? ed.steps : ed.objs, row = list[+k[1]];
+        if (row) row[k[2]] = el.value;
+      });
+    }
+    function dirty() { sync(); return JSON.stringify([ed.steps, ed.objs]) !== start; }
+    function close() { m.classList.remove("show"); }
+    function tryClose() { if (dirty()) showConfirm("Close without saving your changes?", close, "Discard changes"); else close(); }
+    function card(kind, r, i, n) {
+      var s = kind === "s", key = (s ? "s:" : "o:") + i + ":";
+      return '<div class="sce-card">' +
+        (s ? '<div class="sce-top"><span class="sce-n">' + (i + 1) + '</span><input type="text" data-sce="' + key + 't" maxlength="' + SC_LIM.t + '" placeholder="Step name, e.g. Opener" aria-label="Step ' + (i + 1) + ' name" value="' + escapeHtml(r.t || "") + '"></div>' +
+              '<textarea data-sce="' + key + 'x" maxlength="' + SC_LIM.x + '" placeholder="What to say" aria-label="Step ' + (i + 1) + ' words">' + escapeHtml(r.x || "") + '</textarea>'
+           : '<input type="text" data-sce="' + key + 'q" maxlength="' + SC_LIM.q + '" placeholder="When they say… e.g. It’s too expensive" aria-label="Objection ' + (i + 1) + '" value="' + escapeHtml(r.q || "") + '">' +
+              '<textarea data-sce="' + key + 'a" maxlength="' + SC_LIM.a + '" placeholder="You say…" aria-label="Rebuttal ' + (i + 1) + '">' + escapeHtml(r.a || "") + '</textarea>') +
+        '<div class="sce-tools">' +
+          (i > 0 ? '<button type="button" data-sce-mv="' + kind + ':' + i + ':-1">Move up</button>' : '') +
+          (i < n - 1 ? '<button type="button" data-sce-mv="' + kind + ':' + i + ':1">Move down</button>' : '') +
+          '<button type="button" class="del" data-sce-del="' + kind + ':' + i + '">Remove</button></div></div>';
+    }
+    function draw() {
+      var s = ed.tab === "script", list = s ? ed.steps : ed.objs, max = s ? SC_LIM.steps : SC_LIM.objs, empty = !ed.steps.length && !ed.objs.length;
+      b.innerHTML = '<button class="close-x" id="sceClose" aria-label="Close">&times;</button><h3>Call script &amp; rebuttals</h3>' +
+        '<p class="modal-sub">' + (TEAM.on ? 'Your reps open this from the Dial screen, before or during a call. Only admins can change it, and everyone’s app updates automatically.' : 'Open it from the Dial screen, before or during a call.') + '</p>' +
+        '<div class="seg" role="tablist"><button type="button" role="tab" class="seg-b' + (s ? ' on' : '') + '" data-sce-tab="script" aria-selected="' + s + '">Script <small>' + ed.steps.length + '</small></button>' +
+          '<button type="button" role="tab" class="seg-b' + (!s ? ' on' : '') + '" data-sce-tab="rebut" aria-selected="' + !s + '">Rebuttals <small>' + ed.objs.length + '</small></button></div>' +
+        (empty ? '<div class="sce-starter"><b>Start from the ' + escapeHtml(IND.name.toLowerCase()) + ' starter</b><span>A short script and six common objections with answers. Change anything you like before you save.</span>' +
+          '<button type="button" class="btn-secondary" id="sceStarter">Use the starter</button></div>' : '') +
+        '<div class="sce-list">' + list.map(function (r, i) { return card(s ? "s" : "o", r, i, list.length); }).join("") + '</div>' +
+        (list.length < max ? '<button type="button" class="btn-secondary sce-add" id="sceAdd">' + (s ? '+ Add a step' : '+ Add a rebuttal') + '</button>' : '') +
+        '<p class="tx-help sce-help">Fill-ins: {first} their first name · {me} the rep’s name · {company} your company. Put anything the rep fills in on the call in [brackets]. Have your compliance person approve the script.</p>' +
+        (empty ? '' : '<button type="button" class="sce-reset" id="sceStarter">Replace everything with the starter</button>') +
+        '<div class="field-error" id="sceErr"></div>' +
+        '<div class="modal-actions"><button class="btn-secondary" id="sceCancel">Cancel</button><button class="btn-primary" id="sceSave">Save</button></div>';
+      document.getElementById("sceClose").addEventListener("click", tryClose);
+      document.getElementById("sceCancel").addEventListener("click", tryClose);
+      b.querySelectorAll("[data-sce-tab]").forEach(function (t) { t.addEventListener("click", function () { sync(); ed.tab = t.getAttribute("data-sce-tab"); draw(); }); });
+      var add = document.getElementById("sceAdd");
+      if (add) add.addEventListener("click", function () {
+        sync(); list.push(s ? { id: uid(), t: "", x: "" } : { id: uid(), q: "", a: "" }); draw();
+        var els = b.querySelectorAll("[data-sce]"); if (els.length) { var f = els[els.length - 2]; f.focus(); f.scrollIntoView({ block: "center" }); }
+      });
+      b.querySelectorAll("[data-sce-mv]").forEach(function (el) {
+        el.addEventListener("click", function () {
+          sync(); var k = el.getAttribute("data-sce-mv").split(":"), L = k[0] === "s" ? ed.steps : ed.objs, i = +k[1], j = i + (+k[2]);
+          var t = L[i]; L[i] = L[j]; L[j] = t; draw();
+        });
+      });
+      b.querySelectorAll("[data-sce-del]").forEach(function (el) {
+        el.addEventListener("click", function () { sync(); var k = el.getAttribute("data-sce-del").split(":"); (k[0] === "s" ? ed.steps : ed.objs).splice(+k[1], 1); draw(); });
+      });
+      var st = document.getElementById("sceStarter");
+      if (st) st.addEventListener("click", function () {
+        sync();
+        var go = function () { var p = scStarter(IND_KEY); ed.steps = p.steps; ed.objs = p.objs; draw(); };
+        if (ed.steps.length || ed.objs.length) showConfirm("Replace your script and rebuttals with the " + IND.name.toLowerCase() + " starter?", go, "Replace");
+        else go();
+      });
+      document.getElementById("sceSave").addEventListener("click", save);
+      fitAll();
+    }
+    function fitAll() {
+      b.querySelectorAll(".sce-card textarea").forEach(function (t) {
+        var fit = function () { t.style.height = "auto"; if (t.scrollHeight) t.style.height = Math.min(380, t.scrollHeight + 2) + "px"; };
+        fit(); if (!t.fitOn) { t.fitOn = true; t.addEventListener("input", fit); }
+      });
+    }
+    function save() {
+      sync();
+      var err = document.getElementById("sceErr");
+      for (var i = 0; i < ed.objs.length; i++) {
+        var o = ed.objs[i], q = String(o.q || "").trim(), a = String(o.a || "").trim();
+        if (q && !a) { ed.tab = "rebut"; draw(); document.getElementById("sceErr").textContent = "Add what to say for “" + q.slice(0, 40) + "”."; return; }
+        if (a && !q) { ed.tab = "rebut"; draw(); document.getElementById("sceErr").textContent = "Rebuttal " + (i + 1) + " needs the objection it answers."; return; }
+      }
+      var v = scClean({ steps: ed.steps, objs: ed.objs, at: Date.now(), by: TEAM.me ? TEAM.me.name : "" });
+      var msg = v ? (TEAM.on ? "Script saved — your team has it now" : "Script saved") : "Script removed";
+      var done = function () { close(); showToast(msg); render(); };
+      if (TEAM.on) {
+        var btn = document.getElementById("sceSave"); btn.disabled = true;
+        tcol("leadChunks").doc("_team").set({ script: v }, { merge: true })
+          .then(function () { TEAM.infoCfg = Object.assign({}, TEAM.infoCfg || {}, { script: v }); done(); })
+          .catch(function () { btn.disabled = false; err.textContent = "Couldn’t save. Check your connection and try again."; });
+      } else { state.callScript = v; saveState(); done(); }
+    }
+    draw();
+    m.classList.add("show");
+    fitAll();
+    b.scrollTop = 0;
+  }
+
+  /** ---------- Files on a lead: photos and documents ---------- **/
+  // Anyone working a lead can attach photos (camera or library) and documents to it. The file goes
+  // to the office's private file storage, where only that office's active logins can open it; the
+  // lead keeps a short list (name, type, size, who, when) that syncs like the rest of the lead.
+  // The demo, and a phone used without a team, keep files on the device instead.
+  var LF_MAX = 20 * 1024 * 1024, LF_PER_LEAD = 20, LF_IMG_MAX = 2000, LF_THUMB = 360;
+  var LF_EXT = { pdf: "application/pdf", doc: "application/msword", docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    xls: "application/vnd.ms-excel", xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", csv: "text/csv", txt: "text/plain", rtf: "application/rtf",
+    jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", gif: "image/gif", webp: "image/webp", heic: "image/heic", heif: "image/heif" };
+  var LF_ACCEPT = "image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.rtf";
+  var LF = { urls: {}, up: {}, idb: null, busy: false, view: null };
+  function lfMode() {
+    if (CUSTOMER.firebase) return "";
+    if ((DEMO || MOCKBENCH) && window.__lfTestCloud) return TEAM.me ? "cloud" : "";   // test bench: the real upload code against a stand-in server
+    if (!TEAM.on || DEMO || MOCKBENCH) return "local";
+    return TEAM.me && FIREBASE_CONFIG.storageBucket ? "cloud" : "";
+  }
+  function lfReadOnly() { var st = myOfficeState(); return !!(st && (st.kind === "locked" || st.kind === "paused")); }
+  function lfExt(name) { var m = /\.([a-z0-9]{1,5})$/i.exec(String(name || "")); return m ? m[1].toLowerCase() : ""; }
+  function lfType(file) {
+    var t = String(file.type || "").toLowerCase(), e = lfExt(file.name);
+    if (t && t !== "application/octet-stream") return t;
+    return LF_EXT[e] || "";
+  }
+  function lfOkType(t) {
+    return /^image\//.test(t) || /^(application\/(pdf|msword|vnd\.ms-excel|rtf)|application\/vnd\.openxmlformats-officedocument\.(wordprocessingml\.document|spreadsheetml\.sheet)|text\/(csv|plain|rtf))$/.test(t);
+  }
+  function lfIsImg(f) { return /^image\//.test(f.t || f.type || ""); }
+  function lfKind(f) {
+    var t = f.t || "", e = lfExt(f.n);
+    if (/^image\//.test(t)) return "Photo";
+    if (t === "application/pdf") return "PDF";
+    if (/word|rtf/.test(t) || /^docx?$|^rtf$/.test(e)) return e === "rtf" ? "RTF" : "DOC";
+    if (/excel|spreadsheet/.test(t) || /^xlsx?$/.test(e)) return "XLS";
+    if (t === "text/csv" || e === "csv") return "CSV";
+    return "TXT";
+  }
+  function lfSize(n) { n = Number(n) || 0; return n >= 1048576 ? (n / 1048576).toFixed(n >= 10485760 ? 0 : 1) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB"; }
+  function lfPath(leadId, id) { return (lfMode() === "local" ? "local/" : TEAM.office ? "offices/" + TEAM.office + "/" : "team/") + "leadFiles/" + leadId + "/" + id; }
+  function lfMine(f) { return !TEAM.on || (TEAM.me && f.by === TEAM.me.uid); }
+  function lfCanDelete(f) { return lfMine(f) || !TEAM.on || isAdmin(); }
+  function lfErr(status, why) { var e = new Error(why || "upload"); e.status = status; return e; }
+  function lfErrText(e) {
+    var s = e && e.status;
+    if (s === 0) return "No connection";
+    if (s === 401 || s === 403) return lfReadOnly() ? "Your office is read-only" : "Not allowed";
+    if (s === 404) return "Files aren’t switched on yet";
+    if (s === 413) return "Too big";
+    return "Didn’t upload";
+  }
+  // ----- the office's file storage (Firebase Storage, through its web address; the login's token decides access) -----
+  function lfApi(path) { return "https://firebasestorage.googleapis.com/v0/b/" + FIREBASE_CONFIG.storageBucket + "/o" + (path ? "/" + encodeURIComponent(path) : ""); }
+  function lfToken() { var u = TEAM.auth && TEAM.auth.currentUser; return u ? u.getIdToken() : Promise.reject(lfErr(401, "signedout")); }
+  function lfXhr(method, url, body, headers, onProgress) {
+    var size = body && body.size || 0;
+    return new Promise(function (res) {
+      var x = new XMLHttpRequest();
+      x.open(method, url, true);
+      Object.keys(headers || {}).forEach(function (k) { x.setRequestHeader(k, headers[k]); });
+      if (onProgress && x.upload) x.upload.onprogress = function (ev) { if (ev.lengthComputable) onProgress(ev.loaded / ev.total); };
+      x.onload = function () { var j = null; try { j = JSON.parse(x.responseText || "null"); } catch (e) {} res({ status: x.status, json: j }); };
+      x.onerror = x.ontimeout = function () { res({ status: 0, json: null }); };
+      x.timeout = 60000 + Math.round(size / 20);   // a minute, plus a second per 20 KB
+      x.send(body || null);
+    });
+  }
+  async function lfCloudPut(path, blob, type, meta, onProgress) {
+    var tok = await lfToken(), bd = "vpex" + Math.random().toString(36).slice(2);
+    var md = JSON.stringify({ name: path, contentType: type, cacheControl: "private, max-age=86400", metadata: meta });
+    var body = new Blob(["--" + bd + "\r\nContent-Type: application/json; charset=utf-8\r\n\r\n" + md + "\r\n--" + bd + "\r\nContent-Type: " + type + "\r\n\r\n", blob, "\r\n--" + bd + "--"]);
+    var r = await lfXhr("POST", lfApi() + "?name=" + encodeURIComponent(path), body,
+      { Authorization: "Firebase " + tok, "X-Goog-Upload-Protocol": "multipart", "Content-Type": "multipart/related; boundary=" + bd }, onProgress);
+    if (r.status !== 200) throw lfErr(r.status);
+  }
+  async function lfCloudUrl(path) {
+    var tok = await lfToken(), r = await lfXhr("GET", lfApi(path), null, { Authorization: "Firebase " + tok });
+    if (r.status !== 200) throw lfErr(r.status);
+    var t = String((r.json || {}).downloadTokens || "").split(",")[0];
+    if (!t) throw lfErr(404, "notoken");
+    return lfApi(path) + "?alt=media&token=" + encodeURIComponent(t);
+  }
+  async function lfCloudDel(path) {
+    var tok = await lfToken(), r = await lfXhr("DELETE", lfApi(path), null, { Authorization: "Firebase " + tok });
+    if (r.status !== 200 && r.status !== 204 && r.status !== 404) throw lfErr(r.status);
+  }
+  // ----- on this device (IndexedDB) -----
+  function lfDb() {
+    if (!LF.idb) LF.idb = new Promise(function (res, rej) {
+      var q = indexedDB.open(DEMO || MOCKBENCH ? "vpex_demo_files" : "vpex_files", 1);
+      q.onupgradeneeded = function () { q.result.createObjectStore("f"); };
+      q.onsuccess = function () { res(q.result); };
+      q.onerror = function () { LF.idb = null; rej(q.error); };
+    });
+    return LF.idb;
+  }
+  function lfIdb(mode, fn) {
+    return lfDb().then(function (db) {
+      return new Promise(function (res, rej) {
+        var tx = db.transaction("f", mode), q = fn(tx.objectStore("f"));
+        tx.oncomplete = function () { res(q ? q.result : undefined); };
+        tx.onerror = tx.onabort = function () { rej(tx.error || lfErr(500)); };
+      });
+    });
+  }
+  // ----- one interface for both -----
+  function lfPut(path, blob, type, meta, onProgress) {
+    if (lfMode() === "cloud") return lfCloudPut(path, blob, type, meta, onProgress);
+    if (onProgress) onProgress(1);
+    return lfIdb("readwrite", function (s) { return s.put(new Blob([blob], { type: type }), path); });
+  }
+  function lfUrl(path) {
+    if (!LF.urls[path]) {
+      LF.urls[path] = (lfMode() === "cloud" ? lfCloudUrl(path) : lfIdb("readonly", function (s) { return s.get(path); }).then(function (b) {
+        if (!b) throw lfErr(404); return URL.createObjectURL(b);
+      }));
+      LF.urls[path].catch(function () { delete LF.urls[path]; });
+    }
+    return LF.urls[path];
+  }
+  function lfDel(path) {
+    var u = LF.urls[path]; delete LF.urls[path];
+    if (lfMode() === "cloud") return lfCloudDel(path);
+    if (u) u.then(function (x) { try { URL.revokeObjectURL(x); } catch (e) {} }, function () {});
+    return lfIdb("readwrite", function (s) { return s.delete(path); });
+  }
+  // ----- photos: sent at up to 2000 pixels (plenty to read a document), plus a small preview -----
+  function lfLoadImg(file) {
+    return new Promise(function (res, rej) {
+      var u = URL.createObjectURL(file), im = new Image();
+      im.onload = function () { res({ im: im, u: u }); };
+      im.onerror = function () { URL.revokeObjectURL(u); rej(new Error("decode")); };
+      im.src = u;
+    });
+  }
+  function lfScale(im, max, q) {
+    var w = im.naturalWidth, h = im.naturalHeight, k = Math.min(1, max / Math.max(w, h));
+    var c = document.createElement("canvas"); c.width = Math.max(1, Math.round(w * k)); c.height = Math.max(1, Math.round(h * k));
+    var x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0, c.width, c.height);
+    return new Promise(function (res) { c.toBlob(function (b) { res(b); }, "image/jpeg", q); });
+  }
+  async function lfPrepare(file, type) {
+    if (!/^image\/(jpeg|png|webp|heic|heif)$/.test(type)) return { blob: file, type: type, thumb: null };
+    try {
+      var L = await lfLoadImg(file), w = L.im.naturalWidth, h = L.im.naturalHeight;
+      var shrink = w > 2400 || h > 2400 || file.size > 1500000 || /heic|heif/.test(type);
+      var main = shrink ? await lfScale(L.im, LF_IMG_MAX, 0.82) : null;
+      var thumb = await lfScale(L.im, LF_THUMB, 0.72);
+      URL.revokeObjectURL(L.u);
+      return main ? { blob: main, type: "image/jpeg", thumb: thumb, jpg: true } : { blob: file, type: type, thumb: thumb };
+    } catch (e) { return { blob: file, type: type, thumb: null }; }
+  }
+  function lfName(file, jpg) {
+    var n = String(file.name || "").replace(/[\u0000-\u001f\\\/]+/g, " ").trim().slice(-80);
+    // iPhone names camera shots "image.jpg"; a date reads better in the list
+    if (!n || /^image(\.\w+)?$/i.test(n)) n = "Photo " + new Date().toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).replace(/,(?= \d+:)/, "") + ".jpg";
+    if (jpg && !/\.jpe?g$/i.test(n)) n = n.replace(/\.(png|webp|heic|heif)$/i, "") + ".jpg";
+    return n;
+  }
+  // ----- adding -----
+  function lfAdd(leadId, files) {
+    var lead = findLeadById(leadId);
+    if (!lead || !lfMode()) return;
+    if (lfReadOnly()) { showToast("Your office is read-only right now, so files can’t be added"); return; }
+    var room = LF_PER_LEAD - (lead.files || []).length - (LF.up[leadId] || []).filter(function (j) { return j.state !== "err"; }).length;
+    var skipped = [];
+    files.forEach(function (f) {
+      var t = lfType(f);
+      if (!lfOkType(t)) { skipped.push("“" + f.name + "” isn’t a photo, PDF, Word, Excel, CSV or text file"); return; }
+      if (f.size > LF_MAX && !/^image\//.test(t)) { skipped.push("“" + f.name + "” is over 20 MB"); return; }
+      if (room <= 0) { skipped.push("A lead can have up to " + LF_PER_LEAD + " files"); return; }
+      room--;
+      (LF.up[leadId] = LF.up[leadId] || []).push({ id: uid(), leadId: leadId, file: f, type: t, name: f.name, pct: 0, state: "wait" });
+    });
+    if (skipped.length) showToast(skipped[0] + (skipped.length > 1 ? " (+" + (skipped.length - 1) + " more)" : ""));
+    lfDraw(leadId);
+    lfPump();
+  }
+  async function lfPump() {
+    if (LF.busy) return;
+    var job = null;
+    Object.keys(LF.up).some(function (k) { job = (LF.up[k] || []).filter(function (j) { return j.state === "wait"; })[0] || null; return !!job; });
+    if (!job) return;
+    LF.busy = true; job.state = "up"; lfDraw(job.leadId);
+    try {
+      var p = await lfPrepare(job.file, job.type), name = lfName(job.file, p.jpg);
+      if (p.blob.size > LF_MAX) throw lfErr(413);
+      job.name = name;
+      var path = lfPath(job.leadId, job.id), meta = { uid: TEAM.me ? TEAM.me.uid : "me", lead: job.leadId };
+      if (p.thumb) await lfPut(path + "_t", p.thumb, "image/jpeg", meta);
+      await lfPut(path, p.blob, p.type, meta, function (f) { job.pct = Math.round(f * 100); lfTick(job); });
+      var lead = findLeadById(job.leadId);
+      var rec = { id: job.id, n: name, t: p.type, s: p.blob.size, at: Date.now(), by: TEAM.me ? TEAM.me.uid : "me", bn: TEAM.me ? TEAM.me.name : "You" };
+      if (p.thumb) rec.th = 1;
+      if (!lead) { lfDel(path).catch(function () {}); if (p.thumb) lfDel(path + "_t").catch(function () {}); }
+      else { lead.files = (lead.files || []).filter(function (f) { return f.id !== rec.id; }).concat([rec]); saveState(); }
+      LF.up[job.leadId] = (LF.up[job.leadId] || []).filter(function (j) { return j !== job; });
+      if (lead && !lfShowing(job.leadId)) showToast("File added for " + firstName(lead.name) + ": " + name);
+    } catch (e) {
+      job.state = "err"; job.why = lfErrText(e);
+      var ln = findLeadById(job.leadId);
+      if (ln && !lfShowing(job.leadId)) showToast("A file for " + firstName(ln.name) + " didn\u2019t upload. Open their profile to try again.");
+    }
+    LF.busy = false;
+    lfDraw(job.leadId);
+    lfPump();
+  }
+  function lfShowing(leadId) { var b = document.getElementById("lfBox"), m = document.getElementById("leadModal"); return !!(b && m && m.classList.contains("show") && b.getAttribute("data-lf-lead") === leadId); }
+  function lfTick(job) {
+    var el = document.querySelector('[data-lf-job="' + job.id + '"]');
+    if (el) { el.style.setProperty("--p", job.pct); var s = el.querySelector("small"); if (s) s.textContent = job.pct >= 100 ? "Saving…" : "Uploading " + job.pct + "%"; }
+  }
+  // ----- the Files section of a lead's profile -----
+  function lfSectionHtml(lead) {
+    var mode = lfMode();
+    if (!mode) return "";
+    var list = (lead.files || []).slice().sort(function (a, b) { return (b.at || 0) - (a.at || 0); }), jobs = LF.up[lead.id] || [];
+    var full = list.length + jobs.filter(function (j) { return j.state !== "err"; }).length >= LF_PER_LEAD, ro = lfReadOnly();
+    return '<div class="lf" id="lfBox" data-lf-lead="' + lead.id + '" data-raw>' +
+      '<div class="lf-head"><span>Files</span>' + (list.length ? '<small>' + list.length + '</small>' : '') + '</div>' +
+      '<div class="lf-grid">' +
+        jobs.map(function (j) {
+          return j.state === "err"
+            ? '<div class="lf-tile lf-job err"><span class="lf-name">' + escapeHtml(j.name) + '</span><small>' + escapeHtml(j.why || "Didn’t upload") + '</small>' +
+                '<span class="lf-jb"><button type="button" data-lf-retry="' + j.id + '">Retry</button><button type="button" data-lf-drop="' + j.id + '" aria-label="Remove">×</button></span></div>'
+            : '<div class="lf-tile lf-job" data-lf-job="' + j.id + '" style="--p:' + (j.pct || 0) + '"><span class="lf-ring" aria-hidden="true"></span><span class="lf-name">' + escapeHtml(j.name) + '</span>' +
+                '<small>' + (j.state === "wait" ? "Waiting…" : j.pct >= 100 ? "Saving…" : "Uploading " + (j.pct || 0) + "%") + '</small></div>';
+        }).join("") +
+        list.map(function (f) {
+          var img = lfIsImg(f) && f.th;
+          return '<button type="button" class="lf-tile' + (img ? ' img' : ' doc') + '" data-lf-open="' + escapeHtml(f.id) + '" aria-label="Open ' + escapeHtml(f.n) + '">' +
+            (img ? '<img alt="" data-lf-src="' + escapeHtml(lfPath(lead.id, f.id) + "_t") + '">' : '<span class="lf-ext k-' + lfKind(f).toLowerCase() + '">' + lfKind(f) + '</span>') +
+            '<span class="lf-name">' + escapeHtml(f.n) + '</span>' + (img ? '' : '<small>' + lfSize(f.s) + '</small>') + '</button>';
+        }).join("") +
+        (full || ro ? '' : '<label class="lf-tile lf-add" for="lfInput" tabindex="0" role="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>' + (list.length || jobs.length ? 'Add' : 'Add a photo or file') + '</span></label>') +
+      '</div>' +
+      '<input type="file" id="lfInput" class="lf-input" multiple accept="' + LF_ACCEPT + '" tabindex="-1" aria-hidden="true">' +
+      (mode === "local" ? '<p class="lf-note">' + (DEMO ? 'In the demo, files stay in this browser.' : 'Files stay on this phone.') + '</p>'
+        : ro ? '<p class="lf-note">Your office is read-only, so files can’t be added right now.</p>'
+        : !list.length && !jobs.length ? '<p class="lf-note">Photos, PDFs, Word and Excel files, up to 20 MB. Everyone in your office can open them.</p>' : '') +
+    '</div>';
+  }
+  function lfDraw(leadId) {
+    var box = document.getElementById("lfBox");
+    if (!box || box.getAttribute("data-lf-lead") !== leadId) return;
+    var lead = findLeadById(leadId); if (!lead) return;
+    var t = document.createElement("div"); t.innerHTML = lfSectionHtml(lead);
+    box.parentNode.replaceChild(t.firstChild, box);
+    lfWire(leadId);
+  }
+  function lfWire(leadId) {
+    var box = document.getElementById("lfBox"); if (!box) return;
+    var inp = document.getElementById("lfInput");
+    if (inp) inp.addEventListener("change", function () { var fs = [].slice.call(inp.files || []); inp.value = ""; if (fs.length) lfAdd(leadId, fs); });
+    var add = box.querySelector(".lf-add");
+    if (add && inp) add.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); inp.click(); } });
+    box.querySelectorAll("img[data-lf-src]").forEach(function (im) {
+      var p = im.getAttribute("data-lf-src");
+      lfUrl(p).then(function (u) { im.src = u; }, function () { im.closest(".lf-tile").classList.add("broken"); });
+    });
+    box.querySelectorAll("[data-lf-open]").forEach(function (b) { b.addEventListener("click", function () { lfOpen(leadId, b.getAttribute("data-lf-open")); }); });
+    box.querySelectorAll("[data-lf-retry]").forEach(function (b) {
+      b.addEventListener("click", function () { (LF.up[leadId] || []).forEach(function (j) { if (j.id === b.getAttribute("data-lf-retry")) { j.state = "wait"; j.pct = 0; } }); lfDraw(leadId); lfPump(); });
+    });
+    box.querySelectorAll("[data-lf-drop]").forEach(function (b) {
+      b.addEventListener("click", function () { LF.up[leadId] = (LF.up[leadId] || []).filter(function (j) { return j.id !== b.getAttribute("data-lf-drop"); }); lfDraw(leadId); });
+    });
+  }
+  // ----- opening one -----
+  function lfOpen(leadId, id) {
+    var lead = findLeadById(leadId), f = lead && (lead.files || []).filter(function (x) { return x.id === id; })[0];
+    if (!f) return;
+    var path = lfPath(leadId, id), img = lfIsImg(f), when = new Date(f.at || Date.now());
+    var b = document.getElementById("lfViewerBody");
+    LF.view = { leadId: leadId, id: id };
+    b.innerHTML = '<div class="lfv-top"><div class="lfv-t"><b>' + escapeHtml(f.n) + '</b><span>' + (img ? 'Photo' : lfKind(f)) + ' · ' + lfSize(f.s) + ' · ' +
+        escapeHtml(TEAM.on ? (f.bn || "Someone") : "You") + ', ' + escapeHtml(when.toLocaleDateString(undefined, { month: "short", day: "numeric" })) + '</span></div>' +
+        '<button class="lfv-x" id="lfvClose" aria-label="Close">&times;</button></div>' +
+      '<div class="lfv-body">' + (img ? '<img id="lfvImg" alt="' + escapeHtml(f.n) + '">' : '<div class="lfv-doc"><span class="lf-ext big k-' + lfKind(f).toLowerCase() + '">' + lfKind(f) + '</span><b>' + escapeHtml(f.n) + '</b></div>') +
+        '<p class="lfv-wait" id="lfvWait">Opening…</p></div>' +
+      '<div class="lfv-acts">' +
+        '<a class="btn-primary lfv-open" id="lfvOpen" target="_blank" rel="noopener" aria-disabled="true">' + (img ? 'Open full size' : 'Open') + '</a>' +
+        (lfCanDelete(f) ? '<button type="button" class="btn-secondary lfv-del" id="lfvDel">Delete</button>' : '') +
+      '</div>';
+    document.getElementById("lfViewer").classList.add("show");
+    document.getElementById("lfvClose").addEventListener("click", lfClose);
+    var del = document.getElementById("lfvDel");
+    if (del) del.addEventListener("click", function () {
+      showConfirm("Delete “" + f.n + "”? " + (TEAM.on ? "Nobody in your office will be able to open it." : "It can’t be brought back."), function () { lfRemove(leadId, id); }, "Delete");
+    });
+    lfUrl(path).then(function (u) {
+      if (!LF.view || LF.view.id !== id) return;
+      var a = document.getElementById("lfvOpen"); a.href = u; a.removeAttribute("aria-disabled");
+      if (lfMode() === "local" && !img) a.setAttribute("download", f.n);
+      var w = document.getElementById("lfvWait");
+      if (img) { var im = document.getElementById("lfvImg"); im.onload = function () { w.hidden = true; }; im.onerror = function () { w.textContent = "Couldn’t show this photo."; }; im.src = u; }
+      else w.hidden = true;
+    }, function (e) {
+      var w = document.getElementById("lfvWait"); if (w) w.textContent = e && e.status === 0 ? "No connection. Try again when you’re back online." : "Couldn’t open this file.";
+    });
+  }
+  function lfClose() { var v = document.getElementById("lfViewer"); if (v) v.classList.remove("show"); LF.view = null; }
+  async function lfRemove(leadId, id) {
+    var path = lfPath(leadId, id);
+    try {
+      await lfDel(path);
+      lfDel(path + "_t").catch(function () {});
+    } catch (e) { showToast(e && e.status === 0 ? "No connection. Try again." : "Couldn’t delete it"); return; }
+    var lead = findLeadById(leadId);
+    if (lead) { lead.files = (lead.files || []).filter(function (f) { return f.id !== id; }); if (!lead.files.length) delete lead.files; saveState(); }
+    lfClose(); lfDraw(leadId);
+    showToast("File deleted");
+  }
+  // A removed lead takes its files with it.
+  function lfPurge(leads) {
+    if (!lfMode()) return;
+    leads.forEach(function (l) { (l && l.files || []).forEach(function (f) { var p = lfPath(l.id, f.id); lfDel(p).catch(function () {}); if (f.th) lfDel(p + "_t").catch(function () {}); }); });
+  }
+  function lfTimeline(lead) {
+    return (lead.files || []).map(function (f) {
+      return { ts: f.at || 0, html: '<div class="lp-tl-item"><span class="lp-tl-dot callback"></span><div><b>' + (lfIsImg(f) ? 'Photo' : 'File') + ' added — ' + escapeHtml(f.n) + '</b>' +
+        '<span>' + (TEAM.on && f.bn ? escapeHtml(f.bn) + ' · ' : '') + escapeHtml(fmtWhen(f.at || 0)) + '</span></div></div>' };
+    });
   }
 
   /** ---------- Lead profile ---------- **/
@@ -10407,7 +11239,7 @@
       var label = x.kind === "interested" ? "thank-you note" : x.kind === "noanswer" ? "missed-call note" : x.kind === "info" ? "info links" : x.kind === "confirm" ? "appointment confirmation" : "text";
       return { ts: new Date(x.timestamp).getTime(), html: '<div class="lp-tl-item"><span class="lp-tl-dot callback"></span><div>' +
         '<b>Text \u2014 ' + label + '</b><span>Opened in Messages \u00b7 ' + escapeHtml(fmtWhen(new Date(x.timestamp).getTime())) + '</span></div></div>' };
-    })).sort(function (a, b) { return b.ts - a.ts; });
+    })).concat(lfTimeline(lead)).sort(function (a, b) { return b.ts - a.ts; });
     var body = document.getElementById("leadModalBody");
     body.innerHTML =
       '<button class="close-x" id="lpClose">&times;</button>' +
@@ -10443,6 +11275,7 @@
       '<input id="lpAmount" type="number" min="0" step="1000" inputmode="numeric" value="' + (Number(lead.amount) || 0) + '">' +
       '<label for="lpNotes">Notes</label>' +
       '<textarea id="lpNotes" style="min-height:70px">' + escapeHtml(lead.notes || "") + '</textarea>' +
+      lfSectionHtml(lead) +
       (TEAM.on && canSeeTeam() ? '<label for="lpOwner">Assigned to</label><select id="lpOwner">' +
         Object.keys(TEAM.members).map(function (k) { return TEAM.members[k]; }).filter(function (m) { return m.active || (lead.owner && lead.owner.uid === m.uid); })
           .map(function (m) { return '<option value="' + m.uid + '"' + (lead.owner && lead.owner.uid === m.uid ? ' selected' : '') + '>' + escapeHtml(m.name || m.username) + '</option>'; }).join("") +
@@ -10453,6 +11286,7 @@
       '<div class="lp-tl-head">Timeline</div>' +
       (items.length ? '<div class="lp-tl">' + items.map(function (x) { return x.html; }).join("") + '</div>' : '<div class="pipe-empty">No calls or follow-ups yet.</div>');
     var lpq = body.querySelector(".lp-qf"); if (lpq) wireQf(lpq, lead, null);
+    lfWire(lead.id);
     document.getElementById("lpClose").addEventListener("click", function () { closeLeadProfile(); });
     document.getElementById("lpDone").addEventListener("click", function () { closeLeadProfile(); });
     document.getElementById("lpInfo").addEventListener("click", function () { closeLeadProfile(true); openSendInfo(lead); });
@@ -11114,6 +11948,7 @@
           '<button class="copy-btn" id="copyBtn" title="Copy number" aria-label="Copy number">' + copyIconSvg() + '</button>' +
           '<button class="copy-btn info-btn" id="infoBtn" title="Send info" aria-label="Send info">' + sendIconSvg() + '</button>' +
         '</div>' +
+        scriptBarHtml() +
         '<div class="outcomes' + (outcomesDisabled ? ' disabled' : '') + '" id="outcomesRow">' +
           outcomeButtonHtml("interested") +
           outcomeButtonHtml("notinterested") +
@@ -11148,6 +11983,7 @@
       state.awaitingOutcome = true; state.liveAt = Date.now();
       saveState();
       setTimeout(render, 50);
+      scAutoOpen();
       var href = telHref(lead.phone);
       showToast("Dialing " + lead.phoneRaw + " …");
       setTimeout(function () {
@@ -11171,6 +12007,7 @@
       state.awaitingOutcome = true; state.liveAt = Date.now();
       saveState();
       setTimeout(render, 50);
+      scAutoOpen();
     });
     var skipBtn = document.getElementById("skipBtn");
     if (skipBtn) skipBtn.addEventListener("click", skipLead);
@@ -14497,7 +15334,7 @@
         var data = { links: clean, intro: document.getElementById("ilIntro").value.trim() || INFO_DEFAULT.intro, outro: document.getElementById("ilOutro").value.trim(), updatedAt: Date.now() };
         if (TEAM.on) {
           tcol("leadChunks").doc("_team").set(data, { merge: true })
-            .then(function () { TEAM.infoCfg = data; closeInfo(); showToast("Links saved \u2014 your team has them now"); })
+            .then(function () { TEAM.infoCfg = Object.assign({}, TEAM.infoCfg || {}, data); closeInfo(); showToast("Links saved \u2014 your team has them now"); })
             .catch(function () { err.textContent = "Couldn\u2019t save. Check your connection and try again."; });
         } else { state.infoCfg = data; saveState(); closeInfo(); showToast("Links saved"); }
       });
@@ -14983,33 +15820,50 @@
        'Don\u2019t call the same person twice within a couple of hours.'].map(function (t) { return '<li class="ci info"><span class="ci-dot">i</span><span>' + escapeHtml(t) + '</span></li>'; }).join("") +
       '</ul><a class="btn-secondary" href="https://www.freecallerregistry.com/" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:10px;text-decoration:none">Register your number (free)</a></div>';
   }
-  function fuSummary() { var c = fuCfg(); return "Up to " + c.tries + " tries \u00b7 " + (c.stall ? "park after " + c.stall + " follow-ups with no progress" : "never park warm leads"); }
+  function triesWord(n) { return n === 1 ? "1 try" : n + " tries"; }
+  function fuSummary() { var c = fuCfg(); return "Up to " + triesWord(c.tries) + " \u00b7 " + (c.stall ? "park after " + c.stall + " follow-up" + (c.stall === 1 ? "" : "s") + " with no progress" : "never park warm leads"); }
+  function fuSpan(tries) {   // "over 4 business days", "over about 2 weeks"
+    var d = 1 + retryGaps(tries).reduce(function (x, y) { return x + y; }, 0);
+    return d <= 5 ? "over " + d + " business day" + (d === 1 ? "" : "s") : "over about " + Math.round(d / 5) + " weeks";
+  }
   function openFuRules() {
-    var c = fuCfg();
-    var seg = function (name, opts, cur) {
-      return '<div class="seg" role="radiogroup">' + opts.map(function (o) { return '<button type="button" class="seg-b' + (o[0] === cur ? ' on' : '') + '" data-seg="' + name + '" data-v="' + o[0] + '" role="radio" aria-checked="' + (o[0] === cur) + '">' + o[1] + '</button>'; }).join("") + '</div>';
+    var c = fuCfg(), cur = { tries: c.tries, stall: c.stall };
+    var LIM = { tries: [1, FU_MAX_TRIES], stall: [0, FU_MAX_STALL] };
+    var stepper = function (k, picks) {
+      return '<div class="fu-step"><button type="button" class="fu-sb" data-fu-step="' + k + '" data-d="-1" aria-label="Fewer">−</button>' +
+        '<input type="number" inputmode="numeric" class="fu-num" id="fuNum_' + k + '" min="' + LIM[k][0] + '" max="' + LIM[k][1] + '" value="' + cur[k] + '" aria-label="' + (k === "tries" ? "Tries before parking" : "Follow-ups without progress before parking") + '">' +
+        '<button type="button" class="fu-sb" data-fu-step="' + k + '" data-d="1" aria-label="More">+</button>' +
+        '<div class="fu-picks">' + picks.map(function (p) { return '<button type="button" class="seg-b" data-fu-pick="' + k + '" data-v="' + p[0] + '">' + p[1] + '</button>'; }).join("") + '</div></div>';
     };
     featOpen('<h3>Follow-up rules</h3><p class="modal-sub">Spend calls on leads that are moving. ' + (TEAM.on ? 'These apply to everyone on your team.' : '') + '</p>' +
-      '<div class="fu-lbl">No answer: tries before parking a lead</div>' + seg("tries", [[3, "3"], [4, "4"], [6, "6"]], c.tries) +
+      '<div class="fu-lbl">No answer: tries before parking a lead</div>' + stepper("tries", [[3, "3"], [4, "4"], [6, "6"], [10, "10"]]) +
       '<p class="fu-hint" id="fuTriesHint"></p>' +
-      '<div class="fu-lbl">Interested or callback: follow-ups without moving a stage</div>' + seg("stall", [[2, "2"], [3, "3"], [5, "5"], [0, "Off"]], c.stall) +
+      '<div class="fu-lbl">Interested or callback: follow-ups without moving a stage</div>' + stepper("stall", [[2, "2"], [3, "3"], [5, "5"], [0, "Off"]]) +
       '<p class="fu-hint" id="fuStallHint"></p>' +
       '<ul class="fu-facts"><li>Due follow-ups come up closest to closing first: Committed, then Objection, Pitched, Qualified, biggest amounts first.</li>' +
       '<li>A callback time the lead asked for is always kept, and comes up first.</li>' +
-      '<li>Parked leads show in Pipeline with a Revive button. Moving a lead\u2019s stage, or adding a follow-up by hand, brings it back.</li></ul>' +
+      '<li>Parked leads show in Pipeline with a Revive button. Moving a lead’s stage, or adding a follow-up by hand, brings it back.</li></ul>' +
       '<div class="modal-actions"><button class="btn-secondary" id="fuCancel" type="button">Cancel</button><button class="btn-primary" id="fuSave" type="button">Save</button></div>');
-    var cur = { tries: c.tries, stall: c.stall };
-    var hints = function () {
-      document.getElementById("fuTriesHint").textContent = { 3: "3 tries over 2 business days.", 4: "4 tries over 3 business days.", 6: "6 tries over about 2 weeks." }[cur.tries] + " Then the lead rests and comes back in 60\u201390 days.";
-      document.getElementById("fuStallHint").textContent = cur.stall ? "After " + cur.stall + " follow-up calls with no stage change, the lead is parked so reps move on." : "Warm leads are never parked automatically.";
-    };
-    hints();
-    document.querySelectorAll("[data-seg]").forEach(function (b) {
-      b.addEventListener("click", function () {
-        var k = b.getAttribute("data-seg"); cur[k] = Number(b.getAttribute("data-v"));
-        document.querySelectorAll('[data-seg="' + k + '"]').forEach(function (x) { var on = x === b; x.classList.toggle("on", on); x.setAttribute("aria-checked", on); });
-        hints();
+    var show = function () {
+      ["tries", "stall"].forEach(function (k) {
+        var inp = document.getElementById("fuNum_" + k); if (document.activeElement !== inp) inp.value = cur[k];
+        inp.classList.toggle("off", k === "stall" && cur[k] === 0);
+        document.querySelectorAll('[data-fu-step="' + k + '"]').forEach(function (b) { b.disabled = cur[k] + Number(b.getAttribute("data-d")) < LIM[k][0] || cur[k] + Number(b.getAttribute("data-d")) > LIM[k][1]; });
+        document.querySelectorAll('[data-fu-pick="' + k + '"]').forEach(function (b) { var on = Number(b.getAttribute("data-v")) === cur[k]; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
       });
+      var t = cur.tries;
+      document.getElementById("fuTriesHint").textContent = (t === 1 ? "1 try. If they don’t answer, the lead rests" : t + " tries " + fuSpan(t) + ". Then the lead rests") + " and comes back in 60–90 days." +
+        (t > 6 ? " Most leads who’ll ever pick up do by the 6th try, and every extra call is one more chance for your number to be labeled spam." : "");
+      document.getElementById("fuStallHint").textContent = cur.stall ? "After " + cur.stall + " follow-up call" + (cur.stall === 1 ? "" : "s") + " with no stage change, the lead is parked so reps move on." : "Off: warm leads are never parked automatically.";
+    };
+    var set = function (k, v) { v = Math.round(Number(v)); if (v !== v) return; cur[k] = Math.max(LIM[k][0], Math.min(LIM[k][1], v)); show(); };
+    show();
+    document.querySelectorAll("[data-fu-step]").forEach(function (b) { b.addEventListener("click", function () { var k = b.getAttribute("data-fu-step"); set(k, cur[k] + Number(b.getAttribute("data-d"))); }); });
+    document.querySelectorAll("[data-fu-pick]").forEach(function (b) { b.addEventListener("click", function () { set(b.getAttribute("data-fu-pick"), b.getAttribute("data-v")); }); });
+    ["tries", "stall"].forEach(function (k) {
+      var inp = document.getElementById("fuNum_" + k);
+      inp.addEventListener("input", function () { if (inp.value !== "") set(k, inp.value); });
+      inp.addEventListener("blur", function () { inp.value = cur[k]; });
     });
     document.getElementById("fuCancel").addEventListener("click", featClose);
     document.getElementById("fuSave").addEventListener("click", function () {
@@ -15017,7 +15871,7 @@
       if (TEAM.on && TEAM.db) {
         tcol("leadChunks").doc("_team").set({ fu: v }, { merge: true })
           .then(function () { TEAM.infoCfg = Object.assign({}, TEAM.infoCfg || {}, { fu: v }); showToast("Follow-up rules saved for your team"); render(); })
-          .catch(function () { showToast("Couldn\u2019t save \u2014 check your connection"); });
+          .catch(function () { showToast("Couldn’t save — check your connection"); });
       } else { state.fuCfg = v; saveState(); showToast("Follow-up rules saved"); render(); }
       featClose();
     });
@@ -16183,6 +17037,7 @@
   }
   function removeLeadsByIds(ids) {
     var gone = {}; ids.forEach(function (id) { gone[id] = true; });
+    lfPurge(state.leads.filter(function (l) { return gone[l.id]; }));
     state.leads = state.leads.filter(function (l) { return !gone[l.id]; });
     state.tasks = state.tasks.filter(function (t) { return !gone[t.leadId]; });
     state.completedStack = (state.completedStack || []).filter(function (cid) { return !gone[cid]; });
@@ -16511,7 +17366,8 @@
         admin && row("hubDnc", '<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>', "Do Not Call list", nDnc + " blocked for everyone")
       ]],
       ["rules", "Calling rules", "voicemail", '<path d="M4 12a8 8 0 1 0 2.3-5.6"/><path d="M4 4v4h4"/><path d="M12 8v4l3 2"/>',
-        "", "Up to " + fuCfg().tries + " tries · " + pacingCfg().perDay + " calls a day", [
+        "", "Up to " + triesWord(fuCfg().tries) + " · " + pacingCfg().perDay + " calls a day", [
+        admin && row("hubScript", '<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 12h7"/><path d="M9 16h7"/>', "Call script &amp; rebuttals", scSummary(), scriptCfg() ? "" : "New"),
         admin && row("hubFollow", '<path d="M4 12a8 8 0 1 0 2.3-5.6"/><path d="M4 4v4h4"/><path d="M12 8v4l3 2"/>', "Follow-up rules", fuSummary()),
         admin && row("hubPacing", '<path d="M12 3v3M12 18v3M4.2 7l2.6 1.5M17.2 15.5l2.6 1.5M4.2 17l2.6-1.5M17.2 8.5l2.6-1.5"/><circle cx="12" cy="12" r="3.5"/>', "Call pacing",
           pacingCfg().perDay + " calls a day per phone, so numbers aren’t flagged"),
@@ -16580,6 +17436,7 @@
     (document.getElementById("hubVault") || document.createElement("i")).addEventListener("click", function () { closeAdminHub(); state.activeView = "vault"; saveState(); render(); });
     (document.getElementById("hubPacing") || document.createElement("i")).addEventListener("click", function () { closeAdminHub(); openPacingEditor(); });
     (document.getElementById("hubFollow") || document.createElement("i")).addEventListener("click", function () { closeAdminHub(); openFuRules(); });
+    (document.getElementById("hubScript") || document.createElement("i")).addEventListener("click", function () { closeAdminHub(); openScriptEditor(); });
     (document.getElementById("hubInfo") || document.createElement("i")).addEventListener("click", function () { closeAdminHub(); openInfoEditor(); });
     (document.getElementById("hubOverdue") || document.createElement("i")).addEventListener("click", openOverdue);
     (document.getElementById("hubGoals") || document.createElement("i")).addEventListener("click", openGoals);
@@ -16610,7 +17467,7 @@
   function updDue() { return !!(UPD.pending && Date.now() >= nextMidnight(UPD.pending.since)); }
   function updSafe() {
     var ae = document.activeElement;
-    return !state.awaitingOutcome && !(ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) && !document.querySelector(".modal-overlay.show") &&
+    return !state.awaitingOutcome && !LF.busy && !(ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) && !document.querySelector(".modal-overlay.show") &&
       !document.body.classList.contains("sync-lock") && !document.hidden;
   }
   function updRecentlyTried(build) {
@@ -16971,6 +17828,7 @@
     document.getElementById("pushRowBtn").addEventListener("click", function () { closeMenuModal(); pushSheet(); });
     document.getElementById("setAutoAdvance").addEventListener("change", function (e) { state.autoAdvance = e.target.checked; saveState(); showToast(state.autoAdvance ? "Auto-advance on" : "Auto-advance off"); });
     document.getElementById("openFuRulesBtn").addEventListener("click", function () { closeMenuModal(); openFuRules(); });
+    document.getElementById("openScriptBtn").addEventListener("click", function () { closeMenuModal(); openScriptEditor(); });
 
     document.getElementById("toggleQueueBtn").addEventListener("click", function () {
       queueHidden = !queueHidden;
@@ -16981,6 +17839,7 @@
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape") {
         closeLoadModal(); closeMenuModal(); closeTaskModal(); closeConfirm(); closeLeadProfile();
+        closeScript(); lfClose();
         ["themeModal", "adminModal", "teamModal", "scoreModal", "acctModal", "coachModal", "infoModal", "vaultModal", "featModal"].forEach(function (id) { var el = document.getElementById(id); if (el) el.classList.remove("show", "gate"); });
       }
     });
