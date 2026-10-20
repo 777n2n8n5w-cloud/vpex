@@ -11110,7 +11110,7 @@
             (img ? '<img alt="" data-lf-src="' + escapeHtml(lfPath(lead.id, f.id) + "_t") + '">' : '<span class="lf-ext k-' + lfKind(f).toLowerCase() + '">' + lfKind(f) + '</span>') +
             '<span class="lf-name">' + escapeHtml(f.n) + '</span>' + (img ? '' : '<small>' + lfSize(f.s) + '</small>') + '</button>';
         }).join("") +
-        (full || ro ? '' : '<label class="lf-tile lf-add" for="lfInput"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>' + (list.length || jobs.length ? 'Add' : 'Add a photo or file') + '</span></label>') +
+        (full || ro ? '' : '<label class="lf-tile lf-add" for="lfInput" tabindex="0" role="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>' + (list.length || jobs.length ? 'Add' : 'Add a photo or file') + '</span></label>') +
       '</div>' +
       '<input type="file" id="lfInput" multiple accept="' + LF_ACCEPT + '" hidden>' +
       (mode === "local" ? '<p class="lf-note">' + (DEMO ? 'In the demo, files stay in this browser.' : 'Files stay on this phone.') + '</p>'
@@ -11130,6 +11130,8 @@
     var box = document.getElementById("lfBox"); if (!box) return;
     var inp = document.getElementById("lfInput");
     if (inp) inp.addEventListener("change", function () { var fs = [].slice.call(inp.files || []); inp.value = ""; if (fs.length) lfAdd(leadId, fs); });
+    var add = box.querySelector(".lf-add");
+    if (add && inp) add.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); inp.click(); } });
     box.querySelectorAll("img[data-lf-src]").forEach(function (im) {
       var p = im.getAttribute("data-lf-src");
       lfUrl(p).then(function (u) { im.src = u; }, function () { im.closest(".lf-tile").classList.add("broken"); });
