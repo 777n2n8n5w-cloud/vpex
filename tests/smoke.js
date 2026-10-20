@@ -63,7 +63,7 @@ async function layout(page) {
     check(tag + ' no page errors', !errs.length, errs);
     check(tag + ' no sideways overflow', l.sw <= l.vw && !l.over.length, l);
     check(tag + ' no leftover words', !l.bad.length, l.bad);
-    check(tag + ' demo banner', await page.locator('text=Exit demo').first().isVisible().catch(() => false));
+    check(tag + ' demo banner with Exit and Start free trial', await page.locator('#demoExit').isVisible().catch(() => false) && await page.locator('#demoTrial').isVisible().catch(() => false));
     check(tag + ' call button', await page.locator('button:has-text("Call ")').first().isVisible().catch(() => false));
     check(tag + ' opens in under 8 s', ms < 8000, ms);
     if (c.name === 'phone-dark') {

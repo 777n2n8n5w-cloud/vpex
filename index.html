@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-12-19">
+<meta name="vpex-build" content="2026-12-20">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -6496,7 +6496,11 @@
 
   .demo-pill { position: relative; z-index: 5; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;
     padding: 6px 12px; background: #111827; color: #F9FAFB; font-size: 12.5px; font-weight: 600; }
-  .demo-pill button { border: 0; border-radius: 999px; padding: 6px 14px; min-height: 32px; background: #E9C46A; color: #111827; font-weight: 700; font-size: 12.5px; font-family: inherit; cursor: pointer; }
+  .demo-pill button { border: 0; border-radius: 999px; padding: 6px 14px; min-height: 36px; background: #E9C46A; color: #111827; font-weight: 700; font-size: 12.5px; font-family: inherit; cursor: pointer; }
+  .demo-pill.with-trial { flex-wrap: nowrap; gap: 8px; }
+  .demo-pill.with-trial span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .demo-pill.with-trial button { flex: none; white-space: nowrap; }
+  .demo-pill button.demo-exit { background: transparent; color: #F9FAFB; box-shadow: inset 0 0 0 1px rgba(249, 250, 251, 0.45); margin-left: -4px; }
   .cu-steps { margin: 0; padding-left: 20px; font-size: 13.5px; color: var(--text-dim); display: flex; flex-direction: column; gap: 6px; }
   .cu-steps b { color: var(--text); }
   .push-list { margin: 14px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
@@ -6972,12 +6976,12 @@
   .eyebrow-right .skip-btn { padding: 6px 8px; }
   /* tags (tasks, history) sized everywhere, tinted from the theme's own outcome colors */
   .qi-status { display: inline-block; font-size: 11px; line-height: 1.5; padding: 1px 8px; border-radius: 10px; font-weight: 600; white-space: nowrap; vertical-align: middle; }
-  .qi-status.interested { background: color-mix(in srgb, var(--interested) 16%, transparent); }
-  .qi-status.notinterested { background: color-mix(in srgb, var(--notinterested) 16%, transparent); }
-  .qi-status.voicemail { background: color-mix(in srgb, var(--voicemail) 16%, transparent); }
-  .qi-status.noanswer { background: color-mix(in srgb, var(--noanswer) 16%, transparent); }
-  .qi-status.badnum { background: color-mix(in srgb, var(--badnum) 16%, transparent); }
-  .qi-status.callback { background: color-mix(in srgb, var(--callback) 16%, transparent); }
+  .qi-status.interested { background: color-mix(in srgb, var(--interested) 11%, transparent); color: color-mix(in srgb, var(--interested) 62%, var(--text)); }
+  .qi-status.notinterested { background: color-mix(in srgb, var(--notinterested) 11%, transparent); color: color-mix(in srgb, var(--notinterested) 62%, var(--text)); }
+  .qi-status.voicemail { background: color-mix(in srgb, var(--voicemail) 11%, transparent); color: color-mix(in srgb, var(--voicemail) 62%, var(--text)); }
+  .qi-status.noanswer { background: color-mix(in srgb, var(--noanswer) 11%, transparent); color: color-mix(in srgb, var(--noanswer) 62%, var(--text)); }
+  .qi-status.badnum { background: color-mix(in srgb, var(--badnum) 11%, transparent); color: color-mix(in srgb, var(--badnum) 62%, var(--text)); }
+  .qi-status.callback { background: color-mix(in srgb, var(--callback) 11%, transparent); color: color-mix(in srgb, var(--callback) 62%, var(--text)); }
   /* the +1 floats above the count instead of colliding with it */
   .rh-count { position: relative; }
   .rh-pop { position: absolute; left: 0; top: -16px; width: auto; }
@@ -8254,10 +8258,11 @@
       window.sessionStorage.setItem("__mocksess", JSON.stringify({ uid: "dAdm", email: "demo@" + BASE_DOMAIN }));
     } catch (e) {}
   }
-  function exitDemo() {
+  // Leaving the demo. With an industry, it lands on the sales page's signup form with that industry already picked.
+  function exitDemo(trialInd) {
     ["__mockfs", "__mockauth", "dovetail_demo", "dovetail_demo_v", "dovetail_demo_ind", "dovetail_team_dAdm"].forEach(function (k) { try { window.localStorage.removeItem(k); } catch (e) {} });
     try { window.sessionStorage.removeItem("__mocksess"); } catch (e) {}
-    location.replace(location.pathname);
+    location.replace(location.pathname + (typeof trialInd === "string" && /^[a-z]+$/.test(trialInd) ? "?trial=" + trialInd : ""));
   }
   function enterDemo() { try { window.localStorage.setItem("dovetail_demo", "1"); } catch (e) {} location.hash = "demo"; location.reload(); }
   // Brand words and vocabulary for customer copies: rewrites visible text, so every screen follows automatically.
@@ -12529,6 +12534,12 @@
       var sel = document.getElementById("suInd");
       if (!sel.options.length) sel.innerHTML = ["insurance", "realestate", "mca", "auto", "solar"].filter(function (k) { return INDUSTRIES[k]; }).map(function (k) { return '<option value="' + k + '">' + escapeHtml(INDUSTRIES[k].name) + '</option>'; }).join("") + '<option value="investments">Investments / capital raising</option>';
       document.getElementById("authSub").textContent = "Start your free trial";
+      var tm = /[?&]trial=([a-z]+)/.exec(location.search);   // came from a demo's Start free trial: that industry, straight to the form
+      if (tm) {
+        try { history.replaceState(null, "", location.pathname + location.search.replace(/([?&])trial=[a-z]+&?/, "$1").replace(/[?&]$/, "") + location.hash); } catch (e) {}
+        if ([].some.call(sel.options, function (o) { return o.value === tm[1]; })) sel.value = tm[1];
+        setTimeout(function () { if (TEAM.lpToForm) TEAM.lpToForm(); }, 350);
+      }
     } else if (view === "join") {
       document.getElementById("authSub").textContent = "Join " + officeLabel() + " on VPEX";
     } else document.getElementById("authSub").textContent = setup ? "Create the admin account (one time only)" : (OFFICE ? "Sign in to " + officeLabel() : "Sign in to your team account");
@@ -15696,8 +15707,13 @@
   })();
   if (DEMO) {
     var demoPill = document.createElement("div"); demoPill.className = "demo-pill";
-    demoPill.innerHTML = '<span>Demo office \u00b7 ' + (IND_KEY === "investments" ? 'sample data' : escapeHtml(IND.name)) + '</span><button type="button" id="demoExit">Exit demo</button>';
+    var sellsVpex = !(CUSTOMER.firebase || CUSTOMER.app || CUSTOMER.company);   // customer copies never sell VPEX trials
+    var demoShort = { insurance: "Insurance", realestate: "Real estate", mca: "Business funding", auto: "Auto", solar: "Solar" }[IND_KEY];
+    if (sellsVpex) demoPill.classList.add("with-trial");
+    demoPill.innerHTML = '<span title="Demo office \u00b7 ' + escapeHtml(IND.name) + '">' + (sellsVpex ? 'Demo \u00b7 ' + escapeHtml(demoShort || (IND_KEY === "investments" ? "sample data" : IND.name)) : 'Demo office \u00b7 ' + (IND_KEY === "investments" ? 'sample data' : escapeHtml(IND.name))) + '</span>' +
+      (sellsVpex ? '<button type="button" id="demoTrial">Start free trial</button><button type="button" id="demoExit" class="demo-exit">Exit</button>' : '<button type="button" id="demoExit">Exit demo</button>');
     document.body.insertBefore(demoPill, document.body.firstChild); document.getElementById("demoExit").addEventListener("click", exitDemo);
+    var dTrial = document.getElementById("demoTrial"); if (dTrial) dTrial.addEventListener("click", function () { exitDemo(IND_KEY || "insurance"); });
   }
 
   function isManager() { return !!(TEAM.me && TEAM.me.role === "manager"); }
@@ -16752,6 +16768,7 @@
     (function lpInit() {   // sales page: every trial button goes to the form, the tour can be paused, and a bottom bar follows the visitor
       var scr = document.getElementById("authScreen"), dock = document.getElementById("lpDock"), seen = {};
       function toForm() { var f = document.getElementById("authSub"); if (f && f.scrollIntoView) f.scrollIntoView({ behavior: "smooth", block: "start" }); setTimeout(function () { try { document.getElementById("suOffice").focus({ preventScroll: true }); } catch (e) {} }, 450); }
+      TEAM.lpToForm = toForm;
       document.querySelectorAll("#heroCta, [data-lp-cta]").forEach(function (b) { b.addEventListener("click", toForm); });
       var tr = document.getElementById("heroTry");
       if (tr) tr.addEventListener("click", function () { var d = document.getElementById("heroDemos"); if (d && d.scrollIntoView) d.scrollIntoView({ behavior: "smooth", block: "center" }); });
