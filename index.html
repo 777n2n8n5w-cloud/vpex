@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-12-22">
+<meta name="vpex-build" content="2026-12-23">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -6620,6 +6620,14 @@
   .seg { display: flex; gap: 6px; margin: 6px 0 0; }
   .seg-b { flex: 1 1 0; min-height: 40px; border-radius: var(--radius-s); border: 1px solid var(--border); background: var(--surface); color: var(--text); font: inherit; font-weight: 600; cursor: pointer; }
   .seg-b.on { background: var(--accent-fill, var(--accent)); border-color: var(--accent-fill, var(--accent)); color: var(--accent-text); }
+  .fu-step { display: grid; grid-template-columns: 44px 64px 44px minmax(0, 1fr); gap: 6px; align-items: center; margin-top: 6px; }
+  .fu-sb { height: 44px; border-radius: var(--radius-s); border: 1px solid var(--border); background: var(--surface); color: var(--text); font: inherit; font-size: 20px; font-weight: 600; cursor: pointer; }
+  .fu-sb:disabled { opacity: 0.4; cursor: default; }
+  .fu-num { height: 44px; width: 100%; box-sizing: border-box; text-align: center; font: inherit; font-size: 18px; font-weight: 700; border-radius: var(--radius-s); border: 1px solid var(--border); background: var(--surface-raised); color: var(--text); -moz-appearance: textfield; }
+  .fu-num::-webkit-outer-spin-button, .fu-num::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .fu-num.off { color: var(--text-faint); }
+  .fu-picks { display: flex; gap: 6px; min-width: 0; }
+  .fu-picks .seg-b { min-width: 0; padding: 0 4px; }
   .fu-lbl { margin-top: 14px; font-size: 13px; font-weight: 600; color: var(--text); }
   .fu-hint { margin: 6px 0 0; font-size: 12px; line-height: 1.5; color: var(--text-faint); }
   .fu-facts { margin: 14px 0 0; padding-left: 18px; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); }
@@ -9775,12 +9783,15 @@
   // ---- Fast close: limit time spent on leads that aren't moving ----
   // tries: unanswered calls before a lead is parked; stall: follow-up calls without moving a stage before a
   // warm lead is parked (0 = never). Set by the admin in Follow-up rules.
-  var FU_DEFAULT = { tries: 4, stall: 3 };
-  var RETRY_GAPS = { 3: [0, 1], 4: [0, 1, 2], 6: [0, 1, 2, 3, 4] };
+  var FU_DEFAULT = { tries: 4, stall: 3 }, FU_MAX_TRIES = 30, FU_MAX_STALL = 20;
+  // Business days to wait before each retry: same day, then 1, 2, 3, 4 days, then at most a week apart.
+  // (3, 4 and 6 tries keep exactly the spacing they always had.)
+  function retryGaps(tries) { var g = []; for (var i = 0; i < tries - 1; i++) g.push(Math.min(i, 5)); return g; }
   function fuCfg() {
     var c = (TEAM.on ? (TEAM.infoCfg || {}).fu : state.fuCfg) || {};
     var t = Number(c.tries), st = c.stall === 0 || c.stall === "0" ? 0 : Number(c.stall);
-    return { tries: RETRY_GAPS[t] ? t : FU_DEFAULT.tries, stall: [0, 2, 3, 5].indexOf(st) > -1 ? st : FU_DEFAULT.stall };
+    var okT = t === Math.floor(t) && t >= 1 && t <= FU_MAX_TRIES, okS = st === 0 || (st === Math.floor(st) && st >= 1 && st <= FU_MAX_STALL);
+    return { tries: okT ? t : FU_DEFAULT.tries, stall: okS ? st : FU_DEFAULT.stall };
   }
   function maxTries() { return fuCfg().tries; }
   var STAGE_RANK = { "New Lead": 0, "Qualified": 1, "Pitched": 2, "Objection": 3, "Committed": 4 };
@@ -9903,7 +9914,7 @@
   function retrySlot(lead, n) {
     var p = zonedParts(Date.now(), leadIana(lead));
     var weekend = p.dow === 0 || p.dow === 6;
-    var gaps = RETRY_GAPS[maxTries()] || RETRY_GAP_DAYS;
+    var gaps = retryGaps(maxTries()); if (!gaps.length) gaps = RETRY_GAP_DAYS;
     var gap = gaps[Math.min(Math.max(n, 1), gaps.length) - 1];
     var hour = p.h < 13 ? 16 : 10;
     if (gap === 0) {
@@ -10034,10 +10045,11 @@
       if (n >= cfg.tries) {
         lead.exhausted = true;
         if (warmLead(lead)) { lead.stalled = now; lead.stallWhy = "noanswer"; }
-        if ((lead.recycled || 0) >= RECYCLE_MAX) { lead.retired = true; return cfg.tries + " tries, no answer \u2014 retired"; }
+        var triesTxt = cfg.tries === 1 ? "1 try" : cfg.tries + " tries";
+        if ((lead.recycled || 0) >= RECYCLE_MAX) { lead.retired = true; return triesTxt + ", no answer \u2014 retired"; }
         var rd = restDaysFrom(now);
         lead.restUntil = now + rd * 86400000;
-        return cfg.tries + " tries, no answer \u2014 parked" + (lead.stalled ? "" : ", back in the queue in " + rd + " days");
+        return triesTxt + ", no answer \u2014 parked" + (lead.stalled ? "" : ", back in the queue in " + rd + " days");
       }
       lead.exhausted = false;
       t = addAutoTask(lead, "Call", n <= 2 ? "High" : "Medium", retrySlot(lead, n),
@@ -10367,7 +10379,7 @@
     var bits = [];
     if (last) bits.push("Called " + callsForLead(lead.id).length + "\u00d7 \u00b7 last: " + outcomeLabel(last.outcomeKey, last.outcome).toLowerCase() + " " + agoStr(last.timestamp));
     if (next) bits.push("Next: " + taskWhen(next, null));
-    if (lead.exhausted) bits.push(lead.retired ? "retired after " + ((lead.recycled || 0) + 1) + " rounds" : maxTries() + " tries made" + (lead.restUntil ? " \u00b7 back " + dayLabel(new Date(lead.restUntil)) : ""));
+    if (lead.exhausted) bits.push(lead.retired ? "retired after " + ((lead.recycled || 0) + 1) + " rounds" : (maxTries() === 1 ? "1 try" : maxTries() + " tries") + " made" + (lead.restUntil ? " \u00b7 back " + dayLabel(new Date(lead.restUntil)) : ""));
     if (lead.recycled && lead.status === "pending") bits.push("fresh try #" + (lead.recycled + 1));
     if (lead.released && lead.status === "pending") bits.push("back from " + lead.released.from);
     return '<div class="lead-track">' + escapeHtml(bits.join(" \u00b7 ")) + '</div>';
@@ -14977,33 +14989,50 @@
        'Don\u2019t call the same person twice within a couple of hours.'].map(function (t) { return '<li class="ci info"><span class="ci-dot">i</span><span>' + escapeHtml(t) + '</span></li>'; }).join("") +
       '</ul><a class="btn-secondary" href="https://www.freecallerregistry.com/" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:10px;text-decoration:none">Register your number (free)</a></div>';
   }
-  function fuSummary() { var c = fuCfg(); return "Up to " + c.tries + " tries \u00b7 " + (c.stall ? "park after " + c.stall + " follow-ups with no progress" : "never park warm leads"); }
+  function triesWord(n) { return n === 1 ? "1 try" : n + " tries"; }
+  function fuSummary() { var c = fuCfg(); return "Up to " + triesWord(c.tries) + " \u00b7 " + (c.stall ? "park after " + c.stall + " follow-up" + (c.stall === 1 ? "" : "s") + " with no progress" : "never park warm leads"); }
+  function fuSpan(tries) {   // "over 4 business days", "over about 2 weeks"
+    var d = 1 + retryGaps(tries).reduce(function (x, y) { return x + y; }, 0);
+    return d <= 5 ? "over " + d + " business day" + (d === 1 ? "" : "s") : "over about " + Math.round(d / 5) + " weeks";
+  }
   function openFuRules() {
-    var c = fuCfg();
-    var seg = function (name, opts, cur) {
-      return '<div class="seg" role="radiogroup">' + opts.map(function (o) { return '<button type="button" class="seg-b' + (o[0] === cur ? ' on' : '') + '" data-seg="' + name + '" data-v="' + o[0] + '" role="radio" aria-checked="' + (o[0] === cur) + '">' + o[1] + '</button>'; }).join("") + '</div>';
+    var c = fuCfg(), cur = { tries: c.tries, stall: c.stall };
+    var LIM = { tries: [1, FU_MAX_TRIES], stall: [0, FU_MAX_STALL] };
+    var stepper = function (k, picks) {
+      return '<div class="fu-step"><button type="button" class="fu-sb" data-fu-step="' + k + '" data-d="-1" aria-label="Fewer">−</button>' +
+        '<input type="number" inputmode="numeric" class="fu-num" id="fuNum_' + k + '" min="' + LIM[k][0] + '" max="' + LIM[k][1] + '" value="' + cur[k] + '" aria-label="' + (k === "tries" ? "Tries before parking" : "Follow-ups without progress before parking") + '">' +
+        '<button type="button" class="fu-sb" data-fu-step="' + k + '" data-d="1" aria-label="More">+</button>' +
+        '<div class="fu-picks">' + picks.map(function (p) { return '<button type="button" class="seg-b" data-fu-pick="' + k + '" data-v="' + p[0] + '">' + p[1] + '</button>'; }).join("") + '</div></div>';
     };
     featOpen('<h3>Follow-up rules</h3><p class="modal-sub">Spend calls on leads that are moving. ' + (TEAM.on ? 'These apply to everyone on your team.' : '') + '</p>' +
-      '<div class="fu-lbl">No answer: tries before parking a lead</div>' + seg("tries", [[3, "3"], [4, "4"], [6, "6"]], c.tries) +
+      '<div class="fu-lbl">No answer: tries before parking a lead</div>' + stepper("tries", [[3, "3"], [4, "4"], [6, "6"], [10, "10"]]) +
       '<p class="fu-hint" id="fuTriesHint"></p>' +
-      '<div class="fu-lbl">Interested or callback: follow-ups without moving a stage</div>' + seg("stall", [[2, "2"], [3, "3"], [5, "5"], [0, "Off"]], c.stall) +
+      '<div class="fu-lbl">Interested or callback: follow-ups without moving a stage</div>' + stepper("stall", [[2, "2"], [3, "3"], [5, "5"], [0, "Off"]]) +
       '<p class="fu-hint" id="fuStallHint"></p>' +
       '<ul class="fu-facts"><li>Due follow-ups come up closest to closing first: Committed, then Objection, Pitched, Qualified, biggest amounts first.</li>' +
       '<li>A callback time the lead asked for is always kept, and comes up first.</li>' +
-      '<li>Parked leads show in Pipeline with a Revive button. Moving a lead\u2019s stage, or adding a follow-up by hand, brings it back.</li></ul>' +
+      '<li>Parked leads show in Pipeline with a Revive button. Moving a lead’s stage, or adding a follow-up by hand, brings it back.</li></ul>' +
       '<div class="modal-actions"><button class="btn-secondary" id="fuCancel" type="button">Cancel</button><button class="btn-primary" id="fuSave" type="button">Save</button></div>');
-    var cur = { tries: c.tries, stall: c.stall };
-    var hints = function () {
-      document.getElementById("fuTriesHint").textContent = { 3: "3 tries over 2 business days.", 4: "4 tries over 3 business days.", 6: "6 tries over about 2 weeks." }[cur.tries] + " Then the lead rests and comes back in 60\u201390 days.";
-      document.getElementById("fuStallHint").textContent = cur.stall ? "After " + cur.stall + " follow-up calls with no stage change, the lead is parked so reps move on." : "Warm leads are never parked automatically.";
-    };
-    hints();
-    document.querySelectorAll("[data-seg]").forEach(function (b) {
-      b.addEventListener("click", function () {
-        var k = b.getAttribute("data-seg"); cur[k] = Number(b.getAttribute("data-v"));
-        document.querySelectorAll('[data-seg="' + k + '"]').forEach(function (x) { var on = x === b; x.classList.toggle("on", on); x.setAttribute("aria-checked", on); });
-        hints();
+    var show = function () {
+      ["tries", "stall"].forEach(function (k) {
+        var inp = document.getElementById("fuNum_" + k); if (document.activeElement !== inp) inp.value = cur[k];
+        inp.classList.toggle("off", k === "stall" && cur[k] === 0);
+        document.querySelectorAll('[data-fu-step="' + k + '"]').forEach(function (b) { b.disabled = cur[k] + Number(b.getAttribute("data-d")) < LIM[k][0] || cur[k] + Number(b.getAttribute("data-d")) > LIM[k][1]; });
+        document.querySelectorAll('[data-fu-pick="' + k + '"]').forEach(function (b) { var on = Number(b.getAttribute("data-v")) === cur[k]; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
       });
+      var t = cur.tries;
+      document.getElementById("fuTriesHint").textContent = (t === 1 ? "1 try. If they don’t answer, the lead rests" : t + " tries " + fuSpan(t) + ". Then the lead rests") + " and comes back in 60–90 days." +
+        (t > 6 ? " Most leads who’ll ever pick up do by the 6th try, and every extra call is one more chance for your number to be labeled spam." : "");
+      document.getElementById("fuStallHint").textContent = cur.stall ? "After " + cur.stall + " follow-up call" + (cur.stall === 1 ? "" : "s") + " with no stage change, the lead is parked so reps move on." : "Off: warm leads are never parked automatically.";
+    };
+    var set = function (k, v) { v = Math.round(Number(v)); if (v !== v) return; cur[k] = Math.max(LIM[k][0], Math.min(LIM[k][1], v)); show(); };
+    show();
+    document.querySelectorAll("[data-fu-step]").forEach(function (b) { b.addEventListener("click", function () { var k = b.getAttribute("data-fu-step"); set(k, cur[k] + Number(b.getAttribute("data-d"))); }); });
+    document.querySelectorAll("[data-fu-pick]").forEach(function (b) { b.addEventListener("click", function () { set(b.getAttribute("data-fu-pick"), b.getAttribute("data-v")); }); });
+    ["tries", "stall"].forEach(function (k) {
+      var inp = document.getElementById("fuNum_" + k);
+      inp.addEventListener("input", function () { if (inp.value !== "") set(k, inp.value); });
+      inp.addEventListener("blur", function () { inp.value = cur[k]; });
     });
     document.getElementById("fuCancel").addEventListener("click", featClose);
     document.getElementById("fuSave").addEventListener("click", function () {
@@ -15011,7 +15040,7 @@
       if (TEAM.on && TEAM.db) {
         tcol("leadChunks").doc("_team").set({ fu: v }, { merge: true })
           .then(function () { TEAM.infoCfg = Object.assign({}, TEAM.infoCfg || {}, { fu: v }); showToast("Follow-up rules saved for your team"); render(); })
-          .catch(function () { showToast("Couldn\u2019t save \u2014 check your connection"); });
+          .catch(function () { showToast("Couldn’t save — check your connection"); });
       } else { state.fuCfg = v; saveState(); showToast("Follow-up rules saved"); render(); }
       featClose();
     });
@@ -16505,7 +16534,7 @@
         admin && row("hubDnc", '<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>', "Do Not Call list", nDnc + " blocked for everyone")
       ]],
       ["rules", "Calling rules", "voicemail", '<path d="M4 12a8 8 0 1 0 2.3-5.6"/><path d="M4 4v4h4"/><path d="M12 8v4l3 2"/>',
-        "", "Up to " + fuCfg().tries + " tries · " + pacingCfg().perDay + " calls a day", [
+        "", "Up to " + triesWord(fuCfg().tries) + " · " + pacingCfg().perDay + " calls a day", [
         admin && row("hubFollow", '<path d="M4 12a8 8 0 1 0 2.3-5.6"/><path d="M4 4v4h4"/><path d="M12 8v4l3 2"/>', "Follow-up rules", fuSummary()),
         admin && row("hubPacing", '<path d="M12 3v3M12 18v3M4.2 7l2.6 1.5M17.2 15.5l2.6 1.5M4.2 17l2.6-1.5M17.2 8.5l2.6-1.5"/><circle cx="12" cy="12" r="3.5"/>', "Call pacing",
           pacingCfg().perDay + " calls a day per phone, so numbers aren’t flagged"),
