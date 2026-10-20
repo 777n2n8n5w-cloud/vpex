@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-12-22">
+<meta name="vpex-build" content="2026-12-23">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -5828,6 +5828,8 @@
   .upload-drop b { font-size: 15px; color: var(--text); }
   .upload-drop span { font-size: 12px; color: var(--text-faint); font-weight: 400; }
   .upload-drop .upload-ico { font-size: 22px; color: var(--accent); font-weight: 700; }
+  .up-dnc { margin: 10px 0 0; font-size: 12.5px; line-height: 1.45; color: var(--text-dim); }
+  .up-dnc a { color: var(--accent); overflow-wrap: anywhere; }
   .up-summary { padding: 10px 12px; border-radius: 8px; background: var(--surface-raised); border: 1px solid var(--border); margin-bottom: 10px; }
   .up-summary b { display: block; font-size: 14px; }
   .up-summary span { display: block; font-size: 12px; color: var(--text-faint); margin-top: 3px; }
@@ -5919,7 +5921,7 @@
   .auth-card input { width: 100%; box-sizing: border-box; font-size: 17px; padding: 13px 14px; border-radius: 10px; border: 1px solid var(--border);
     background: var(--surface); color: var(--text); font-family: inherit; }
   .auth-card .btn-primary { width: 100%; margin-top: 20px; padding: 15px; font-size: 16px; border-radius: 10px; }
-  .auth-link { display: block; margin: 10px auto 0; padding: 9px 6px; min-height: 36px; background: none; border: 0; color: var(--text-dim); font-family: inherit; font-size: 13.5px; text-decoration: underline; cursor: pointer; }
+  .auth-link { display: block; margin: 10px auto 0; padding: 9px 6px; min-height: 44px; background: none; border: 0; color: var(--text-dim); font-family: inherit; font-size: 13.5px; text-decoration: underline; cursor: pointer; }
   .auth-msg { background: var(--surface); border: 1px solid var(--notinterested); color: var(--text); border-radius: 10px; padding: 11px 13px; font-size: 14px; line-height: 1.45; margin-bottom: 8px; }
   .auth-connecting { color: var(--text-dim); font-size: 15px; padding: 20px 0; }
   .paused-screen { z-index: 190; }
@@ -5984,6 +5986,7 @@
   #authScreen.landing .hero-vid { display: block; width: 100%; height: 100%; max-width: none; margin: 0; border: 0; border-radius: 0; box-shadow: none; object-fit: cover; aspect-ratio: auto; background: #0A0F22; }
   .lp-vbtn { position: absolute; right: 10px; bottom: 10px; width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.18); background: rgba(8,12,30,0.62);
     color: #fff; display: grid; place-items: center; cursor: pointer; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+  .lp-vbtn::after { content: ""; position: absolute; inset: -5px; border-radius: 50%; }   /* 46 px to tap */
   .lp-vbtn .i-play { display: none; } .lp-vbtn.paused .i-play { display: block; } .lp-vbtn.paused .i-pause { display: none; }
   .lp-tag { position: absolute; z-index: 2; display: flex; align-items: center; gap: 9px; padding: 8px 12px 8px 8px; border-radius: 14px; max-width: 176px;
     background: color-mix(in srgb, var(--surface) 90%, transparent); border: 1px solid var(--border); box-shadow: 0 14px 30px -12px rgba(3,6,20,0.55);
@@ -6225,7 +6228,7 @@
   .pw-out a.btn-primary, .pw-out a.btn-secondary { display: flex; align-items: center; justify-content: center; text-align: center; text-decoration: none; }
   .auth-forgot { margin-top: 12px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface-raised); font-size: 13.5px; line-height: 1.5; text-align: left; }
   .auth-forgot p { margin: 0 0 8px; } .auth-forgot p:last-child { margin-bottom: 0; }
-  .auth-support { display: block; margin: 12px auto 0; padding: 10px 4px; text-align: center; font-size: 13px; color: var(--text-dim); text-decoration: underline; overflow-wrap: anywhere; }
+  .auth-support { display: block; margin: 12px auto 0; padding: 14px 4px; text-align: center; font-size: 13px; color: var(--text-dim); text-decoration: underline; overflow-wrap: anywhere; }
   .auth-forgot .btn-secondary { display: block; text-align: center; text-decoration: none; margin-top: 8px; }
   .bl-contact { margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border); font-size: 13px; line-height: 1.4; }
   .bl-contact b { display: block; font-size: 13.5px; }
@@ -11800,6 +11803,7 @@
       (n ? '<div class="up-table">' + sample + (n > 5 ? '<div class="up-more">+ ' + (n - 5) + ' more</div>' : '') + '</div>' +
         '<label for="uploadListName">List name</label><input type="text" id="uploadListName" value="' + escapeHtml(pu.source) + '">' +
         '<label class="up-check"><input type="checkbox" id="uploadFirst" checked> Put these at the front of my queue</label>' +
+        '<p class="up-dnc">VPEX skips your team\u2019s own Do Not Call list. It doesn\u2019t check the National Do Not Call Registry, so scrub cold lists (aged leads, expired listings, door-knock lists) at <a href="https://telemarketing.donotcall.gov/" target="_blank" rel="noopener">telemarketing.donotcall.gov</a> before you upload, unless these people asked you to call or already do business with you. Not legal advice.</p>' +
         (TEAM.on && isAdmin() && roster().length > 1 ? '<div class="ll-label">Who calls this list</div>' + repPickerHtml((listCfg()[pu.source] || {}).reps || []) : '') : '');
     document.getElementById("uploadActions").style.display = "";
     var btn = document.getElementById("submitUpload");
