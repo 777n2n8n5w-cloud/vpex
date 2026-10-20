@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-12-20">
+<meta name="vpex-build" content="2026-12-21">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -5129,6 +5129,8 @@
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
   }
+  .task-check { position: relative; }
+  .task-check::after { content: ""; position: absolute; inset: -8px; }   /* 44 px to tap, same 30 px box */
   .task-check.done { background: var(--interested); border-color: var(--interested); }
   .task-check svg { width: 15px; height: 15px; }
   .task-body { flex: 1; min-width: 0; }
@@ -5572,6 +5574,10 @@
   }
   .btn-primary { background: var(--accent-fill, var(--accent)); color: var(--accent-text); }
   .btn-secondary { background: var(--surface-raised); color: var(--text); border: 1px solid var(--border); }
+  .task-win { margin: 8px 0 2px; font-size: 13px; line-height: 1.4; color: var(--text-dim); }
+  .task-win.bad { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--notinterested); color: var(--text); background: color-mix(in srgb, var(--notinterested) 9%, transparent); }
+  .task-win.bad b { color: color-mix(in srgb, var(--notinterested) 62%, var(--text)); }
+  .task-win .btn-secondary { display: block; width: 100%; min-height: 44px; margin-top: 8px; }
   .field-error {
     font-size: 12px; color: var(--danger); margin-top: 8px; min-height: 16px;
   }
@@ -7695,6 +7701,7 @@
 
     <label for="taskTimeInput">Time <span style="font-weight:400;color:var(--text-faint)">(optional)</span></label>
     <input type="time" id="taskTimeInput">
+    <div class="task-win" id="taskWin" aria-live="polite" style="display:none"></div>
 
     <label for="taskNoteInput">Note</label>
     <textarea id="taskNoteInput" style="min-height:60px" placeholder="What needs to happen…"></textarea>
@@ -9837,7 +9844,34 @@
     var day = addBusinessDays(p.y, p.m, p.d, bizDays);
     var ts = zonedToUtc(day.y, day.m, day.d, hour, 0, iana);
     if (ts < Date.now()) { day = addBusinessDays(day.y, day.m, day.d, 1); ts = zonedToUtc(day.y, day.m, day.d, hour, 0, iana); }
+    // Never on a day the lead's state bans sales calls (AL, LA, RI legal holidays): the next business day instead.
+    var st = leadZone(lead).st;
+    for (var g = 0; g < 5 && STATE_HOURS[st]; g++) {
+      var dp = zonedParts(ts, iana), ymd = dp.y + "-" + pad2(dp.m + 1) + "-" + pad2(dp.d);
+      if (!dayWindow(st, { ymd: ymd, wd: dp.dow }).closed) break;
+      day = addBusinessDays(day.y, day.m, day.d, 1); ts = zonedToUtc(day.y, day.m, day.d, hour, 0, iana);
+    }
     return ts;
+  }
+  // Is a follow-up time inside the lead's calling hours (their state's rule, that day)? If not, why, and the
+  // first allowed time after it. null when the lead's location is unknown.
+  function slotCheck(lead, ts) {
+    var z = leadZone(lead); if (!z.iana || !ts) return null;
+    var p = zonedParts(ts, z.iana), ymd = p.y + "-" + pad2(p.m + 1) + "-" + pad2(p.d);
+    var w = dayWindow(z.st, { ymd: ymd, wd: p.dow }), h = p.h + p.mi / 60;
+    var r = { ok: true, st: z.st, iana: z.iana, their: new Date(ts).toLocaleTimeString("en-US", { timeZone: z.iana, weekday: "short", hour: "numeric", minute: "2-digit" }) };
+    if (!w.closed && h >= w.open && h < w.close) return r;
+    r.ok = false;
+    r.why = w.closed || ((h < w.open ? "before " : "after ") + (w.strict ? z.st + " calling hours" : "calling hours") + " (" + hourLabel(w.open) + "\u2013" + hourLabel(w.close) + ")");
+    // first allowed time: today's opening if it's still ahead, else the next open day's opening
+    for (var k = 0; k < 10; k++) {
+      var base = new Date(Date.UTC(p.y, p.m, p.d + k)), y = base.getUTCFullYear(), m = base.getUTCMonth(), d = base.getUTCDate();
+      var dw = dayWindow(z.st, { ymd: y + "-" + pad2(m + 1) + "-" + pad2(d), wd: base.getUTCDay() });
+      if (dw.closed) continue;
+      var at = zonedToUtc(y, m, d, dw.open, 0, z.iana);
+      if (at > ts) { r.fix = at; break; }
+    }
+    return r;
   }
   // When a rep sets or changes someone's preferred time, move their open automatic follow-ups into it.
   // Times a rep chose by hand (pinned) are never moved.
@@ -10774,6 +10808,32 @@
     document.getElementById("taskError").textContent = "";
     document.getElementById("taskModal").setAttribute("data-editing-id", task ? task.id : "");
     document.getElementById("taskModal").classList.add("show");
+    taskWinCheck();
+  }
+  // Under the time box: the time it'll be for the lead, and a warning with a one-tap fix when that's outside
+  // their state's calling hours (reps type times in their own zone; 8 AM for a rep in New York is 7 AM in Texas).
+  function taskWinCheck() {
+    var box = document.getElementById("taskWin"); if (!box) return;
+    var lead = findLeadById(document.getElementById("taskLeadSelect").value);
+    var due = document.getElementById("taskDueInput").value, tm = document.getElementById("taskTimeInput").value;
+    var type = document.getElementById("taskTypeSelect").value;
+    var c = null;
+    if (lead && due && tm && type !== "Email" && type !== "Docs") {
+      var p = due.split("-"), q = tm.split(":");
+      c = slotCheck(lead, new Date(+p[0], +p[1] - 1, +p[2], +q[0], +q[1]).getTime());
+    }
+    var mine = c && new Date(+due.split("-")[0], +due.split("-")[1] - 1, +due.split("-")[2], +tm.split(":")[0], +tm.split(":")[1]).toLocaleTimeString("en-US", { weekday: "short", hour: "numeric", minute: "2-digit" });
+    if (!c || (c.ok && c.their === mine)) { box.style.display = "none"; box.className = "task-win"; box.innerHTML = ""; return; }
+    box.style.display = "";
+    var who = escapeHtml(firstName(lead.name) || "them");
+    if (c.ok) { box.className = "task-win"; box.textContent = "That\u2019s " + c.their + " for " + firstName(lead.name) + " (" + c.st + ")."; return; }
+    box.className = "task-win bad";
+    var fixBtn = "";
+    if (c.fix) {
+      var f = new Date(c.fix), ft = f.toLocaleTimeString("en-US", { timeZone: c.iana, hour: "numeric", minute: "2-digit" });
+      fixBtn = '<button type="button" class="btn-secondary" id="taskWinFix" data-at="' + c.fix + '">Move to ' + escapeHtml(fmtWhen(c.fix)) + (ft !== f.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) ? " (" + escapeHtml(ft) + " " + c.st + ")" : "") + '</button>';
+    }
+    box.innerHTML = "<b>Outside calling hours.</b> That\u2019s " + escapeHtml(c.their) + " for " + who + " (" + c.st + "), " + escapeHtml(c.why) + "." + fixBtn;
   }
 
   function closeTaskModal() {
@@ -12540,6 +12600,7 @@
         if ([].some.call(sel.options, function (o) { return o.value === tm[1]; })) sel.value = tm[1];
         setTimeout(function () { if (TEAM.lpToForm) TEAM.lpToForm(); }, 350);
       }
+      suOfficeHint();
     } else if (view === "join") {
       document.getElementById("authSub").textContent = "Join " + officeLabel() + " on VPEX";
     } else document.getElementById("authSub").textContent = setup ? "Create the admin account (one time only)" : (OFFICE ? "Sign in to " + officeLabel() : "Sign in to your team account");
@@ -12551,6 +12612,11 @@
     document.getElementById("authSetup").textContent = setup ? "Back to sign in" : "First time? Set up the admin account";
     document.getElementById("authPw").setAttribute("autocomplete", setup ? "new-password" : "current-password");
     if (setup) { u.value = TEAM_OWNER; u.readOnly = true; } else { u.readOnly = false; }
+  }
+  // The office-name example follows what they sell (a solar office sees "Bright Sun Solar", not an insurance name).
+  function suOfficeHint() {
+    var k = document.getElementById("suInd").value, ind = INDUSTRIES[k], c = ind && ind.demo && ind.demo.company;
+    document.getElementById("suOffice").placeholder = c || "Harbor Insurance Group";
   }
   function authError(e) {
     var c = (e && e.code) || "";
@@ -16682,6 +16748,15 @@
     document.getElementById("closeTaskModal").addEventListener("click", closeTaskModal);
     document.getElementById("cancelTask").addEventListener("click", closeTaskModal);
     document.getElementById("submitTask").addEventListener("click", handleSubmitTask);
+    ["taskLeadSelect", "taskTypeSelect", "taskDueInput", "taskTimeInput"].forEach(function (id) { var el = document.getElementById(id); el.addEventListener("change", taskWinCheck); el.addEventListener("input", taskWinCheck); });
+    document.getElementById("taskWin").addEventListener("click", function (e) {
+      var b = e.target.closest && e.target.closest("#taskWinFix"); if (!b) return;
+      var d = new Date(Number(b.getAttribute("data-at")));
+      document.getElementById("taskDueInput").value = localDateStr(d);
+      document.getElementById("taskTimeInput").value = pad2(d.getHours()) + ":" + pad2(d.getMinutes());
+      taskWinCheck();
+      showToast("Moved into their calling hours");
+    });
     document.getElementById("taskModal").addEventListener("click", function (e) {
       if (e.target === this) closeTaskModal();
     });
@@ -16799,6 +16874,7 @@
     document.getElementById("psExport").addEventListener("click", function () { try { exportBackup(); } catch (e) { showToast("Couldn\u2019t build the file", { kind: "err" }); } });
     document.getElementById("psOut").addEventListener("click", function () { teamSignOut(); });
     document.getElementById("jnGo").addEventListener("click", officeJoin);
+    document.getElementById("suInd").addEventListener("change", suOfficeHint);
     document.getElementById("suOffice").addEventListener("input", function () { var sl = officeSlug(this.value); document.getElementById("suSlug").textContent = sl ? "Office code: " + sl + " \u2014 reps use it to sign in" : ""; });
     ["suPw2", "jnPw2"].forEach(function (id) { document.getElementById(id).addEventListener("keydown", function (e) { if (e.key === "Enter") (id === "suPw2" ? officeSignup : officeJoin)(); }); });
     document.getElementById("suPhone").addEventListener("blur", function () { if (validPhone(this.value)) this.value = fmtPhone(this.value); });
