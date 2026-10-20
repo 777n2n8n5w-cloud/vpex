@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-12-17">
+<meta name="vpex-build" content="2026-12-18">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -6275,111 +6275,6 @@
   .sb-top b { font-size: 14.5px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .sb-top em { font-weight: 500; font-size: 12px; color: var(--text-faint); }
   .sb-big { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; flex: none; }
-
-  /* ---- Operations dashboard (owners and managers) ---- */
-  .ops { position: relative; padding: 14px 0 28px; }
-  .ops-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 2px 2px 10px; }
-  .ops-head h2 { margin: 0; font-size: 21px; font-weight: 700; letter-spacing: -0.2px; }
-  .ops-upd { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-faint); white-space: nowrap; }
-  .ops-pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--interested); animation: opsPulse 2.4s ease-in-out infinite; }
-  @keyframes opsPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
-  @media (prefers-reduced-motion: reduce) { .ops-pulse { animation: none; } }
-  .ops-hero { display: flex; justify-content: space-between; align-items: flex-end; gap: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-m); padding: 16px 18px; }
-  .ops-big { font-size: 52px; line-height: 0.95; font-weight: 700; letter-spacing: -1.5px; color: var(--text); }
-  .ops-big-l { font-size: 13px; color: var(--text-dim); font-weight: 600; margin-top: 4px; }
-  .ops-delta { font-size: 12.5px; font-weight: 600; color: var(--text-dim); margin-top: 8px; }
-  .ops-delta.up { color: var(--interested); }
-  .ops-delta.down { color: var(--danger); }
-  .ops-hero-r { text-align: right; min-width: 0; }
-  .ops-livenum { font-size: 13.5px; color: var(--text-dim); }
-  .ops-livenum b { font-size: 22px; color: var(--text); margin-right: 2px; }
-  .ops-dots { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 5px; margin: 8px 0 7px; max-width: 150px; margin-left: auto; }
-  .ops-lasth { font-size: 12px; color: var(--text-faint); }
-  .ops-dot { flex: none; width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: var(--text-faint); }
-  .ops-dot.s-live { background: var(--interested); }
-  .ops-dot.s-idle { background: var(--voicemail); }
-  .ops-dot.s-none { background: transparent; box-shadow: inset 0 0 0 2px var(--text-faint); }
-  .ops-dot.s-out { background: var(--border); }
-  .ops-kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 8px; }
-  .ops-kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-m); padding: 11px 13px; display: flex; flex-direction: column; min-width: 0; }
-  .ops-kpi b { font-size: 24px; font-weight: 700; line-height: 1.1; }
-  .ops-kpi span { font-size: 13px; color: var(--text); font-weight: 600; margin-top: 2px; }
-  .ops-kpi small { font-size: 12px; color: var(--text-faint); margin-top: 1px; }
-  .ops-kd { font-style: normal; font-size: 12px; font-weight: 600; color: var(--text-dim); margin-top: 3px; }
-  .ops-kd.up { color: var(--interested); }
-  .ops-kd.down { color: var(--danger); }
-  .ops-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-m); padding: 14px 16px; margin-top: 12px; }
-  .ops-h { margin: 0 0 10px; font-size: 15.5px; font-weight: 700; display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
-  .ops-h small { font-size: 12.5px; font-weight: 500; color: var(--text-faint); text-align: right; }
-  .ops-needs { display: flex; flex-direction: column; gap: 6px; }
-  .ops-need:active, .ops-rep:active, .ops-appt:active { transform: scale(0.99); }
-  .ops-need { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 10px 10px 10px 11px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-raised); color: var(--text); font: inherit; font-size: 13.5px; line-height: 1.35; cursor: pointer; min-height: 44px; }
-  .ops-need-t { flex: 1; min-width: 0; }
-  .ops-go { flex: none; color: var(--text-faint); font-size: 19px; line-height: 1; }
-  .ops-ic { flex: none; width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 800; color: #fff; background: var(--callback); }
-  .ops-need.t-bad { border-color: color-mix(in srgb, var(--danger) 45%, var(--border)); }
-  .ops-need.t-bad .ops-ic { background: var(--danger); }
-  .ops-need.t-warn .ops-ic { background: var(--voicemail); }
-  .ops-ok { display: flex; align-items: flex-start; gap: 10px; font-size: 13.5px; color: var(--text-dim); line-height: 1.4; }
-  .ops-ok .ops-ic { background: var(--interested); }
-  .ops-reps { display: flex; flex-direction: column; }
-  .ops-rep { display: grid; grid-template-columns: 12px minmax(0, 1fr) 44px 44px 38px; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 9px 2px; border: 0; border-top: 1px solid var(--border); background: none; color: var(--text); font: inherit; cursor: pointer; }
-  .ops-rep:first-child { border-top: 0; padding-top: 2px; }
-  .ops-rep-n { min-width: 0; display: flex; flex-direction: column; }
-  .ops-rep-n b { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .ops-rep-n small { font-size: 12px; color: var(--text-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .ops-rep-n small.s-live { color: var(--interested); font-weight: 600; }
-  .ops-rep-m { display: flex; flex-direction: column; align-items: flex-end; font-variant-numeric: tabular-nums; }
-  .ops-rep-m b { font-size: 14.5px; }
-  .ops-rep-m small { font-size: 11px; color: var(--text-faint); }
-  .ops-rep-m.late b { color: var(--danger); }
-  .ops-chart { position: relative; display: flex; align-items: stretch; height: 150px; gap: 2px; padding-top: 18px; }
-  .ops-col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-  .ops-hit { flex: 1; position: relative; display: flex; align-items: flex-end; justify-content: center; padding: 0; border: 0; border-bottom: 1px solid var(--border); background: none; cursor: pointer; border-radius: 4px 4px 0 0; }
-  .ops-hit:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-  .ops-bar { display: block; width: min(20px, 72%); background: var(--accent-fill, var(--accent)); border-radius: 4px 4px 0 0; transition: filter 0.15s; }
-  .ops-hit.on .ops-bar, .ops-hit:hover .ops-bar { filter: brightness(1.18) saturate(1.05); }
-  .ops-hit.on { background: color-mix(in srgb, var(--accent) 9%, transparent); }
-  .ops-cap { position: absolute; left: 0; right: 0; text-align: center; font-size: 11.5px; font-weight: 700; color: var(--text-dim); }
-  .ops-x { height: 18px; line-height: 18px; text-align: center; font-size: 10.5px; color: var(--text-faint); white-space: nowrap; font-variant-numeric: tabular-nums; }
-  .ops-col.future .ops-hit { cursor: default; }
-  .ops-col.now .ops-x { color: var(--text-dim); font-weight: 700; }
-  .ops-tip { position: absolute; z-index: 6; pointer-events: none; background: var(--text); color: var(--bg); font-size: 12.5px; font-weight: 600; padding: 5px 9px; border-radius: 8px; white-space: nowrap; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25); }
-  .ops-tbl { margin-top: 8px; font-size: 12.5px; color: var(--text-dim); }
-  .ops-tbl summary { cursor: pointer; color: var(--text-dim); font-weight: 600; padding: 4px 0; }
-  .ops-tbl table { width: 100%; border-collapse: collapse; margin-top: 6px; font-variant-numeric: tabular-nums; }
-  .ops-tbl th, .ops-tbl td { text-align: left; padding: 5px 4px; border-top: 1px solid var(--border); }
-  .ops-tbl th:not(:first-child), .ops-tbl td:not(:first-child) { text-align: right; }
-  .ops-stages { display: flex; flex-direction: column; gap: 9px; }
-  .ops-stage { display: grid; grid-template-columns: minmax(0, 104px) minmax(0, 1fr) auto; align-items: center; gap: 10px; }
-  .ops-stage-n { font-size: 13px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .ops-track { height: 10px; border-radius: 0 4px 4px 0; background: color-mix(in srgb, var(--accent) 13%, transparent); overflow: hidden; }
-  .ops-track span { display: block; height: 100%; background: var(--accent-fill, var(--accent)); border-radius: 0 4px 4px 0; }
-  .ops-stage-v { font-size: 13px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; min-width: 64px; }
-  .ops-stage-v small { display: inline-block; min-width: 24px; margin-left: 6px; font-weight: 500; color: var(--text-faint); }
-  .ops-meter { margin-top: 14px; }
-  .ops-meter-top { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; color: var(--text-dim); margin-bottom: 6px; }
-  .ops-meter-top b { color: var(--text); }
-  .ops-meter-track { height: 8px; border-radius: 4px; background: color-mix(in srgb, var(--accent) 13%, transparent); overflow: hidden; }
-  .ops-meter-track span { display: block; height: 100%; background: var(--accent-fill, var(--accent)); border-radius: 0 4px 4px 0; }
-  .ops-line { margin-top: 12px; font-size: 13px; color: var(--text-dim); line-height: 1.45; }
-  .ops-line b { color: var(--text); }
-  .ops-line b.late { color: var(--danger); }
-  .ops-inv { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-  .ops-inv div { background: var(--surface-raised); border: 1px solid var(--border); border-radius: 10px; padding: 9px 10px; display: flex; flex-direction: column; min-width: 0; }
-  .ops-inv b { font-size: 19px; font-weight: 700; }
-  .ops-inv span { font-size: 11.5px; color: var(--text-dim); line-height: 1.3; margin-top: 2px; }
-  .ops-appts { display: flex; flex-direction: column; }
-  .ops-appt { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 9px 2px; border: 0; border-top: 1px solid var(--border); background: none; color: var(--text); font: inherit; cursor: pointer; }
-  .ops-appt:first-child { border-top: 0; padding-top: 2px; }
-  .ops-appt.past { opacity: 0.6; }
-  .ops-appt.next .ops-appt-t { color: var(--accent); }
-  .ops-appt-t { flex: none; width: 70px; font-size: 13.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .ops-appt-n { display: flex; flex-direction: column; min-width: 0; }
-  .ops-appt-n b { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .ops-appt-n small { font-size: 12px; color: var(--text-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .ops-foot { margin: 14px 4px 0; font-size: 12px; color: var(--text-faint); text-align: center; }
-  @media (max-width: 360px) { .ops-big { font-size: 44px; } .ops-inv { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ops-rep { grid-template-columns: 12px minmax(0, 1fr) 40px 40px 34px; gap: 6px; } .ops-rep-n .loc-badge { display: none; } }
   .sb-big small { font-size: 11.5px; font-weight: 600; color: var(--text-faint); }
   .sb-bar { height: 5px; border-radius: 3px; background: var(--border); margin: 7px 0 8px; overflow: hidden; }
   .sb-bar span { display: block; height: 100%; border-radius: 3px; background: var(--accent-fill, var(--accent)); }
@@ -7556,7 +7451,6 @@
     <button class="view-tab" data-view="pipeline" id="viewTabPipeline">Pipeline</button>
     <button class="view-tab" data-view="tasks" id="viewTabTasks">Tasks</button>
     <button class="view-tab" data-view="vault" id="viewTabVault">Vault</button>
-    <button class="view-tab" data-view="ops" id="viewTabOps" hidden>Ops</button>
   </div>
 
   <div class="progress-wrap rhythm" id="progressWrap" style="display:none">
@@ -9755,15 +9649,13 @@
     var lcp = document.getElementById("locChip"), myLoc = TEAM.on && TEAM.me ? repLoc(TEAM.me.uid) : "";
     if (lcp) { lcp.hidden = !myLoc; lcp.textContent = myLoc ? LOCS[myLoc] : ""; lcp.className = "loc-chip loc-" + myLoc; }
 
+    if (["dial", "history", "pipeline", "tasks", "vault"].indexOf(state.activeView || "dial") < 0) state.activeView = "dial";   // e.g. a saved view from the removed Ops tab
     document.getElementById("viewTabs").style.display = total > 0 ? "" : "none";
     document.getElementById("viewTabDial").classList.toggle("active", state.activeView === "dial");
     document.getElementById("viewTabHistory").classList.toggle("active", state.activeView === "history");
     document.getElementById("viewTabPipeline").classList.toggle("active", state.activeView === "pipeline");
     document.getElementById("viewTabTasks").classList.toggle("active", state.activeView === "tasks");
     document.getElementById("viewTabVault").classList.toggle("active", state.activeView === "vault");
-    var opsOk = opsAllowed(), opsTab = document.getElementById("viewTabOps");
-    opsTab.hidden = !opsOk; opsTab.classList.toggle("active", state.activeView === "ops");
-    if (state.activeView === "ops" && !opsOk) state.activeView = "dial";
     document.getElementById("queueControls").style.display = "none";
     var dueN = dueTasks().length;
     var scb = document.getElementById("adminBtn");
@@ -9771,13 +9663,6 @@
     ntBadge();
     document.getElementById("viewTabTasks").setAttribute("data-badge", dueN ? String(dueN) : "");
 
-    if (state.activeView === "ops") {
-      document.getElementById("progressWrap").style.display = "none";
-      document.getElementById("statsBlock").style.display = "none";
-      document.getElementById("queueBlock").style.display = "none";
-      renderOpsTab();
-      return;
-    }
     if (state.activeView === "history") {
       document.getElementById("progressWrap").style.display = "none";
       document.getElementById("statsBlock").style.display = "none";
@@ -16461,326 +16346,6 @@
   document.getElementById("searchBtn").addEventListener("click", openSearch);
 
 
-  /** ---------- Operations dashboard (owners and managers) ---------- **/
-  // One screen for how the floor is running right now: who's dialing, what needs the owner, follow-up health,
-  // the pipeline, how many fresh leads are left, and each rep's status. Everything comes from the same shared data
-  // the rest of the app uses (call log, leads, follow-ups, Vault), so the numbers always agree with the scoreboard.
-  // Built to stay fast on big floors: one pass over the call log, one over follow-ups, one over leads.
-  var OPS_LIVE_MIN = 15, OPS_ONLINE_MIN = 7, OPS_FROM_H = 8, OPS_TO_H = 20;
-  var opsTs = typeof WeakMap === "function" ? new WeakMap() : null;   // parsed call times, kept between redraws
-  var OPS_UI = { html: "", tbl: false };
-  // Follow-ups closed by the app itself (returned to the pool, handed off, Do Not Call) aren't work a rep did.
-  var OPS_SYS_CLOSE = /Returned to the team pool|Handed off to|Do not call/;
-  function opsAllowed() { return !!(TEAM.on && TEAM.me && (isAdmin() || isManager())); }
-  function opsCallTs(c) {
-    if (opsTs) { var v = opsTs.get(c); if (v !== undefined) return v; }
-    var v = c.timestamp, t = typeof v === "number" ? v : Date.parse(v);
-    if (t !== t && v) t = new Date(v).getTime();   // any older or odd format still counts
-    if (opsTs && t === t) opsTs.set(c, t);
-    return t;
-  }
-  // The call-log pass is the heavy part on big floors, so it runs only when a call arrives or the minute changes.
-  var OPS_MEMO = { ref: null, len: -1, tail: null, min: -1, agg: null };
-  function opsCalls(now) {
-    var log = state.callLog, min = Math.floor(now / 60000), tail = log.length ? log[log.length - 1] : null, M = OPS_MEMO;
-    if (M.agg && M.ref === log && M.len === log.length && M.tail === tail && M.min === min) return M.agg;
-    var d0 = dayStart(0), sinceMidnight = now - d0, base14 = now - 14 * 86400000;
-    var g = { calls: 0, reached: 0, interested: 0, lastHour: 0, hours: {}, hoursReached: {}, cmp: null, span: new Map(), oldest: now, reps: {} };
-    var dayFrom = [], dayAll = [0, 0, 0, 0, 0, 0, 0, 0], dayUpTo = [0, 0, 0, 0, 0, 0, 0, 0], dayUpR = [0, 0, 0, 0, 0, 0, 0, 0], dayUpI = [0, 0, 0, 0, 0, 0, 0, 0];
-    for (var k = 0; k <= 7; k++) dayFrom.push(dayStart(-k));
-    var R = function (by) {
-      var key = by && by.uid ? by.uid : "_none";
-      return g.reps[key] || (g.reps[key] = { name: by && by.name ? by.name : "Unassigned", calls: 0, reached: 0, last: 0, t0: 0, t1: 0, b0: 0, b1: 0 });
-    };
-    for (var i = 0; i < log.length; i++) {
-      var c = log[i], ts = opsCallTs(c);
-      if (!(ts > 0) || ts > now) continue;
-      if (ts < g.oldest) g.oldest = ts;
-      var sp = g.span.get(c.leadId);
-      if (!sp) g.span.set(c.leadId, [ts, ts]); else { if (ts < sp[0]) sp[0] = ts; if (ts > sp[1]) sp[1] = ts; }
-      if (ts < base14) continue;
-      var reached = CONTACT_OUTCOMES[c.outcomeKey] ? 1 : 0, r = R(c.by);
-      if (ts < d0) {
-        r.b0++; r.b1 += reached;
-        if (ts >= dayFrom[7]) { for (var dk = 1; dk <= 7; dk++) if (ts >= dayFrom[dk]) { dayAll[dk]++; if (ts - dayFrom[dk] <= sinceMidnight) { dayUpTo[dk]++; dayUpR[dk] += reached; if (c.outcomeKey === "interested") dayUpI[dk]++; } break; } }
-        continue;
-      }
-      r.t0++; r.t1 += reached; r.calls++; if (ts > r.last) r.last = ts;
-      g.calls++; if (reached) { g.reached++; r.reached++; }
-      if (c.outcomeKey === "interested") g.interested++;
-      var h = new Date(ts).getHours(); g.hours[h] = (g.hours[h] || 0) + 1; if (reached) g.hoursReached[h] = (g.hoursReached[h] || 0) + 1;
-      if (now - ts < 3600000) g.lastHour++;
-    }
-    for (var dc = 1; dc <= 7; dc++) if (dayAll[dc]) { g.cmp = { n: dayUpTo[dc], r: dayUpR[dc], i: dayUpI[dc], label: dc === 1 ? "yesterday" : new Date(dayFrom[dc]).toLocaleDateString(undefined, { weekday: "long" }) }; break; }
-    OPS_MEMO = { ref: log, len: log.length, tail: tail, min: min, agg: g };
-    return g;
-  }
-  function opsData(nowTs) {
-    var now = nowTs || Date.now(), d0 = dayStart(0), d1 = dayStart(1), week = now - 7 * 86400000;
-    var g = opsCalls(now);
-    var o = { now: now, calls: g.calls, reached: g.reached, interested: g.interested, lastHour: g.lastHour, hours: g.hours, hoursReached: g.hoursReached, reps: [], needs: [],
-      cmp: g.cmp, tasks: { dueToday: 0, doneToday: 0, overdue: 0 }, appts: [], apptsTomorrow: 0, apptsSet: 0, pipe: [],
-      closing: { inProgress: 0, dueWeek: 0, overdue: [] },
-      leads: { total: state.leads.length, fresh: 0, callable: 0, outside: 0, unknown: 0, followup: 0, dnc: 0, bad: 0, retired: 0 },
-      pace: 0, runway: null, noNext: 0, stalled: 0, warmLate: 0, target: Number(state.dealTarget) || 0, committed: 0 };
-    var reps = {}, members = TEAM.members || {};
-    function rep(ref) {
-      var k = ref && ref.uid ? ref.uid : "_none";
-      if (reps[k]) return reps[k];
-      var a = g.reps[k] || { calls: 0, reached: 0, last: 0, t0: 0, t1: 0, b0: 0, b1: 0 };
-      return (reps[k] = { uid: k, name: ref && ref.name ? ref.name : a.name || "Unassigned", calls: a.calls, reached: a.reached, last: a.last, overdue: 0, dueToday: 0, pipeline: 0,
-        member: members[k] || null, loc: k === "_none" ? "" : repLoc(k), status: "none", t: [a.t0, a.t1], b: [a.b0, a.b1] });
-    }
-    Object.keys(members).forEach(function (k) { var m = members[k]; if (m.active && !m.removed) rep({ uid: k, name: m.name || m.username }); });
-    Object.keys(g.reps).forEach(function (k) { if (g.reps[k].calls) rep({ uid: k === "_none" ? "" : k, name: g.reps[k].name }); });
-    // fresh leads reached for the first time per day, over the last week (or since calling started, if sooner)
-    var newWeek = 0; g.span.forEach(function (v) { if (v[0] >= week) newWeek++; });
-    o.pace = newWeek / Math.max(1, Math.min(7, (now - Math.max(g.oldest, week)) / 86400000));
-    // follow-ups: one pass gives the per-lead open count, today's work, what's late, and the warm leads over a day late
-    var byId = leadMap(), openN = {};
-    state.tasks.forEach(function (t) {
-      var l = t.leadId && byId[t.leadId]; if (!l) return;
-      if (t.done) { if (t.doneAt && t.doneAt >= d0 && !OPS_SYS_CLOSE.test(t.note || "")) o.tasks.doneToday++; return; }
-      openN[t.leadId] = (openN[t.leadId] || 0) + 1;
-      var due = taskDueTs(t), a = assigneeOf(t), r2 = a ? rep(a) : null;
-      if (due >= d0 && due < d1) { o.tasks.dueToday++; if (r2) r2.dueToday++; }
-      if (due < now - 3600000) { o.tasks.overdue++; if (r2) r2.overdue++; }
-      if (due < now - 86400000 && warmLead(l)) o.warmLate++;
-    });
-    // leads: inventory, pipeline, next steps, appointments
-    var stageSum = {}, stageN = {}, t1 = d1 + 86400000;
-    state.leads.forEach(function (l) {
-      var dnc = isDnc(l), open = openN[l.id] || 0;
-      if (dnc) o.leads.dnc++;
-      else if (l.badNumber) o.leads.bad++;
-      else if (l.retired) o.leads.retired++;
-      else if (l.status === "pending") {
-        if (!g.span.has(l.id)) o.leads.fresh++;
-        var z = leadZone(l);
-        if (!z.iana) o.leads.unknown++; else if (leadClock(l).ok) o.leads.callable++; else o.leads.outside++;
-      }
-      if (open && !dnc) o.leads.followup++;
-      var stage = l.stage || "New Lead", active = stage !== "New Lead" && stage !== "Closed Lost", amt = Number(l.amount) || 0;
-      if (active) {
-        stageN[stage] = (stageN[stage] || 0) + 1; stageSum[stage] = (stageSum[stage] || 0) + amt;
-        if (l.owner) rep(l.owner).pipeline += amt;
-        if (stage === "Committed") o.committed += amt;
-      }
-      if ((active || l.outcome === "interested" || l.outcome === "callback") && stage !== "Closed Lost" && !open && !l.stalled && !l.retired && !dnc) {
-        o.noNext++;
-        var sp = g.span.get(l.id);
-        if (active && (!sp || now - sp[1] > 14 * 86400000)) o.stalled++;
-      }
-      var hd = l.handoff;
-      if (hd) {
-        if (hd.at >= d0 && hd.at < d1) o.apptsSet++;
-        if (stage !== "Closed Lost" && hd.apptAt >= d0 && hd.apptAt < d1) o.appts.push({ id: l.id, name: l.name, at: hd.apptAt, closer: hd.to ? hd.to.name : "", setter: hd.from ? hd.from.name : "" });
-        else if (stage !== "Closed Lost" && hd.apptAt >= d1 && hd.apptAt < t1) o.apptsTomorrow++;
-      }
-    });
-    o.appts.sort(function (a, b) { return a.at - b.at; });
-    o.pipe = STAGES.filter(function (s) { return s !== "New Lead" && s !== "Closed Lost"; }).map(function (s) { return { stage: s, n: stageN[s] || 0, amount: stageSum[s] || 0 }; });
-    o.runway = o.pace > 0 ? o.leads.fresh / o.pace : null;
-    // closing checklists (Vault)
-    vaultRecords().forEach(function (vr) {
-      (vr.investments || []).forEach(function (inv) {
-        var ns = invNextStep(inv); if (!ns) return;
-        o.closing.inProgress++;
-        if (ns.due < d0) o.closing.overdue.push({ name: vr.name, deal: inv.deal || "", step: ns.label, days: Math.round((d0 - ns.due) / 86400000), id: vr.id });
-        else if (ns.due < d0 + 7 * 86400000) o.closing.dueWeek++;
-      });
-    });
-    o.closing.overdue.sort(function (a, b) { return b.days - a.days; });
-    // each rep right now: dialing, idle, no calls yet or out; online from the app's 5-minute heartbeat
-    o.reps = Object.keys(reps).map(function (key) { return reps[key]; }).filter(function (x) { return x.uid !== "_none" || x.calls; });
-    o.reps.forEach(function (x) {
-      var seen = x.member && x.member.lastSeen ? Number(x.member.lastSeen) : 0;
-      x.online = !!seen && now - seen < OPS_ONLINE_MIN * 60000;
-      x.seenToday = seen >= d0 ? seen : 0;
-      x.status = x.loc === "out" ? "out" : x.last && now - x.last < OPS_LIVE_MIN * 60000 ? "live" : x.last ? "idle" : "none";
-      // same test as the dial screen's spam warning: today's answer rate under half the usual one
-      x.spam = x.t[0] >= 25 && x.b[0] >= 100 && x.b[1] / x.b[0] >= 0.08 && x.t[1] / x.t[0] < (x.b[1] / x.b[0]) * 0.5
-        ? { today: Math.round(x.t[1] / x.t[0] * 100), usual: Math.round(x.b[1] / x.b[0] * 100) } : null;
-      delete x.t; delete x.b;
-    });
-    var rank = { live: 0, idle: 1, none: 2, out: 3 };
-    o.reps.sort(function (a, b) { return (rank[a.status] - rank[b.status]) || (b.calls - a.calls) || String(a.name).localeCompare(String(b.name)); });
-    o.live = o.reps.filter(function (x) { return x.status === "live"; }).length;
-    o.onFloor = o.reps.filter(function (x) { return x.uid !== "_none" && x.status !== "out"; }).length;
-    // what needs the owner, most urgent first: [tone, text, where it goes]
-    var N = o.needs, nd = new Date(now), work = nd.getDay() % 6 !== 0 && nd.getHours() >= 10;
-    if (o.warmLate) N.push(["bad", o.warmLate + " interested follow-up" + (o.warmLate === 1 ? " is" : "s are") + " more than a day late", "overdue"]);
-    if (o.closing.overdue.length) N.push(["bad", o.closing.overdue.length + " closing step" + (o.closing.overdue.length === 1 ? " is" : "s are") + " overdue: " + o.closing.overdue.slice(0, 2).map(function (x) { return x.step + (x.deal ? " (" + x.deal + ")" : ""); }).join(", ") + (o.closing.overdue.length > 2 ? " and " + (o.closing.overdue.length - 2) + " more" : ""), "vault"]);
-    if (o.noNext) N.push(["warn", o.noNext + " interested lead" + (o.noNext === 1 ? " has" : "s have") + " no next step", "pipeline"]);
-    o.reps.forEach(function (x) { if (x.spam) N.push(["warn", firstName(x.name) + "’s answer rate is " + x.spam.today + "% today vs " + x.spam.usual + "% usually. Their number may be labeled spam.", "coach"]); });
-    var idle = o.reps.filter(function (x) { return x.status === "none" && x.uid !== "_none" && x.member && x.member.role !== "admin"; });
-    if (work && idle.length) N.push(["warn", "No calls yet today from " + idle.map(function (x) { return firstName(x.name); }).join(", "), "team"]);
-    if (o.stalled) N.push(["warn", o.stalled + " pipeline deal" + (o.stalled === 1 ? " hasn’t" : "s haven’t") + " been touched in 2+ weeks", "pipeline"]);
-    if (o.runway !== null && o.runway < 3 && o.leads.fresh < 500) N.push(["warn", "Fresh leads run out in about " + Math.max(1, Math.round(o.runway)) + " day" + (Math.round(o.runway) <= 1 ? "" : "s") + " at this week’s pace", "leads"]);
-    var soon = 0; state.leads.forEach(function (l) { if (l.staleSince && l.owner && FAIR_NOTICE - Math.floor((now - l.staleSince) / 86400000) <= 2) soon++; });
-    if (soon) N.push(["info", soon + " lead" + (soon === 1 ? " goes" : "s go") + " back to the team pool within 2 days unless someone calls", "coach"]);
-    return o;
-  }
-
-  function opsBarsHtml(o) {
-    var nowH = new Date(o.now).getHours(), from = OPS_FROM_H, to = Math.max(OPS_TO_H, Math.min(23, nowH)), hrs = [], max = 1, peak = -1, other = 0;
-    for (var h = from; h <= to; h++) { var v = o.hours[h] || 0; hrs.push(h); if (v > max) max = v; if (v && (peak < 0 || v > (o.hours[peak] || 0))) peak = h; }
-    Object.keys(o.hours).forEach(function (hk) { if (+hk < from || +hk > to) other += o.hours[hk]; });
-    var lbl = function (hh) { return (hh % 12 || 12) + (hh < 12 ? "a" : "p"); };
-    var say = function (hh) { var n = o.hours[hh] || 0, rch = o.hoursReached[hh] || 0; return hourLabel(hh) + ": " + n + " call" + (n === 1 ? "" : "s") + (n ? ", " + rch + " conversation" + (rch === 1 ? "" : "s") : ""); };
-    var cols = hrs.map(function (hh) {
-      var v = o.hours[hh] || 0, future = hh > nowH, ht = v ? Math.max(4, Math.round(v / max * 100)) : 0, tip = future ? hourLabel(hh) + ": later today" : say(hh);
-      return '<div class="ops-col' + (future ? ' future' : '') + (hh === nowH ? ' now' : '') + '"><button type="button" class="ops-hit" data-ops-tip="' + escapeHtml(tip) + '" aria-label="' + escapeHtml(tip) + '"' + (future ? ' tabindex="-1"' : '') + '>' +
-        (hh === peak ? '<span class="ops-cap" style="bottom:calc(' + ht + '% + 3px)">' + v + '</span>' : '') +
-        '<span class="ops-bar" style="height:' + ht + '%"></span></button><span class="ops-x">' + ((hh - from) % 2 === 0 ? lbl(hh) : '') + '</span></div>';
-    }).join("");
-    var rows = hrs.filter(function (hh) { return hh <= nowH; }).map(function (hh) {
-      var n = o.hours[hh] || 0; return '<tr><td>' + hourLabel(hh) + '</td><td>' + n + '</td><td>' + (o.hoursReached[hh] || 0) + '</td></tr>';
-    }).join("");
-    return '<div class="ops-chart" role="group" aria-label="Calls by hour today">' + cols + '</div>' +
-      '<details class="ops-tbl"><summary>See the numbers</summary><table><thead><tr><th>Hour</th><th>Calls</th><th>Conversations</th></tr></thead><tbody>' +
-      rows + (other ? '<tr><td>Other hours</td><td>' + other + '</td><td></td></tr>' : '') + '</tbody></table></details>';
-  }
-
-  function opsHtml(o) {
-    var P = function (a, b) { return b ? Math.round(a / b * 100) + "%" : "—"; }, n = function (x) { return Number(x).toLocaleString(); };
-    var s = function (x, one, many) { return n(x) + " " + (x === 1 ? one : many); };
-    var nowLabel = new Date(o.now).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-    var delta = "";
-    if (o.cmp) {
-      var dl = o.calls - o.cmp.n;
-      delta = '<div class="ops-delta ' + (dl > 0 ? 'up' : dl < 0 ? 'down' : '') + '">' + (dl > 0 ? '▲ ' + n(dl) : dl < 0 ? '▼ ' + n(-dl) : 'Same as') + ' vs this time ' + escapeHtml(o.cmp.label) + '</div>';
-    }
-    // a small change marker for a tile: arrow + number, never color alone
-    var kd = function (now, then) {
-      if (!o.cmp || then === undefined || then === null) return "";
-      var d = now - then, vs = " vs " + escapeHtml(o.cmp.label);
-      return '<em class="ops-kd ' + (d > 0 ? 'up' : d < 0 ? 'down' : '') + '">' + (d > 0 ? "\u25B2 " + n(d) + vs : d < 0 ? "\u25BC " + n(-d) + vs : "Same as " + escapeHtml(o.cmp.label)) + '</em>';
-    };
-    var ST = { live: "Dialing now", idle: "Idle", none: "No calls yet", out: "Out of office" };
-    var ago = function (ts) { var m = Math.max(0, Math.floor((o.now - ts) / 60000)); return m < 60 ? m + "m" : Math.floor(m / 60) + "h"; };
-    var repSub = function (r) {
-      if (r.status === "live" || r.status === "out") return ST[r.status];
-      if (r.status === "idle") return (r.online ? "Online · idle " : "Offline · last call ") + ago(r.last) + (r.online ? "" : " ago");
-      return r.online ? "Online · no calls yet" : r.seenToday ? "No calls yet · on at " + new Date(r.seenToday).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "Not on today";
-    };
-    var team = o.reps.filter(function (r) { return r.uid !== "_none"; });
-    var dots = team.map(function (r) { return '<span class="ops-dot s-' + r.status + '" title="' + escapeHtml(r.name + ": " + repSub(r)) + '"></span>'; }).join("");
-    var html = '<div class="ops">' +
-      '<div class="ops-head"><h2>Operations</h2><span class="ops-upd"><i class="ops-pulse" aria-hidden="true"></i>Live · ' + escapeHtml(nowLabel) + '</span></div>' +
-      '<section class="ops-hero" aria-label="The floor right now">' +
-        '<div class="ops-hero-l"><div class="ops-big">' + n(o.calls) + '</div><div class="ops-big-l">calls today</div>' + delta + '</div>' +
-        '<div class="ops-hero-r"><div class="ops-livenum"><b>' + o.live + '</b> of ' + o.onFloor + ' dialing now</div>' + (dots ? '<div class="ops-dots">' + dots + '</div>' : '') +
-        '<div class="ops-lasth">' + s(o.lastHour, "call", "calls") + ' in the last hour</div></div>' +
-      '</section>' +
-      '<div class="ops-kpis">' +
-        '<div class="ops-kpi"><b>' + n(o.reached) + '</b><span>conversations</span><small>' + P(o.reached, o.calls) + ' of calls</small>' + kd(o.reached, o.cmp && o.cmp.r) + '</div>' +
-        '<div class="ops-kpi"><b>' + n(o.interested) + '</b><span>interested</span>' + (o.cmp ? kd(o.interested, o.cmp.i) : '<small>today</small>') + '</div>' +
-        '<div class="ops-kpi"><b>' + n(o.apptsSet) + '</b><span>appointments set</span><small>' + n(o.appts.length) + ' on today’s calendar</small></div>' +
-        '<div class="ops-kpi"><b>' + n(o.tasks.doneToday) + '</b><span>follow-ups done</span><small>' + n(o.tasks.dueToday) + ' still due today</small></div>' +
-      '</div>';
-    var IC = { bad: "!", warn: "!", info: "i" };
-    html += '<section class="ops-card"><h3 class="ops-h">Needs you' + (o.needs.length ? ' <small>' + o.needs.length + '</small>' : '') + '</h3>' + (o.needs.length ? '<div class="ops-needs">' + o.needs.map(function (x) {
-      return '<button type="button" class="ops-need t-' + x[0] + '" data-ops-go="' + x[2] + '"><span class="ops-ic" aria-hidden="true">' + IC[x[0]] + '</span><span class="ops-need-t">' + escapeHtml(x[1]) + '</span><span class="ops-go" aria-hidden="true">›</span></button>';
-    }).join("") + '</div>' : '<div class="ops-ok"><span class="ops-ic" aria-hidden="true">✓</span>Nothing needs you right now. Every interested lead has a next step and nothing is late.</div>') + '</section>';
-    html += '<section class="ops-card"><h3 class="ops-h">Team <small>' + o.live + ' dialing · ' + s(o.tasks.overdue, "follow-up", "follow-ups") + ' late</small></h3>' +
-      (o.reps.length ? '<div class="ops-reps">' + o.reps.map(function (r) {
-        var sub = repSub(r);
-        return '<button type="button" class="ops-rep" data-ops-go="team" aria-label="' + escapeHtml(r.name + ", " + sub + ", " + r.calls + " calls, " + P(r.reached, r.calls) + " reach, " + r.overdue + " late follow-ups") + '">' +
-          '<span class="ops-dot s-' + r.status + '" aria-hidden="true"></span>' +
-          '<span class="ops-rep-n"><b>' + escapeHtml(r.name) + (r.loc && r.loc !== "out" ? locBadge(r.loc) : '') + '</b><small class="s-' + r.status + (r.online ? ' on' : '') + '">' + escapeHtml(sub) + '</small></span>' +
-          '<span class="ops-rep-m"><b>' + n(r.calls) + '</b><small>calls</small></span><span class="ops-rep-m"><b>' + P(r.reached, r.calls) + '</b><small>reach</small></span>' +
-          '<span class="ops-rep-m' + (r.overdue ? ' late' : '') + '"><b>' + n(r.overdue) + '</b><small>late</small></span></button>';
-      }).join("") + '</div>' : '<div class="pipe-empty">Add your reps in Team &amp; access to see them here.</div>') + '</section>';
-    html += '<section class="ops-card"><h3 class="ops-h">Calls by hour <small>today, your time</small></h3>' + opsBarsHtml(o) + '</section>';
-    var pmax = Math.max.apply(null, o.pipe.map(function (x) { return x.amount; }).concat([1]));
-    var tpct = o.target ? Math.min(100, Math.round(o.committed / o.target * 100)) : 0;
-    html += '<section class="ops-card"><h3 class="ops-h">Pipeline <small>' + fmtMoney(o.pipe.reduce(function (a, x) { return a + x.amount; }, 0)) + ' in play</small></h3>' +
-      '<div class="ops-stages">' + o.pipe.map(function (x) {
-        return '<div class="ops-stage"><span class="ops-stage-n">' + escapeHtml(x.stage) + '</span><span class="ops-track"><span style="width:' + (x.amount ? Math.max(2, Math.round(x.amount / pmax * 100)) : 0) + '%"></span></span>' +
-          '<span class="ops-stage-v">' + fmtMoney(x.amount) + '<small>' + n(x.n) + '</small></span></div>';
-      }).join("") + '</div>' +
-      (o.target ? '<div class="ops-meter"><div class="ops-meter-top"><span>Committed toward target</span><b>' + fmtMoney(o.committed) + ' / ' + fmtMoney(o.target) + ' · ' + tpct + '%</b></div><div class="ops-meter-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + tpct + '" aria-label="Committed toward target"><span style="width:' + tpct + '%"></span></div></div>' : '') +
-      '<div class="ops-line">' + (o.closing.inProgress ? '<b>' + s(o.closing.inProgress, "closing checklist", "closing checklists") + '</b> in progress · <b>' + s(o.closing.dueWeek, "step", "steps") + '</b> due this week' + (o.closing.overdue.length ? ' · <b class="late">' + n(o.closing.overdue.length) + ' overdue</b>' : '') : 'No closing checklists in progress.') + '</div></section>';
-    var L = o.leads, tile = function (v, label) { return '<div><b>' + n(v) + '</b><span>' + label + '</span></div>'; };
-    var days = o.runway === null ? "" : o.runway >= 60 ? "2+ months" : s(Math.max(1, Math.round(o.runway)), "day", "days");
-    html += '<section class="ops-card"><h3 class="ops-h">Leads <small>' + n(L.total) + ' total</small></h3><div class="ops-inv">' +
-      tile(L.fresh, "fresh, never called") + tile(L.callable, "callable right now") + tile(L.outside, "outside calling hours now") +
-      tile(L.followup, "with a follow-up set") + tile(L.dnc, "Do Not Call") + tile(L.bad + L.retired, "bad numbers or worked out") +
-      '</div><div class="ops-line">' + (o.pace > 0 ? 'Your floor reaches about <b>' + (o.pace >= 10 ? Math.round(o.pace) : Math.round(o.pace * 10) / 10) + '</b> fresh leads a day. At that pace, fresh leads last about <b>' + days + '</b>.' : 'No fresh leads called this week yet.') +
-      (L.unknown ? ' ' + s(L.unknown, "lead has", "leads have") + ' no state, so their local time is unknown.' : '') + '</div></section>';
-    html += '<section class="ops-card"><h3 class="ops-h">Today’s appointments <small>' + n(o.appts.length) + (o.apptsTomorrow ? ' · ' + n(o.apptsTomorrow) + ' tomorrow' : '') + '</small></h3>' + (o.appts.length ? '<div class="ops-appts">' + o.appts.map(function (a, k) {
-      var past = a.at < o.now, next = !past && (k === 0 || o.appts[k - 1].at < o.now);
-      return '<button type="button" class="ops-appt' + (past ? ' past' : '') + (next ? ' next' : '') + '" data-open-lead="' + escapeHtml(a.id) + '"><span class="ops-appt-t">' + escapeHtml(new Date(a.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })) + '</span>' +
-        '<span class="ops-appt-n"><b>' + escapeHtml(a.name) + '</b><small>' + escapeHtml((a.closer ? "With " + a.closer : "") + (a.setter ? " · set by " + a.setter : "")) + (next ? ' · next up' : '') + '</small></span></button>';
-    }).join("") + '</div>' : '<div class="pipe-empty">No appointments on today’s calendar.</div>') + '</section>';
-    html += '<p class="ops-foot">Only owners and managers see this tab. It updates as your team calls.</p><div class="ops-tip" role="status" hidden></div></div>';
-    return html;
-  }
-
-  function renderOpsTab() {
-    var main = document.getElementById("mainArea");
-    var html = opsHtml(opsData());
-    // Nothing changed since the last draw: leave the screen alone (keeps the open table and the tooltip in place).
-    if (html === OPS_UI.html && main.querySelector(".ops")) return;
-    OPS_UI.html = html;
-    main.innerHTML = html;
-    var tbl = main.querySelector(".ops-tbl"); if (tbl && OPS_UI.tbl) tbl.open = true;   // kept outside the html, so opening it never forces a redraw
-    if (!main.dataset.opsWired) { main.dataset.opsWired = "1"; opsWire(main); }
-  }
-  // One set of listeners on the main area, wired once: they keep working however often the dashboard redraws.
-  function opsWire(main) {
-    var tipFor = function (btn) {
-      var root = main.querySelector(".ops"), tip = root && root.querySelector(".ops-tip"), chart = root && root.querySelector(".ops-chart");
-      if (!tip || !chart) return;
-      tip.textContent = btn.getAttribute("data-ops-tip"); tip.hidden = false;
-      var cr = chart.getBoundingClientRect(), br = btn.getBoundingClientRect(), pr = root.getBoundingClientRect(), w = tip.offsetWidth;
-      tip.style.left = Math.max(4, Math.min(pr.width - w - 4, br.left + br.width / 2 - pr.left - w / 2)) + "px";
-      tip.style.top = (cr.top - pr.top - tip.offsetHeight - 6) + "px";
-      chart.querySelectorAll(".ops-hit.on").forEach(function (e) { e.classList.remove("on"); }); btn.classList.add("on");
-    };
-    var hide = function () {
-      var tip = main.querySelector(".ops-tip"); if (tip) tip.hidden = true;
-      main.querySelectorAll(".ops-hit.on").forEach(function (e) { e.classList.remove("on"); });
-    };
-    main.addEventListener("click", function (e) {
-      if (state.activeView !== "ops") return;
-      var hit = e.target.closest(".ops-hit"); if (hit) { if (!hit.closest(".future")) tipFor(hit); return; }
-      var b = e.target.closest("[data-ops-go]"); if (!b) return;
-      var g = b.getAttribute("data-ops-go");
-      if (g === "overdue") openOverdue();
-      else if (g === "vault" || g === "pipeline") { state.activeView = g; saveState(); render(); window.scrollTo(0, 0); }
-      else if (g === "coach") openCoach("team");
-      else if (g === "team") openScoreboard("today");
-      else if (g === "leads") { if (isAdmin()) { openLoadModal(); switchTab("upload"); } else openScoreboard("today"); }
-    });
-    main.addEventListener("pointerover", function (e) { var hit = state.activeView === "ops" && e.target.closest && e.target.closest(".ops-hit"); if (hit && !hit.closest(".future") && e.pointerType !== "touch") tipFor(hit); });
-    main.addEventListener("pointerout", function (e) { if (state.activeView === "ops" && e.target.closest && e.target.closest(".ops-chart") && !(e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest(".ops-chart"))) hide(); });
-    main.addEventListener("focusin", function (e) { var hit = state.activeView === "ops" && e.target.closest(".ops-hit"); if (hit) tipFor(hit); });
-    main.addEventListener("focusout", function (e) { if (state.activeView === "ops" && e.target.closest(".ops-hit")) hide(); });
-    main.addEventListener("toggle", function (e) { if (e.target.classList && e.target.classList.contains("ops-tbl")) OPS_UI.tbl = e.target.open; }, true);
-  }
-  // keep it live: redraw each minute while it's open (the team data listeners redraw it on every change too)
-  setInterval(function () {
-    if (document.hidden || state.activeView !== "ops" || !opsAllowed()) return;
-    if (document.querySelector(".modal-overlay.show")) return;
-    var y = window.scrollY; renderOpsTab(); if (window.scrollY !== y) window.scrollTo(0, y);
-  }, 60000);
-  if (window.__mockListenerCount) window.__opsBench = function (mult, runs) {   // test bench only: time the dashboard on a floor "mult" times bigger
-    var L = state.leads, C = state.callLog, T = state.tasks, big = function (arr, f) { var out = []; for (var m = 0; m < mult; m++) arr.forEach(function (x) { out.push(f(x, m)); }); return out; };
-    var sfx = function (id, m) { return m ? id + "_" + m : id; };
-    state.leads = big(L, function (l, m) { return m ? Object.assign({}, l, { id: sfx(l.id, m) }) : l; });
-    state.callLog = big(C, function (c, m) { return m ? Object.assign({}, c, { id: sfx(c.id || "c", m), leadId: sfx(c.leadId, m) }) : c; });
-    state.tasks = big(T, function (t, m) { return m ? Object.assign({}, t, { id: sfx(t.id || "t", m), leadId: sfx(t.leadId, m) }) : t; });
-    var out = { leads: state.leads.length, calls: state.callLog.length, tasks: state.tasks.length }, t0 = performance.now();
-    out.runs = []; for (var i = 0; i < (runs || 5); i++) { var ti = performance.now(); opsData(); out.runs.push(Math.round((performance.now() - ti) * 10) / 10); }
-    out.dataMs = (performance.now() - t0) / (runs || 5);
-    var t1 = performance.now(); renderOpsTab(); out.renderMs = performance.now() - t1;
-    state.leads = L; state.callLog = C; state.tasks = T; render();
-    return out;
-  };
-  if (window.__mockListenerCount) window.__opsData = function () { var o = opsData(); return JSON.parse(JSON.stringify(o, function (k, v) { return k === "member" ? undefined : v; })); };   // test bench only
-
   /** ---------- Admin controls ---------- **/
   function closeAdminHub() { document.getElementById("adminModal").classList.remove("show"); }
   function openAdminHub() {
@@ -17004,12 +16569,6 @@
       state.activeView = "vault";
       saveState();
       render();
-    });
-    document.getElementById("viewTabOps").addEventListener("click", function () {
-      state.activeView = "ops";
-      saveState();
-      render();
-      window.scrollTo(0, 0);
     });
     document.getElementById("vaultModal").addEventListener("click", function (e) { if (e.target === this) closeVault(); });
 
