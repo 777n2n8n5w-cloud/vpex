@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-12-18">
+<meta name="vpex-build" content="2026-12-19">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -6911,6 +6911,9 @@
     background: var(--surface-raised); background: color-mix(in srgb, var(--accent) 9%, var(--surface));
     border-left: 3px solid var(--accent); }
   .next-move b { display: block; font-size: 11.5px; letter-spacing: 0.02em; color: var(--accent); margin-bottom: 2px; }
+  .nm-jump { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 44px; margin-top: 8px; padding: 8px 12px;
+    border: 1px solid var(--accent); border-radius: var(--radius-s); background: var(--surface); color: var(--text); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .nm-jump::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--interested); margin-right: 8px; flex: none; }
 
   /* Outcomes speak in color: jade go, rose stop, amber and slate try again, blue later */
   .out-btn[data-outcome="interested"] { --oc: var(--interested); }
@@ -9618,6 +9621,24 @@
     }
     return "";
   }
+  // The lead on screen can't be called right now (outside its calling hours), but others in the list can:
+  // offer one tap to switch to "Callable now" instead of skipping lead after lead. 0 = don't offer.
+  function callableNowJump(lead) {
+    if (state.focusLeadId || state.focusTaskId || state.followupRun || state.recallLeadId || state.awaitingOutcome || isRun()) return 0;
+    if ((state.queueFilter || "all") === "now" || !lead || lead.status !== "pending") return 0;
+    if (!leadZone(lead).iana || leadClock(lead).ok) return 0;
+    var ql = state.queueList || "all", n = 0;
+    allPendingLeads().forEach(function (l) {
+      if (l.id !== lead.id && (ql === "all" || (l.source || "Original list") === ql) && leadZone(l).iana && leadClock(l).ok) n++;
+    });
+    return n;
+  }
+  document.addEventListener("click", function (e) {
+    if (!e.target.closest("[data-jump-now]")) return;
+    if (state.awaitingOutcome) { showToast("Log the outcome for this call first"); return; }
+    state.queueFilter = "now"; saveState(); render(); revealCard();
+    showToast("Showing leads you can call now");
+  });
   function flowGuideHtml(lead) {
     var st = lead.stage || "New Lead", r = stageRank(st), cfg = fuCfg(), out = "";
     if (r >= 1) {
@@ -9627,8 +9648,9 @@
         '<span class="dt-label">' + escapeHtml(st) + '</span>' +
         (left >= 0 ? '<span class="dt-left' + (left <= 1 ? ' low' : '') + '">' + (left === 0 ? 'parks after this call' : left + ' follow-up' + (left === 1 ? '' : 's') + ' left') + '</span>' : '') + '</div>';
     }
-    var mv = nextMove(lead);
-    if (mv) out += '<p class="next-move"><b>Next move</b> ' + escapeHtml(mv) + '</p>';
+    var mv = nextMove(lead), jn = mv ? callableNowJump(lead) : 0;
+    if (mv) out += '<p class="next-move"><b>Next move</b> ' + escapeHtml(mv) +
+      (jn ? '<button type="button" class="nm-jump" data-jump-now>Show the ' + jn.toLocaleString() + ' you can call now</button>' : '') + '</p>';
     return out ? '<div class="flow-guide">' + out + '</div>' : "";
   }
   function syncSettingsBits() {

@@ -734,6 +734,8 @@ def main():
             note.send("Instagram bot can't sign in", "Instagram said: " + detail[:110] + ". Until it's fixed, the bot sends you each post ready to post by hand.")
             state.set("meta", "signin_alert", {"msg": detail, "at": time.time()})
         if mode == "run": return handoff(state, Media(os.environ.get("BOT_MEDIA", "gcs")), note, detail)
+        if mode == "report":                         # the Monday report can't read stats while Instagram refuses: a warning, not a red run
+            raise SoftStop("Weekly report skipped: Instagram is refusing the bot (%s). It runs again next Monday." % detail)
         raise SystemExit("Instagram rejected the key: " + detail)
     if (state.get("meta", "signin_alert") or {}).get("msg"):
         state.set("meta", "signin_alert", {}); note.send("Instagram bot is back", "Instagram accepted the key again. Posting picks up on the next run.")
