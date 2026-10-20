@@ -10348,7 +10348,9 @@
       if (outcome === "interested" && (!lead.stage || lead.stage === "New Lead")) setStage(lead, "Qualified");
       // A follow-up only counts against the lead when their stage hasn't moved since the last one.
       if (!((lead.progressAt || 0) > (lead.touchAt || 0))) lead.touches = (lead.touches || 0) + 1;
-      lead.touchAt = now;
+      // The automatic move to Qualified just above happens on this same call; it isn't progress since this follow-up
+      // (its clock can read a millisecond later than now, which made the next follow-up look like progress).
+      lead.touchAt = Math.max(now, lead.progressAt || 0);
       if (cfg.stall && (lead.touches || 0) >= cfg.stall) {
         lead.stalled = now; lead.stallWhy = "noprogress";
         return "Parked \u2014 " + lead.touches + " follow-ups with no progress. Move their stage to keep going";
