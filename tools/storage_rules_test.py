@@ -147,8 +147,12 @@ def main():
     if any(i.get("severity") == "ERROR" for i in res.get("issues", [])):
         print("::error::storage-rules.txt has errors")
         return 1
-    bad = 0
-    for (name, c), r in zip(CASES, res.get("testResults", [])):
+    results = res.get("testResults", [])
+    if len(results) != len(CASES):
+        print("::error title=File rules::The rules engine answered %d of %d cases." % (len(results), len(CASES)))
+        return 1
+    bad, notes = 0, []
+    for (name, c), r in zip(CASES, results):
         ok = r.get("state") == "SUCCESS"
         print(("ok    " if ok else "FAIL  ") + c["expectation"].lower().ljust(5) + " " + name)
         if not ok:
@@ -160,8 +164,15 @@ def main():
                 print("        calls: " + "; ".join(calls))
             if r.get("errorPosition"):
                 print("        at line %s" % r["errorPosition"].get("line"))
+            notes.append("%s should %s. %s %s" % (name, c["expectation"].lower(), " ".join(r.get("debugMessages", [])[:2])[:300],
+                         ("calls: " + "; ".join(calls))[:500] if calls else ""))
     total = len(CASES)
     print("\nstorage rules: %d of %d cases as expected" % (total - bad, total))
+    if os.environ.get("GITHUB_ACTIONS"):
+        enc = lambda t: t.replace("%", "%25").replace("\r", "").replace("\n", "%0A")
+        print("::notice title=File rules::" + enc("%d of %d cases as expected" % (total - bad, total)))
+        for n in notes[:8]:
+            print("::error title=File rules case::" + enc(n))
     return 1 if bad else 0
 
 
