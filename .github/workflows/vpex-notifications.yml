@@ -124,9 +124,6 @@ jobs:
           bind "$COMPUTE" roles/firebasecloudmessaging.admin
           bind "$COMPUTE" roles/firebaseauth.viewer
           bind "service-$NUM@gcp-sa-pubsub.iam.gserviceaccount.com" roles/iam.serviceAccountTokenCreator
-          # The rules for lead files look up who's an active login in the database
-          gcloud beta services identity create --service=firebasestorage.googleapis.com --project "$PROJECT" >/dev/null 2>&1 || true
-          bind "service-$NUM@gcp-sa-firebasestorage.iam.gserviceaccount.com" roles/firebaserules.firestoreServiceAgent
 
       - if: steps.has.outputs.go == 'yes' && steps.bill.outputs.blaze == 'yes'
         name: Find where the database lives
@@ -195,6 +192,19 @@ jobs:
           fi
           if [ -z "$B" ]; then echo "::error title=Lead files::Couldn't make the file store for lead files."; echo "ok=no" >> "$GITHUB_OUTPUT"; exit 0; fi
           echo "File store: $B"
+          # The file rules look up who's an active login in the database. The file store's own Google account
+          # needs the Firebase Rules Firestore role for that; it only exists once the store does, so it's given here.
+          NUM=$(gcloud projects describe "$PROJECT" --format='value(projectNumber)')
+          AG="service-$NUM@gcp-sa-firebasestorage.iam.gserviceaccount.com"
+          gcloud beta services identity create --service=firebasestorage.googleapis.com --project "$PROJECT" 2>&1 | tail -1 || true
+          GOT=no
+          for i in 1 2 3 4 5 6 7 8; do
+            if gcloud projects get-iam-policy "$PROJECT" --flatten='bindings[].members' --filter="bindings.role=roles/firebaserules.firestoreServiceAgent AND bindings.members=serviceAccount:$AG" --format='value(bindings.role)' 2>/dev/null | grep -q firestoreServiceAgent; then GOT=yes; break; fi
+            if gcloud projects add-iam-policy-binding "$PROJECT" --member="serviceAccount:$AG" --role=roles/firebaserules.firestoreServiceAgent --condition=None --quiet >/dev/null 2>/tmp/bind.err; then GOT=yes; break; fi
+            echo "Not yet ($i): $(tail -c 300 /tmp/bind.err | tr '\n' ' ')"; sleep 20
+          done
+          if [ "$GOT" = "yes" ]; then echo "The file store can check logins ($AG has the Firebase Rules Firestore role)."
+          else echo "::error title=Lead files::Couldn't give the file store access to check logins: $(tail -c 400 /tmp/bind.err | tr '\n' ' ')"; fi
           echo "ok=yes" >> "$GITHUB_OUTPUT"
 
       - if: steps.has.outputs.go == 'yes'
@@ -239,6 +249,6 @@ jobs:
           # New rules and access can take a minute or two to reach every Google server, so it tries up to 3 times.
           for i in 1 2 3; do
             if python3 tools/files_live_check.py; then exit 0; fi
-            [ "$i" = "3" ] || { echo "Trying again in 90 seconds."; sleep 90; }
+            [ "$i" = "3" ] || { echo "Trying again in 2 minutes."; sleep 120; }
           done
           exit 1
