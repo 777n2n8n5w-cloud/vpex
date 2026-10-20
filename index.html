@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-12-21">
+<meta name="vpex-build" content="2026-12-22">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -5574,6 +5574,7 @@
   }
   .btn-primary { background: var(--accent-fill, var(--accent)); color: var(--accent-text); }
   .btn-secondary { background: var(--surface-raised); color: var(--text); border: 1px solid var(--border); }
+  .gate-call { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
   .task-win { margin: 8px 0 2px; font-size: 13px; line-height: 1.4; color: var(--text-dim); }
   .task-win.bad { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--notinterested); color: var(--text); background: color-mix(in srgb, var(--notinterested) 9%, transparent); }
   .task-win.bad b { color: color-mix(in srgb, var(--notinterested) 62%, var(--text)); }
@@ -7301,7 +7302,7 @@
           </div>
         </article>
         <article class="lp-feat">
-          <div class="lp-feat-copy"><h3>Calls at the right hour.</h3><p>Every lead shows their local time. Anyone outside their state’s calling hours is flagged, including stricter states like Florida, Texas and Pennsylvania, and VPEX learns when your leads actually pick up.</p></div>
+          <div class="lp-feat-copy"><h3>Calls at the right hour.</h3><p>Every lead shows their local time. Anyone outside their state’s calling hours is flagged and VPEX asks before you dial, including stricter states like Florida, Texas and Pennsylvania, and VPEX learns when your leads actually pick up.</p></div>
           <div class="lp-vig vig-time" aria-hidden="true">
             <div class="vt-row"><div><b>Mark Walsh</b><small>Newark, NJ</small></div><span class="vt-chip ok">11:01 AM</span></div>
             <div class="vt-row"><div><b>Rosa Diaz</b><small>San Diego, CA</small></div><span class="vt-chip ok">8:01 AM</span></div>
@@ -7618,7 +7619,7 @@
       <div class="hub-group set-gap">
         <button class="hub-row" id="openFuRulesBtn" type="button"><span class="hub-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.3-5.6"/><path d="M4 4v4h4"/><path d="M12 8v4l3 2"/></svg></span><span class="hub-t"><b>Follow-up rules</b><span id="fuRulesSummary"></span></span><span class="hub-go" aria-hidden="true">›</span></button>
       </div>
-      <p class="set-note">Every lead shows their local time. Anyone outside their state’s calling hours is flagged in red: 8 AM–9 PM under federal rules, and stricter in 20 states, such as Florida (8 AM–8 PM), Texas (from noon on Sundays) and Pennsylvania (9 AM–7 PM, never on Sundays). Florida, Maryland, Oklahoma and Oregon also allow only 3 sales calls to one person in 24 hours. Based on published state rules as of October 2026; not legal advice.</p>
+      <p class="set-note">Every lead shows their local time. Anyone outside their state’s calling hours is flagged in red, and tapping Call asks before it dials: 8 AM–9 PM under federal rules, and stricter in 20 states, such as Florida (8 AM–8 PM), Texas (from noon on Sundays) and Pennsylvania (9 AM–7 PM, never on Sundays). Florida, Maryland, Oklahoma and Oregon also allow only 3 sales calls to one person in 24 hours. Based on published state rules as of October 2026. Not legal advice.</p>
     </div>
     <div class="hub-view set-view" data-set-view="texts" hidden style="--hc:var(--callback)">
       <button class="hub-back" type="button" data-set-back>‹ Settings</button>
@@ -14908,6 +14909,16 @@
       return false;
     }
     if (!force) {
+      // Outside the lead's calling hours (their state's rule, holiday, Sunday ban or 3-call limit): ask first.
+      var clk = leadZone(lead).iana ? leadClock(lead) : null;
+      if (clk && !clk.ok) {
+        e.preventDefault();
+        var sc = slotCheck(lead, now), nx = sc && !sc.ok && sc.fix ? sc.fix : 0;
+        showGateSheet(lead, "Outside calling hours", "It\u2019s " + clk.t.label + " " + clk.t.abbr + " for " + textFirstName(lead.name) + " in " + clk.st + ": " + clk.why + "." +
+          (nx ? " Calls open " + fmtWhen(nx).replace(/^Today /, "today at ").replace(/^Tomorrow /, "tomorrow at ") + " your time." : "") +
+          " Sales calls outside these hours can break telemarketing rules. Call now only if they asked you to.", true, { wait: true });
+        return false;
+      }
       var why = redialReason(lead, now);
       if (why) { e.preventDefault(); showGateSheet(lead, "Call " + textFirstName(lead.name) + " again?", why, true); return false; }
     }
@@ -14915,11 +14926,11 @@
     talkStart(lead.id);
     return true;
   }
-  function showGateSheet(lead, title, msg, canCall) {
-    var m = document.getElementById("infoModal"), b = document.getElementById("infoModalBody");
-    b.innerHTML = '<button class="close-x" id="gateClose">&times;</button><h3>' + escapeHtml(title) + '</h3><p class="modal-sub">' + escapeHtml(msg) + '</p>' +
-      '<div class="modal-actions"><button class="btn-' + (canCall ? 'secondary' : 'primary') + '" id="gateNo">' + (canCall ? 'Not now' : 'OK') + '</button>' +
-      (canCall ? callLinkHtml(lead, state.activeView || "dial", null, "btn-primary gate-call", '<span>Call anyway</span>').replace('<a ', '<a data-force="1" ') : '') + '</div>';
+  function showGateSheet(lead, title, msg, canCall, opt) {
+    var m = document.getElementById("infoModal"), b = document.getElementById("infoModalBody"), wait = opt && opt.wait;   // wait: waiting is the main button
+    b.innerHTML = '<button class="close-x" id="gateClose" aria-label="Close">&times;</button><h3>' + escapeHtml(title) + '</h3><p class="modal-sub">' + escapeHtml(msg) + '</p>' +
+      '<div class="modal-actions"><button class="btn-' + (canCall && !wait ? 'secondary' : 'primary') + '" id="gateNo">' + (wait ? 'Wait' : canCall ? 'Not now' : 'OK') + '</button>' +
+      (canCall ? callLinkHtml(lead, state.activeView || "dial", null, "btn-" + (wait ? "secondary" : "primary") + " gate-call", '<span>Call anyway</span>').replace('<a ', '<a data-force="1" ') : '') + '</div>';
     m.classList.add("show", "gate");
     function close() { m.classList.remove("show", "gate"); }
     document.getElementById("gateClose").addEventListener("click", close);
