@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-12-23">
+<meta name="vpex-build" content="2026-12-24">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -6198,7 +6198,9 @@
   .tm-invite span { font-size: 12.5px; color: var(--text-dim); }
   .tm-invite code { font-family: var(--font-num, 'IBM Plex Mono', monospace); font-size: 12.5px; color: var(--text); }
   .tm-invite-btns { display: flex; gap: 8px; flex: none; }
-  .oc-tot { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 6px 0 14px; }
+  .oc-tot { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 6px 0 14px; }
+  .oc-tot > div:first-child { grid-column: 1 / -1; }   /* revenue gets its own row, so $174,832 never breaks */
+  .oc-tot > div:first-child b { font-size: 26px; }
   .oc-tot > div { padding: 10px 8px; border-radius: var(--radius-s, 10px); background: var(--surface-raised); border: 1px solid var(--border); text-align: center; min-width: 0; }
   .oc-tot b { display: block; font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
   .oc-tot span { font-size: 11.5px; color: var(--text-dim); }
@@ -15529,7 +15531,7 @@
     var reps = L.reduce(function (t, o) { return t + o.reps; }, 0);
     var dt = function (ms) { return ms ? new Date(ms).toLocaleDateString([], { month: "short", day: "numeric" }) : "never"; };
     box.innerHTML =
-      '<div class="oc-tot"><div><b>$' + mrr.toLocaleString() + '</b><span>monthly revenue</span></div><div><b>' + paying.length + '</b><span>paying</span></div><div><b>' + trials + '</b><span>on trial</span></div><div><b>' + reps + '</b><span>reps</span></div></div>' +
+      '<div class="oc-tot"><div><b>$' + mrr.toLocaleString() + '</b><span>monthly revenue</span></div><div><b>' + paying.length.toLocaleString() + '</b><span>paying</span></div><div><b>' + trials.toLocaleString() + '</b><span>on trial</span></div><div><b>' + reps.toLocaleString() + '</b><span>reps</span></div></div>' +
       (function () { var n = L.filter(function (o) { return o.isNew; }).length; return n ? '<p class="oc-fresh">' + n + ' new signup' + (n === 1 ? '' : 's') + ' since you last checked</p>' : ''; })() +
       (L.length ? L.map(function (o) {
         var d = o.d, st = o.st, ind = INDUSTRIES[d.industry] ? INDUSTRIES[d.industry].name : (d.industry || "");
@@ -15547,7 +15549,7 @@
             (!d.cancelled && d.seatsPaid && d.seatsPaid !== o.reps ? '<div class="oc-auto oc-drift">' + o.reps + ' active now \u00b7 seats update within the hour</div>' : '') +
             (d.stripeSubPrev ? '<div class="oc-auto oc-drift">Paid twice: cancel the older subscription in Stripe (' + escapeHtml(d.stripeSubPrev) + ')</div>' : '') : '') +
           (function () { var nx = ocNext(o); return nx ? '<div class="oc-next">Next: ' + escapeHtml(nx.t) + '</div>' : ''; })() +
-          '<div class="oc-meta">' + (o.leads === null ? '' : o.leads === 0 ? 'No leads yet \u00b7 ' : o.leads + (o.leadsMore ? '+' : '') + ' leads \u00b7 ') + o.reps + ' rep' + (o.reps === 1 ? '' : 's') + ' \u00b7 ' + o.calls + ' calls this week \u00b7 last active ' + escapeHtml(dt(o.last)) + ' \u00b7 $' + officePrice(d) + '/rep' + (d.founding ? ' (founding)' : '') + ' \u00b7 ' + (st.kind === "paid" || st.kind === "pastdue" ? '$' + (o.reps * officePrice(d)).toLocaleString() + '/mo' : 'joined ' + escapeHtml(dt(d.createdAt))) + '</div>' +
+          '<div class="oc-meta">' + (o.leads === null ? '' : o.leads === 0 ? 'No leads yet \u00b7 ' : o.leads.toLocaleString() + (o.leadsMore ? '+' : '') + (o.leads === 1 && !o.leadsMore ? ' lead' : ' leads') + ' \u00b7 ') + o.reps.toLocaleString() + ' rep' + (o.reps === 1 ? '' : 's') + ' \u00b7 ' + o.calls.toLocaleString() + ' calls this week \u00b7 last active ' + escapeHtml(dt(o.last)) + ' \u00b7 $' + officePrice(d) + '/rep' + (d.founding ? ' (founding)' : '') + ' \u00b7 ' + (st.kind === "paid" || st.kind === "pastdue" ? '$' + (o.reps * officePrice(d)).toLocaleString() + '/mo' : 'joined ' + escapeHtml(dt(d.createdAt))) + '</div>' +
           '<div class="oc-acts">' +
             '<button type="button" class="btn-primary" data-oc-act="paid">' + (d.plan === "paid" ? '+1 month paid' : 'Mark paid') + '</button>' +
             '<button type="button" class="btn-secondary" data-oc-act="trial">+7 trial days</button>' +
