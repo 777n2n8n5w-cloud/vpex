@@ -1,19 +1,22 @@
-# VPEX's Instagram bot: posts the plan in instagram/ on schedule, answers DEMO and price comments,
-# reminds Vincent about sticker stories, and posts a report every Monday.
+# VPEX's posting bot: posts the plan in instagram/ on schedule to Instagram, and the same feed posts to the Facebook Page and
+# Threads; answers DEMO and price comments; reminds Vincent about sticker stories; learns from every post's numbers each
+# morning; and sends Vincent a private scorecard every Monday.
 # Needs two repository secrets: IG_TOKEN (the Instagram key) and FIREBASE_SERVICE_ACCOUNT (the Google key).
+# Optional: FB_PAGE_TOKEN (+ FB_PAGE_ID) turns on the Facebook Page, THREADS_TOKEN turns on Threads.
 # Pause it by adding an empty file named PAUSE to the instagram folder. Test it from the Actions tab: Run workflow > check.
 name: VPEX Instagram bot
 
 on:
   schedule:
     - cron: "*/15 * * * *"      # every 15 minutes: post what's due, answer comments
-    - cron: "5 13 * * 1"        # Mondays 9:05 AM New York (8:05 in winter): the weekly report
+    - cron: "5 13 * * 1"        # Mondays 9:05 AM New York (8:05 in winter): the private scorecard
+    - cron: "20 14 * * *"       # every day 10:20 AM New York (9:20 in winter): learn from every post's numbers
   workflow_dispatch:
     inputs:
       mode:
-        description: "check = test the key and show the plan; run = post what's due now; report = the weekly report; inventory = what's already posted; sync = mark plan posts already on Instagram as done; insights = every post's numbers; test = a test post that never goes live; diagnose = why Instagram refuses the key; resend = send the last hand-off post to the phone again"
+        description: "check = test the keys and show the plan; run = post what's due now; learn = score every post and say what to make more of; scorecard = the private weekly scorecard to Vincent's phone; inventory = what's already posted; sync = mark plan posts already on Instagram as done; insights = every post's raw numbers; test = a test post that never goes live; diagnose = why Instagram refuses the key; resend = send the last hand-off post to the phone again"
         type: choice
-        options: [check, test, diagnose, resend, run, report, inventory, sync, insights]
+        options: [check, learn, scorecard, test, diagnose, resend, run, inventory, sync, insights]
         default: check
       item:
         description: "resend only: which post (its plan id, or the start of its title, like Reel I). Empty = the last one sent."
@@ -26,7 +29,6 @@ concurrency:
 
 permissions:
   contents: read
-  issues: write
 
 jobs:
   bot:
@@ -76,7 +78,9 @@ jobs:
         name: Run the bot
         env:
           IG_TOKEN: ${{ secrets.IG_TOKEN }}
-          GITHUB_TOKEN: ${{ github.token }}
-          MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || (github.event.schedule == '5 13 * * 1' && 'report' || 'run') }}
+          FB_PAGE_TOKEN: ${{ secrets.FB_PAGE_TOKEN }}
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+          THREADS_TOKEN: ${{ secrets.THREADS_TOKEN }}
+          MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || (github.event.schedule == '5 13 * * 1' && 'scorecard' || (github.event.schedule == '20 14 * * *' && 'learn' || 'run')) }}
           IG_ITEM: ${{ inputs.item }}
         run: python instagram-bot/bot.py "$MODE"

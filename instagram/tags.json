@@ -1,0 +1,333 @@
+{
+ "_about": "Tags for posts made before plan.json carried them (weeks 3, 4 and 4b). New packs put the same fields on each item: tags {hook, topic, ind, cta, series} and go (where its tile on vpexdialer.com/ig leads: demo:<industry>, home or trial). The bot's learn mode groups results by these tags.",
+ "w3-19": {
+  "tags": {
+   "hook": "quote",
+   "topic": "followups",
+   "ind": "",
+   "cta": "comment",
+   "series": ""
+  },
+  "go": "home"
+ },
+ "w3-20": {
+  "tags": {
+   "hook": "number",
+   "topic": "leaks",
+   "ind": "",
+   "cta": "question",
+   "series": ""
+  },
+  "go": "home"
+ },
+ "w3-21": {
+  "tags": {
+   "hook": "pain",
+   "topic": "spam",
+   "ind": "",
+   "cta": "comment",
+   "series": ""
+  },
+  "go": "home"
+ },
+ "w3-23": {
+  "tags": {
+   "hook": "pov",
+   "topic": "manager-view",
+   "ind": "",
+   "cta": "comment",
+   "series": ""
+  },
+  "go": "home"
+ },
+ "w3-24": {
+  "tags": {
+   "hook": "math",
+   "topic": "followups",
+   "ind": "",
+   "cta": "question",
+   "series": ""
+  },
+  "go": "home"
+ },
+ "w3-22": {
+  "tags": {
+   "hook": "pain",
+   "topic": "shared-list",
+   "ind": "",
+   "cta": "none",
+   "series": ""
+  },
+  "go": "home"
+ },
+ "w3-25": {
+  "tags": {
+   "hook": "number",
+   "topic": "speed",
+   "ind": "",
+   "cta": "comment",
+   "series": ""
+  },
+  "go": "home"
+ },
+ "w3-26": {
+  "tags": {
+   "hook": "pain",
+   "topic": "rep-turnover",
+   "ind": "",
+   "cta": "none",
+   "series": ""
+  },
+  "go": "home"
+ },
+ "w3-27": {
+  "tags": {
+   "hook": "pain",
+   "topic": "leaks",
+   "ind": "",
+   "cta": "comment",
+   "series": ""
+  },
+  "go": "home"
+ },
+ "w4-l": {
+  "tags": {
+   "hook": "news",
+   "topic": "calling-hours",
+   "ind": "",
+   "cta": "none",
+   "series": "rule-watch"
+  },
+  "go": "home"
+ },
+ "w4-pa": {
+  "tags": {
+   "hook": "news",
+   "topic": "calling-hours",
+   "ind": "",
+   "cta": "save",
+   "series": "rule-watch"
+  },
+  "go": "home"
+ },
+ "w4-hours": {
+  "tags": {
+   "hook": "reference",
+   "topic": "calling-hours",
+   "ind": "",
+   "cta": "save",
+   "series": "rule-watch"
+  },
+  "go": "home"
+ },
+ "w4-m": {
+  "tags": {
+   "hook": "pov",
+   "topic": "calling-hours",
+   "ind": "",
+   "cta": "none",
+   "series": "rule-watch"
+  },
+  "go": "home"
+ },
+ "w4-qs": {
+  "tags": {
+   "hook": "reference",
+   "topic": "industry-fit",
+   "ind": "",
+   "cta": "comment",
+   "series": ""
+  },
+  "go": "home"
+ },
+ "w4-n": {
+  "tags": {
+   "hook": "number",
+   "topic": "spam",
+   "ind": "",
+   "cta": "comment",
+   "series": ""
+  },
+  "go": "home"
+ },
+ "w4-o": {
+  "tags": {
+   "hook": "quote",
+   "topic": "followups",
+   "ind": "",
+   "cta": "comment",
+   "series": ""
+  },
+  "go": "home"
+ },
+ "w4-buzz": {
+  "tags": {
+   "hook": "feature",
+   "topic": "followups",
+   "ind": "",
+   "cta": "comment",
+   "series": ""
+  },
+  "go": "home"
+ },
+ "w4-p": {
+  "tags": {
+   "hook": "pov",
+   "topic": "morning-summary",
+   "ind": "",
+   "cta": "comment",
+   "series": ""
+  },
+  "go": "home"
+ },
+ "w4-day": {
+  "tags": {
+   "hook": "story",
+   "topic": "day-in-life",
+   "ind": "",
+   "cta": "comment",
+   "series": ""
+  },
+  "go": "home"
+ },
+ "w4-q": {
+  "tags": {
+   "hook": "contrast",
+   "topic": "appointments",
+   "ind": "",
+   "cta": "comment",
+   "series": "isnt"
+  },
+  "go": "home"
+ },
+ "w4-price": {
+  "tags": {
+   "hook": "offer",
+   "topic": "price",
+   "ind": "",
+   "cta": "bio",
+   "series": ""
+  },
+  "go": "home"
+ },
+ "w4-r": {
+  "tags": {
+   "hook": "number",
+   "topic": "calling-hours",
+   "ind": "",
+   "cta": "none",
+   "series": "rule-watch"
+  },
+  "go": "home"
+ },
+ "w4-checks": {
+  "tags": {
+   "hook": "number",
+   "topic": "compliance",
+   "ind": "",
+   "cta": "none",
+   "series": "rule-watch"
+  },
+  "go": "home"
+ },
+ "w4b-medicare": {
+  "tags": {
+   "hook": "news",
+   "topic": "medicare",
+   "ind": "insurance",
+   "cta": "none",
+   "series": "rule-watch"
+  },
+  "go": "demo:insurance"
+ },
+ "w4b-s": {
+  "tags": {
+   "hook": "news",
+   "topic": "medicare",
+   "ind": "insurance",
+   "cta": "none",
+   "series": "rule-watch"
+  },
+  "go": "demo:insurance"
+ },
+ "w4b-ins": {
+  "tags": {
+   "hook": "identity",
+   "topic": "industry-fit",
+   "ind": "insurance",
+   "cta": "none",
+   "series": "built-for"
+  },
+  "go": "demo:insurance"
+ },
+ "w4b-solar": {
+  "tags": {
+   "hook": "rule",
+   "topic": "compliance",
+   "ind": "solar",
+   "cta": "comment",
+   "series": ""
+  },
+  "go": "demo:solar"
+ },
+ "w4b-t": {
+  "tags": {
+   "hook": "contrast",
+   "topic": "pipeline",
+   "ind": "solar",
+   "cta": "comment",
+   "series": "isnt"
+  },
+  "go": "demo:solar"
+ },
+ "w4b-re": {
+  "tags": {
+   "hook": "identity",
+   "topic": "industry-fit",
+   "ind": "realestate",
+   "cta": "comment",
+   "series": "built-for"
+  },
+  "go": "demo:realestate"
+ },
+ "w4b-mca": {
+  "tags": {
+   "hook": "contrast",
+   "topic": "pipeline",
+   "ind": "mca",
+   "cta": "comment",
+   "series": "isnt"
+  },
+  "go": "demo:mca"
+ },
+ "w4b-u": {
+  "tags": {
+   "hook": "contrast",
+   "topic": "pipeline",
+   "ind": "auto",
+   "cta": "comment",
+   "series": "isnt"
+  },
+  "go": "demo:auto"
+ },
+ "w4b-auto": {
+  "tags": {
+   "hook": "identity",
+   "topic": "industry-fit",
+   "ind": "auto",
+   "cta": "comment",
+   "series": "built-for"
+  },
+  "go": "demo:auto"
+ },
+ "w4b-v": {
+  "tags": {
+   "hook": "identity",
+   "topic": "industry-fit",
+   "ind": "",
+   "cta": "comment",
+   "series": "built-for"
+  },
+  "go": "home"
+ }
+}

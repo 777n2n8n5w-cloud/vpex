@@ -2,9 +2,13 @@
 """VPEX Instagram bot.
 
 Runs on GitHub every 15 minutes (see .github/workflows/vpex-instagram.yml):
-  run     post whatever the plan says is due, answer DEMO and price comments, remind Vincent about sticker stories
-  report  Monday report: reach, saves, shares, follows, what worked; posted as a GitHub issue and sent as a notification
-  check   test the Instagram key and show the account, the plan and what's next (changes nothing)
+  run       post whatever the plan says is due on Instagram, and the same feed posts on the Facebook Page and Threads
+            (when their keys are saved); answer DEMO and price comments; remind Vincent about sticker stories
+  learn     daily: every post's numbers (reach, sends, saves, watch time, skips) plus the site visits, demos and trial
+            forms each post brought in, scored and grouped by hook, topic, industry, format and call to action
+  scorecard Monday (also "report"): posts per platform, reach, the site funnel by source and post, sign-ups, offices that
+            made a first call and offices still calling in week 2; sent to Vincent's phone as a private page
+  check     test the keys and show the account, the plan and what's next (changes nothing)
 
 Content lives in content packs under instagram/: a folder or a .zip holding plan.json plus the media it names.
 State (what's posted, which comments were answered, the refreshed Instagram key) lives in Firestore under igBot/,
@@ -26,6 +30,13 @@ FEED_GAP_MIN = float(os.environ.get("IG_FEED_GAP_MIN", "120"))
 STORY_GAP_MIN = float(os.environ.get("IG_STORY_GAP_MIN", "60"))
 MAX_ATTEMPTS = 3
 SITE = "vpexdialer.com"
+# Facebook Page and Threads: the same feed posts, posted by the same plan. Each is on only when its key is saved.
+FB_GRAPH = os.environ.get("FB_GRAPH_URL", "https://graph.facebook.com/v23.0").rstrip("/")
+FB_RUPLOAD = os.environ.get("FB_RUPLOAD_URL", "https://rupload.facebook.com/video-upload/v23.0").rstrip("/")
+TH_GRAPH = os.environ.get("TH_GRAPH_URL", "https://graph.threads.net/v1.0").rstrip("/")
+TH_REFRESH_URL = os.environ.get("TH_REFRESH_URL", "https://graph.threads.net/refresh_access_token")
+XP_GAP_MIN = float(os.environ.get("XP_GAP_MIN", "50"))           # at least this long between two posts on the same platform
+TRIAL_MIN_FOLLOWERS = int(os.environ.get("IG_TRIAL_MIN_FOLLOWERS", "200"))   # Instagram's minimum for trial Reels
 
 # Keys never reach the logs (the repo is public): known keys are masked, and any access_token in a URL is hidden.
 SECRETS = set()
@@ -159,10 +170,23 @@ def item_time(pack, it):
     tz = ZoneInfo(it.get("timezone") or pack.plan.get("timezone") or "America/New_York")
     return dt.datetime.strptime(it["at"], "%Y-%m-%d %H:%M").replace(tzinfo=tz).astimezone(dt.timezone.utc)
 
-def all_items(packs):
+IG_TYPES = ("reel", "image", "carousel", "story")
+FEED_TYPES = ("reel", "image", "carousel")
+DONE = ("posted", "missed", "reminded", "handed", "skipped")
+def platforms(it):
+    """Where an item goes. Feed posts: Instagram, Facebook and Threads unless the item says otherwise ("platforms": [...]);
+    stories: Instagram only; "thread" items (text, or text with an image): Threads only."""
+    if it.get("platforms"): return [p for p in it["platforms"] if p in ("instagram", "facebook", "threads")]
+    if it.get("type") == "thread": return ["threads"]
+    if it.get("type") == "story" or it.get("trial"): return ["instagram"]
+    return ["instagram", "facebook", "threads"]
+
+def all_items(packs, platform="instagram"):
     out = []
     for pk in packs:
         for it in pk.plan.get("items", []):
+            if platform and platform not in platforms(it): continue
+            if platform == "instagram" and it.get("type") not in IG_TYPES: continue
             try: out.append((item_time(pk, it), pk, it))
             except Exception as e: log("bad item in", pk.name, it.get("id"), e)
     out.sort(key=lambda x: x[0])
@@ -175,9 +199,11 @@ def missing_media(pk, it):
 # ---------------------------------------------------------------- Instagram
 class IGError(Exception):
     def __init__(self, msg, code=None, sub=None): super().__init__(msg); self.code = code; self.sub = sub
+class NotEligible(Exception):
+    """A post this account can't make yet (a trial Reel under Instagram's follower minimum): skipped, never retried."""
 
 class IG:
-    def __init__(self, token): self.token = token; self.user_id = None; self.username = None
+    def __init__(self, token): self.token = token; self.user_id = None; self.username = None; self.followers = 0
     def call(self, method, path, **params):
         params["access_token"] = self.token
         url = path if path.startswith("http") else GRAPH + "/" + path.lstrip("/")
@@ -197,7 +223,7 @@ class IG:
             return j
     def me(self):
         j = self.call("GET", "me", fields="user_id,username,followers_count,media_count")
-        self.user_id = str(j.get("user_id") or j.get("id")); self.username = j.get("username")
+        self.user_id = str(j.get("user_id") or j.get("id")); self.username = j.get("username"); self.followers = int(j.get("followers_count") or 0)
         return j
     def wait_ready(self, cid, limit_s=300):
         t0 = time.time()
@@ -229,6 +255,10 @@ def post_item(ig, media, pk, it, publish=True):
     elif t == "reel":
         p = dict(media_type="REELS", video_url=media.url(pk, it["video"]), caption=cap, share_to_feed="true")
         if it.get("cover"): p["cover_url"] = media.url(pk, it["cover"])
+        if it.get("trial"):                         # a trial Reel: shown to non-followers first, to test a hook before followers see it
+            if ig.followers < TRIAL_MIN_FOLLOWERS: raise NotEligible("trial Reels need %d followers (now %d)" % (TRIAL_MIN_FOLLOWERS, ig.followers))
+            strat = it["trial"] if it["trial"] in ("MANUAL", "SS_PERFORMANCE") else "SS_PERFORMANCE"
+            p["trial_params"] = json.dumps({"graduation_strategy": strat}); p.pop("share_to_feed", None)
         cid = ig.call("POST", ig.user_id + "/media", **p)["id"]
     elif t == "story":
         key = "video_url" if it.get("video") else "image_url"
@@ -296,7 +326,7 @@ def get_token(state):
 # ---------------------------------------------------------------- comments
 KEYWORDS = [
     (re.compile(r"\bdemo\b", re.I), "demo",
-     "@{u} here you go: open {site} and tap “See a demo office first.” Pick your industry and tap around; it’s all sample data. 7 days free when you’re ready."),
+     "@{u} here you go: tap the link in our bio, then your industry under “Try it now.” A demo office opens with sample leads, no sign-up. 7 days free when you’re ready."),
     (re.compile(r"\b(price|pricing|cost|how much)\b", re.I), "price",
      "@{u} $49 per rep, per month. Reps use their own phones, so there’s nothing else to buy. 7 days free, no card to start: {site}"),
 ]
@@ -326,6 +356,244 @@ def answer_comments(ig, state, cfg):
             log("answered", kind, "comment from", c.get("username"), "->", rec.get("reply") or rec.get("error"))
     return done
 
+
+# ---------------------------------------------------------------- where each post points, and its tags
+INDS = ("insurance", "realestate", "mca", "auto", "solar")
+IND_NAME = {"insurance": "insurance", "realestate": "real estate", "mca": "business funding", "auto": "auto", "solar": "solar"}
+def campaign(iid):
+    m = re.match(r"^(w\d+[a-z]?)(-|$)", iid or ""); return m.group(1) if m else ""
+_SIDE = {}
+def side(iid):
+    """Tags for posts planned before plan.json carried them (instagram/tags.json)."""
+    if "_" not in _SIDE:
+        _SIDE["_"] = True
+        try: _SIDE.update({k: v for k, v in json.load(open(os.path.join(CONTENT_DIR, "tags.json"))).items() if not k.startswith("_")})
+        except Exception: pass
+    return _SIDE.get(iid) or {}
+def item_tags(it):
+    t = dict(side(it["id"]).get("tags") or {}); t.update(it.get("tags") or {}); return t
+def item_go(it):
+    g = it.get("go") or side(it["id"]).get("go") or ""
+    if g in ("home", "trial") or (g.startswith("demo:") and g[5:] in INDS): return g
+    ind = item_tags(it).get("ind") or ""
+    return "demo:" + ind if ind in INDS else "home"
+def site_link(it, source, medium="post"):
+    """The post's own link to vpexdialer.com: tagged with the platform and the post, so its visits, demos and sign-ups count for it."""
+    q = "utm_source=%s&utm_medium=%s&utm_content=%s" % (source, medium, it["id"])
+    if campaign(it["id"]): q += "&utm_campaign=" + campaign(it["id"])
+    g = item_go(it)
+    if g == "trial": q += "&trial=start"
+    return "https://" + SITE + "/?" + q + ("#demo-" + g[5:] if g.startswith("demo:") else "")
+
+# ---------------------------------------------------------------- captions for Facebook and Threads
+LEGAL_RE = re.compile(r"Not legal advice|Based on (published state rules|the CMS)", re.I)
+CTA_RE = re.compile(r"\bcomment demo\b|\blink in (our )?bio\b|\btap the link\b", re.I)
+TAGS_ONLY_RE = re.compile(r"^(\s*#[\w]+)+\s*$")
+def _try_line(it, link):
+    g = item_go(it)
+    if g.startswith("demo:"): return "Open a live %s demo office, no sign-up: %s" % (IND_NAME[g[5:]], link)
+    if g == "trial": return "7 days free, no card to start: " + link
+    return "See it with sample leads, no sign-up: " + link
+def fb_caption(it):
+    """Facebook links are tappable, so "Comment DEMO" and "Link in bio" become the post's own link."""
+    link = site_link(it, "facebook")
+    if it.get("fb_caption"): return it["fb_caption"].replace("{link}", link)
+    paras = re.split(r"\n\s*\n", (it.get("caption") or "").strip())
+    out, placed = [], False
+    for p in paras:
+        if CTA_RE.search(p) and not LEGAL_RE.search(p):
+            if not placed: out.append(_try_line(it, link)); placed = True
+            continue
+        out.append(p)
+    if not placed:
+        k = len(out)
+        while k > 0 and (TAGS_ONLY_RE.match(out[k - 1]) or LEGAL_RE.search(out[k - 1])): k -= 1
+        out.insert(k, _try_line(it, link))
+    return "\n\n".join(out)
+def _cut(text, n):
+    if len(text) <= n: return text
+    t = text[:n]; k = max(t.rfind(". "), t.rfind("? "), t.rfind("! "))
+    return (t[:k + 1] if k > n * 0.5 else t.rstrip()[: n - 1].rstrip() + "…")
+def threads_text(it):
+    """Threads allows 500 characters: the opening paragraphs that fit, any legal line, and the post's own link. No hashtags."""
+    link = site_link(it, "threads")
+    if it.get("threads_text"): return _cut(it["threads_text"].replace("{link}", link), 500)
+    paras = [p.strip() for p in re.split(r"\n\s*\n", (it.get("caption") or "").strip()) if p.strip()]
+    paras = [re.sub(r"(?<!\w)#\w+", "", p).strip() if not LEGAL_RE.search(p) else p for p in paras if not TAGS_ONLY_RE.match(p)]
+    legal = [p for p in paras if LEGAL_RE.search(p)]
+    body = [p for p in paras if p and p not in legal and not CTA_RE.search(p)]
+    tail = "\n\n".join(legal + [_try_line(it, link)])
+    budget = 500 - len(tail) - 2
+    out = ""
+    for p in body:
+        cand = (out + "\n\n" + p) if out else p
+        if len(cand) <= budget: out = cand
+        else:
+            room = budget - (len(out) + 2 if out else 0)
+            if room >= 80 or not out:
+                part = _cut(p, room)
+                if part.endswith("…") and out: break      # half a sentence reads worse than none
+                out = (out + "\n\n" + part) if out else part
+            break
+    return ((out + "\n\n") if out else "") + tail
+
+# ---------------------------------------------------------------- Facebook Page and Threads: same plan, same spacing rules
+def api_call(base, token, method, path, files=None, **params):
+    """One Graph API call for Facebook or Threads. Errors come back as IGError with Meta's message (never the key)."""
+    url = path if path.startswith("http") else base + "/" + path.lstrip("/")
+    params["access_token"] = token
+    for attempt in range(3):
+        try:
+            r = requests.request(method, url, params=params if method == "GET" else None, data=params if method != "GET" else None, timeout=90)
+        except requests.RequestException as e:
+            if attempt == 2: raise IGError("network: " + scrub(e))
+            time.sleep(5); continue
+        try: j = r.json()
+        except ValueError: j = {"error": {"message": r.text[:300]}}
+        if r.status_code >= 500 and attempt < 2: time.sleep(5); continue
+        if isinstance(j, dict) and "error" in j:
+            e = j["error"] if isinstance(j["error"], dict) else {"message": str(j["error"])}
+            extra = " ".join(x for x in (e.get("error_user_title"), e.get("error_user_msg")) if x)
+            raise IGError(scrub(e.get("message", "error")) + (" (" + extra + ")" if extra else ""), e.get("code"), e.get("error_subcode"))
+        return j
+
+class FB:
+    name = "Facebook"
+    def __init__(self, token, page_id=""): self.token = token; self.page_id = page_id; self.title = ""
+    def call(self, method, path, **p): return api_call(FB_GRAPH, self.token, method, path, **p)
+    def me(self):
+        j = self.call("GET", self.page_id or "me", fields="id,name")
+        self.page_id = str(j.get("id") or self.page_id); self.title = j.get("name", ""); return j
+    def post(self, media, pk, it):
+        t, msg = it["type"], fb_caption(it)
+        if t == "reel":
+            st = self.call("POST", self.page_id + "/video_reels", upload_phase="start")
+            vid = str(st["video_id"]); up = st.get("upload_url") or (FB_RUPLOAD + "/" + vid)
+            try:
+                r = requests.post(up, headers={"Authorization": "OAuth " + self.token, "file_url": media.url(pk, it["video"])}, timeout=180)
+                j = r.json()
+            except Exception as e: raise IGError("Facebook couldn't take the video: " + scrub(e)[:200])
+            if not j.get("success"): raise IGError("Facebook couldn't take the video: " + scrub(json.dumps(j))[:200])
+            self.call("POST", self.page_id + "/video_reels", upload_phase="finish", video_id=vid, video_state="PUBLISHED", description=msg)
+            link = ""
+            try: link = self.call("GET", vid, fields="permalink_url").get("permalink_url", "")
+            except IGError: pass
+            return vid, ("https://www.facebook.com" + link) if link.startswith("/") else link
+        if t == "image":
+            j = self.call("POST", self.page_id + "/photos", url=media.url(pk, it["image"]), message=msg)
+            return str(j.get("post_id") or j.get("id")), ""
+        if t == "carousel":
+            ids = [self.call("POST", self.page_id + "/photos", url=media.url(pk, img), published="false")["id"] for img in it["images"][:10]]
+            p = {"message": msg}
+            for i, fid in enumerate(ids): p["attached_media[%d]" % i] = json.dumps({"media_fbid": fid})
+            return str(self.call("POST", self.page_id + "/feed", **p)["id"]), ""
+        raise IGError("Facebook can't post a " + t)
+
+class TH:
+    name = "Threads"
+    def __init__(self, token): self.token = token; self.user_id = None; self.username = ""
+    def call(self, method, path, **p): return api_call(TH_GRAPH, self.token, method, path, **p)
+    def me(self):
+        j = self.call("GET", "me", fields="id,username"); self.user_id = str(j["id"]); self.username = j.get("username", ""); return j
+    def wait(self, cid, limit_s=300):
+        t0 = time.time()
+        while True:
+            j = self.call("GET", cid, fields="status,error_message")
+            st = j.get("status")
+            if st in ("FINISHED", "PUBLISHED"): return
+            if st in ("ERROR", "EXPIRED"): raise IGError("Threads couldn't process the media (%s %s)" % (st, j.get("error_message") or ""))
+            if time.time() - t0 > limit_s: raise IGError("Threads took too long processing the media")
+            time.sleep(float(os.environ.get("IG_POLL_S", "10")))
+    def create(self, **p): return str(self.call("POST", self.user_id + "/threads", **p)["id"])
+    def post(self, media, pk, it):
+        t, text = it["type"], threads_text(it)
+        if t == "reel": cid = self.create(media_type="VIDEO", video_url=media.url(pk, it["video"]), text=text)
+        elif t == "image" or (t == "thread" and it.get("image")): cid = self.create(media_type="IMAGE", image_url=media.url(pk, it["image"]), text=text)
+        elif t == "carousel":
+            kids = [self.create(media_type="IMAGE", image_url=media.url(pk, img), is_carousel_item="true") for img in it["images"][:20]]
+            for k in kids: self.wait(k, 180)
+            cid = self.create(media_type="CAROUSEL", children=",".join(kids), text=text)
+        elif t == "thread": cid = self.create(media_type="TEXT", text=text)
+        else: raise IGError("Threads can't post a " + t)
+        self.wait(cid)
+        pid = str(self.call("POST", self.user_id + "/threads_publish", creation_id=cid)["id"])
+        link = ""
+        try: link = self.call("GET", pid, fields="permalink").get("permalink", "")
+        except IGError: pass
+        return pid, link
+
+def fresh_key(state, env, slot, refresh):
+    """Keys that expire (Threads: 60 days) are renewed weekly by the bot and kept in its state, like the Instagram key."""
+    sec = os.environ.get(env, "").strip(); keep_secret(sec)
+    h = hashlib.sha256(sec.encode()).hexdigest()[:16]
+    rec = state.get("meta", slot) or {}
+    tok = rec["token"] if rec.get("from") == h and rec.get("token") else sec
+    keep_secret(tok)
+    if refresh and (rec.get("from") != h or time.time() - (rec.get("refreshedAt") or 0) > 6 * 86400):
+        try:
+            r = requests.get(refresh[0], params={"grant_type": refresh[1], "access_token": tok}, timeout=30).json()
+            if r.get("access_token"): tok = r["access_token"]; keep_secret(tok); log(env, "renewed; good for", int(r.get("expires_in", 0) / 86400), "days")
+            else: log(env, "renewal skipped:", scrub((r.get("error") or {}).get("message", r)))
+        except Exception as e: log(env, "renewal failed:", scrub(e))
+        state.set("meta", slot, {"token": tok, "from": h, "refreshedAt": time.time()})
+    return tok
+
+def xp_platforms(state):
+    out = []
+    if os.environ.get("FB_PAGE_TOKEN", "").strip():
+        out.append(("facebook", "fb", lambda: FB(fresh_key(state, "FB_PAGE_TOKEN", "fb_token", None), os.environ.get("FB_PAGE_ID", "").strip())))
+    if os.environ.get("THREADS_TOKEN", "").strip():
+        out.append(("threads", "th", lambda: TH(fresh_key(state, "THREADS_TOKEN", "th_token", (TH_REFRESH_URL, "th_refresh_token")))))
+    return out
+
+def xp_due(state, coll, plat, now):
+    for when, pk, it in all_items(load_packs(), platform=plat):
+        if when <= now and (state.get(coll, it["id"]) or {}).get("status") not in ("posted", "missed", "skipped", "failed"): return True
+    return False
+
+def crosspost(state, media, note):
+    """Post due feed posts (and Threads-only items) to the Facebook Page and Threads: one per platform per run,
+    at least XP_GAP_MIN apart, skipped (not dumped late) after the same grace as Instagram."""
+    if os.path.exists(os.path.join(CONTENT_DIR, "PAUSE")) or os.environ.get("IG_PAUSED", "").lower() == "true": return
+    now = now_utc()
+    for plat, coll, make in xp_platforms(state):
+        client, signed = None, False
+        for when, pk, it in all_items(load_packs(), platform=plat):
+            iid = it["id"]; rec = state.get(coll, iid) or {}
+            if when > now or rec.get("status") in ("posted", "missed", "skipped", "failed"): continue
+            late_h = (now - when).total_seconds() / 3600
+            if late_h > FEED_GRACE_H:
+                state.set(coll, iid, {"status": "missed", "at": time.time(), "lateHours": round(late_h, 1)}); log(plat, "missed (too late now):", iid); continue
+            if missing_media(pk, it):
+                state.set(coll, iid, {"status": "failed", "attempts": MAX_ATTEMPTS, "error": "missing files"}); continue
+            last = state.get("meta", "last_" + coll) or {}
+            since = (time.time() - (last.get("at") or 0)) / 60
+            if since < XP_GAP_MIN: log("waiting to post", iid, "on", plat, "- the last one went up %d minutes ago" % since); break
+            tries = rec.get("attempts", 0)
+            try:
+                if not signed:
+                    client = client or make(); client.me(); signed = True
+                    al = state.get("meta", coll + "_alert") or {}
+                    if al.get("msg"): state.set("meta", coll + "_alert", {}); note.send(client.name + " posting is back", client.name + " accepted the key again.")
+                log("posting", iid, "on", plat, "(" + it["type"] + ")")
+                pid, link = client.post(media, pk, it)
+                state.set(coll, iid, {"status": "posted", "at": time.time(), "postId": pid, "permalink": link, "title": it.get("title", iid)})
+                state.set("meta", "last_" + coll, {"at": time.time()})
+                log("posted", iid, "on", plat, link)
+            except IGError as e:
+                detail = str(e)
+                if not signed:                      # couldn't sign in: one alert (again after 12 hours), nothing marked failed
+                    al = state.get("meta", coll + "_alert") or {}
+                    if not detail.startswith("network:") and (al.get("msg") != detail[:120] or time.time() - (al.get("at") or 0) > 12 * 3600):
+                        note.send(plat.title() + " posting can't sign in", plat.title() + " said: " + detail[:110] + ". Instagram keeps posting.")
+                        state.set("meta", coll + "_alert", {"msg": detail[:120], "at": time.time()})
+                    log(plat, "can't sign in:", detail); break
+                tries += 1
+                state.set(coll, iid, {"status": "failed" if tries >= MAX_ATTEMPTS else "retry", "attempts": tries, "error": detail[:300], "at": time.time()})
+                log("couldn't post", iid, "on", plat, "->", detail)
+                if tries >= MAX_ATTEMPTS: note.send("Couldn't post on " + plat.title() + ": " + it.get("title", iid)[:50], detail[:150])
+            break
+
 # ---------------------------------------------------------------- run
 def run(state, media, note, ig):
     packs = load_packs()
@@ -337,7 +605,7 @@ def run(state, media, note, ig):
         iid = it["id"]
         if when > now: continue
         rec = state.get("posted", iid) or {}
-        if rec.get("status") in ("posted", "missed", "reminded", "handed"): continue
+        if rec.get("status") in DONE: continue
         if it.get("posted_by_hand"):               # Vincent already posted this one himself
             state.set("posted", iid, {"status": "posted", "by": "hand", "at": time.time(), "title": it.get("title", iid)}); continue
         late_h = (now - when).total_seconds() / 3600
@@ -360,12 +628,15 @@ def run(state, media, note, ig):
         if since < (STORY_GAP_MIN if kind == "story" else FEED_GAP_MIN):
             log("waiting to post", iid, "- the last %s post went up %d minutes ago" % (kind, since)); continue
         try:
-            log("posting", iid, "(" + it["type"] + ")")
+            log("posting", iid, "(" + it["type"] + (", trial" if it.get("trial") else "") + ")")
             mid, link = post_item(ig, media, pk, it)
             state.set("posted", iid, {"status": "posted", "at": time.time(), "mediaId": mid, "permalink": link, "title": it.get("title", iid)})
             last[kind] = time.time(); state.set("meta", "last_post", last)
             log("posted", iid, link)
             if it["type"] != "story": note.send("Posted: " + it.get("title", iid), "It's live on Instagram. Tap to see it.", link or "https://www.instagram.com/")
+        except NotEligible as e:
+            state.set("posted", iid, {"status": "skipped", "at": time.time(), "why": str(e), "title": it.get("title", iid)})
+            log("skipped", iid, "->", e); continue
         except IGError as e:
             tries += 1
             state.set("posted", iid, {"status": "failed" if tries >= MAX_ATTEMPTS else "retry", "attempts": tries, "error": str(e), "at": time.time()})
@@ -379,71 +650,329 @@ def run(state, media, note, ig):
     except IGError as e:
         log("comments skipped:", e)
 
-# ---------------------------------------------------------------- weekly report
-def report(state, note, ig):
+# ---------------------------------------------------------------- learn: score every post, then group by what it tried
+REEL_METRICS = ["reach", "views", "likes", "comments", "saved", "shares", "total_interactions", "ig_reels_avg_watch_time", "reels_skip_rate"]
+FEED_METRICS = ["reach", "views", "likes", "comments", "saved", "shares", "total_interactions", "follows", "profile_visits"]
+HOOKS = ["pain", "quote", "number", "news", "question", "pov", "contrast", "myth", "story", "math", "reference", "identity", "offer", "feature", "rule"]
+LEARN_MAX_CALLS = int(os.environ.get("IG_LEARN_MAX", "40"))      # insight requests per run, to keep traffic to Instagram low
+
+def _val(x):
+    v = None
+    if x.get("values"): v = (x["values"][0] or {}).get("value")
+    if v is None: v = (x.get("total_value") or {}).get("value")
+    return v or 0
+
+def media_insights(ig, mid, kind):
+    mets = REEL_METRICS if kind == "REELS" else FEED_METRICS
+    try:
+        return {x["name"]: _val(x) for x in ig.call("GET", mid + "/insights", metric=",".join(mets)).get("data", []) if x.get("name")}
+    except IGError:
+        out = {}
+        for m in mets:                                # one metric Instagram won't give (new ones are "in development") shouldn't sink the rest
+            try:
+                d = ig.call("GET", mid + "/insights", metric=m).get("data", [])
+                if d: out[m] = _val(d[0])
+            except IGError: pass
+        return out
+
+def mp4_seconds(data):
+    """Length of an MP4 from its movie header (no ffprobe on the runner)."""
+    i = data.find(b"mvhd")
+    if i < 0: return 0
+    v = data[i + 4]
+    if v == 1: ts, du = int.from_bytes(data[i + 24:i + 28], "big"), int.from_bytes(data[i + 28:i + 36], "big")
+    else: ts, du = int.from_bytes(data[i + 16:i + 20], "big"), int.from_bytes(data[i + 20:i + 24], "big")
+    return round(du / ts, 2) if ts else 0
+
+def growth_counts(state, days):
+    """The site's anonymous funnel counts (functions/ "hit"), one dict per counter: e, s, m, c, n, i, d, day, count."""
+    start = (now_utc() - dt.timedelta(days=days)).astimezone(ZoneInfo("America/New_York")).strftime("%Y-%m-%d")
+    docs = []
+    if state.db is None:
+        docs = [(k, v) for k, v in (state.data.get("growth_days") or {}).items() if k >= start]
+    else:
+        from google.cloud import firestore
+        col = state.db.collection("growth").document("days").collection("items")
+        docs = [(d.id, d.to_dict() or {}) for d in col.where(filter=firestore.FieldFilter("day", ">=", start)).stream()]
+    out = []
+    for day, d in docs:
+        for k, n in (d.get("c") or {}).items():
+            p = k.split("~") + [""] * 7
+            f = lambda x: "" if x in ("-", None) else x
+            if p[1] == "ci-check": continue                       # the deploy's own test hits
+            out.append({"e": p[0], "s": p[1], "m": f(p[2]), "c": f(p[3]), "n": f(p[4]), "i": f(p[5]), "d": f(p[6]), "day": day, "count": int(n or 0)})
+    return out
+
+def _z(vals):
+    xs = [v for v in vals if v is not None]
+    if len(xs) < 2: return [0.0 if v is not None else None for v in vals]
+    m = sum(xs) / len(xs); sd = (sum((x - m) ** 2 for x in xs) / len(xs)) ** 0.5
+    return [((v - m) / sd if sd else 0.0) if v is not None else None for v in vals]
+
+def score_rows(rows):
+    """One score per post, compared with posts of the same kind (Reels with Reels, posts and carousels together).
+    Rates are shrunk toward the group's average so a post seen by 40 people can't top the list on luck.
+    Weights follow what Instagram says matters most (watch time, sends, likes) plus what matters to VPEX (site visits)."""
+    A = 300.0
+    feats = [("sends", "shares", 3), ("saves", "saves", 2), ("likes", "likes", 1), ("comments", "comments", 1), ("visits", "visits", 1), ("site", "site", 2)]
+    for kind in ("REELS", "FEED"):
+        g = [r for r in rows if (r["kind"] == "REELS") == (kind == "REELS") and r["reach"] > 0]
+        if not g: continue
+        tr = sum(r["reach"] for r in g)
+        cols = {}
+        for name, key, w in feats:
+            p0 = sum(r[key] for r in g) / tr if tr else 0
+            cols[name] = (w, _z([(r[key] + A * p0) / (r["reach"] + A) for r in g]))
+        if kind == "REELS":
+            cols["kept"] = (3, _z([min(1.0, r["watch"] / r["dur"]) if r["dur"] and r["watch"] else None for r in g]))
+            cols["noskip"] = (2, _z([1 - r["skip"] / 100.0 if r["skip"] is not None else None for r in g]))
+        for i, r in enumerate(g):
+            num = den = 0.0
+            for name, (w, zs) in cols.items():
+                if zs[i] is not None: num += w * zs[i]; den += w
+            r["score"] = round(num / den, 2) if den else 0.0
+    return rows
+
+def group_by(rows, key):
+    out = {}
+    for r in rows:
+        k = r.get(key) or "untagged"
+        out.setdefault(k, []).append(r)
+    res = []
+    for k, g in out.items():
+        sc = [r["score"] for r in g if r.get("score") is not None]
+        avg = sum(sc) / len(sc) if sc else 0
+        verdict = "winning" if len(g) >= 3 and avg >= 0.3 else ("losing" if len(g) >= 3 and avg <= -0.3 else "testing")
+        res.append({"key": key, "value": k, "n": len(g), "score": round(avg, 2), "reach": round(sum(r["reach"] for r in g) / len(g)), "verdict": verdict})
+    res.sort(key=lambda x: -x["score"])
+    return res
+
+def learn(state, ig):
     acct = ig.me()
-    end = now_utc(); start = end - dt.timedelta(days=7)
-    media = ig.call("GET", ig.user_id + "/media", fields="id,caption,media_type,media_product_type,timestamp,permalink,like_count,comments_count", limit=30).get("data", [])
+    plan = {it["id"]: (when, pk, it) for when, pk, it in all_items(load_packs(), platform=None)}
+    by_mid = {}
+    for iid, rec in state.all("posted").items():
+        for k in ("mediaId", "media"):
+            if rec.get(k): by_mid[str(rec[k])] = iid
+    by_cap = {_norm(it.get("caption"))[:40]: iid for iid, (_, _, it) in plan.items() if it.get("caption")}
+    media, url = [], ig.user_id + "/media"
+    params = dict(fields="id,caption,media_type,media_product_type,timestamp,permalink,like_count,comments_count", limit=50)
+    for _ in range(2):                                   # the last 100 posts at most
+        j = ig.call("GET", url, **params); media += j.get("data", [])
+        nxt = (j.get("paging") or {}).get("next")
+        if not nxt: break
+        url, params = nxt, {}
+    snaps, calls, now = state.all("media"), 0, time.time()
     rows = []
     for m in media:
         try: ts = dt.datetime.fromisoformat(m["timestamp"].replace("+0000", "+00:00"))
         except Exception: continue
-        if ts < start: continue
-        ins = {}
-        for metric in ("reach", "views", "saved", "shares", "total_interactions", "follows"):
-            try:
-                d = ig.call("GET", m["id"] + "/insights", metric=metric).get("data", [])
-                if d: ins[metric] = d[0].get("values", [{}])[0].get("value", d[0].get("total_value", {}).get("value", 0)) or 0
-            except IGError:
-                pass
-        title = (m.get("caption") or "").strip().split("\n")[0][:60] or m.get("media_product_type", "Post")
-        rows.append({"title": title, "type": m.get("media_product_type") or m.get("media_type"), "link": m.get("permalink", ""),
-                     "reach": ins.get("reach", 0), "views": ins.get("views", 0), "saves": ins.get("saved", 0), "shares": ins.get("shares", 0),
-                     "likes": m.get("like_count", 0), "comments": m.get("comments_count", 0), "follows": ins.get("follows", 0)})
-    prev = state.get("meta", "lastReport") or {}
-    followers = acct.get("followers_count", 0)
-    gained = followers - prev.get("followers", followers)
-    replied = [v for v in state.all("replied").values() if v.get("at", 0) > start.timestamp()]
-    rows.sort(key=lambda r: r["reach"], reverse=True)
-    total_reach = sum(r["reach"] for r in rows)
-    def rate(r): return (r["saves"] + r["shares"]) / r["reach"] if r["reach"] else 0
-    best = max(rows, key=rate) if rows else None
-    reels = [r for r in rows if (r["type"] or "").upper() in ("REELS", "CLIPS")]
-    posts = [r for r in rows if r not in reels]
-    lines = ["# Instagram: week ending " + end.astimezone(ZoneInfo("America/New_York")).strftime("%b %-d"), "",
-             "@%s · **%s followers** (%s%d this week) · %d posts · %s reached in total" % (acct.get("username", ""), f"{followers:,}", "+" if gained >= 0 else "", gained, len(rows), f"{total_reach:,}"),
-             "DEMO and price comments answered: %d" % len(replied), "",
-             "| Post | Type | Reached | Views | Saves | Shares | Comments |", "|---|---|---:|---:|---:|---:|---:|"]
+        age_h = (now_utc() - ts).total_seconds() / 3600
+        if age_h > 60 * 24: continue
+        kind = "REELS" if (m.get("media_product_type") or "").upper() in ("REELS", "CLIPS") else "FEED"
+        if (m.get("media_product_type") or "").upper() == "STORY": continue
+        snap = snaps.get(m["id"]) or {}
+        since = (now - (snap.get("at") or 0)) / 3600
+        need = age_h >= 20 and (not snap or (age_h < 8 * 24 and since > 44) or (age_h < 35 * 24 and since > 7 * 24))
+        if need and calls < LEARN_MAX_CALLS:
+            calls += 1
+            snap = {"at": now, "ageH": round(age_h, 1), "m": media_insights(ig, m["id"], kind)}
+            state.set("media", m["id"], snap)
+        if not snap: continue
+        iid = by_mid.get(m["id"]) or by_cap.get(_norm(m.get("caption"))[:40]) or ""
+        when, pk, it = plan.get(iid, (None, None, {}))
+        tags = item_tags(it) if it else {}
+        mm = snap.get("m") or {}
+        dur = 0
+        if it and it.get("video") and pk is not None:
+            try: dur = mp4_seconds(pk.read(it["video"]))
+            except Exception: dur = 0
+        local = ts.astimezone(ZoneInfo("America/New_York"))
+        rows.append({"mid": m["id"], "iid": iid, "kind": kind, "type": (it.get("type") if it else "") or ("reel" if kind == "REELS" else (m.get("media_type") or "").lower().replace("carousel_album", "carousel")),
+                     "title": (it.get("title") if it else "") or (m.get("caption") or "").strip().split("\n")[0][:60],
+                     "when": local.strftime("%a %b %d"), "slot": local.strftime("%H:%M"), "day": local.strftime("%a"), "ts": ts.timestamp(),
+                     "reach": int(mm.get("reach") or 0), "views": int(mm.get("views") or 0), "likes": int(mm.get("likes") or m.get("like_count") or 0),
+                     "comments": int(mm.get("comments") or m.get("comments_count") or 0), "saves": int(mm.get("saved") or 0), "shares": int(mm.get("shares") or 0),
+                     "visits": int(mm.get("profile_visits") or 0), "follows": int(mm.get("follows") or 0),
+                     "watch": round((mm.get("ig_reels_avg_watch_time") or 0) / 1000.0, 1), "skip": mm.get("reels_skip_rate") if "reels_skip_rate" in mm else None, "dur": dur,
+                     "hook": tags.get("hook", ""), "topic": tags.get("topic", ""), "ind": tags.get("ind", "") or ("all" if it else ""), "cta": tags.get("cta", ""),
+                     "series": tags.get("series", ""), "trial": bool(it.get("trial")) if it else False, "site": 0, "taps": 0, "demos": 0, "trials": 0})
+    # what each post brought to the site: bio taps on its tile, visits from its Facebook/Threads link, demos and trial forms
+    try: g = growth_counts(state, 62)
+    except Exception as e: g = []; log("couldn't read the site counts:", scrub(e)[:200])
+    by_post = {}
+    for h in g:
+        if not h["n"]: continue
+        b = by_post.setdefault(h["n"], {"bio_tap": 0, "visit": 0, "demo": 0, "trial_view": 0})
+        if h["e"] in b: b[h["e"]] += h["count"]
     for r in rows:
-        t = "[%s](%s)" % (r["title"].replace("|", "/"), r["link"]) if r["link"] else r["title"].replace("|", "/")
-        lines.append("| %s | %s | %s | %s | %s | %s | %s |" % (t, (r["type"] or "").title(), f"{r['reach']:,}", f"{r['views']:,}", r["saves"], r["shares"], r["comments"]))
-    lines += ["", "## What to make more of"]
-    if not rows:
-        lines.append("Nothing posted this week.")
+        b = by_post.get(r["iid"]) or {}
+        r["taps"], r["demos"], r["trials"] = b.get("bio_tap", 0), b.get("demo", 0), b.get("trial_view", 0)
+        r["site"] = r["taps"] + b.get("visit", 0) + r["demos"]
+    score_rows(rows)
+    rows.sort(key=lambda r: -(r.get("score") or 0))
+    groups = {k: group_by(rows, k) for k in ("hook", "topic", "type", "cta", "slot", "ind", "series")}
+    def pick(k, verdicts): return [x["value"] for x in groups[k] if x["verdict"] in verdicts and x["value"] not in ("untagged", "")]
+    tested = {x["value"] for x in groups["hook"] if x["n"] >= 2}
+    best_type = max(groups["type"], key=lambda x: x["reach"])["value"] if groups["type"] else ""
+    recs = {"more": pick("hook", ("winning",))[:3] + pick("topic", ("winning",))[:3], "less": pick("hook", ("losing",))[:2] + pick("topic", ("losing",))[:2],
+            "untested_hooks": [h for h in HOOKS if h not in tested][:5], "widest_reach_format": best_type,
+            "best_slot": groups["slot"][0]["value"] if groups["slot"] else "", "top_posts": [r["iid"] or r["title"] for r in rows[:3]]}
+    state.set("meta", "learnings", {"at": time.time(), "followers": acct.get("followers_count"), "groups": groups, "recs": recs,
+                                    "rows": [{k: r[k] for k in ("iid", "title", "kind", "type", "reach", "shares", "saves", "likes", "watch", "dur", "skip", "taps", "demos", "score", "hook", "topic", "slot")} for r in rows[:60]]})
+    pct = lambda a, b: ("%.1f" % (100.0 * a / b)) if b else "-"
+    log("@%s: %s followers. %d posts scored (%d insight requests this run)." % (acct.get("username"), acct.get("followers_count"), len(rows), calls))
+    log("post | type | reach | sends % | saves % | likes % | watch s | kept % | skip % | site taps | demos | score | hook / topic")
+    for r in rows:
+        kept = pct(min(r["watch"], r["dur"]), r["dur"]) if r["kind"] == "REELS" and r["dur"] else "-"
+        log("%s | %s | %d | %s | %s | %s | %s | %s | %s | %d | %d | %+.2f | %s / %s" % ((r["iid"] or r["title"])[:28], r["type"][:8], r["reach"], pct(r["shares"], r["reach"]), pct(r["saves"], r["reach"]),
+            pct(r["likes"], r["reach"]), r["watch"] if r["kind"] == "REELS" else "-", kept, ("%.0f" % r["skip"]) if r["skip"] is not None else "-", r["taps"], r["demos"], r.get("score") or 0, r["hook"] or "?", r["topic"] or "?"))
+    for k, title in (("hook", "By hook"), ("topic", "By topic"), ("type", "By format"), ("cta", "By call to action"), ("slot", "By time"), ("ind", "By industry")):
+        log("%s: %s" % (title, "; ".join("%s %+.2f (n=%d, reach %d, %s)" % (x["value"], x["score"], x["n"], x["reach"], x["verdict"]) for x in groups[k])))
+    log("Make more of: " + (", ".join(recs["more"]) or "nothing proven yet (needs 3+ posts of a kind)"))
+    log("Make less of: " + (", ".join(recs["less"]) or "nothing proven yet"))
+    log("Hooks not tested yet: " + ", ".join(recs["untested_hooks"]))
+    log("Widest reach format: %s. Best time slot so far: %s." % (recs["widest_reach_format"] or "-", recs["best_slot"] or "-"))
+    return rows
+
+# ---------------------------------------------------------------- scorecard: the whole funnel, privately, every Monday
+def office_stats(state, now_ms):
+    """Trial offices from the app's database: when each was created and the days it made calls. Counts only.
+    VPEX's own free offices (plan "comp") and the deploy's test offices (ci-...) are left out."""
+    offices = []
+    if state.db is None:
+        src = state.data.get("offices_test") or {}
+        for slug, o in src.items(): offices.append((slug, o.get("createdAt") or 0, o.get("plan", "trial"), set(o.get("days") or [])))
     else:
-        if best and rate(best) > 0: lines.append("- **%s** got the most saves and shares for its reach (%.1f%%). Make another one in that shape." % (best["title"], rate(best) * 100))
-        if reels and posts:
-            ra = sum(r["reach"] for r in reels) / len(reels); pa = sum(r["reach"] for r in posts) / len(posts)
-            lines.append("- Reels averaged %s reached, posts and carousels %s. %s" % (f"{ra:,.0f}", f"{pa:,.0f}", "Lean on Reels for reach." if ra > pa * 1.3 else "Posts are holding their own; keep the mix."))
-        top = rows[0]
-        lines.append("- Widest reach: **%s** (%s). Its first line is the hook to reuse." % (top["title"], f"{top['reach']:,}"))
-    body = "\n".join(lines)
-    state.set("meta", "lastReport", {"followers": followers, "at": time.time(), "reach": total_reach})
-    open(os.environ.get("REPORT_FILE", "report.md"), "w").write(body)
-    log(body)
-    url = "https://www.instagram.com/" + (acct.get("username") or "")
-    repo, gh = os.environ.get("GITHUB_REPOSITORY"), os.environ.get("GITHUB_TOKEN")
-    if repo and gh:
-        try:
-            r = requests.post("https://api.github.com/repos/%s/issues" % repo, timeout=30, headers={"Authorization": "Bearer " + gh, "Accept": "application/vnd.github+json"},
-                              json={"title": lines[0].lstrip("# "), "body": body})
-            url = r.json().get("html_url") or url
-            log("report posted:", url)
-        except Exception as e:
-            log("couldn't post the report on GitHub:", e)
-    head = "%s reached this week" % f"{total_reach:,}" + (", +%d followers" % gained if gained > 0 else "")
-    note.send("Instagram this week: " + head, ("Top: " + rows[0]["title"] + ". " if rows else "") + "Tap for the full report.", url)
-    return body
+        for d in state.db.collection("offices").stream():
+            o = d.to_dict() or {}
+            if o.get("plan") == "comp" or d.id.startswith("ci-"): continue
+            try: days = {x.id[2:] for x in d.reference.collection("callDays").list_documents(page_size=1000) if x.id.startswith("n_")}
+            except Exception: days = set()
+            offices.append((d.id, o.get("createdAt") or 0, o.get("plan", "trial"), days))
+    offices = [x for x in offices if x[2] != "comp" and not x[0].startswith("ci-")]
+    ny = ZoneInfo("America/New_York")
+    def day(ms): return dt.datetime.fromtimestamp(ms / 1000, ny).strftime("%Y-%m-%d")
+    wk, d7 = now_ms - 7 * 86400000, day(now_ms - 7 * 86400000)
+    new = [o for o in offices if o[1] >= wk]
+    cohort = [o for o in offices if now_ms - 21 * 86400000 <= o[1] < now_ms - 14 * 86400000]
+    def w2(o): a, b = day(o[1] + 7 * 86400000), day(o[1] + 14 * 86400000); return any(a <= x < b for x in o[3])
+    return {"total": len(offices), "new": len(new), "new_called": sum(1 for o in new if o[3]), "cohort": len(cohort), "cohort_w2": sum(1 for o in cohort if w2(o)),
+            "active": sum(1 for o in offices if any(x >= d7 for x in o[3])), "paid": sum(1 for o in offices if o[2] == "paid")}
+
+ACCOUNT_METRICS = ["reach", "views", "profile_links_taps", "accounts_engaged", "total_interactions", "likes", "shares", "saves"]
+def account_insights(ig, since, until):
+    p = dict(period="day", metric_type="total_value", since=int(since.timestamp()), until=int(until.timestamp()))
+    try: return {x["name"]: _val(x) for x in ig.call("GET", ig.user_id + "/insights", metric=",".join(ACCOUNT_METRICS), **p).get("data", []) if x.get("name")}
+    except IGError:
+        out = {}
+        for m in ACCOUNT_METRICS:
+            try:
+                d = ig.call("GET", ig.user_id + "/insights", metric=m, **p).get("data", [])
+                if d: out[m] = _val(d[0])
+            except IGError: pass
+        return out
+
+FUNNEL = [("bio_view", "Saw the link page"), ("bio_tap", "Tapped a post or button there"), ("visit", "Opened the sales page or a demo"), ("demo", "Opened a demo office"),
+          ("demo_call", "Logged a call in the demo"), ("trial_view", "Opened the trial form"), ("signup", "Started a free trial")]
+def scorecard(state, note, ig, media):
+    now = now_utc(); wk = now - dt.timedelta(days=7); pw = now - dt.timedelta(days=14)
+    def posted(coll, a, b): return sum(1 for v in state.all(coll).values() if v.get("status") in ("posted", "handed") and a.timestamp() <= (v.get("at") or 0) < b.timestamp())
+    posts = {"Instagram": posted("posted", wk, now), "Facebook": posted("fb", wk, now), "Threads": posted("th", wk, now)}
+    prev_posts = {"Instagram": posted("posted", pw, wk), "Facebook": posted("fb", pw, wk), "Threads": posted("th", pw, wk)}
+    acct, ins, ins_prev = {}, {}, {}
+    if ig:
+        acct = ig.me(); ins = account_insights(ig, wk, now); ins_prev = account_insights(ig, pw, wk)
+    last = state.get("meta", "lastScore") or {}
+    followers = acct.get("followers_count")
+    gained = (followers - last["followers"]) if followers is not None and last.get("followers") is not None else None
+    try: g = growth_counts(state, 16)
+    except Exception as e: g = []; log("couldn't read the site counts:", scrub(e)[:200])
+    ny = ZoneInfo("America/New_York")
+    d7 = wk.astimezone(ny).strftime("%Y-%m-%d"); d14 = pw.astimezone(ny).strftime("%Y-%m-%d")
+    cur = [h for h in g if h["day"] >= d7]; old = [h for h in g if d14 <= h["day"] < d7]
+    def tot(hs, e, **f): return sum(h["count"] for h in hs if h["e"] == e and all(h[k] == v for k, v in f.items()))
+    funnel = [(lbl, tot(cur, e), tot(old, e)) for e, lbl in FUNNEL]
+    sources = sorted({h["s"] for h in cur if h["e"] in ("visit", "demo", "signup")})
+    by_src = sorted([(s_, tot(cur, "visit", s=s_), tot(cur, "demo", s=s_), tot(cur, "trial_view", s=s_), tot(cur, "signup", s=s_)) for s_ in sources], key=lambda x: -(x[1] + x[2]))
+    posts_site = {}
+    for h in cur:
+        if h["n"] and not h["n"].startswith("bio-"):
+            b = posts_site.setdefault(h["n"], [0, 0, 0, 0])
+            k = {"bio_tap": 0, "demo": 1, "trial_view": 2, "signup": 3}.get(h["e"])
+            if k is not None: b[k] += h["count"]
+    top_site = sorted(posts_site.items(), key=lambda kv: -(kv[1][3] * 100 + kv[1][2] * 10 + kv[1][1] * 3 + kv[1][0]))[:6]
+    titles = {it["id"]: it.get("title", it["id"]) for _, _, it in all_items(load_packs(), platform=None)}
+    home = tot(cur, "home_screen")
+    try: off = office_stats(state, int(now.timestamp() * 1000))
+    except Exception as e: off = None; log("couldn't read offices:", scrub(e)[:200])
+    lrn = state.get("meta", "learnings") or {}
+    drop = None                                 # where people drop off most, among steps with at least 10 people
+    for (a, na, _), (b, nb, _) in zip(funnel[2:], funnel[3:]):
+        if na >= 10 and (drop is None or nb / na < drop[2]): drop = (a, b, nb / na)
+    def delta(a, b): return "" if not b and not a else (" <small>(%s%d)</small>" % ("+" if a - b >= 0 else "", a - b))
+    E = esc
+    sec = ["<h2>Posting this week</h2><table>" + "".join("<tr><td>%s</td><td class=n>%d%s</td><td class=s>%.1f a day</td></tr>" % (k, v, delta(v, prev_posts[k]), v / 7.0) for k, v in posts.items()) + "</table>"]
+    if ig:
+        names = [("Followers", None), ("Accounts reached", "reach"), ("Views", "views"), ("Taps on the bio link", "profile_links_taps"), ("Accounts that engaged", "accounts_engaged"),
+                 ("Likes, comments, saves, shares", "total_interactions"), ("Shares (sends)", "shares"), ("Saves", "saves")]
+        tr = ""
+        for lbl, key in names:
+            if key is None:
+                if followers is None: continue
+                tr += "<tr><td>Followers</td><td class=n>%s%s</td></tr>" % (f"{int(followers):,}", (" <small>(%s%d this week)</small>" % ("+" if gained >= 0 else "", gained)) if gained is not None else "")
+                continue
+            if ins.get(key) is None: continue
+            tr += "<tr><td>%s</td><td class=n>%s%s</td></tr>" % (lbl, f"{int(ins[key]):,}", delta(int(ins[key]), int(ins_prev[key])) if ins_prev.get(key) is not None else "")
+        er = (100.0 * ins.get("total_interactions", 0) / ins["reach"]) if ins.get("reach") else None
+        sec.append("<h2>Instagram (@%s)</h2><table>%s</table>%s" % (E(acct.get("username", "")), tr, ("<p class=s>Engagement: %.1f%% of accounts reached liked, commented, saved or shared.</p>" % er) if er is not None else ""))
+    else:
+        sec.append("<h2>Instagram</h2><p class=s>Instagram refused the bot this week, so its numbers are missing.</p>")
+    fr = "".join("<tr><td>%s</td><td class=n>%s%s</td></tr>" % (E(lbl), f"{n:,}", delta(n, o)) for lbl, n, o in funnel)
+    vis, dem, trv, sup = funnel[2][1], funnel[3][1], funnel[5][1], funnel[6][1]
+    conv = []
+    if vis: conv.append("%.0f%% of visits opened a demo" % (100.0 * dem / vis))
+    if dem: conv.append("%.0f%% of demos opened the trial form" % (100.0 * trv / dem))
+    if trv: conv.append("%.0f%% of trial forms became a trial" % (100.0 * sup / trv))
+    if vis: conv.append("%.1f%% of visits became a trial" % (100.0 * sup / vis))
+    sec.append("<h2>vpexdialer.com this week</h2><table>%s</table><p class=s>%s</p>" % (fr, (E(". ".join(conv)) + ".") if conv else "No visits counted yet."))
+    if by_src:
+        sec.append("<h3>By where they came from</h3><table><tr><th></th><th>Visits</th><th>Demos</th><th>Trial form</th><th>Trials</th></tr>" +
+                   "".join("<tr><td>%s</td><td class=n>%d</td><td class=n>%d</td><td class=n>%d</td><td class=n>%d</td></tr>" % (E(s_), a, b, c, d) for s_, a, b, c, d in by_src) + "</table>")
+    if top_site:
+        sec.append("<h3>Posts that sent people to the site</h3><table><tr><th></th><th>Taps</th><th>Demos</th><th>Trial form</th><th>Trials</th></tr>" +
+                   "".join("<tr><td>%s</td><td class=n>%d</td><td class=n>%d</td><td class=n>%d</td><td class=n>%d</td></tr>" % (E(titles.get(k, k)[:46]), v[0], v[1], v[2], v[3]) for k, v in top_site) + "</table>")
+    if off:
+        sec.append("<h2>Offices</h2><table>" +
+                   "<tr><td>New trials this week</td><td class=n>%d</td></tr>" % off["new"] +
+                   "<tr><td>Made a first call</td><td class=n>%d%s</td></tr>" % (off["new_called"], (" <small>(%d%%)</small>" % (100 * off["new_called"] / off["new"])) if off["new"] else "") +
+                   "<tr><td>Still calling in week 2 <small>(started 2 to 3 weeks ago)</small></td><td class=n>%d of %d</td></tr>" % (off["cohort_w2"], off["cohort"]) +
+                   "<tr><td>Offices that called this week</td><td class=n>%d</td></tr>" % off["active"] +
+                   "<tr><td>Paying offices</td><td class=n>%d</td></tr>" % off["paid"] +
+                   "<tr><td>First opened from a Home Screen</td><td class=n>%d</td></tr>" % home + "</table>")
+    nxt = []
+    if drop: nxt.append("Biggest drop: %s, then %s (only %.0f%% go on). Fix that step first." % (drop[0].lower(), drop[1].lower(), drop[2] * 100))
+    r = lrn.get("recs") or {}
+    if r.get("more"): nxt.append("Make more of: " + ", ".join(r["more"]) + ".")
+    if r.get("less"): nxt.append("Make less of: " + ", ".join(r["less"]) + ".")
+    if r.get("untested_hooks"): nxt.append("Hooks to test next: " + ", ".join(r["untested_hooks"][:3]) + ".")
+    tops = [titles.get(x, x) for x in (r.get("top_posts") or [])]
+    if tops: nxt.append("Best posts by score: " + "; ".join(tops) + ".")
+    sec.append("<h2>What to do next</h2><ul>" + "".join("<li>%s</li>" % E(x) for x in nxt or ["Keep posting; there isn't enough data yet to call a winner."]) + "</ul>")
+    when = now.astimezone(ny).strftime("%b %-d")
+    html = ("<!doctype html><html><head><meta charset=utf-8><meta name=viewport content='width=device-width, initial-scale=1'><meta name=robots content=noindex><title>VPEX scorecard, week ending %s</title>"
+            "<style>body{margin:0;background:#0D1224;color:#EDF0FB;font:16px/1.45 -apple-system,system-ui,sans-serif}main{max-width:640px;margin:0 auto;padding:22px 16px 60px}"
+            ".wm{color:#E8B94A;font-weight:800;letter-spacing:.04em}h1{font-size:26px;line-height:1.15;margin:8px 0 2px}h2{font-size:19px;margin:28px 0 8px;color:#FFC94D}h3{font-size:16px;margin:18px 0 6px}"
+            "table{width:100%%;border-collapse:collapse}td,th{padding:8px 4px;border-bottom:1px solid #283258;text-align:left;vertical-align:top}th{color:#A2AACB;font-weight:600;font-size:13px}"
+            ".n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:650}small,.s{color:#A2AACB}.s{font-size:14px}li{margin:6px 0}</style></head>"
+            "<body><main><div class=wm>VPEX</div><h1>Scorecard, week ending %s</h1><p class=s>Private link for Vincent; it stops working in 7 days. Counts from the site are anonymous.</p>%s</main></body></html>") % (when, when, "".join(sec))
+    state.set("meta", "lastScore", {"followers": followers, "at": time.time()})
+    url = media.page("scorecard-" + now.strftime("%Y%m%d"), html, hours=24 * 7) if media else ""
+    open(os.environ.get("REPORT_FILE", "report.html"), "w").write(html)
+    head = "%d posts" % sum(posts.values()) + (", %s reached" % f"{int(ins['reach']):,}" if ins.get("reach") else "") + ", %d site visits, %d demos, %d trials" % (vis, dem, sup)
+    note.send("VPEX this week: " + head, "Tap for the scorecard: what worked, where people drop off, what to do next.", url or "https://" + SITE + "/")
+    log("Scorecard ready and sent to Vincent's phone as a private page (numbers stay out of this public log).")
+    return html
 
 # ---------------------------------------------------------------- check
 def check(state, ig):
@@ -462,13 +991,25 @@ def check(state, ig):
         log("Posts made through the API in the last 24 hours:", lim.get("quota_usage"), "of", (lim.get("config") or {}).get("quota_total"))
     except IGError as e:
         log("couldn't read the posting limit:", e)
+    log("Trial Reels: %s" % ("available" if ig.followers >= TRIAL_MIN_FOLLOWERS else "not yet (Instagram needs %d followers; trial items are skipped until then)" % TRIAL_MIN_FOLLOWERS))
+    plats = xp_platforms(state)
+    if not plats: log("Facebook Page and Threads: off (no FB_PAGE_TOKEN or THREADS_TOKEN saved).")
+    for plat, coll, make in plats:
+        try:
+            c = make(); c.me()
+            log("%s key works: %s" % (c.name, getattr(c, "title", "") or "@" + getattr(c, "username", "")))
+        except IGError as e:
+            log("%s key doesn't work: %s" % (plat.title(), e)); continue
+        its = all_items(packs, platform=plat); counts = {}
+        for when, pk, it in its: st = (state.get(coll, it["id"]) or {}).get("status", "waiting"); counts[st] = counts.get(st, 0) + 1
+        log("  %s plan: %d items (%s)" % (plat.title(), len(its), ", ".join("%d %s" % (v, k) for k, v in sorted(counts.items()))))
 
 # A test post that never goes live: the next feed post and the next story go through every step of posting (upload,
 # Instagram fetching and processing the media) except the final publish. Unpublished drafts expire on their own.
 def test(state, media, note, ig):
     now = now_utc(); picked = {}
     for when, pk, it in all_items(load_packs()):
-        if when < now - dt.timedelta(hours=1) or it.get("manual"): continue
+        if when < now - dt.timedelta(hours=1) or it.get("manual") or it.get("trial"): continue
         if (state.get("posted", it["id"]) or {}).get("status") in ("posted", "missed", "reminded", "handed"): continue
         picked.setdefault("story" if it["type"] == "story" else "feed", (when, pk, it))
         if len(picked) == 2: break
@@ -583,7 +1124,9 @@ def quiet_run(state):
     if os.environ.get("IG_ALWAYS_CONTACT") == "1": return False
     now = now_utc()
     for when, pk, it in all_items(load_packs()):
-        if when <= now and (state.get("posted", it["id"]) or {}).get("status") not in ("posted", "missed", "reminded", "failed", "handed"): return False
+        if when <= now and (state.get("posted", it["id"]) or {}).get("status") not in DONE + ("failed",): return False
+    for plat, coll, _ in xp_platforms(state):
+        if xp_due(state, coll, plat, now): return False
     ago = (time.time() - ((state.get("meta", "comments") or {}).get("at") or 0)) / 60
     if ago < COMMENT_EVERY_MIN:
         log("Nothing due, and comments were checked %d minutes ago. Instagram not contacted this run." % ago); return True
@@ -695,7 +1238,8 @@ def handoff(state, media, note, why):
     now = now_utc(); last = state.get("meta", "last_post") or {}; sent = None
     for when, pk, it in all_items(load_packs()):
         iid = it["id"]; rec = state.get("posted", iid) or {}
-        if when > now or rec.get("status") in ("posted", "missed", "reminded", "handed", "failed") or it.get("posted_by_hand"): continue
+        if when > now or rec.get("status") in DONE + ("failed",) or it.get("posted_by_hand"): continue
+        if it.get("trial"): state.set("posted", iid, {"status": "skipped", "at": time.time(), "why": "trial Reels aren't handed off"}); continue
         if it.get("manual"):
             note.send("Time to post: " + it.get("title", iid), it.get("note", "Post it from the content pack."), "https://" + SITE + "/")
             state.set("posted", iid, {"status": "reminded", "at": time.time()}); continue
@@ -717,37 +1261,45 @@ def handoff(state, media, note, why):
 
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "run"
+    if mode == "report": mode = "scorecard"            # the Monday report is now the private scorecard
     state = State(os.environ.get("BOT_STATE", "firestore"))
     if mode == "diagnose": return diagnose(state)
     if mode == "run" and quiet_run(state): return
     note = Notify(os.environ.get("BOT_NOTIFY", "live"))
     if mode == "resend": return resend(state, Media(os.environ.get("BOT_MEDIA", "gcs")), note)
-    ig = IG(get_token(state))
+    media = Media(os.environ.get("BOT_MEDIA", "gcs")) if mode in ("run", "test", "scorecard") else None
     try:
-        ig.me()
-    except IGError as e:
-        if str(e).startswith("network:"):          # Instagram or the network had a blip: try again next run, no alert
-            raise SoftStop("Couldn't reach Instagram this time (it tries again on the next run): " + str(e)[:300])
-        detail = str(e).rstrip(".") + (" [code %s%s]" % (e.code, "/" + str(e.sub) if e.sub else "") if e.code else "")
-        last = state.get("meta", "signin_alert") or {}
-        if last.get("msg") != detail or time.time() - (last.get("at") or 0) > 12 * 3600:   # alert once, not every 15 minutes
-            note.send("Instagram bot can't sign in", "Instagram said: " + detail[:110] + ". Until it's fixed, the bot sends you each post ready to post by hand.")
-            state.set("meta", "signin_alert", {"msg": detail, "at": time.time()})
-        if mode == "run": return handoff(state, Media(os.environ.get("BOT_MEDIA", "gcs")), note, detail)
-        if mode == "report":                         # the Monday report can't read stats while Instagram refuses: a warning, not a red run
-            raise SoftStop("Weekly report skipped: Instagram is refusing the bot (%s). It runs again next Monday." % detail)
-        raise SystemExit("Instagram rejected the key: " + detail)
-    if (state.get("meta", "signin_alert") or {}).get("msg"):
-        state.set("meta", "signin_alert", {}); note.send("Instagram bot is back", "Instagram accepted the key again. Posting picks up on the next run.")
-        log("Instagram accepted the key again.")
-    if mode == "check": return check(state, ig)
-    if mode == "inventory": return inventory(state, ig, mark=False)
-    if mode == "insights": return insights(state, ig)
-    if mode == "sync": return inventory(state, ig, mark=True)
-    if mode == "report": return report(state, note, ig)
-    media = Media(os.environ.get("BOT_MEDIA", "gcs"))
-    if mode == "test": return test(state, media, note, ig)
-    run(state, media, note, ig)
+        ig = IG(get_token(state))
+        try:
+            ig.me()
+        except IGError as e:
+            if str(e).startswith("network:"):          # Instagram or the network had a blip: try again next run, no alert
+                raise SoftStop("Couldn't reach Instagram this time (it tries again on the next run): " + str(e)[:300])
+            detail = str(e).rstrip(".") + (" [code %s%s]" % (e.code, "/" + str(e.sub) if e.sub else "") if e.code else "")
+            last = state.get("meta", "signin_alert") or {}
+            if last.get("msg") != detail or time.time() - (last.get("at") or 0) > 12 * 3600:   # alert once, not every 15 minutes
+                note.send("Instagram bot can't sign in", "Instagram said: " + detail[:110] + ". Until it's fixed, the bot sends you each post ready to post by hand.")
+                state.set("meta", "signin_alert", {"msg": detail, "at": time.time()})
+            if mode == "run": return handoff(state, media, note, detail)
+            if mode in ("scorecard", "learn"):       # these can't read Instagram's numbers while it refuses: a warning, not a red run
+                if mode == "scorecard": scorecard(state, note, None, media)
+                raise SoftStop("Instagram is refusing the bot (%s); %s." % (detail, "the scorecard went out without Instagram's numbers" if mode == "scorecard" else "learning waits for tomorrow"))
+            raise SystemExit("Instagram rejected the key: " + detail)
+        if (state.get("meta", "signin_alert") or {}).get("msg"):
+            state.set("meta", "signin_alert", {}); note.send("Instagram bot is back", "Instagram accepted the key again. Posting picks up on the next run.")
+            log("Instagram accepted the key again.")
+        if mode == "check": return check(state, ig)
+        if mode == "inventory": return inventory(state, ig, mark=False)
+        if mode == "insights": return insights(state, ig)
+        if mode == "learn": return learn(state, ig)
+        if mode == "sync": return inventory(state, ig, mark=True)
+        if mode == "scorecard": return scorecard(state, note, ig, media)
+        if mode == "test": return test(state, media, note, ig)
+        run(state, media, note, ig)
+    finally:
+        if mode == "run":                               # Facebook and Threads post on schedule even while Instagram is blocked
+            try: crosspost(state, media, note)
+            except Exception as e: log("cross-posting stopped:", scrub(e)[:300])
 
 if __name__ == "__main__":
     _mode = sys.argv[1] if len(sys.argv) > 1 else "run"

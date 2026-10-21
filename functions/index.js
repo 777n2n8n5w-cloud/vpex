@@ -5,6 +5,7 @@
 //  - sendTest: the "Send a test" button in the app.
 //  - morningDigest: weekdays at 8:30 in each rep's time zone, what's waiting today.
 //  - igDone: the "Done" button on an Instagram hand-off page (marks that post as posted by hand; needs the page's own key).
+//  - hit: anonymous funnel counts from vpexdialer.com (page seen, demo opened, trial form, sign-up), by where people came from.
 // Tokens live in pushTokens/{id} (written by the app, readable only here). The queue lives in pushQueue/{id}.
 "use strict";
 
@@ -235,5 +236,37 @@ exports.igDone = onRequest({ invoker: "public", cors: true, maxInstances: 2, tim
   } catch (e) {
     logger.error("igDone failed", { id: id, err: String(e) });
     res.status(500).json({ ok: false });
+  }
+});
+
+// ---------- growth counts ----------
+// Beacons from vpexdialer.com: one counter per (step, source, medium, campaign, post, industry, phone/computer) per day in
+// growth/days/items/{YYYY-MM-DD}. Nothing that identifies a person is sent or kept. For a sign-up, the office's name is
+// stored once with where it came from (growth/offices/items/{office}), only if that office was created in the last 3 hours.
+// No app user can read growth/ (the database rules have no rule for it); the Instagram bot reads it for the weekly scorecard.
+let hitWindow = 0, hitCount = 0;
+function hitBudget(now) { if (now - hitWindow > 60000) { hitWindow = now; hitCount = 0; } return ++hitCount <= 1200; }
+exports.hit = onRequest({ invoker: "public", cors: L.HIT_ORIGINS, maxInstances: 3, timeoutSeconds: 10 }, async function (req, res) {
+  const now = Date.now();
+  if (req.method !== "POST") { res.status(405).end(); return; }
+  const origin = req.get("origin") || "";
+  if (origin && L.HIT_ORIGINS.indexOf(origin) < 0) { res.status(403).end(); return; }
+  if (!hitBudget(now)) { res.status(429).end(); return; }
+  const raw = req.rawBody ? req.rawBody.toString("utf8") : (typeof req.body === "string" ? req.body : JSON.stringify(req.body || {}));
+  const h = raw.length <= 2000 ? L.parseHit(raw) : null;
+  if (!h) { res.status(400).end(); return; }
+  const day = L.nyDate(now), inc = admin.firestore.FieldValue.increment(1);
+  try {
+    const writes = [db.doc("growth/days/items/" + day).set({ day: day, t: inc, c: { [L.hitKey(h)]: inc } }, { merge: true })];
+    if (h.e === "signup") writes.push((async function () {
+      const o = await db.doc("offices/" + h.o).get();
+      if (!o.exists || !L.freshOffice(o.data(), now)) return;
+      try { await db.doc("growth/offices/items/" + h.o).create({ at: now, s: h.s, m: h.m, c: h.c, n: h.n, i: h.i || o.get("industry") || "", d: h.d }); } catch (e) {}   // first one wins
+    })());
+    await Promise.all(writes);
+    res.status(204).end();
+  } catch (e) {
+    logger.warn("hit failed", { err: String(e) });
+    res.status(500).end();
   }
 });

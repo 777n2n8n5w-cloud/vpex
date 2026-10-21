@@ -1,0 +1,302 @@
+{
+"built": "2026-10-20T22:08-04:00",
+"tiles": [
+{
+"id": "w4b-v",
+"at": "2026-10-26T19:00:00-04:00",
+"t": "One app, your floor's words",
+"img": "t/w4b-v.jpg",
+"go": "home",
+"c": "w4b",
+"k": "reel"
+},
+{
+"id": "w4b-auto",
+"at": "2026-10-26T15:30:00-04:00",
+"t": "Built for auto floors",
+"img": "t/w4b-auto.jpg",
+"go": "demo:auto",
+"c": "w4b",
+"k": "carousel"
+},
+{
+"id": "w4b-u",
+"at": "2026-10-26T11:00:00-04:00",
+"t": "Test drive isn't sold",
+"img": "t/w4b-u.jpg",
+"go": "demo:auto",
+"c": "w4b",
+"k": "reel"
+},
+{
+"id": "w4b-mca",
+"at": "2026-10-25T19:00:00-04:00",
+"t": "Approved isn't funded",
+"img": "t/w4b-mca.jpg",
+"go": "demo:mca",
+"c": "w4b",
+"k": "image"
+},
+{
+"id": "w4b-re",
+"at": "2026-10-25T15:30:00-04:00",
+"t": "Built for real estate floors",
+"img": "t/w4b-re.jpg",
+"go": "demo:realestate",
+"c": "w4b",
+"k": "carousel"
+},
+{
+"id": "w4b-t",
+"at": "2026-10-25T11:00:00-04:00",
+"t": "Signed isn't installed",
+"img": "t/w4b-t.jpg",
+"go": "demo:solar",
+"c": "w4b",
+"k": "reel"
+},
+{
+"id": "w4b-solar",
+"at": "2026-10-24T19:00:00-04:00",
+"t": "Only the homeowner can sign",
+"img": "t/w4b-solar.jpg",
+"go": "demo:solar",
+"c": "w4b",
+"k": "image"
+},
+{
+"id": "w4b-ins",
+"at": "2026-10-24T15:30:00-04:00",
+"t": "Built for insurance floors",
+"img": "t/w4b-ins.jpg",
+"go": "demo:insurance",
+"c": "w4b",
+"k": "carousel"
+},
+{
+"id": "w4b-s",
+"at": "2026-10-24T11:00:00-04:00",
+"t": "Medicare, the 48-hour wait is gone",
+"img": "t/w4b-s.jpg",
+"go": "demo:insurance",
+"c": "w4b",
+"k": "reel"
+},
+{
+"id": "w4b-medicare",
+"at": "2026-10-23T19:00:00-04:00",
+"t": "The 48-hour wait is gone. The Scope of Appointment isn't.",
+"img": "t/w4b-medicare.jpg",
+"go": "demo:insurance",
+"c": "w4b",
+"k": "image"
+},
+{
+"id": "w4-checks",
+"at": "2026-10-23T15:30:00-04:00",
+"t": "Before you dial a new list, 5 checks",
+"img": "t/w4-checks.jpg",
+"go": "home",
+"c": "w4",
+"k": "carousel"
+},
+{
+"id": "w4-r",
+"at": "2026-10-23T11:00:00-04:00",
+"t": "20 states, 20 sets of calling hours",
+"img": "t/w4-r.jpg",
+"go": "home",
+"c": "w4",
+"k": "reel"
+},
+{
+"id": "w4-price",
+"at": "2026-10-22T19:00:00-04:00",
+"t": "$49 per rep, per month",
+"img": "t/w4-price.jpg",
+"go": "home",
+"c": "w4",
+"k": "image"
+},
+{
+"id": "w4-q",
+"at": "2026-10-22T15:30:00-04:00",
+"t": "Booked isn't showed",
+"img": "t/w4-q.jpg",
+"go": "home",
+"c": "w4",
+"k": "reel"
+},
+{
+"id": "w4-day",
+"at": "2026-10-22T11:00:00-04:00",
+"t": "A day on a VPEX floor",
+"img": "t/w4-day.jpg",
+"go": "home",
+"c": "w4",
+"k": "carousel"
+},
+{
+"id": "w4-p",
+"at": "2026-10-21T19:00:00-04:00",
+"t": "8:30 AM, before the first call",
+"img": "t/w4-p.jpg",
+"go": "home",
+"c": "w4",
+"k": "reel"
+},
+{
+"id": "w4-buzz",
+"at": "2026-10-21T15:30:00-04:00",
+"t": "Your phone buzzes when a follow-up is due",
+"img": "t/w4-buzz.jpg",
+"go": "home",
+"c": "w4",
+"k": "image"
+},
+{
+"id": "w4-o",
+"at": "2026-10-21T11:00:00-04:00",
+"t": "Call me Tuesday at 2",
+"img": "t/w4-o.jpg",
+"go": "home",
+"c": "w4",
+"k": "reel"
+},
+{
+"id": "w4-n",
+"at": "2026-10-20T19:00:00-04:00",
+"t": "3 habits that get you flagged",
+"img": "t/w4-n.jpg",
+"go": "home",
+"c": "w4",
+"k": "reel"
+},
+{
+"id": "w4-qs",
+"at": "2026-10-20T15:30:00-04:00",
+"t": "First-call questions by industry",
+"img": "t/w4-qs.jpg",
+"go": "home",
+"c": "w4",
+"k": "carousel"
+},
+{
+"id": "w4-m",
+"at": "2026-10-20T11:00:00-04:00",
+"t": "4th call in Florida",
+"img": "t/w4-m.jpg",
+"go": "home",
+"c": "w4",
+"k": "reel"
+},
+{
+"id": "w4-hours",
+"at": "2026-10-19T19:00:00-04:00",
+"t": "Calling hours, state by state",
+"img": "t/w4-hours.jpg",
+"go": "home",
+"c": "w4",
+"k": "carousel"
+},
+{
+"id": "w4-pa",
+"at": "2026-10-19T15:30:00-04:00",
+"t": "Pennsylvania, 9 to 7, no Sundays",
+"img": "t/w4-pa.jpg",
+"go": "home",
+"c": "w4",
+"k": "image"
+},
+{
+"id": "w4-l",
+"at": "2026-10-19T11:00:00-04:00",
+"t": "Pennsylvania changed the rules",
+"img": "t/w4-l.jpg",
+"go": "home",
+"c": "w4",
+"k": "reel"
+},
+{
+"id": "w3-27",
+"at": "2026-10-18T19:00:00-04:00",
+"t": "Every floor leaks",
+"img": "t/w3-27.jpg",
+"go": "home",
+"c": "w3",
+"k": "reel"
+},
+{
+"id": "w3-26",
+"at": "2026-10-18T15:30:00-04:00",
+"t": "Your best rep quit.",
+"img": "t/w3-26.jpg",
+"go": "home",
+"c": "w3",
+"k": "image"
+},
+{
+"id": "w3-25",
+"at": "2026-10-18T11:00:00-04:00",
+"t": "11 taps",
+"img": "t/w3-25.jpg",
+"go": "home",
+"c": "w3",
+"k": "reel"
+},
+{
+"id": "w3-22",
+"at": "2026-10-17T19:00:00-04:00",
+"t": "Two reps. One lead.",
+"img": "t/w3-22.jpg",
+"go": "home",
+"c": "w3",
+"k": "image"
+},
+{
+"id": "w3-24",
+"at": "2026-10-17T15:30:00-04:00",
+"t": "Do the math",
+"img": "t/w3-24.jpg",
+"go": "home",
+"c": "w3",
+"k": "carousel"
+},
+{
+"id": "w3-23",
+"at": "2026-10-17T11:00:00-04:00",
+"t": "It's 5 PM",
+"img": "t/w3-23.jpg",
+"go": "home",
+"c": "w3",
+"k": "reel"
+},
+{
+"id": "w3-21",
+"at": "2026-10-16T23:00:00-04:00",
+"t": "Spam Likely",
+"img": "t/w3-21.jpg",
+"go": "home",
+"c": "w3",
+"k": "reel"
+},
+{
+"id": "w3-19",
+"at": "2026-10-16T18:00:00-04:00",
+"t": "He said call me back at 2",
+"img": "t/w3-19.jpg",
+"go": "home",
+"c": "w3",
+"k": "reel"
+},
+{
+"id": "w3-20",
+"at": "2026-10-16T18:00:00-04:00",
+"t": "7 places deals go to die",
+"img": "t/w3-20.jpg",
+"go": "home",
+"c": "w3",
+"k": "carousel"
+}
+]
+}

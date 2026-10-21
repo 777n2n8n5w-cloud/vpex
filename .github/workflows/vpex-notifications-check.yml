@@ -64,13 +64,26 @@ jobs:
           # 1. The functions
           gcloud functions list --project "$PROJECT" --regions "$R" --format='value(name.basename(),state)' > /tmp/fns.txt 2>/tmp/fns.err || true
           (echo "Region $R"; cat /tmp/fns.txt /tmp/fns.err) | note "Functions"
-          for f in queueFromOffice queueFromTeam sendDue sendTest igDone; do
+          for f in queueFromOffice queueFromTeam sendDue sendTest igDone hit; do
             grep -q "^$f[[:space:]]*ACTIVE" /tmp/fns.txt || fail "Function $f" "$f isn't ACTIVE."
           done
           # The Instagram hand-off page's Done button: reachable from a phone, and it refuses a wrong key
           D=$(curl -s -o /dev/null -w '%{http_code}' -X POST "https://$R-$PROJECT.cloudfunctions.net/igDone?id=ci-check&k=not-a-real-key-123456")
           echo "Done button endpoint answered HTTP $D to a wrong key (403 = right)." | note "Done button"
           [ "$D" = "403" ] || fail "Done button" "igDone answered $D to a wrong key; it should be 403."
+          # The site's anonymous growth counter: takes a beacon from vpexdialer.com, refuses junk and other sites.
+          # The test beacon uses source "ci-check", which the learning step and the scorecard leave out.
+          H1=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "Origin: https://vpexdialer.com" -H "Content-Type: text/plain" --data '{"e":"visit","s":"ci-check"}' "https://$R-$PROJECT.cloudfunctions.net/hit")
+          H2=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "Origin: https://vpexdialer.com" -H "Content-Type: text/plain" --data '{"e":"purchase"}' "https://$R-$PROJECT.cloudfunctions.net/hit")
+          H3=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "Origin: https://example.com" -H "Content-Type: text/plain" --data '{"e":"visit","s":"ci-check"}' "https://$R-$PROJECT.cloudfunctions.net/hit")
+          echo "Growth counter: beacon $H1 (204 = right), junk $H2 (400), other site $H3 (403)." | note "Growth counter"
+          [ "$H1" = "204" ] && [ "$H2" = "400" ] && [ "$H3" = "403" ] || fail "Growth counter" "The hit endpoint answered $H1/$H2/$H3; expected 204/400/403."
+          DAY=$(TZ=America/New_York date +%F)
+          HC=$(curl -s -H "Authorization: Bearer $T" "$FS/growth/days/items/$DAY" | python3 -c "import sys,json; d=json.load(sys.stdin); print(int(d.get('fields',{}).get('t',{}).get('integerValue',0)))" 2>/dev/null || echo 0)
+          [ "$HC" -gt 0 ] && echo "Today's counter document exists ($HC beacons so far today)." | note "Growth counter saved" || fail "Growth counter saved" "The beacon was accepted but today's counter document isn't there."
+          # Nobody signed out can read the counts
+          HR=$(curl -s -o /dev/null -w '%{http_code}' "$FS/growth/days/items/$DAY")
+          [ "$HR" = "403" ] || [ "$HR" = "401" ] || fail "Growth counts private" "A signed-out read of the counts answered $HR; it should be refused."
 
           # 2. The every-minute timer
           gcloud scheduler jobs list --project "$PROJECT" --location "$R" --format='value(name.basename(),state,lastAttemptTime,status.code)' > /tmp/jobs.txt 2>&1 || true

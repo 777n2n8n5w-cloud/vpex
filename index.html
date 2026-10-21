@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-12-26">
+<meta name="vpex-build" content="2026-12-27">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -7989,6 +7989,54 @@
   var BASE_DOMAIN = (CUSTOMER.firebase && CUSTOMER.firebase.authDomain) || "dovetail-f863c.firebaseapp.com";
   if (CUSTOMER.theme) { try { if (!window.localStorage.getItem("dovetail_dialer_theme_v1")) window.localStorage.setItem("dovetail_dialer_theme_v1", CUSTOMER.theme); } catch (e) {} }
   var DEMO = (function () { try { if (/demo/i.test(location.hash)) window.localStorage.setItem("dovetail_demo", "1"); return window.localStorage.getItem("dovetail_demo") === "1"; } catch (e) { return false; } })();
+  // Growth counts: where visitors came from and how far they got (sales page, demo, first demo call, trial form, sign-up,
+  // VPEX opened from the Home Screen). One anonymous beacon per step per visit to VPEX's own counter (functions/ "hit"):
+  // no cookies, no names, numbers or addresses. Only on vpexdialer.com, never in customer copies. Where the visit came from
+  // (the utm_* tags on a post's link, or the site that sent them) is remembered on this phone for 30 days, so a sign-up
+  // two days after tapping a post still counts for that post. The tags are then removed from the address bar.
+  var vpexHit = (function () {
+    var url = "https://us-central1-dovetail-f863c.cloudfunctions.net/hit", on = false, attr = null, now = Date.now();
+    try {
+      if (!CUSTOMER.firebase && /(^|\.)vpexdialer\.com$/.test(location.hostname)) on = true;
+      else if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && window.localStorage.getItem("vpex_hit_test")) { on = true; url = window.localStorage.getItem("vpex_hit_test"); }
+    } catch (e) {}
+    function fromSite() {
+      var h = ""; try { h = new URL(document.referrer).hostname.toLowerCase().replace(/^www\./, ""); } catch (e) { return ""; }
+      if (!h || /(^|\.)vpexdialer\.com$/.test(h) || h === location.hostname) return "";
+      var known = [[/(^|\.)instagram\.com$/, "instagram"], [/(^|\.)(facebook\.com|fb\.me|fb\.com)$/, "facebook"], [/(^|\.)threads\.(net|com)$/, "threads"],
+        [/(^|\.)google\./, "google"], [/(^|\.)bing\.com$/, "bing"], [/(^|\.)(t\.co|x\.com|twitter\.com)$/, "x"], [/(^|\.)linkedin\.com$|^lnkd\.in$/, "linkedin"],
+        [/(^|\.)(youtube\.com|youtu\.be)$/, "youtube"], [/(^|\.)tiktok\.com$/, "tiktok"]];
+      for (var i = 0; i < known.length; i++) if (known[i][0].test(h)) return known[i][1];
+      return h.replace(/[^a-z0-9]+/g, "-").slice(0, 24);
+    }
+    try {
+      var q = new URLSearchParams(location.search), src = q.get("utm_source");
+      if (src) attr = { s: src, m: q.get("utm_medium") || "", c: q.get("utm_campaign") || "", n: q.get("utm_content") || "", t: now };
+      else { var site = fromSite(); if (site) attr = { s: site, m: "referral", c: "", n: "", t: now }; }
+      if (attr) window.localStorage.setItem("vpex_attr", JSON.stringify(attr));
+      else { var old = JSON.parse(window.localStorage.getItem("vpex_attr") || "null"); if (old && now - old.t < 30 * 86400000) attr = old; }
+      if (src) {
+        ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "utm_id"].forEach(function (k) { q.delete(k); });
+        var rest = q.toString(); history.replaceState(null, "", location.pathname + (rest ? "?" + rest : "") + location.hash);
+      }
+    } catch (e) {}
+    function send(e, extra) {
+      if (!on) return false;
+      extra = extra || {};
+      var key = "vpex_hit_" + e + (extra.i && e !== "visit" ? "_" + extra.i : "");
+      try { if (e !== "signup") { if (window.sessionStorage.getItem(key)) return false; window.sessionStorage.setItem(key, "1"); } } catch (x) {}
+      var a = attr || {}, body = JSON.stringify({ e: e, s: a.s || "direct", m: a.m || "", c: a.c || "", n: a.n || "", i: extra.i || "", o: extra.o || "",
+        d: /Mobi|iPhone|iPad|Android/i.test(navigator.userAgent || "") ? "m" : "d" });
+      try { if (navigator.sendBeacon && navigator.sendBeacon(url, body)) return true; } catch (x) {}
+      try { fetch(url, { method: "POST", body: body, mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain" } }).catch(function () {}); } catch (x) {}
+      return true;
+    }
+    try {   // first time this phone opens VPEX from its Home Screen (the web app's "download")
+      var home = window.navigator.standalone || (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
+      if (on && home && !window.localStorage.getItem("vpex_hit_home")) { window.localStorage.setItem("vpex_hit_home", "1"); setTimeout(function () { send("home_screen"); }, 0); }
+    } catch (e) {}
+    return send;
+  })();
   // Offices. Every office is its own walled-off space in the one shared database (offices/{office}/...),
   // and its logins are username@{office}.vpex.app, so the security rules can tell offices apart by the login itself.
   // The original team (and customer copies with their own database) keep the top-level collections.
@@ -8540,6 +8588,7 @@
       window.sessionStorage.setItem("__mocksess", JSON.stringify({ uid: "dAdm", email: "demo@" + BASE_DOMAIN }));
     } catch (e) {}
   }
+  if (DEMO && !CUSTOMER.firebase) { vpexHit("visit"); vpexHit("demo", { i: IND_KEY }); }
   // Leaving the demo. With an industry, it lands on the sales page's signup form with that industry already picked.
   function exitDemo(trialInd) {
     ["__mockfs", "__mockauth", "dovetail_demo", "dovetail_demo_v", "dovetail_demo_ind", "dovetail_team_dAdm"].forEach(function (k) { try { window.localStorage.removeItem(k); } catch (e) {} });
@@ -9745,6 +9794,7 @@
   function logOutcome(outcome) {
     var lead = currentLead();
     if (!lead) return;
+    if (DEMO) vpexHit("demo_call", { i: IND_KEY });
     var wasFocus = !!state.focusLeadId && lead.id === state.focusLeadId;
     var focusTaskId = wasFocus ? state.focusTaskId : null;
     var attempt = callsForLead(lead.id).length + 1;
@@ -13694,6 +13744,7 @@
     document.getElementById("authStart").style.display = signin && !setup && !CUSTOMER.firebase ? "" : "none";
     var hero = document.getElementById("authHero"), wasHero = hero.style.display !== "none";
     hero.style.display = view === "signup" ? "" : "none";
+    if (view === "signup") vpexHit("visit");
     document.getElementById("authScreen").classList.toggle("landing", view === "signup");
     if (TEAM.lpDock) TEAM.lpDock();
     document.getElementById("heroSignin").style.display = view === "signup" ? "" : "none";
@@ -13889,6 +13940,7 @@
       return authFail("suGo", (e && e.code) === "permission-denied" ? "An office with that name already exists. If it\u2019s yours, sign in. Otherwise add a word to the name (your city, for example)." : "Couldn\u2019t set up the office (" + ((e && e.code) || "unknown") + "). Check your connection and try again.");
     }
     try { window.localStorage.setItem("vpex_industry", ind); window.localStorage.setItem("vpex_company", name); window.sessionStorage.setItem("vpex_signup_email", email); } catch (e) {}
+    vpexHit("signup", { o: slug, i: ind === "investments" ? "investments" : ind });
     setOffice(slug);
     location.replace(location.pathname + "?o=" + slug);
     location.reload();
@@ -17983,8 +18035,9 @@
     document.getElementById("heroSignin").addEventListener("click", function () { document.getElementById("suBack").click(); document.getElementById("authScreen").scrollTop = 0; });
     (function lpInit() {   // sales page: every trial button goes to the form, the tour can be paused, and a bottom bar follows the visitor
       var scr = document.getElementById("authScreen"), dock = document.getElementById("lpDock"), seen = {};
-      function toForm() { var f = document.getElementById("authSub"); if (f && f.scrollIntoView) f.scrollIntoView({ behavior: "smooth", block: "start" }); setTimeout(function () { try { document.getElementById("suOffice").focus({ preventScroll: true }); } catch (e) {} }, 450); }
+      function toForm() { vpexHit("trial_view"); var f = document.getElementById("authSub"); if (f && f.scrollIntoView) f.scrollIntoView({ behavior: "smooth", block: "start" }); setTimeout(function () { try { document.getElementById("suOffice").focus({ preventScroll: true }); } catch (e) {} }, 450); }
       TEAM.lpToForm = toForm;
+      var suo = document.getElementById("suOffice"); if (suo) suo.addEventListener("focus", function () { vpexHit("trial_view"); });
       document.querySelectorAll("#heroCta, [data-lp-cta]").forEach(function (b) { b.addEventListener("click", toForm); });
       var tr = document.getElementById("heroTry");
       if (tr) tr.addEventListener("click", function () { var d = document.getElementById("heroDemos"); if (d && d.scrollIntoView) d.scrollIntoView({ behavior: "smooth", block: "center" }); });

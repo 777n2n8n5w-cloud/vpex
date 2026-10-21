@@ -225,6 +225,34 @@ function digestMessage(name, c, office, tz) {
     link: leadLink(office, ""), tag: "vpex-digest", leadId: "", office: office || "" };
 }
 
+// ---------- growth: anonymous funnel counts from vpexdialer.com (no cookies, no names, no numbers, no addresses) ----------
+// The site sends one small beacon per step: the sales page seen, a demo opened, a first call in the demo, the trial form
+// opened, an office created, VPEX opened from the Home Screen, and the Instagram link page seen or a post on it tapped.
+// Each carries where the visitor came from (utm source, medium, campaign, post id), the industry and phone/computer.
+var HIT_EVENTS = ["visit", "demo", "demo_call", "trial_view", "signup", "home_screen", "bio_view", "bio_tap"];
+var HIT_INDS = ["insurance", "realestate", "mca", "auto", "solar", "investments"];
+var HIT_ORIGINS = ["https://vpexdialer.com", "https://www.vpexdialer.com"];
+function hitTok(v, max) { return String(v == null ? "" : v).toLowerCase().replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, max).replace(/-+$/, ""); }
+function parseHit(body) {
+  var o;
+  try { o = typeof body === "string" ? JSON.parse(body) : body; } catch (e) { return null; }
+  if (!o || typeof o !== "object" || Array.isArray(o)) return null;
+  var e = String(o.e || "");
+  if (HIT_EVENTS.indexOf(e) < 0) return null;
+  var h = { e: e, s: hitTok(o.s, 24) || "direct", m: hitTok(o.m, 24), c: hitTok(o.c, 40), n: hitTok(o.n, 60),
+    i: HIT_INDS.indexOf(o.i) >= 0 ? o.i : "", d: o.d === "m" || o.d === "d" ? o.d : "" };
+  if (e === "signup") { var sl = String(o.o || ""); if (!/^[a-z0-9-]{3,40}$/.test(sl)) return null; h.o = sl; }
+  return h;
+}
+// One counter per combination, in one document per New York day.
+function hitKey(h) { return [h.e, h.s, h.m || "-", h.c || "-", h.n || "-", h.i || "-", h.d || "-"].join("~"); }
+function unHitKey(k) { var p = String(k).split("~"), f = function (x) { return x === "-" || x == null ? "" : x; };
+  return { e: p[0], s: p[1], m: f(p[2]), c: f(p[3]), n: f(p[4]), i: f(p[5]), d: f(p[6]) }; }
+function nyDate(ms) { return new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(ms)); }
+// A sign-up is credited to where the visitor came from only if that office was really just created.
+function freshOffice(d, now) { return !!(d && typeof d.createdAt === "number" && now - d.createdAt >= -60000 && now - d.createdAt < 3 * 3600000); }
+
 module.exports = { APP_URL, STALE_MS, DROP_MS, APPT_LEAD_MS, queueId, notifyAt, assigneeOf, taskEntries, diffQueue, handoffEvents, officeOpen,
   fmtWhen, leadLink, dueMessages, handoffMessage, testMessage, fcmMessage, deadToken, officeFromEmail, safeTz, firstName,
-  localParts, digestDue, localDayBounds, digestCounts, digestMessage };
+  localParts, digestDue, localDayBounds, digestCounts, digestMessage,
+  HIT_EVENTS, HIT_INDS, HIT_ORIGINS, hitTok, parseHit, hitKey, unHitKey, nyDate, freshOffice };
