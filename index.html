@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-12-25">
+<meta name="vpex-build" content="2026-12-26">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -6633,6 +6633,41 @@
   .fu-num.off { color: var(--text-faint); }
   .fu-picks { display: flex; gap: 6px; min-width: 0; }
   .fu-picks .seg-b { min-width: 0; padding: 0 4px; }
+  /* ---- Contact details: other numbers and email (profile), and other numbers on the Dial card ---- */
+  .lp-ct { margin: 0 0 10px; }
+  .lp-ct-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .lp-ct-top .lp-phone { margin: 0; }
+  .lp-ct-edit { flex: none; min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--border); background: none; color: var(--text-dim); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .lp-ct-row { display: grid; grid-template-columns: 58px minmax(0, 1fr) 40px; align-items: center; gap: 8px; min-height: 40px; border-top: 1px solid var(--border); }
+  .lp-ct-row:first-of-type { margin-top: 8px; }
+  .lp-ct-l { font-size: 12px; font-weight: 600; color: var(--text-faint); }
+  .lp-ct-v { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; color: var(--accent); text-decoration: none; font-variant-numeric: tabular-nums; padding: 9px 0; }
+  .lp-ct-v.off { color: var(--text-faint); text-decoration: line-through; }
+  .lp-ct-copy { width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 10px; background: none; color: var(--text-dim); cursor: pointer; }
+  .lp-ct-copy svg { width: 17px; height: 17px; }
+  .lp-ct-copy:active { background: var(--surface-raised); }
+  .lp-ct-add { display: block; margin: 6px 0 0; padding: 8px 0; min-height: 36px; border: 0; background: none; color: var(--accent); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .lp-ct.editing { padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-raised); }
+  .ct-form label span { font-weight: 500; color: var(--text-faint); margin-left: 4px; }
+  .modal .ct-form input, .modal .ct-form select { background: var(--surface); }
+  .ct-form select { width: 100%; box-sizing: border-box; min-height: 42px; padding: 0 10px; border-radius: var(--radius-s); border: 1px solid var(--border); color: var(--text); font: inherit; font-size: 14px; }
+  .ct-alts-h { margin: 14px 0 6px; font-size: 12.5px; font-weight: 600; color: var(--text-dim); }
+  .ct-alts { display: flex; flex-direction: column; gap: 8px; }
+  .ct-alt { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 6px; }
+  .ct-alt-tools { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 2px; margin-top: -2px; }
+  .ct-alt-tools button { min-height: 34px; padding: 0 9px; border: 0; border-radius: 8px; background: none; color: var(--text-dim); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+  .ct-alt-tools .del { color: var(--danger); }
+  .ct-add { width: 100%; margin-top: 8px; }
+  .lp-call-row .call-btn { min-width: 0; }
+  .lp-call-row .call-btn > span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }   /* "Call Anthony" on one line; just "Call" on small phones */
+  @media (max-width: 360px) { .lp-call-row .cb-n { display: none; } }
+  .lead-alts { display: flex; gap: 6px; margin: -4px -2px 10px; padding: 0 2px 2px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .lead-alts::-webkit-scrollbar { display: none; }
+  .alt-pill { flex: none; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-raised);
+    color: var(--text); font: inherit; font-size: 13px; font-variant-numeric: tabular-nums; text-decoration: none; cursor: pointer; }
+  .alt-pill b { font-size: 11.5px; font-weight: 700; color: var(--text-faint); }
+  .alt-pill.off { color: var(--text-faint); text-decoration: line-through; cursor: default; }
+  .alt-pill.more { color: var(--text-dim); font-weight: 600; }
   /* ---- Files on a lead ---- */
   .lf { position: relative; margin-top: 14px; }
   .lf-head { display: flex; align-items: baseline; gap: 6px; margin: 0 0 6px; font-size: 12.5px; font-weight: 600; color: var(--text-dim); }
@@ -7672,6 +7707,8 @@
       <input type="text" id="singleName" placeholder="Jordan Casey">
       <label for="singlePhone">Phone number</label>
       <input type="tel" id="singlePhone" placeholder="(908) 555-0134">
+      <label for="singleEmail">Email (optional)</label>
+      <input type="email" id="singleEmail" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="jordan@example.com">
       <label for="singleNotes">Notes (optional)</label>
       <textarea id="singleNotes" style="min-height:60px" placeholder="Context for the call"></textarea>
       <div class="field-error" id="singleError"></div>
@@ -8428,6 +8465,8 @@
         notes: IND.demo.note(Math.floor(rnd() * 1000), st[0]), st: st[0], stage: "New Lead", amount: 0, status: "pending", outcome: null,
         calledAt: null, seq: i, tasks: [], texts: [], source: IND.demo.lists[i < 140 ? 0 : 1] };
       var dq = demoQf(i); if (dq) { leads[id].qf = dq; leads[id].notes = demoTalk(i) + " | " + st[0]; }   // the rep's notes, alongside the details
+      if (i % 3 !== 2) leads[id].email = leads[id].name.toLowerCase().replace(/[^a-z ]/g, "").replace(" ", ".") + "@example.com";   // example.com: a domain reserved for examples
+      if (i % 4 === 0) leads[id].alts = [{ n: "(" + ph.slice(0, 3) + ") 555-" + String(150 + Math.floor(i / ST.length)).padStart(4, "0"), l: i % 8 === 0 ? "Mobile" : "Work" }];
       ids.push(id);
     }
     var OUT = [["noanswer", "No answer", 46], ["voicemail", "Voicemail", 22], ["notinterested", "Not interested", 14], ["interested", "Interested", 8], ["callback", "Callback", 6], ["badnum", "Bad number", 4]];
@@ -8492,11 +8531,11 @@
   if (DEMO) {
     installDemoBackend();
     try {
-      if (!window.localStorage.getItem("__mockfs") || window.localStorage.getItem("dovetail_demo_v") !== "3:" + IND_KEY) {
+      if (!window.localStorage.getItem("__mockfs") || window.localStorage.getItem("dovetail_demo_v") !== "4:" + IND_KEY) {
         window.localStorage.removeItem("dovetail_team_dAdm");
         window.localStorage.setItem("__mockfs", JSON.stringify(demoSeed()));
         var da = {}; da["demo@" + BASE_DOMAIN] = { uid: "dAdm", pw: "demo" };
-        window.localStorage.setItem("__mockauth", JSON.stringify(da)); window.localStorage.setItem("dovetail_demo_v", "3:" + IND_KEY);
+        window.localStorage.setItem("__mockauth", JSON.stringify(da)); window.localStorage.setItem("dovetail_demo_v", "4:" + IND_KEY);
       }
       window.sessionStorage.setItem("__mocksess", JSON.stringify({ uid: "dAdm", email: "demo@" + BASE_DOMAIN }));
     } catch (e) {}
@@ -9509,7 +9548,7 @@
     var results = [];
     var errors = [];
     lines.forEach(function (line, idx) {
-      var name = "", phone = "", notes = "";
+      var name = "", phone = "", notes = "", email = "", alts = [];
       if (line.indexOf(",") !== -1) {
         var parts = line.split(",").map(function (p) { return p.trim(); });
         // find which part looks like a phone number
@@ -9523,10 +9562,15 @@
           return;
         }
         phone = parts[phoneIdx];
-        name = parts.slice(0, phoneIdx).concat(parts.slice(phoneIdx + 1, phoneIdx + (phoneIdx === 0 ? 0 : 0))).join(" ").trim();
-        // name = everything before phone; notes = everything after phone
-        name = parts.slice(0, phoneIdx).join(" ").trim();
-        notes = parts.slice(phoneIdx + 1).join(", ").trim();
+        // name = everything before the phone; after it, an email and other numbers go to their own spots, the rest to notes
+        var keep = [];
+        name = parts.slice(0, phoneIdx).filter(function (x) { if (!email && EMAIL_RE.test(x)) { email = x.toLowerCase(); return false; } return true; }).join(" ").trim();
+        parts.slice(phoneIdx + 1).forEach(function (x) {
+          if (!email && EMAIL_RE.test(x)) email = x.toLowerCase();
+          else if (uploadPhoneOk(x)) alts.push(x);
+          else keep.push(x);
+        });
+        notes = keep.join(", ").trim();
       } else {
         // space separated fallback: find phone-looking token
         var tokens = line.split(/\s+/);
@@ -9540,15 +9584,19 @@
           return;
         }
         phone = tokens[phoneTokenIdx];
-        name = tokens.slice(0, phoneTokenIdx).join(" ");
-        notes = tokens.slice(phoneTokenIdx + 1).join(" ");
+        name = tokens.slice(0, phoneTokenIdx).filter(function (x) { if (!email && EMAIL_RE.test(x)) { email = x.toLowerCase(); return false; } return true; }).join(" ");
+        notes = tokens.slice(phoneTokenIdx + 1).filter(function (x) {
+          if (!email && EMAIL_RE.test(x)) { email = x.toLowerCase(); return false; }
+          if (uploadPhoneOk(x)) { alts.push(x); return false; }
+          return true;
+        }).join(" ");
       }
       if (!isValidPhone(phone)) {
         errors.push("Line " + (idx + 1) + ": \"" + phone + "\" doesn't look like a valid number");
         return;
       }
       if (!name) name = "Unnamed lead";
-      results.push({
+      var pl = {
         id: uid(),
         name: name,
         phoneRaw: phone,
@@ -9559,7 +9607,10 @@
         status: "pending",
         outcome: null,
         calledAt: null
-      });
+      };
+      if (email) pl.email = email;
+      alts.forEach(function (x) { addAlt(pl, x, "Other"); });
+      results.push(pl);
     });
     return { leads: results, errors: errors };
   }
@@ -9700,10 +9751,13 @@
     lead.status = "done";
     lead.outcome = outcome;
     lead.calledAt = new Date().toISOString();
+    var dialed = state.dialNum ? leadAlts(lead).filter(function (a) { return normalizePhone(a.n) === state.dialNum; })[0] : null;
+    state.dialNum = null;
     var callEntry = {
-      id: uid(), leadId: lead.id, name: lead.name, phone: lead.phone, phoneRaw: lead.phoneRaw, notes: lead.notes,
+      id: uid(), leadId: lead.id, name: lead.name, phone: dialed ? normalizePhone(dialed.n) : lead.phone, phoneRaw: dialed ? dialed.n : lead.phoneRaw, notes: lead.notes,
       outcomeKey: outcome, outcome: outcomeLabel(outcome), attempt: attempt, timestamp: lead.calledAt, talk: talkFor(lead.id)
     };
+    if (dialed) callEntry.alt = dialed.l || "Other";
     if (outcome === "interested") state.lastInterested = { id: lead.id, at: Date.now() };
     if (TEAM.on && TEAM.me) {
       callEntry.by = meRef();
@@ -9913,7 +9967,7 @@
     var ss = document.getElementById("scriptSummary"); if (ss) ss.textContent = scSummary();
   }
   function render() {
-    migrateHot(); syncSettingsBits(); flowState(); scRefresh();
+    migrateHot(); syncSettingsBits(); flowState(); scRefresh(); contactMigrate();
     var total = totalCount();
     var done = doneCount();
     var lead = currentLead();
@@ -10294,7 +10348,9 @@
       if (outcome === "interested" && (!lead.stage || lead.stage === "New Lead")) setStage(lead, "Qualified");
       // A follow-up only counts against the lead when their stage hasn't moved since the last one.
       if (!((lead.progressAt || 0) > (lead.touchAt || 0))) lead.touches = (lead.touches || 0) + 1;
-      lead.touchAt = now;
+      // The automatic move to Qualified just above happens on this same call; it isn't progress since this follow-up
+      // (its clock can read a millisecond later than now, which made the next follow-up look like progress).
+      lead.touchAt = Math.max(now, lead.progressAt || 0);
       if (cfg.stall && (lead.touches || 0) >= cfg.stall) {
         lead.stalled = now; lead.stallWhy = "noprogress";
         return "Parked \u2014 " + lead.touches + " follow-ups with no progress. Move their stage to keep going";
@@ -10396,8 +10452,10 @@
     window.__mockCallLog = function () { return state.callLog.map(function (c) { return [c.id, c.timestamp, c.leadId, c.by ? c.by.uid : ""]; }); };
     window.__mockLeadCalls = function (id) { return { n: callsForLead(id).length, last: (lastCallFor(id) || {}).id || null, streak: noContactStreak(id) }; };
     window.__mockRemoveLead = function (id) { state.leads = state.leads.filter(function (l) { return l.id !== id; }); state.tasks = state.tasks.filter(function (t) { return t.leadId !== id; }); saveState(); };
-    window.__mockEditLead = function (id, k, v) { var l = findLeadById(id); if (l) { l[k] = v; saveState(); } };
+    window.__mockEditLead = function (id, k, v) { var l = findLeadById(id); if (l) { l[k] = v; saveState(); render(); } };
     window.__mockLeads = function () { return state.leads.map(function (l) { return { id: l.id, name: l.name, notes: l.notes || "", status: l.status }; }); };
+    window.__mockLeadFull = function (q) { return JSON.parse(JSON.stringify(state.leads.filter(function (l) { return l.id === q || l.name === q; }))); };
+    window.__mockCallsFor = function (id) { return JSON.parse(JSON.stringify(callsForLead(id))); };
   }
   function fillTemplate(tpl, lead, nextOverride, extra) {
     var ts = textSettings();
@@ -10618,9 +10676,9 @@
     if (lead.released && lead.status === "pending") bits.push("back from " + lead.released.from);
     return '<div class="lead-track">' + escapeHtml(bits.join(" \u00b7 ")) + '</div>';
   }
-  function callLinkHtml(lead, from, taskId, cls, inner) {
-    return '<a target="' + telTarget() + '" rel="noopener" href="' + telHref(lead.phone || normalizePhone(lead.phoneRaw)) + '" class="' + cls + '"' +
-      ' data-call-lead="' + lead.id + '" data-from="' + from + '"' + (taskId ? ' data-task="' + taskId + '"' : '') + ' title="Call">' + inner + '</a>';
+  function callLinkHtml(lead, from, taskId, cls, inner, num) {
+    return '<a target="' + telTarget() + '" rel="noopener" href="' + telHref(num ? normalizePhone(num) : lead.phone || normalizePhone(lead.phoneRaw)) + '" class="' + cls + '"' +
+      ' data-call-lead="' + lead.id + '" data-from="' + from + '"' + (taskId ? ' data-task="' + taskId + '"' : '') + (num ? ' data-num="' + escapeHtml(num) + '"' : '') + ' title="Call">' + inner + '</a>';
   }
 
   /** ---------- Call script and rebuttals ---------- **/
@@ -11214,6 +11272,184 @@
     });
   }
 
+  /** ---------- Contact details: email and other numbers ---------- **/
+  // Each lead has one main number (what Call dials), up to 5 other numbers with a label, and an email.
+  // Uploads fill them from their own columns; anyone working the lead can fix them in the profile.
+  var ALT_MAX = 5, ALT_LABELS = ["Mobile", "Home", "Work", "Other"];
+  var EMAIL_RE = /^[^\s@,;|<>()"']+@[^\s@,;|<>()"']+\.[a-z]{2,24}$/i;
+  function cleanEmail(v) {
+    var hit = String(v || "").replace(/mailto:/gi, " ").replace(/[<>]/g, " ").split(/[\s,;|]+/).filter(function (x) { return EMAIL_RE.test(x); })[0];
+    return hit ? hit.toLowerCase().slice(0, 120) : "";
+  }
+  function altLabel(h) {
+    h = String(h || "");
+    return /mobile|cell|wireless/i.test(h) ? "Mobile" : /home|house|residen/i.test(h) ? "Home" : /work|office|business|direct|company|corporate/i.test(h) ? "Work" : "Other";
+  }
+  function leadAlts(l) { return Array.isArray(l && l.alts) ? l.alts.filter(function (a) { return a && a.n; }) : []; }
+  function addAlt(lead, raw, label) {
+    var n = splitExt(raw).main.trim();
+    if (!uploadPhoneOk(n)) return false;
+    var k = normalizePhone(n), list = leadAlts(lead);
+    if (k === lead.phone || list.length >= ALT_MAX || list.some(function (a) { return normalizePhone(a.n) === k; })) return false;
+    lead.alts = list.concat([{ n: n, l: ALT_LABELS.indexOf(label) > -1 ? label : "Other" }]);
+    return true;
+  }
+  function altDnc(n) { return !!dncNums()[dncKey(normalizePhone(n))]; }
+  // A number shows the label and the number, e.g. "Mobile (212) 555-0150".
+  function altText(a) { return (a.l || "Other") + " " + formatPhoneDisplay(a.n); }
+
+  // Leads saved before this keep their email and extra numbers in the notes ("jo@x.com | Alt: (212) 555-0101").
+  // The first time an admin (or a phone used alone) opens the app, those move into their own spots.
+  // Only whole note parts that are clearly an email, or an "Alt:" list of dialable numbers, are moved.
+  var CT_MIGRATED = false;
+  function contactMigrate() {
+    if (CT_MIGRATED || !state.leads.length) return;
+    if (TEAM.on && !(TEAM.me && TEAM.ready && isAdmin())) return;
+    CT_MIGRATED = true;
+    var n = 0;
+    state.leads.forEach(function (l) {
+      if (!l.notes || (l.notes.indexOf("@") < 0 && !/(^|\|)\s*alt:/i.test(l.notes))) return;
+      var segs = String(l.notes).split("|"), keep = [], changed = false;
+      segs.forEach(function (raw) {
+        var s = raw.trim(), m;
+        if (!s) return;
+        if (!l.email && EMAIL_RE.test(s)) { l.email = s.toLowerCase(); changed = true; return; }
+        if (!l.email && (m = /^e-?mail( address)?\s*:\s*(\S+)$/i.exec(s)) && EMAIL_RE.test(m[2])) { l.email = m[2].toLowerCase(); changed = true; return; }
+        if ((m = /^alt:\s*(.+)$/i.exec(s))) {
+          var nums = m[1].split(",").map(function (x) { return x.trim(); }).filter(Boolean);
+          if (nums.length && nums.every(uploadPhoneOk)) { nums.forEach(function (x) { addAlt(l, x, "Other"); }); changed = true; return; }
+        }
+        keep.push(s);
+      });
+      if (changed) { l.notes = keep.join(" | "); n++; }
+    });
+    if (n) { saveState(); setTimeout(render, 0); }
+  }
+
+  // ----- in the lead's profile -----
+  function contactCardHtml(lead, taskId) {
+    var alts = leadAlts(lead), copy = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>';
+    return '<div class="lp-ct" id="lpContact" data-raw>' +
+      '<div class="lp-ct-top"><span class="lp-phone">' + escapeHtml(formatPhoneDisplay(lead.phoneRaw)) + '</span>' +
+        '<button type="button" class="lp-ct-edit" id="lpEditContact">Edit contact</button></div>' +
+      alts.map(function (a, i) {
+        var bad = altDnc(a.n);
+        return '<div class="lp-ct-row"><span class="lp-ct-l">' + escapeHtml(a.l || "Other") + '</span>' +
+          (bad ? '<span class="lp-ct-v off" title="On your Do Not Call list">' + escapeHtml(formatPhoneDisplay(a.n)) + ' · Do not call</span>'
+            : callLinkHtml(lead, "profile", taskId, "lp-ct-v", escapeHtml(formatPhoneDisplay(a.n)), a.n)) +
+          '<button type="button" class="lp-ct-copy" data-ct-copy="' + escapeHtml(a.n) + '" aria-label="Copy ' + escapeHtml(altText(a)) + '">' + copy + '</button></div>';
+      }).join("") +
+      (lead.email
+        ? '<div class="lp-ct-row"><span class="lp-ct-l">Email</span><a class="lp-ct-v" href="mailto:' + escapeHtml(lead.email) + '">' + escapeHtml(lead.email) + '</a>' +
+            '<button type="button" class="lp-ct-copy" data-ct-copy="' + escapeHtml(lead.email) + '" aria-label="Copy email">' + copy + '</button></div>'
+        : '<button type="button" class="lp-ct-add" data-ct-edit="email">+ Add email</button>') +
+    '</div>';
+  }
+  function wireContactCard(lead) {
+    var box = document.getElementById("lpContact"); if (!box) return;
+    box.querySelectorAll("[data-ct-copy]").forEach(function (b) {
+      b.addEventListener("click", function () { var v = b.getAttribute("data-ct-copy"); showToast(copyText(v) ? (v.indexOf("@") > -1 ? "Email copied" : "Number copied") : "Couldn’t copy — long-press it instead"); });
+    });
+    var go = function (focus) { editContact(lead, focus); };
+    document.getElementById("lpEditContact").addEventListener("click", function () { go(""); });
+    box.querySelectorAll("[data-ct-edit]").forEach(function (b) { b.addEventListener("click", function () { go(b.getAttribute("data-ct-edit")); }); });
+  }
+  function editContact(lead, focus) {
+    var box = document.getElementById("lpContact"); if (!box) return;
+    var F = { name: lead.name || "", phone: formatPhoneDisplay(lead.phoneRaw), email: lead.email || "", st: leadState(lead) };
+    var rows = leadAlts(lead).map(function (a) { return { n: formatPhoneDisplay(a.n), l: a.l || "Other" }; });
+    var stOpts = Object.keys(ZONE_OF).filter(function (k) { return /^[A-Z]{2}$/.test(k); }).sort();
+    function v(id) { var el = document.getElementById(id); return el ? el.value : ""; }
+    function sync() {
+      F.name = v("ctName"); F.phone = v("ctPhone"); F.email = v("ctEmail"); F.st = v("ctState");
+      box.querySelectorAll("[data-ct-n]").forEach(function (el) { rows[+el.getAttribute("data-ct-n")].n = el.value; });
+      box.querySelectorAll("[data-ct-l]").forEach(function (el) { rows[+el.getAttribute("data-ct-l")].l = el.value; });
+    }
+    function draw() {
+      box.classList.add("editing");
+      box.innerHTML = '<div class="ct-form">' +
+        '<label for="ctName">Name</label><input type="text" id="ctName" autocomplete="off" value="' + escapeHtml(F.name) + '">' +
+        '<label for="ctPhone">Main number <span>Call dials this one</span></label><input type="tel" id="ctPhone" inputmode="tel" autocomplete="off" value="' + escapeHtml(F.phone) + '">' +
+        '<div class="ct-alts-h">Other numbers</div>' +
+        (rows.length ? '<div class="ct-alts">' + rows.map(function (r, i) {
+          return '<div class="ct-alt"><select data-ct-l="' + i + '" aria-label="Label for other number ' + (i + 1) + '">' + ALT_LABELS.map(function (x) { return '<option' + (x === r.l ? ' selected' : '') + '>' + x + '</option>'; }).join("") + '</select>' +
+            '<input type="tel" inputmode="tel" data-ct-n="' + i + '" aria-label="Other number ' + (i + 1) + '" placeholder="(555) 555-0100" autocomplete="off" value="' + escapeHtml(r.n) + '">' +
+            '<div class="ct-alt-tools"><button type="button" data-ct-main="' + i + '">Make main</button><button type="button" class="del" data-ct-del="' + i + '">Remove</button></div></div>';
+        }).join("") + '</div>' : '') +
+        (rows.length < ALT_MAX ? '<button type="button" class="btn-secondary ct-add" id="ctAddNum">+ Add a number</button>' : '') +
+        '<label for="ctEmail">Email</label><input type="email" id="ctEmail" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="off" placeholder="name@example.com" value="' + escapeHtml(F.email) + '">' +
+        '<label for="ctState">State <span>Sets their calling hours</span></label><select id="ctState"><option value="">Not known</option>' +
+          stOpts.map(function (k) { return '<option value="' + k + '"' + (F.st === k ? ' selected' : '') + '>' + k + '</option>'; }).join("") + '</select>' +
+        '<div class="field-error" id="ctErr"></div>' +
+        '<div class="modal-actions"><button type="button" class="btn-secondary" id="ctCancel">Cancel</button><button type="button" class="btn-primary" id="ctSave">Save contact</button></div>' +
+      '</div>';
+      document.getElementById("ctCancel").addEventListener("click", function () { openLeadProfile(lead.id); });
+      document.getElementById("ctSave").addEventListener("click", save);
+      var add = document.getElementById("ctAddNum");
+      if (add) add.addEventListener("click", function () { sync(); rows.push({ n: "", l: "Mobile" }); draw(); var el = box.querySelector('[data-ct-n="' + (rows.length - 1) + '"]'); if (el) el.focus(); });
+      box.querySelectorAll("[data-ct-del]").forEach(function (b) { b.addEventListener("click", function () { sync(); rows.splice(+b.getAttribute("data-ct-del"), 1); draw(); }); });
+      box.querySelectorAll("[data-ct-main]").forEach(function (b) {
+        b.addEventListener("click", function () {
+          sync();
+          var i = +b.getAttribute("data-ct-main"), r = rows[i];
+          if (!splitExt(r.n).main.trim()) return;
+          var old = F.phone.trim();
+          F.phone = r.n;
+          if (old) rows[i] = { n: old, l: "Other" }; else rows.splice(i, 1);
+          draw();
+          showToast(r.l + " is now the main number. Save to keep it.");
+        });
+      });
+    }
+    function save() {
+      sync();
+      lead = findLeadById(lead.id) || lead;   // the team copy may have been refreshed while the form was open
+      var err = document.getElementById("ctErr"), name = F.name.replace(/\s+/g, " ").trim();
+      var ph = splitExt(F.phone).main.trim(), em = F.email.trim(), st = F.st;
+      if (!name) { err.textContent = "Add their name."; return; }
+      if (!uploadPhoneOk(ph)) { err.textContent = "The main number needs 10 digits (or + and the country code)."; return; }
+      var norm = normalizePhone(ph), other = state.leads.filter(function (l) { return l.id !== lead.id && l.phone === norm; })[0];
+      if (other) { err.textContent = "That number is already on " + other.name + "’s lead."; return; }
+      if (em && !cleanEmail(em)) { err.textContent = "That email doesn’t look right. It should look like name@example.com."; return; }
+      var alts = [], seen = {}; seen[norm] = 1;
+      for (var i = 0; i < rows.length; i++) {
+        var n = splitExt(rows[i].n).main.trim(); if (!n) continue;
+        if (!uploadPhoneOk(n)) { err.textContent = "Other number " + (i + 1) + " needs 10 digits (or + and the country code)."; return; }
+        var k = normalizePhone(n); if (seen[k]) continue; seen[k] = 1;
+        alts.push({ n: n, l: ALT_LABELS.indexOf(rows[i].l) > -1 ? rows[i].l : "Other" });
+      }
+      var sig = function () { return JSON.stringify([lead.name, lead.phone, leadAlts(lead), lead.email || "", leadState(lead)]); }, before = sig();
+      var phoneChanged = norm !== lead.phone;
+      lead.name = name; lead.phoneRaw = ph; lead.phone = norm;
+      if (alts.length) lead.alts = alts; else delete lead.alts;
+      if (em) lead.email = cleanEmail(em); else delete lead.email;
+      lead.st = st;
+      // A lead marked Bad number that gets a new main number goes back in the queue to be called
+      var revived = phoneChanged && lead.badNumber && !isDnc(lead);
+      if (revived) { lead.badNumber = false; lead.status = "pending"; lead.outcome = null; }
+      var changed = sig() !== before;
+      if (changed) lead.cu = { at: Date.now(), by: TEAM.on && TEAM.me ? TEAM.me.name : "" };
+      saveState();
+      openLeadProfile(lead.id);
+      render();
+      showToast(!changed ? "No changes" : revived ? "Saved. " + textFirstName(lead.name) + " is back in your queue with the new number"
+        : isDnc(lead) && phoneChanged ? "Saved. That number is on your Do Not Call list" : "Contact saved");
+    }
+    draw();
+    var f = document.getElementById(focus === "email" ? "ctEmail" : "ctName");
+    if (f && focus === "email") f.focus();
+  }
+
+  // ----- on the Dial card: the other numbers, one tap to call -----
+  function altPillsHtml(lead) {
+    var alts = leadAlts(lead); if (!alts.length) return "";
+    return '<div class="lead-alts" data-raw>' + alts.slice(0, 2).map(function (a, i) {
+      return altDnc(a.n) ? '<span class="alt-pill off" title="On your Do Not Call list"><b>' + escapeHtml(a.l || "Other") + '</b> ' + escapeHtml(formatPhoneDisplay(a.n)) + '</span>'
+        : '<a class="alt-pill" target="' + telTarget() + '" rel="noopener" href="' + telHref(normalizePhone(a.n)) + '" data-alt-call="' + i + '" aria-label="Call ' + escapeHtml(altText(a)) + '">' +
+          '<b>' + escapeHtml(a.l || "Other") + '</b> ' + escapeHtml(formatPhoneDisplay(a.n)) + '</a>';
+    }).join("") + (alts.length > 2 ? '<button type="button" class="alt-pill more" data-open-lead="' + lead.id + '">+' + (alts.length - 2) + ' more</button>' : '') + '</div>';
+  }
+
   /** ---------- Lead profile ---------- **/
   var profileLeadId = null;
   function openLeadProfile(id) {
@@ -11239,7 +11475,8 @@
       var label = x.kind === "interested" ? "thank-you note" : x.kind === "noanswer" ? "missed-call note" : x.kind === "info" ? "info links" : x.kind === "confirm" ? "appointment confirmation" : "text";
       return { ts: new Date(x.timestamp).getTime(), html: '<div class="lp-tl-item"><span class="lp-tl-dot callback"></span><div>' +
         '<b>Text \u2014 ' + label + '</b><span>Opened in Messages \u00b7 ' + escapeHtml(fmtWhen(new Date(x.timestamp).getTime())) + '</span></div></div>' };
-    })).concat(lfTimeline(lead)).sort(function (a, b) { return b.ts - a.ts; });
+    })).concat(lfTimeline(lead)).concat(lead.cu ? [{ ts: lead.cu.at, html: '<div class="lp-tl-item"><span class="lp-tl-dot callback"></span><div><b>Contact details updated</b><span>' +
+      (lead.cu.by ? escapeHtml(lead.cu.by) + ' \u00b7 ' : '') + escapeHtml(fmtWhen(lead.cu.at)) + '</span></div></div>' }] : []).sort(function (a, b) { return b.ts - a.ts; });
     var body = document.getElementById("leadModalBody");
     body.innerHTML =
       '<button class="close-x" id="lpClose">&times;</button>' +
@@ -11249,12 +11486,12 @@
       '<button class="star-btn lp-star' + (isDnc(lead) ? ' dnc-on' : '') + '" data-dnc-toggle="' + lead.id + '">' + (isDnc(lead) ? '\u26d4 On the Do Not Call list' : 'Do not call') + '</button>' +
       handoffInfoHtml(lead) +
       (lead.stalled ? '<div class="lp-parked"><span><b>Parked</b> \u00b7 ' + escapeHtml(parkedWhy(lead)) + '</span><button type="button" data-revive="' + lead.id + '">Revive</button></div>' : '') +
-      '<div class="lp-phone">' + escapeHtml(formatPhoneDisplay(lead.phoneRaw)) + '</div>' +
+      contactCardHtml(lead, next ? next.id : null) +
       (lead.source ? '<div class="lp-src">List: ' + escapeHtml(lead.source) + (lead.addedAt ? ' \u00b7 added ' + escapeHtml(dayLabel(new Date(lead.addedAt))) : '') + '</div>' : '') +
       (TEAM.on ? '<div class="lp-src">' + (lead.owner ? 'Owner: ' + escapeHtml(lead.owner.name) : 'Not assigned yet') + (claimedByOther(lead) ? ' \u00b7 <b>' + escapeHtml(lead.claim.name) + ' is on this lead now</b>' : '') + '</div>' : '') +
       leadWhereWhenHtml(lead) +
       '<div class="call-row lp-call-row">' +
-        callLinkHtml(lead, "profile", next ? next.id : null, "call-btn", callIconSvg() + '<span>Call ' + escapeHtml(firstName(lead.name)) + '</span>') +
+        callLinkHtml(lead, "profile", next ? next.id : null, "call-btn", callIconSvg() + '<span>Call<span class="cb-n"> ' + escapeHtml(firstName(lead.name)) + '</span></span>') +
         '<button class="copy-btn" id="lpCopy" title="Copy number">' + copyIconSvg() + '</button>' +
         (lead.noText ? '<span class="copy-btn lp-text off" title="Opted out of texts">' + messageIconSvg() + '</span>'
           : textLinkHtml(lead, "manual", fillTemplate(last && last.outcomeKey === "interested" ? textSettings().interestedTpl : textSettings().noAnswerTpl, lead),
@@ -11286,6 +11523,7 @@
       '<div class="lp-tl-head">Timeline</div>' +
       (items.length ? '<div class="lp-tl">' + items.map(function (x) { return x.html; }).join("") + '</div>' : '<div class="pipe-empty">No calls or follow-ups yet.</div>');
     var lpq = body.querySelector(".lp-qf"); if (lpq) wireQf(lpq, lead, null);
+    wireContactCard(lead);
     lfWire(lead.id);
     document.getElementById("lpClose").addEventListener("click", function () { closeLeadProfile(); });
     document.getElementById("lpDone").addEventListener("click", function () { closeLeadProfile(); });
@@ -11927,6 +12165,7 @@
         '</div>' +
         '<div class="lead-name-row"><div class="lead-name" data-open-lead="' + lead.id + '">' + escapeHtml(lead.name) + '</div>' + starBtnHtml(lead) + '</div>' +
         '<div class="lead-phone">' + escapeHtml(formatPhoneDisplay(lead.phoneRaw)) + '</div>' +
+        altPillsHtml(lead) +
         (lead.callWindow ? '<div class="win-chip">Prefers ' + escapeHtml(windowLabel(lead)) + '</div>' : '') +
         '<div class="lead-meta">' + leadWhereWhenHtml(lead) + qfRowHtml(lead) + '</div>' +
         leadTrackHtml(lead) +
@@ -11980,7 +12219,7 @@
 
     document.getElementById("callBtn").addEventListener("click", function (e) {
       if (!state.awaitingOutcome && !callGate(lead, e, false)) return;
-      state.awaitingOutcome = true; state.liveAt = Date.now();
+      state.awaitingOutcome = true; state.liveAt = Date.now(); state.dialNum = null;
       saveState();
       setTimeout(render, 50);
       scAutoOpen();
@@ -11993,6 +12232,20 @@
       }, 400);
     });
     document.getElementById("infoBtn").addEventListener("click", function () { openSendInfo(lead); });
+    main.querySelectorAll("[data-alt-call]").forEach(function (a) {
+      a.addEventListener("click", function (e) {
+        var alt = leadAlts(lead)[+a.getAttribute("data-alt-call")]; if (!alt) return;
+        if (altDnc(alt.n)) { e.preventDefault(); showToast("That number is on your team\u2019s Do Not Call list"); return; }
+        if (!state.awaitingOutcome && !callGate(lead, e, false, alt.n)) return;
+        state.awaitingOutcome = true; state.liveAt = Date.now(); state.dialNum = normalizePhone(alt.n);
+        saveState();
+        setTimeout(render, 50);
+        scAutoOpen();
+        var href = a.getAttribute("href");
+        showToast("Dialing " + altText(alt) + " \u2026");
+        setTimeout(function () { if (!document.hidden) dialFallback(href); }, 400);
+      });
+    });
     var swb = document.getElementById("spamWarnBtn");
     if (swb) swb.addEventListener("click", function () { openCoach("me"); });
     if (pacingWait(Date.now()) > 0) pacingTick();
@@ -12224,10 +12477,10 @@
     if (state.callLog.length === 0) { showToast("No calls logged yet"); return; }
     // One column per qualifying question for this industry, with each lead's current answers
     var QF = qFields(), m = leadMap();
-    var rows = [["Name", "Phone", "Outcome", "Notes", "Time"].concat(QF.map(function (f) { return f.l; }))];
+    var rows = [["Name", "Phone", "Email", "Outcome", "Notes", "Time"].concat(QF.map(function (f) { return f.l; }))];
     state.callLog.forEach(function (c) {
       var q = ((m[c.leadId] || {}).qf) || {};
-      rows.push([c.name, formatPhoneDisplay(c.phoneRaw || c.phone), c.outcome, c.notes || "", new Date(c.timestamp).toLocaleString()]
+      rows.push([c.name, formatPhoneDisplay(c.phoneRaw || c.phone) + (c.alt ? " (" + c.alt + ")" : ""), (m[c.leadId] || {}).email || "", c.outcome, c.notes || "", new Date(c.timestamp).toLocaleString()]
         .concat(QF.map(function (f) { return q[f.k] || ""; })));
     });
     var csv = rows.map(function (r) {
@@ -12465,16 +12718,20 @@
   }
 
   function parseVcf(text) {
-    var rows = [["Name", "Phone", "Mobile", "Email", "Address", "State"]];
+    var rows = [["Name", "Mobile", "Home Phone", "Work Phone", "Phone", "Email", "Address", "State"]];
     String(text).replace(/\r?\n[ \t]/g, "").split(/BEGIN:VCARD/i).slice(1).forEach(function (card) {
-      var name = "", nField = "", tels = [], email = "", adr = "", st = "";
+      var name = "", nField = "", tels = { cell: "", home: "", work: "", other: "" }, email = "", adr = "", st = "";
       card.split(/\r?\n/).forEach(function (line) {
         var i = line.indexOf(":");
         if (i < 0) return;
         var key = line.slice(0, i).toUpperCase().split(";")[0].replace(/^ITEM\d+\./, ""), val = line.slice(i + 1).trim();
         if (key === "FN") name = val;
         else if (key === "N") nField = val;
-        else if (key === "TEL") tels.push(val);
+        else if (key === "TEL") {
+          var ty = line.slice(0, i).toUpperCase(), slot = /CELL|MOBILE|IPHONE/.test(ty) ? "cell" : /HOME/.test(ty) ? "home" : /WORK/.test(ty) ? "work" : "other";
+          if (tels[slot]) slot = ["cell", "home", "work", "other"].filter(function (k) { return !tels[k]; })[0];
+          if (slot) tels[slot] = val;
+        }
         else if (key === "EMAIL" && !email) email = val;
         else if (key === "ADR" && !adr) {
           var a = val.split(";");
@@ -12483,7 +12740,7 @@
         }
       });
       if (!name && nField) { var n = nField.split(";"); name = [n[1], n[0]].filter(Boolean).join(" "); }
-      rows.push([name.replace(/\\,/g, ","), tels[0] || "", tels[1] || "", email, adr.replace(/\\,/g, ","), st]);
+      rows.push([name.replace(/\\,/g, ","), tels.cell, tels.home, tels.work, tels.other, email, adr.replace(/\\,/g, ","), st]);
     });
     return rows;
   }
@@ -12540,14 +12797,15 @@
     var hdr = map ? rows[hIdx].map(function (x) { return String(x == null ? "" : x).trim(); }) : [];
     var leads = [], skipped = 0;
     rows.slice(hIdx + 1).forEach(function (row) {
-      var name = "", phones = [], parts = [], st = "", stg = "";
+      var name = "", phones = [], parts = [], st = "", stg = "", email = "";
       if (map) {
         name = map.name !== undefined ? at(row, map.name) : [at(row, map.first), at(row, map.last)].join(" ").trim();
-        phones = map.phone.map(function (c) { return at(row, c); }).filter(uploadPhoneOk);
+        phones = map.phone.map(function (c) { return { v: at(row, c), l: altLabel(hdr[c]) }; }).filter(function (p) { return uploadPhoneOk(p.v); });
+        var emCell = at(row, map.email); email = cleanEmail(emCell);
         st = stateCode(at(row, map.state));
         var place = [at(row, map.address), at(row, map.city), at(row, map.state), at(row, map.zip)].filter(Boolean).join(" ");
         stg = crmStage(at(row, map.status));
-        parts = [at(row, map.company), at(row, map.title), at(row, map.email), place, at(row, map.notes), at(row, map.status) ? "Status: " + at(row, map.status) : ""];
+        parts = [at(row, map.company), at(row, map.title), email ? "" : emCell, place, at(row, map.notes), at(row, map.status) ? "Status: " + at(row, map.status) : ""];
         var qf = {}, more = [];
         (map.extra || []).forEach(function (c) {
           var v = at(row, c), h = hdr[c]; if (!v) return;
@@ -12562,14 +12820,16 @@
         row.forEach(function (cell) {
           var v = String(cell == null ? "" : cell).trim();
           if (!v) return;
-          if (uploadPhoneOk(v)) phones.push(v);
+          if (uploadPhoneOk(v)) phones.push({ v: v, l: "Other" });
+          else if (!email && v.indexOf("@") > -1 && cleanEmail(v) && v.replace(/\s/g, "").length <= cleanEmail(v).length + 8) email = cleanEmail(v);
           else if (!name && /[A-Za-z]/.test(v) && v.indexOf("@") === -1 && v.length <= 60) name = v;
           else parts.push(v);
         });
       }
       if (!phones.length) { skipped++; return; }
-      if (phones.length > 1) parts.push("Alt: " + phones.slice(1).join(", "));
-      var nl = makeLead(name, phones[0], parts.filter(Boolean).join(" | "), st); if (stg) nl.stage = stg;
+      var nl = makeLead(name, phones[0].v, parts.filter(Boolean).join(" | "), st); if (stg) nl.stage = stg;
+      phones.slice(1).forEach(function (p) { addAlt(nl, p.v, p.l); });
+      if (email) nl.email = email;
       if (map && qf && Object.keys(qf).length) nl.qf = qf;
       leads.push(nl);
     });
@@ -12632,7 +12892,8 @@
   }
   function renderUploadPreview() {
     var pu = pendingUpload, n = pu.leads.length, s = n === 1 ? "" : "s";
-    var notes = [pu.crm ? "Read as a " + pu.crm + " export" : "", pu.dnc ? pu.dnc + " on your Do Not Call list (skipped)" : "", pu.dupes ? pu.dupes + " already in your list (skipped)" : "",
+    var nEm = pu.leads.filter(function (l) { return l.email; }).length, nAlt = pu.leads.filter(function (l) { return leadAlts(l).length; }).length;
+    var notes = [pu.crm ? "Read as a " + pu.crm + " export" : "", nEm ? nEm + " with an email" : "", nAlt ? nAlt + " with other numbers" : "", pu.dnc ? pu.dnc + " on your Do Not Call list (skipped)" : "", pu.dupes ? pu.dupes + " already in your list (skipped)" : "",
       pu.skipped ? pu.skipped + " row" + (pu.skipped === 1 ? "" : "s") + " without a usable phone number" : ""].filter(Boolean).join(" \u00b7 ");
     var sample = pu.leads.slice(0, 5).map(function (l) {
       return '<div class="up-row"><span>' + escapeHtml(l.name) + '</span><span>' + escapeHtml(formatPhoneDisplay(l.phoneRaw)) + '</span><span>' + escapeHtml(leadState(l) || "\u2014") + '</span></div>';
@@ -12756,17 +13017,21 @@
     var name = document.getElementById("singleName").value.trim();
     var phone = document.getElementById("singlePhone").value.trim();
     var notes = document.getElementById("singleNotes").value.trim();
+    var emIn = document.getElementById("singleEmail").value.trim(), email = cleanEmail(emIn);
     var err = document.getElementById("singleError");
     if (!phone) { err.textContent = "Enter a phone number."; return; }
+    if (emIn && !email) { err.textContent = "That email doesn\u2019t look right. It should look like name@example.com."; return; }
     if (!isValidPhone(phone)) { err.textContent = "That doesn\u2019t look like a valid phone number."; return; }
     var norm = normalizePhone(phone);
     var dup = state.leads.filter(function (l) { return l.phone === norm; })[0];
     if (dup) { err.textContent = "Already in your list: " + dup.name + "."; return; }
     var lead = makeLead(name, phone, notes, "");
+    if (email) lead.email = email;
     addLeadsToQueue([lead], { source: "Added by hand", first: false });
     saveState();
     document.getElementById("singleName").value = "";
     document.getElementById("singlePhone").value = "";
+    document.getElementById("singleEmail").value = "";
     document.getElementById("singleNotes").value = "";
     err.textContent = "";
     closeLoadModal();
@@ -15736,8 +16001,9 @@
     return "";
   }
   // Every Call button goes through here. Returns false (and stops the dial) when it should wait.
-  function callGate(lead, e, force) {
+  function callGate(lead, e, force, num) {
     if (isDnc(lead)) { if (e && e.preventDefault) e.preventDefault(); showToast(lead.name + " is on your team\u2019s Do Not Call list"); return false; }
+    if (num && altDnc(num)) { if (e && e.preventDefault) e.preventDefault(); showToast("That number is on your team\u2019s Do Not Call list"); return false; }
     var now = Date.now(), cfg = pacingCfg(), st = dialStats(now);
     if (cfg.dayMode === "pause" && st.today >= Number(cfg.perDay)) {
       e.preventDefault();
@@ -15759,11 +16025,11 @@
         var sc = slotCheck(lead, now), nx = sc && !sc.ok && sc.fix ? sc.fix : 0;
         showGateSheet(lead, "Outside calling hours", "It\u2019s " + clk.t.label + " " + clk.t.abbr + " for " + textFirstName(lead.name) + " in " + clk.st + ": " + clk.why + "." +
           (nx ? " Calls open " + fmtWhen(nx).replace(/^Today /, "today at ").replace(/^Tomorrow /, "tomorrow at ") + " your time." : "") +
-          " Sales calls outside these hours can break telemarketing rules. Call now only if they asked you to.", true, { wait: true });
+          " Sales calls outside these hours can break telemarketing rules. Call now only if they asked you to.", true, { wait: true, num: num });
         return false;
       }
       var why = redialReason(lead, now);
-      if (why) { e.preventDefault(); showGateSheet(lead, "Call " + textFirstName(lead.name) + " again?", why, true); return false; }
+      if (why) { e.preventDefault(); showGateSheet(lead, "Call " + textFirstName(lead.name) + " again?", why, true, { num: num }); return false; }
     }
     recordDial();
     talkStart(lead.id);
@@ -15773,7 +16039,7 @@
     var m = document.getElementById("infoModal"), b = document.getElementById("infoModalBody"), wait = opt && opt.wait;   // wait: waiting is the main button
     b.innerHTML = '<button class="close-x" id="gateClose" aria-label="Close">&times;</button><h3>' + escapeHtml(title) + '</h3><p class="modal-sub">' + escapeHtml(msg) + '</p>' +
       '<div class="modal-actions"><button class="btn-' + (canCall && !wait ? 'secondary' : 'primary') + '" id="gateNo">' + (wait ? 'Wait' : canCall ? 'Not now' : 'OK') + '</button>' +
-      (canCall ? callLinkHtml(lead, state.activeView || "dial", null, "btn-" + (wait ? "secondary" : "primary") + " gate-call", '<span>Call anyway</span>').replace('<a ', '<a data-force="1" ') : '') + '</div>';
+      (canCall ? callLinkHtml(lead, state.activeView || "dial", null, "btn-" + (wait ? "secondary" : "primary") + " gate-call", '<span>Call anyway</span>', opt && opt.num).replace('<a ', '<a data-force="1" ') : '') + '</div>';
     m.classList.add("show", "gate");
     function close() { m.classList.remove("show", "gate"); }
     document.getElementById("gateClose").addEventListener("click", close);
@@ -17030,8 +17296,8 @@
   function pickedReps(root) { return [].slice.call(root.querySelectorAll("[data-pick-rep]:checked")).map(function (c) { return c.getAttribute("data-pick-rep"); }); }
   function downloadListCsv(x) {
     var q = function (v) { v = String(v == null ? "" : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
-    var rows = [["Name", "Phone", "State", "Stage", "Last outcome", "Last called", "Notes"]].concat(state.leads.filter(function (l) { return listOf(l) === x.name; }).map(function (l) {
-      return [l.name, formatPhoneDisplay(l.phoneRaw), l.st || "", l.stage || "", l.outcome ? outcomeLabel(l.outcome) : "", l.calledAt ? String(l.calledAt).slice(0, 10) : "", l.notes || ""]; }));
+    var rows = [["Name", "Phone", "Other numbers", "Email", "State", "Stage", "Last outcome", "Last called", "Notes"]].concat(state.leads.filter(function (l) { return listOf(l) === x.name; }).map(function (l) {
+      return [l.name, formatPhoneDisplay(l.phoneRaw), leadAlts(l).map(altText).join("; "), l.email || "", l.st || "", l.stage || "", l.outcome ? outcomeLabel(l.outcome) : "", l.calledAt ? String(l.calledAt).slice(0, 10) : "", l.notes || ""]; }));
     var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob(["\ufeff" + rows.map(function (r) { return r.map(q).join(","); }).join("\r\n")], { type: "text/csv" }));
     a.download = x.name.replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "-") + ".csv" || "list.csv"; document.body.appendChild(a); a.click(); setTimeout(function () { a.remove(); }, 500);
   }
@@ -17108,7 +17374,7 @@
       return { r: r, s: score(r.name, (r.phone || "") + " " + (r.phoneRaw || ""), (r.investments || []).map(function (i) { return i.deal; }).join(" ") + " " + (r.interests || "") + " " + (r.notes || "") + " " + (r.ownerName || "") + " " + (r.email || "")) };
     }).filter(function (x) { return x.s > 0; }).sort(function (a, b) { return (b.s - a.s) || String(a.r.name).localeCompare(String(b.r.name)); }).map(function (x) { return x.r; });
     var leads = state.leads.filter(function (l) { return !TEAM.on || canSeeTeam() || !l.owner || l.owner.uid === me; }).map(function (l) {
-      return { l: l, s: score(l.name, (l.phone || "") + " " + (l.phoneRaw || ""), [l.notes, l.source, l.stage, l.owner ? l.owner.name : "", l.email, l.company].concat(l.qf ? Object.keys(l.qf).map(function (k) { return l.qf[k]; }) : []).filter(Boolean).join(" ")) };
+      return { l: l, s: score(l.name, (l.phone || "") + " " + (l.phoneRaw || "") + " " + leadAlts(l).map(function (a) { return a.n; }).join(" "), [l.notes, l.source, l.stage, l.owner ? l.owner.name : "", l.email, l.company].concat(l.qf ? Object.keys(l.qf).map(function (k) { return l.qf[k]; }) : []).filter(Boolean).join(" ")) };
     }).filter(function (x) { return x.s > 0; }).sort(function (a, b) {
       return (b.s - a.s) || (stageRank(b.l.stage) - stageRank(a.l.stage)) || String(a.l.name).localeCompare(String(b.l.name));
     }).map(function (x) { return x.l; });
@@ -17661,8 +17927,9 @@
       }
       var callA = e.target.closest("a[data-call-lead]");
       if (callA) {
-        var gl = findLeadById(callA.getAttribute("data-call-lead"));
-        if (gl && !callGate(gl, e, callA.getAttribute("data-force") === "1")) return;
+        var gl = findLeadById(callA.getAttribute("data-call-lead")), cnum = callA.getAttribute("data-num") || "";
+        if (gl && !callGate(gl, e, callA.getAttribute("data-force") === "1", cnum)) return;
+        state.dialNum = cnum ? normalizePhone(cnum) : null;
         startCall(callA.getAttribute("data-call-lead"), callA.getAttribute("data-from"), callA.getAttribute("data-task"), callA.getAttribute("href")); return;
       }
       if (e.target.closest("#startFollowupsBtn")) { startFollowupRun(); return; }
