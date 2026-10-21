@@ -1,0 +1,112 @@
+/*! id: sig-horologe */
+/* ============ HOROLOGE: a grand complication on your phone ============
+   Silver-opaline sunburst dial, heat-blued steel, black lacquer indices, a red seconds tip.
+   Signature: the Call button carries a real seconds hand (it sweeps in time with the clock), today's calls fill a
+   minute track, the lead card is a polished-steel bezel, outcome jewels are cabochons, and logging a call glints
+   across the crystal. During a call the bezel turns blued steel like a running chronograph. */
+@V {
+  --bg: #E5E8EC; --surface: #F7F8F9; --surface-raised: #EEF0F2; --border: #C3C9D2;
+  --text: #12151B; --text-dim: #3D4552; --text-faint: #59616E;
+  --accent: #1F3F9A; --accent-fill: #1E3D96; --accent-dim: #8FA3D6; --accent-text: #FFFFFF;
+  --interested: #1E7A4C; --notinterested: #B0302A; --voicemail: #7C5E0A; --noanswer: #5E6675; --badnum: #9A5420; --callback: #2D58B8; --danger: #B0302A;
+  --gold: #8A6510; --horizon-c: #A9BCEB; --horizon-k: 0.32;
+  --bg-image:
+    radial-gradient(85% 55% at 50% -6%, rgba(255,255,255,0.92), rgba(255,255,255,0) 68%),
+    repeating-conic-gradient(from 0deg at 50% -18%, rgba(255,255,255,0.34) 0deg 0.45deg, rgba(120,130,145,0.05) 0.45deg 0.9deg),
+    radial-gradient(140% 100% at 50% 120%, rgba(18,21,27,0.10), transparent 60%),
+    linear-gradient(180deg, #EEF0F3 0%, #DCE0E5 100%);
+  --bg-size: auto;
+  --card-bg: radial-gradient(130% 95% at 50% 0%, #FFFFFF 0%, #F8F9FA 52%, #EDEFF2 100%);
+  --card-frame: linear-gradient(158deg, #A5ADB9 0%, #FFFFFF 20%, #8E97A4 44%, #F3F5F7 66%, #ACB4BF 100%);
+  --card-tex: radial-gradient(160% 60% at 50% -30%, rgba(255,255,255,0.7), transparent 60%);
+  --card-shadow: 0 1px 0 rgba(255,255,255,0.95) inset, 0 22px 38px -22px rgba(18,21,27,0.42), 0 2px 6px rgba(18,21,27,0.07);
+  --call-bg: linear-gradient(135deg, #3A6BE6 0%, #1F3FA3 46%, #12246A 100%);
+  --call-shadow: 0 12px 26px -12px rgba(16,33,95,0.75), inset 0 1px 0 rgba(255,255,255,0.32), inset 0 -1px 0 rgba(0,0,0,0.25);
+  --call-text: #FFFFFF; --call-shine: 0;
+  --tab-active-bg: linear-gradient(180deg, #2C53C2 0%, #172F80 100%); --tab-active-text: #FFFFFF;
+  --tab-glow: inset 0 1px 0 rgba(255,255,255,0.28), 0 4px 10px -4px rgba(23,47,128,0.6);
+  --track-fill: linear-gradient(90deg, #172F80, #3A6BE6);
+  --header-bg: rgba(229,232,236,0.8); --header-blur: saturate(140%) blur(16px);
+  --header-rule:
+    repeating-linear-gradient(90deg, #12151B 0 1px, transparent 1px 6px) left bottom / 100% 4px no-repeat,
+    repeating-linear-gradient(90deg, #12151B 0 2px, transparent 2px 30px) left bottom / 100% 9px no-repeat;
+  --header-rule-h: 9px;
+  --font-display: 'Bodoni Moda', 'Didot', 'Bodoni 72', Georgia, serif; --display-weight: 600;
+  --display-k: 1.08; --count-k: 1.16; --brand-k: 1.12; --display-transform: none; --display-spacing: -0.005em;
+  --display-style: normal; --display-stretch: normal; --display-glow: none;
+  --font-num: 'Bodoni Moda', 'Didot', Georgia, serif; --num-k: 1.08;
+  --font-body: 'Hanken Grotesk', 'Avenir Next', system-ui, sans-serif;
+  --radius-l: 26px; --radius-m: 16px; --radius-s: 12px; --pill-r: 999px;
+  --fx-a: none; --fx-b: none;
+  color-scheme: light;
+}
+/* the brand reads like a dial signature */
+@T .brand .name { letter-spacing: 0.16em; font-weight: 500; font-size: 18px; }
+@T .brand .sub { letter-spacing: 0.02em; }
+/* polished steel bezel */
+@T #mainArea .card { border-width: 2px; }
+@T .icon-btn { border-radius: 999px; background: radial-gradient(120% 120% at 50% 0%, #FFFFFF, #E9ECEF); border-color: #BCC3CD;
+  box-shadow: inset 0 1px 0 #fff, 0 2px 5px rgba(18,21,27,0.08); color: #2A3140; }
+@T .view-tabs { border-radius: 999px; padding: 4px; background: linear-gradient(180deg, #F6F7F9, #E7EAEE); border-color: #BEC5CF; box-shadow: inset 0 1px 2px rgba(18,21,27,0.08); }
+@T .view-tab { border-radius: 999px; font-weight: 600; letter-spacing: 0.01em; }
+/* the Call button: blued steel with a seconds hand running around its edge. The hand is a turning disc behind a
+   face (::after, which is the shine on other themes), so only a 2.5px rim of it shows: a compositor-only rotation. */
+@T .call-btn { border-radius: 999px; font-weight: 700; letter-spacing: 0.02em; position: relative; isolation: isolate; }
+@T .call-btn::before { content: ""; position: absolute; left: 50%; top: 50%; width: 150%; aspect-ratio: 1; pointer-events: none; z-index: -1; display: none;
+  background: conic-gradient(rgba(255,255,255,0) 0deg 290deg, rgba(255,255,255,0.22) 320deg, rgba(255,255,255,0.95) 352deg, #FF3B2F 353deg 359deg, rgba(255,255,255,0) 360deg);
+  transform: translate(-50%, -50%) rotate(calc(var(--sig-s0, 0) * 6deg)); }
+@T .call-btn::after { left: 2.5px; right: 2.5px; top: 2.5px; bottom: 2.5px; width: auto; border-radius: inherit; z-index: -1; opacity: 1; animation: none;
+  background: var(--call-bg); transform: none; }
+@T .call-btn:active:not(:disabled) { transform: translateY(1px); box-shadow: 0 6px 14px -8px rgba(16,33,95,0.8), inset 0 2px 4px rgba(0,0,0,0.35); }
+@T .copy-btn, @T .lp-call-row .copy-btn { border-radius: 999px; background: radial-gradient(120% 120% at 50% 0%, #FFFFFF, #E9ECEF); border-color: #BCC3CD; }
+/* outcome jewels: each outcome a cabochon set in steel */
+@T .outcomes .out-btn { border-radius: 999px; background: radial-gradient(120% 160% at 50% 0%, #FFFFFF 0%, #F1F3F5 60%, #E6E9ED 100%);
+  border: 1px solid #C3C9D2; box-shadow: inset 0 1px 0 #fff, 0 2px 4px -1px rgba(18,21,27,0.12); font-weight: 600; letter-spacing: 0.005em; }
+@T .dot { width: 10px; height: 10px; box-shadow: 0 0 0 1.5px #B5BCC6, 0 1px 2px rgba(0,0,0,0.3);
+  background: radial-gradient(circle at 34% 30%, rgba(255,255,255,0.92) 0 16%, var(--jw, #888) 46%, color-mix(in srgb, var(--jw, #888) 62%, #000) 100%) !important; }
+@T .dot.interested { --jw: var(--interested); } @T .dot.notinterested { --jw: var(--notinterested); } @T .dot.voicemail { --jw: var(--voicemail); }
+@T .dot.noanswer { --jw: var(--noanswer); } @T .dot.badnum { --jw: var(--badnum); } @T .dot.callback { --jw: var(--callback); }
+/* the minute track: today's calls against the goal, five-minute indices every fifth tick */
+@T .rhythm .rh-track { height: 12px; border-radius: 0; background: rgba(18,21,27,0.14);
+  -webkit-mask: repeating-linear-gradient(90deg, #000 0 1.5px, transparent 1.5px 1%), linear-gradient(#000 0 0) bottom / 100% 5px no-repeat;
+          mask: repeating-linear-gradient(90deg, #000 0 1.5px, transparent 1.5px 1%), linear-gradient(#000 0 0) bottom / 100% 5px no-repeat; }
+@T .rhythm .rh-track.goal .bar-fill { background: linear-gradient(90deg, #8A6510, #D8B45A) !important; }
+@T .rh-count strong { font-weight: 500; letter-spacing: -0.02em; }
+@T .rh-state { font-style: italic; font-family: var(--font-display); }
+/* sheets and cards: enamel white with a polished edge */
+@T .modal { background: linear-gradient(180deg, #FBFBFC 0%, #F2F4F6 100%); border-color: #C3C9D2; box-shadow: 0 -20px 50px -24px rgba(18,21,27,0.42); }
+@T .modal h3 { font-weight: 600; letter-spacing: 0.005em; }
+@T .hub-cat { background: radial-gradient(130% 120% at 50% 0%, #FFFFFF, #EEF0F3); border-color: #C6CCD5; box-shadow: inset 0 1px 0 #fff, 0 6px 14px -10px rgba(18,21,27,0.35); }
+@T .filter-chip { background: linear-gradient(180deg, #FFFFFF, #EEF0F2); border-color: #C3C9D2; }
+@T .filter-chip.active { background: linear-gradient(180deg, #2C53C2, #172F80); border-color: #172F80; color: #fff; }
+@T .toast { border-radius: 999px; background: rgba(250,250,251,0.94); border-color: #C3C9D2; box-shadow: 0 16px 36px -16px rgba(18,21,27,0.45); }
+@T :is(.modal input[type="text"], .modal input[type="tel"], .modal input[type="email"], .modal textarea, .lead-notes-input, select) { border-radius: 12px; }
+@T :is(input, textarea, select):focus-visible { outline: 2px solid #1F3F9A; outline-offset: 2px; }
+/* during a call: the bezel turns blued steel, like a running chronograph */
+@T body.st-live #mainArea .card { --card-frame: linear-gradient(158deg, #12246A 0%, #6E92F0 22%, #1F3FA3 46%, #9DB6F5 70%, #12246A 100%); }
+/* logging a call: a glint crosses the crystal */
+/* (no !important on the background: an important background-position would freeze the animation) */
+@T[data-flash] #mainArea .card::after { background-image: linear-gradient(115deg, transparent 34%, rgba(110,146,240,0.16) 43%, rgba(255,255,255,0.95) 47.5%, rgba(255,255,255,0.95) 48.5%, rgba(110,146,240,0.16) 53%, transparent 62%);
+  background-repeat: no-repeat; background-size: 260% 100%; background-position: -5% 0; border: 0 !important; opacity: 0; }
+/* finish: line icons drawn in the theme's own pen, selection, caret, scrollbars, desktop hover */
+@T :is(.shell, .modal, .srch, .toast, #sigTry) svg[stroke-width] { stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+@T { scrollbar-color: #8E97A4 #E5E8EC; }
+@T ::selection { background: rgba(31,63,154,0.22); color: #12151B; }
+@T :is(input, textarea) { caret-color: #1F3F9A; }
+@media (hover: hover) { @T .outcomes:not(.disabled) .out-btn:hover { border-color: #8FA3D6; box-shadow: inset 0 1px 0 #fff, 0 4px 10px -4px rgba(31,63,154,0.35); } }
+@media (prefers-reduced-motion: no-preference) {
+  /* 480 steps a minute: the 8 beats a second of a 28,800 vph mechanical movement (and 8 repaints a second, not 60) */
+  @M body:not(.st-live) .call-btn::before { display: block; animation: sigSecond 60s steps(480) infinite; animation-delay: calc(var(--sig-s0, 0) * -1s); }
+  @M[data-flash] #mainArea .card::after { animation: sigGlint 1s cubic-bezier(.45,.05,.35,1) both !important; }
+  @M[data-flash="goal"] .rhythm .rh-track { animation: sigChime 1.2s ease-out; }
+}
+@keyframes sigSecond { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
+@keyframes sigGlint { from { background-position: 105% 0; opacity: 1; } 80% { opacity: 1; } to { background-position: -5% 0; opacity: 0; } }
+@keyframes sigChime { 0%, 100% { filter: none; } 30% { filter: drop-shadow(0 0 6px rgba(216,180,90,0.9)); } }
+/* preview motif: a tiny dial with its own seconds hand */
+.sig-scope[data-sig="sig-horologe"] .sp-motif { position: absolute; right: 9px; top: 4px; width: 22px; height: 22px; z-index: 2; border-radius: 50%;
+  background: repeating-conic-gradient(#12151B 0 1.2deg, transparent 1.2deg 30deg), radial-gradient(circle, #fff 60%, #E6E9ED 61%);
+  -webkit-mask: radial-gradient(circle, #000 64%, transparent 65%); mask: radial-gradient(circle, #000 64%, transparent 65%); box-shadow: 0 0 0 1px #AEB5C0; }
+.sig-scope[data-sig="sig-horologe"] .sp-motif::after { content: ""; position: absolute; left: 50%; top: 3px; width: 1.2px; height: 8px; margin-left: -0.6px; background: #FF3B2F; transform-origin: 50% 8px; }
+@media (prefers-reduced-motion: no-preference) { html[data-motion="on"] .sig-scope[data-sig="sig-horologe"] .sp-motif::after { animation: sigSpin 60s linear infinite; } }
+@keyframes sigSpin { to { transform: rotate(360deg); } }

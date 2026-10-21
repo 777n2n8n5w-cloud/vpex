@@ -1,0 +1,114 @@
+/*! id: sig-blueprint */
+/* ============ BLUEPRINT: the floor, drawn to scale ============
+   Cyanotype blue drafting sheet with a minor and major grid, white technical lettering, hard 2px corners.
+   Signature: the header is a title block (double rule), cards are drawn with a double line, the rhythm is an
+   architect's scale bar with extension lines, anything late is redlined (a dashed red-pencil outline),
+   and logging a call plots the next card's outline like a pen plotter. No ambient motion: drawings stay still. */
+@V {
+  --bg: #123A73; --surface: #174581; --surface-raised: #1C4F91; --border: #7896C4;
+  --text: #FFFFFF; --text-dim: #D6E4F6; --text-faint: #B4CBEA;
+  --accent: #FFFFFF; --accent-fill: #FFFFFF; --accent-dim: #5E80B5; --accent-text: #123A73;
+  --interested: #86F2C4; --notinterested: #FFB4AA; --voicemail: #FFE07A; --noanswer: #C9D7EA; --badnum: #FFC08C; --callback: #B3DAFF; --danger: #FFB4AA;
+  --gold: #FFE07A; --horizon-c: #4F86D6; --horizon-k: 0.3;
+  --sig-grid:
+    linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px) 0 0 / 50px 50px,
+    linear-gradient(180deg, rgba(255,255,255,0.15) 1px, transparent 1px) 0 0 / 50px 50px,
+    linear-gradient(90deg, rgba(255,255,255,0.055) 1px, transparent 1px) 0 0 / 10px 10px,
+    linear-gradient(180deg, rgba(255,255,255,0.055) 1px, transparent 1px) 0 0 / 10px 10px;
+  --bg-image:
+    radial-gradient(140% 90% at 50% 30%, transparent 55%, rgba(6,24,52,0.5) 100%),
+    linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255,255,255,0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.055) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255,255,255,0.055) 1px, transparent 1px),
+    linear-gradient(180deg, #14407D 0%, #10356A 100%);
+  --bg-size: auto, 50px 50px, 50px 50px, 10px 10px, 10px 10px, auto;
+  --card-bg: linear-gradient(180deg, #174581, #164280);
+  --card-frame: linear-gradient(rgba(255,255,255,0.78), rgba(255,255,255,0.78));
+  --card-tex: linear-gradient(transparent, transparent);
+  --card-shadow: 0 0 0 3px #123A73, 0 0 0 4px rgba(255,255,255,0.32);
+  --call-bg: #FFFFFF;
+  --call-shadow: inset 0 0 0 2px #FFFFFF, inset 0 0 0 3px #123A73;
+  --call-text: #123A73; --call-shine: 0;
+  --tab-active-bg: #FFFFFF; --tab-active-text: #123A73; --tab-glow: none;
+  --track-fill: repeating-linear-gradient(-45deg, #FFFFFF 0 2px, rgba(255,255,255,0.35) 2px 5px);
+  --header-bg: rgba(18,58,115,0.86); --header-blur: blur(10px);
+  --header-rule: linear-gradient(#FFFFFF, #FFFFFF) top / 100% 1px no-repeat, linear-gradient(#FFFFFF, #FFFFFF) bottom / 100% 2px no-repeat;
+  --header-rule-h: 5px;
+  --font-display: 'Barlow Semi Condensed', 'Arial Narrow', sans-serif; --display-weight: 600;
+  --display-k: 1.02; --count-k: 1.12; --brand-k: 1; --display-transform: uppercase; --display-spacing: 0.06em;
+  --display-style: normal; --display-stretch: normal; --display-glow: none;
+  --font-num: 'Barlow Semi Condensed', 'Arial Narrow', sans-serif; --num-k: 1.08;
+  --font-body: 'Barlow', 'Helvetica Neue', system-ui, sans-serif;
+  --radius-l: 2px; --radius-m: 2px; --radius-s: 2px; --pill-r: 2px;
+  --fx-a: none; --fx-b: none;
+  --sig-on: #86F2C4; --sig-on-knob: #123A73;
+  color-scheme: dark;
+}
+@T .brand .name { letter-spacing: 0.2em; font-weight: 600; }
+@T .brand .sub { letter-spacing: 0.03em; }
+@T .lead-name { font-weight: 600; line-height: 1.05; }
+@T .lead-phone { letter-spacing: 0.08em; font-weight: 500; font-variant-numeric: tabular-nums; }
+@T .icon-btn { border-radius: 2px; background: transparent; border-color: rgba(255,255,255,0.55); color: #FFFFFF; }
+@T .view-tabs { border-radius: 2px; background: transparent; border-color: rgba(255,255,255,0.55); padding: 3px; }
+@T .view-tab { border-radius: 1px; font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+/* cards: drawn with a double line, registration crosses at the corners */
+@T #mainArea .card {
+  background:
+    linear-gradient(#fff, #fff) 6px 10px / 9px 1px no-repeat padding-box, linear-gradient(#fff, #fff) 10px 6px / 1px 9px no-repeat padding-box,
+    linear-gradient(#fff, #fff) right 6px top 10px / 9px 1px no-repeat padding-box, linear-gradient(#fff, #fff) right 10px top 6px / 1px 9px no-repeat padding-box,
+    linear-gradient(#fff, #fff) 6px calc(100% - 10px) / 9px 1px no-repeat padding-box, linear-gradient(#fff, #fff) 10px calc(100% - 6px) / 1px 9px no-repeat padding-box,
+    linear-gradient(#fff, #fff) right 6px bottom 10px / 9px 1px no-repeat padding-box, linear-gradient(#fff, #fff) right 10px bottom 6px / 1px 9px no-repeat padding-box,
+    var(--card-bg) padding-box, var(--card-frame) border-box !important; }
+@T :is(.deal-bar-card, .pipe-item, .task-item, .hist-item) { --card-shadow: none; }
+@T .modal { background: var(--sig-grid), linear-gradient(180deg, #174581, #133D78); border-color: rgba(255,255,255,0.6); border-radius: 2px; box-shadow: 0 -18px 50px -20px rgba(4,16,36,0.8), inset 0 3px 0 #133D78, inset 0 4px 0 rgba(255,255,255,0.5); }
+@T .modal h3 { letter-spacing: 0.08em; }
+@T .hub-cat { border-radius: 2px; background: rgba(23,69,129,0.9); border-color: rgba(255,255,255,0.45); }
+@T .call-btn { border-radius: 2px; font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; font-size: 17px; }
+@T body.st-live .call-btn { font-size: 14px; letter-spacing: 0.06em; }
+@T body:not(.st-live) .call-btn:active:not(:disabled) { background: #123A73; color: #FFFFFF; box-shadow: inset 0 0 0 2px #FFFFFF; }
+@T .copy-btn { border-radius: 2px; background: transparent; border-color: rgba(255,255,255,0.55); color: #fff; }
+@T .outcomes .out-btn { border-radius: 2px; background: rgba(18,58,115,0.55); border: 1px solid rgba(255,255,255,0.6); color: #FFFFFF; font-weight: 600; letter-spacing: 0.02em; }
+@T .outcomes .out-btn:hover { background: rgba(255,255,255,0.08); }
+@T .dot { border-radius: 0 !important; width: 9px; height: 9px; box-shadow: 0 0 0 1.5px #123A73, 0 0 0 2.5px rgba(255,255,255,0.7); }
+@T :is(input, textarea, select) { border-radius: 2px !important; }
+@T .filter-chip { border-radius: 2px; background: transparent; border-color: rgba(255,255,255,0.5); }
+@T .filter-chip.active { background: #FFFFFF; border-color: #FFFFFF; color: #123A73; }
+@T .toast { border-radius: 2px; background: #174581; border-color: #FFFFFF; box-shadow: 0 0 0 3px #123A73, 0 0 0 4px rgba(255,255,255,0.4), 0 18px 40px -16px rgba(4,16,36,0.8); }
+@T .goal-btn { border-radius: 2px; }
+/* drafting corners on everything rectangular the app rounds by hand; circles (keys, avatars, dots, the star) stay circles */
+@T :is(.qf-chip, .qf-opt, .qf-field input, .qf-note, .lp-qf, .lp-ct-edit, .alt-pill, .sc-bar-b, .need-pill, .lead-where, .prev-pill:not(.pp-icon), .win-chip,
+  .btn-primary, .btn-secondary, .md-bar.md-pill, .queue-item, .task-win, .hub-tile, .hub-group, .hub-needs, .settings-row, .coach-card, .coach-stats div,
+  .sb-card, .sb-seg, .tm-row, .vault-row, .vi-row, .va-row, .vault-setup, .vault-req, .vi-form, .info-item, .brief-card, .ll-card, .oc-chip, .hot-strip,
+  .contest-bar, .rp-kpi, .upd-note, .kd-row, .handoff-info, .is-row, .il-row, .push-state, .auth-card, .auth-card input, .auth-select, .auth-office,
+  .srch-field, .theme-search, .theme-card, .tc-prev, .seg-b, .lp-tag, .last-follow, .done-panel, .empty, .qi-status, .lp-star, .task-actions button) { border-radius: 2px !important; }
+/* the scale bar: alternating bays, hatched where today's calls have reached, extension lines at both ends */
+@T .rhythm .rh-track { position: relative; height: 8px; border-radius: 0; overflow: visible; -webkit-mask: none; mask: none;
+  background: repeating-linear-gradient(90deg, rgba(255,255,255,0.2) 0 10%, transparent 10% 20%); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.8); }
+@T .rhythm .rh-track .bar-fill { border-radius: 0; }
+@T .rhythm .rh-track::before, @T .rhythm .rh-track::after { content: ""; position: absolute; top: -5px; bottom: -5px; width: 1px; background: #FFFFFF; }
+@T .rhythm .rh-track::before { left: 0; } @T .rhythm .rh-track::after { right: 0; }
+@T .rhythm .rh-track.goal .bar-fill { background: repeating-linear-gradient(-45deg, #FFE07A 0 2px, rgba(255,224,122,0.4) 2px 5px) !important; }
+@T .rh-state { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
+/* redlines: anything late is outlined in red pencil */
+@T body.st-late #mainArea .card, @T .task-item.overdue { outline: 1.5px dashed #FFB4AA; outline-offset: 5px; }
+@T .lead-where.late { border-style: dashed; }
+@T body.st-live #mainArea .card { --card-frame: linear-gradient(#FFFFFF, #FFFFFF); box-shadow: 0 0 0 3px #123A73, 0 0 0 4px #FFFFFF; }
+@T :is(input, textarea, select, button, a):focus-visible { outline: 2px solid #FFE07A; outline-offset: 2px; }
+/* logging a call: the plotter draws the next card's outline */
+@T[data-flash] #mainArea .card::after { inset: -6px; border: 1.5px solid var(--flash-c, #fff) !important; border-radius: 2px; box-shadow: none !important; }
+/* finish: line icons drawn in the theme's own pen, selection, caret, scrollbars, desktop hover */
+@T :is(.shell, .modal, .srch, .toast, #sigTry) svg[stroke-width] { stroke-width: 1.5; stroke-linecap: square; stroke-linejoin: miter; }
+@T { scrollbar-color: #7896C4 #123A73; }
+@T ::selection { background: rgba(255,224,122,0.4); color: #FFFFFF; }
+@T :is(input, textarea) { caret-color: #FFE07A; }
+@media (hover: hover) { @T .outcomes:not(.disabled) .out-btn:hover { background: rgba(255,255,255,0.1); border-color: #FFFFFF; } }
+@media (prefers-reduced-motion: no-preference) {
+  @M[data-flash] #mainArea .card::after { animation: sigPlot 1.15s cubic-bezier(.5,0,.3,1) forwards !important; }
+}
+@keyframes sigPlot { 0% { clip-path: inset(0 100% calc(100% - 2px) 0); opacity: 1; } 30% { clip-path: inset(0 0 calc(100% - 2px) 0); opacity: 1; }
+  70% { clip-path: inset(0 0 0 0); opacity: 1; } 100% { clip-path: inset(0 0 0 0); opacity: 0; } }
+/* preview motif: a corner title block */
+.sig-scope[data-sig="sig-blueprint"] .sp-motif { position: absolute; right: 9px; bottom: 10px; width: 46px; height: 18px; z-index: 2; box-sizing: border-box;
+  border-top: 1px solid rgba(255,255,255,0.8); border-left: 1px solid rgba(255,255,255,0.8);
+  background: linear-gradient(rgba(255,255,255,0.8), rgba(255,255,255,0.8)) 0 50% / 100% 1px no-repeat, linear-gradient(rgba(255,255,255,0.8), rgba(255,255,255,0.8)) 60% 0 / 1px 100% no-repeat; }

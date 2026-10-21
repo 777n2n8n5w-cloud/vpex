@@ -1,0 +1,91 @@
+/* VPEX Signature themes: five themes only the VPEX owner's own login can see and use.
+   Loaded only when one of them is active or the owner opens the Signature screen (index.html: ensureSigAssets).
+   Every rule is scoped to html.sig.sig[data-theme="sig-…"] (the .sig class is set with the theme), so nothing here can
+   touch the 86 public themes. Theme tokens are also scoped to .sig-scope[data-sig="sig-…"] for the live previews.
+   Built from sig/*.css by sig/build.py into sig.css. */
+
+@property --sig-hue { syntax: '<number>'; inherits: true; initial-value: 0; }
+
+/* a few app controls that are fixed colors elsewhere take each Signature theme's own: the keypad's call key and "on" switches */
+html.sig.sig[data-theme^="sig-"] .kp-call { background: var(--sig-kp, var(--call-bg)); color: var(--sig-kp-text, var(--call-text)); box-shadow: var(--call-shadow, none); }
+html.sig.sig[data-theme^="sig-"] .md-bar.on .md-switch { background: var(--sig-on, var(--accent-fill)); }
+html.sig.sig[data-theme^="sig-"] .md-bar.on .md-switch span { background: var(--sig-on-knob, #fff); }
+/* the lead profile's Call button is narrow: keep each theme's lettering but tighter, so the name still fits */
+html.sig.sig[data-theme^="sig-"] .lp-call-row .call-btn { letter-spacing: 0.01em; font-size: 15.5px; }
+
+/* the art layer behind the app (kintsugi seams, film bars...), filled by sig.js for the active theme */
+#sigArt { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; display: none; }
+html.sig #sigArt { display: block; }
+#sigArt svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+/* ---------- The Signature screen: tiles with each theme's real tokens ---------- */
+.sig-intro { margin: 2px 0 14px; font-size: 13px; line-height: 1.45; color: var(--text-dim); }
+.sig-list { display: grid; gap: 14px; }
+/* each tile is drawn in its own theme's tokens (.sig-scope), so the list is five small rooms, not five swatches */
+.sig-tile { display: grid; grid-template-columns: 132px 1fr; gap: 14px; align-items: stretch; padding: 10px; border-radius: 18px;
+  background: var(--surface); color: var(--text); border: 1px solid var(--border); font-family: var(--font-body, inherit); }
+.sig-tile.active { box-shadow: 0 0 0 2px var(--accent); }
+.sig-tile .sig-meta b { font-family: var(--font-display, inherit); font-weight: var(--display-weight, 700); letter-spacing: var(--display-spacing, 0); text-transform: var(--display-transform, none); font-size: 21px; }
+.sig-tile :is(button):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sig-tile button:disabled { cursor: default; opacity: 1; }
+.sig-std { display: block; width: 100%; margin: 16px 0 4px; min-height: 44px; border-radius: 12px; background: transparent; color: var(--text-dim); border: 1px solid var(--border); font: inherit; font-size: 14px; cursor: pointer; }
+.sig-modal { max-height: 88vh; overflow-y: auto; }
+.sig-prev { position: relative; height: 172px; border-radius: 12px; overflow: hidden; isolation: isolate;
+  background-color: var(--bg); background-image: var(--bg-image, none); background-size: var(--bg-size, auto); color: var(--text);
+  box-shadow: inset 0 0 0 1px rgba(127,127,127,0.28); font-family: var(--font-body, inherit); }
+.sp-head { position: absolute; left: 0; right: 0; top: 0; height: 30px; padding: 9px 10px 0; box-sizing: border-box; background: var(--header-bg, transparent); }
+.sp-head::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: var(--header-rule-h, 1px); background: var(--header-rule, var(--border)); }
+.sp-brand { font-family: var(--font-display, inherit); font-weight: var(--display-weight, 700); font-size: 12px; letter-spacing: var(--display-spacing, 0); text-transform: var(--display-transform, none);
+  background-image: var(--name-fill, none); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: var(--name-tf, currentcolor); }
+.sp-card { position: absolute; left: 9px; right: 9px; top: 40px; bottom: 10px; padding: 9px 9px 8px; border: 1.5px solid transparent; border-radius: calc(var(--radius-l, 16px) * 0.5);
+  background: var(--card-tex, linear-gradient(transparent, transparent)) padding-box, var(--card-bg, linear-gradient(var(--surface), var(--surface))) padding-box, var(--card-frame, linear-gradient(var(--border), var(--border))) border-box;
+  box-shadow: var(--card-shadow, none); display: flex; flex-direction: column; gap: 4px; }
+.sp-name { font-family: var(--font-display, inherit); font-weight: var(--display-weight, 700); font-size: 13.5px; line-height: 1.1; letter-spacing: var(--display-spacing, 0);
+  text-transform: var(--display-transform, none); color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-phone { font-family: var(--font-num, inherit); font-size: 10.5px; color: var(--accent); }
+.sp-call { margin-top: auto; height: 22px; border-radius: calc(var(--radius-m, 10px) * 0.6); background: var(--call-bg, var(--accent)); color: var(--call-text, var(--accent-text));
+  display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; box-shadow: var(--call-shadow, none); position: relative; overflow: hidden; }
+.sp-outs { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
+.sp-outs i { height: 9px; border-radius: calc(var(--radius-s, 6px) * 0.5); background: var(--surface-raised); box-shadow: inset 0 0 0 1px var(--border); position: relative; }
+.sp-outs i::before { content: ""; position: absolute; left: 4px; top: 2.5px; width: 4px; height: 4px; border-radius: 50%; background: var(--oc, var(--accent)); }
+.sp-outs i:nth-child(1) { --oc: var(--interested); } .sp-outs i:nth-child(2) { --oc: var(--notinterested); }
+.sp-outs i:nth-child(3) { --oc: var(--voicemail); } .sp-outs i:nth-child(4) { --oc: var(--callback); }
+.sig-meta { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 2px 0; }
+.sig-meta .sig-kind { font-size: 11.5px; font-weight: 600; color: var(--text-faint); }
+.sig-meta b { font-size: 19px; line-height: 1.1; color: var(--text); }
+.sig-meta p { margin: 2px 0 0; font-size: 12.5px; line-height: 1.42; color: var(--text-dim); }
+.sig-acts { display: flex; gap: 8px; margin-top: auto; padding-top: 10px; }
+.sig-acts button { flex: 1; min-height: 42px; border-radius: 12px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.sig-try-btn { background: transparent; color: var(--text); border: 1.5px solid var(--border); }
+.sig-use-btn { background: var(--accent-fill, var(--accent)); color: var(--accent-text); border: 0; }
+.sig-tile.active .sig-use-btn { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); }
+@media (max-width: 370px) { .sig-tile { grid-template-columns: 1fr; } .sig-prev { height: 150px; } }
+
+/* ---------- Live try-on bar ---------- */
+.sig-try { position: fixed; left: 10px; right: 10px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 300; max-width: 520px; margin: 0 auto;
+  display: grid; grid-template-columns: 44px 1fr 44px; grid-template-rows: auto auto; gap: 8px; padding: 10px; box-sizing: border-box; border-radius: 20px;
+  background: var(--surface-raised); background: color-mix(in srgb, var(--surface-raised) 92%, transparent); border: 1px solid var(--border); color: var(--text);
+  -webkit-backdrop-filter: saturate(160%) blur(18px); backdrop-filter: saturate(160%) blur(18px); box-shadow: 0 18px 44px -14px rgba(0,0,0,0.55);
+  animation: sigTryIn 0.42s cubic-bezier(.2,.9,.2,1) both; font-family: var(--font-body, inherit); }
+.sig-try[hidden], body.st-live .sig-try, body:has(.modal-overlay.show) .sig-try { display: none; }
+.sig-try .st-nav { width: 44px; height: 44px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 22px; line-height: 1; cursor: pointer; font-family: inherit; }
+.sig-try .st-title { text-align: center; align-self: center; min-width: 0; }
+.sig-try .st-title b { display: block; font-family: var(--font-display, inherit); font-weight: var(--display-weight, 700); font-size: 18px; line-height: 1.1;
+  letter-spacing: var(--display-spacing, 0); text-transform: var(--display-transform, none); }
+.sig-try .st-title span { display: block; font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+.sig-try .st-acts { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1.4fr; gap: 8px; }
+.sig-try .st-acts button { min-height: 46px; border-radius: 14px; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+.sig-try .st-back { background: transparent; color: var(--text); border: 1.5px solid var(--border); }
+.sig-try .st-keep { background: var(--call-bg, var(--accent)); color: var(--call-text, var(--accent-text)); border: 0; box-shadow: var(--call-shadow, none); }
+body.sig-trying .shell { padding-bottom: 150px; }
+@keyframes sigTryIn { from { opacity: 0; transform: translateY(24px) scale(0.98); } to { opacity: 1; transform: none; } }
+
+/* theme switch: a short cross-fade so changing looks deliberate, not like a glitch */
+@media (prefers-reduced-motion: no-preference) {
+  html[data-motion="on"].sig-switching body { animation: sigSwitch 0.5s ease both; }
+}
+@keyframes sigSwitch { from { opacity: 0.35; filter: saturate(0.6); } to { opacity: 1; filter: none; } }
+@media (prefers-reduced-motion: reduce) { .sig-try { animation: none; } }
+html[data-motion="off"] .sig-try { animation: none; }
+/* Decorative motion in the themes below is declared only under (prefers-reduced-motion: no-preference) and
+   html[data-motion="on"], so turning motion off in Themes, or on the phone, stops all of it. */

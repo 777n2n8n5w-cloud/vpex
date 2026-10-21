@@ -1,0 +1,140 @@
+/*! id: sig-premiere */
+/* ============ PREMIERE: opening night ============
+   A dark house, a warm key light on the lead, film grain in the air, a cool anamorphic flare from the projector.
+   Signature: the Call button is a theatre marquee with chasing bulbs; on a call the screen goes widescreen (letterbox
+   bars slide in) and the lower bar runs a timecode from the moment you tapped Call; logging an outcome is a cut, with
+   a single-frame shutter flash; hitting the day's goal rolls a "That's a wrap" title. Sprocket holes run along the header. */
+@V {
+  --bg: #0A0B0D; --surface: #131518; --surface-raised: #1A1D21; --border: #2D3239;
+  --text: #F3EFE8; --text-dim: #C3BDB2; --text-faint: #9C968B;
+  --accent: #F2B866; --accent-fill: #E9A94C; --accent-dim: #6B5230; --accent-text: #1A1206;
+  --interested: #74D69B; --notinterested: #FF8A7A; --voicemail: #F2C46B; --noanswer: #A9A39A; --badnum: #F2A066; --callback: #7FC4FF; --danger: #FF8A7A;
+  --gold: #FFD27A; --horizon-c: #F2B866; --horizon-k: 0.42;
+  --bg-image:
+    radial-gradient(70% 46% at 50% -8%, rgba(255,214,150,0.16), transparent 70%),
+    conic-gradient(from 168deg at 50% -30%, transparent 0deg, rgba(255,230,190,0.05) 8deg, transparent 16deg, rgba(255,230,190,0.035) 22deg, transparent 30deg),
+    radial-gradient(130% 90% at 50% 40%, transparent 50%, rgba(0,0,0,0.6) 100%),
+    linear-gradient(180deg, #0E1013 0%, #08090B 100%);
+  --bg-size: auto;
+  --card-bg:
+    radial-gradient(120% 70% at 50% -10%, rgba(255,214,150,0.11), transparent 62%),
+    linear-gradient(180deg, #16181C 0%, #111316 100%);
+  --card-frame: linear-gradient(180deg, #3A3F47 0%, #22262B 55%, #1A1D21 100%);
+  --card-tex: linear-gradient(transparent, transparent);
+  --card-shadow: 0 30px 60px -30px rgba(0,0,0,0.9), 0 0 0 1px rgba(0,0,0,0.6);
+  --call-bg: linear-gradient(180deg, #FFD08A 0%, #F2B866 45%, #DE9A3F 100%);
+  --call-shadow: 0 0 0 1px #6B4A1C, 0 14px 34px -12px rgba(242,184,102,0.55), inset 0 1px 0 rgba(255,245,220,0.7);
+  --call-text: #1A1206; --call-shine: 0;
+  --tab-active-bg: #F3EFE8; --tab-active-text: #0A0B0D; --tab-glow: 0 0 22px -6px rgba(255,214,150,0.45);
+  --track-fill: linear-gradient(90deg, #DE9A3F, #FFD08A);
+  --header-bg: rgba(10,11,13,0.78); --header-blur: saturate(130%) blur(16px);
+  --header-rule:
+    radial-gradient(circle at 50% 50%, #0A0B0D 0 1.6px, transparent 2px) 0 50% / 9px 6px repeat-x,
+    linear-gradient(180deg, #2A2E34, #1C1F23);
+  --header-rule-h: 8px;
+  --font-display: 'Big Shoulders Display', 'Oswald', 'Arial Narrow', sans-serif; --display-weight: 800;
+  --display-k: 1.22; --count-k: 1.3; --brand-k: 1.2; --display-transform: uppercase; --display-spacing: 0.035em;
+  --display-style: normal; --display-stretch: normal; --display-glow: none;
+  --font-num: 'Archivo', 'Helvetica Neue', system-ui, sans-serif; --num-k: 1.02;
+  --font-body: 'Archivo', 'Helvetica Neue', system-ui, sans-serif;
+  --radius-l: 10px; --radius-m: 8px; --radius-s: 6px; --pill-r: 6px;
+  --fx-a: none;
+  --fx-b: none;
+  --sig-on-knob: #1A1206;
+  color-scheme: dark;
+}
+@T .brand .name { letter-spacing: 0.12em; font-weight: 800; }
+@T .brand .sub { letter-spacing: 0.02em; }
+@T .lead-name { --name-fill: linear-gradient(180deg, #FFF8EC 0%, #F3EFE8 45%, #D9CDB8 100%); --name-tf: transparent; line-height: 1; }
+@T .rh-count strong { --name-fill: linear-gradient(180deg, #FFE2AE, #F2B866); --name-tf: transparent; }
+@T .lead-phone { letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
+@T .view-tabs { background: #101215; border-color: #2D3239; border-radius: 8px; }
+@T .view-tab { border-radius: 6px; font-weight: 600; letter-spacing: 0.02em; }
+@T .icon-btn { background: #15171B; border-color: #2D3239; border-radius: 8px; color: #E3DDD2; }
+/* the marquee: bulbs chase along the top and bottom of the Call button */
+@T .call-btn { border-radius: 8px; font-family: var(--font-display); font-weight: 800; font-size: 19px; letter-spacing: 0.06em; text-transform: uppercase; isolation: isolate; }
+@T body.st-live .call-btn { font-size: 15px; letter-spacing: 0.05em; }
+@T .call-btn:active:not(:disabled)::before { opacity: 1; filter: brightness(1.4); }
+@T .call-btn:active:not(:disabled) { transform: translateY(1px); }
+@T body.st-live .call-btn::before { display: none; }
+@T .call-btn::before { content: ""; position: absolute; left: -14px; right: -14px; top: 0; bottom: 0; pointer-events: none; z-index: -1;
+  background:
+    radial-gradient(circle, #FFFBEF 0 1.7px, rgba(255,240,200,0.55) 2.4px, transparent 3.6px) 0 4px / 14px 8px repeat-x,
+    radial-gradient(circle, #FFFBEF 0 1.7px, rgba(255,240,200,0.55) 2.4px, transparent 3.6px) 7px calc(100% - 4px) / 14px 8px repeat-x;
+  opacity: 0.85; }
+@T .copy-btn { background: #15171B; border-color: #2D3239; border-radius: 8px; }
+@T .outcomes .out-btn { background: linear-gradient(180deg, #1A1D21, #141619); border-color: #30353C; border-radius: 8px; color: #F3EFE8; font-weight: 600;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04); }
+@T .outcomes .out-btn .dot { box-shadow: 0 0 10px -1px var(--jw, transparent); }
+@T .dot.interested { --jw: var(--interested); } @T .dot.notinterested { --jw: var(--notinterested); } @T .dot.voicemail { --jw: var(--voicemail); }
+@T .dot.noanswer { --jw: var(--noanswer); } @T .dot.badnum { --jw: var(--badnum); } @T .dot.callback { --jw: var(--callback); }
+/* the rhythm reads like a film strip: frames between sprockets */
+@T .rhythm .rh-track { height: 14px; border-radius: 2px; background: #1C1F23;
+  -webkit-mask: radial-gradient(circle at 50% 50%, transparent 0 1.4px, #000 1.8px) 0 0 / 7px 4px repeat-x, radial-gradient(circle at 50% 50%, transparent 0 1.4px, #000 1.8px) 0 100% / 7px 4px repeat-x, linear-gradient(#000 0 0) center / 100% 6px no-repeat;
+          mask: radial-gradient(circle at 50% 50%, transparent 0 1.4px, #000 1.8px) 0 0 / 7px 4px repeat-x, radial-gradient(circle at 50% 50%, transparent 0 1.4px, #000 1.8px) 0 100% / 7px 4px repeat-x, linear-gradient(#000 0 0) center / 100% 6px no-repeat; }
+@T .rhythm .rh-track.goal .bar-fill { background: linear-gradient(90deg, #FFD27A, #FFF2CF) !important; }
+@T .rh-state { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; }
+@T .modal { background: linear-gradient(180deg, #16181C 0%, #0F1114 100%); border-color: #2D3239; border-radius: 14px 14px 0 0; }
+@T .modal h3 { letter-spacing: 0.06em; }
+@T .hub-cat { background: linear-gradient(180deg, #17191D, #121417); border-color: #2D3239; }
+@T .filter-chip { border-radius: 6px; }
+@T .filter-chip.active { background: #F3EFE8; border-color: #F3EFE8; color: #0A0B0D; }
+@T .toast { background: rgba(20,22,25,0.95); border-color: #3A3F47; border-radius: 8px; }
+@T :is(input, textarea, select):focus-visible { outline: 2px solid #F2B866; outline-offset: 2px; }
+/* on a call: the key light tightens on the lead */
+@T body.st-live #mainArea .card { --card-frame: linear-gradient(180deg, #F2B866 0%, #6B5230 40%, #2A2E34 100%);
+  box-shadow: 0 0 0 1px rgba(242,184,102,0.25), 0 0 60px -20px rgba(242,184,102,0.35), var(--card-shadow); }
+@T body.st-live .shell { padding-bottom: 72px; }
+/* overlay (sig.js): letterbox bars, timecode, the shutter and the wrap title */
+@T #sigOver { position: fixed; inset: 0; z-index: 90; pointer-events: none; overflow: hidden; }
+@T #sigOver .pm-grain { position: absolute; inset: -160px; opacity: 0.045; will-change: transform;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E") 0 0 / 160px 160px; }
+@T #sigOver .pm-bar { position: absolute; left: 0; right: 0; background: #000; transform: scaleY(0); transition: transform 0.5s cubic-bezier(.6,0,.2,1); }
+@T #sigOver .pm-top { top: 0; height: calc(env(safe-area-inset-top, 0px) + 14px); transform-origin: top; }
+@T #sigOver .pm-bot { bottom: 0; height: calc(env(safe-area-inset-bottom, 0px) + 30px); transform-origin: bottom; display: flex; align-items: flex-start; justify-content: center; padding-top: 7px; box-sizing: border-box; }
+@T #sigOver .pm-tc { font: 600 13px/1 'Archivo', system-ui, sans-serif; font-variant-numeric: tabular-nums; letter-spacing: 0.14em; color: #C3BDB2; opacity: 0; transition: opacity 0.3s ease 0.3s; display: inline-flex; align-items: center; gap: 8px; }
+@T #sigOver .pm-tc::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #F2B866; box-shadow: 0 0 8px #F2B866; }
+@T body.st-live #sigOver .pm-bar { transform: scaleY(1); }
+@T body.st-live #sigOver .pm-tc { opacity: 1; }
+@T #sigOver .pm-shut { position: absolute; inset: 0; background: #FFF4DE; opacity: 0; }
+@T #sigOver .pm-wrap { position: absolute; left: 0; right: 0; bottom: 0; padding: 22px 16px calc(env(safe-area-inset-bottom, 0px) + 22px); text-align: center; opacity: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.92) 26%, #000 100%);
+  font: 800 34px/1 'Big Shoulders Display', 'Arial Narrow', sans-serif; letter-spacing: 0.12em; text-transform: uppercase; color: #FFE2AE; text-shadow: 0 0 30px rgba(242,184,102,0.6); }
+@T[data-flash="goal"] #sigOver .pm-wrap { opacity: 1; transition: opacity 0.2s; }
+/* on wide screens the app is the screen between two red velvet curtains */
+@T #sigArt .pm-curtain { position: absolute; top: 0; bottom: 0; width: max(0px, calc(50vw - 300px));
+  background: radial-gradient(120% 40% at 50% 0%, rgba(0,0,0,0.55), transparent 70%),
+    repeating-linear-gradient(90deg, #22050A 0, #4A0C13 16px, #64141B 24px, #3E0A10 34px, #22050A 46px); }
+@T #sigArt .pm-cl { left: 0; -webkit-mask: linear-gradient(90deg, #000 55%, transparent); mask: linear-gradient(90deg, #000 55%, transparent); }
+@T #sigArt .pm-cr { right: 0; -webkit-mask: linear-gradient(270deg, #000 55%, transparent); mask: linear-gradient(270deg, #000 55%, transparent); }
+@media (max-width: 700px) { @T #sigArt .pm-curtain { display: none; } }
+/* the projector's anamorphic flare at the top of the frame */
+@T #sigArt .pm-flare { position: absolute; left: -20%; right: -20%; top: 0; height: 120px;
+  background: radial-gradient(50% 2.5% at 50% 6%, rgba(160,215,255,0.75), transparent), radial-gradient(18% 8% at 50% 6%, rgba(110,193,255,0.35), transparent),
+              radial-gradient(4% 12% at 50% 5%, rgba(220,240,255,0.5), transparent); opacity: 0.55; }
+@T[data-flash] #mainArea .card::after { animation-duration: 0.9s !important; }
+/* finish: line icons drawn in the theme's own pen, selection, caret, scrollbars, desktop hover */
+@T :is(.shell, .modal, .srch, .toast, #sigTry) svg[stroke-width] { stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+@T { scrollbar-color: #3A3F47 #0A0B0D; }
+@T ::selection { background: rgba(242,184,102,0.35); color: #FFF8EC; }
+@T :is(input, textarea) { caret-color: #F2B866; }
+@media (hover: hover) { @T .outcomes:not(.disabled) .out-btn:hover { border-color: #6B5230; box-shadow: 0 0 18px -6px rgba(242,184,102,0.35); } }
+@media (prefers-reduced-motion: no-preference) {
+  @M #sigOver .pm-grain { animation: sigGrain 1s steps(1) infinite; }
+  @M .call-btn::before { animation: sigMarquee 1.2s linear infinite; }
+  @M #sigArt .pm-flare { animation: sigFlare 14s ease-in-out infinite alternate; }
+  @M[data-flash] #sigOver .pm-shut { animation: sigShutter 0.22s steps(2) both; }
+  @M[data-flash="goal"] #sigOver .pm-wrap { animation: sigWrap 1.3s cubic-bezier(.2,.8,.2,1) both; }
+}
+@media (prefers-reduced-motion: reduce) { @T #sigOver .pm-bar, @T #sigOver .pm-tc { transition: none; } }
+@T[data-motion="off"] #sigOver .pm-bar, @T[data-motion="off"] #sigOver .pm-tc { transition: none; }
+@keyframes sigGrain { 0% { transform: translate(0, 0); } 12% { transform: translate(-37px, 22px); } 25% { transform: translate(18px, -51px); } 37% { transform: translate(-64px, -13px); }
+  50% { transform: translate(41px, 33px); } 62% { transform: translate(-12px, 70px); } 75% { transform: translate(66px, -28px); } 87% { transform: translate(-48px, 47px); } 100% { transform: translate(0, 0); } }
+@keyframes sigMarquee { 0%, 49% { transform: none; } 50%, 100% { transform: translateX(7px); } }
+@keyframes sigFlare { from { transform: translateX(-6%); opacity: 0.4; } to { transform: translateX(6%); opacity: 0.65; } }
+@keyframes sigShutter { 0% { opacity: 0.13; } 100% { opacity: 0; } }
+@keyframes sigWrap { 0% { opacity: 0; transform: translateY(10px); letter-spacing: 0.3em; } 25% { opacity: 1; transform: none; } 80% { opacity: 1; } 100% { opacity: 0; letter-spacing: 0.12em; } }
+/* preview motif: a strip of film along the side */
+.sig-scope[data-sig="sig-premiere"] .sp-motif { position: absolute; top: 0; bottom: 0; right: 0; width: 9px; z-index: 2;
+  background: radial-gradient(circle, #0A0B0D 0 1.5px, transparent 2px) 50% 0 / 9px 7px repeat-y, #2A2E34; }
+.sig-scope[data-sig="sig-premiere"] .sp-call { font-family: var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; font-weight: 800; }

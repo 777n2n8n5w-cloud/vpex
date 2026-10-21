@@ -1,0 +1,105 @@
+/*! id: sig-prism */
+/* ============ PRISM: light, split ============
+   A pearl-white field, frosted glass, ink-black type, and one thing that moves: iridescence.
+   Signature: card edges, the Call button and the header rule are holographic foil whose colours turn as you scroll
+   (a scroll-driven animation, no script; browsers without it show the foil still). Names carry a faint chromatic
+   split, logging a call sends a spectrum around the next card, and reaching the goal turns the foil gold. */
+@V {
+  --bg: #F3F4F8; --surface: #FFFFFF; --surface-raised: #F1F2F8; --border: #D9DCE8;
+  --text: #15141C; --text-dim: #444556; --text-faint: #5D5F71;
+  --accent: #4A3AD9; --accent-fill: #4A3AD9; --accent-dim: #B9B2F2; --accent-text: #FFFFFF;
+  --interested: #0F7552; --notinterested: #C42D5A; --voicemail: #836300; --noanswer: #5E6070; --badnum: #AE4F1A; --callback: #2F5FD0; --danger: #C42D5A;
+  --gold: #9A6A00; --horizon-c: #C9B8FF; --horizon-k: 0.35;
+  --bg-image:
+    radial-gradient(60% 40% at 8% 4%, rgba(255,199,232,0.55), transparent 70%),
+    radial-gradient(55% 38% at 96% 10%, rgba(185,230,255,0.6), transparent 70%),
+    radial-gradient(70% 50% at 70% 100%, rgba(210,198,255,0.45), transparent 70%),
+    radial-gradient(50% 40% at 0% 80%, rgba(201,247,216,0.4), transparent 70%),
+    linear-gradient(180deg, #F7F8FB 0%, #EEF0F6 100%);
+  --bg-size: auto;
+  --card-bg: linear-gradient(160deg, rgba(255,255,255,0.86) 0%, rgba(255,255,255,0.74) 100%);
+  --card-frame: conic-gradient(from 120deg at 50% 50%, #F2A9D4, #F7D58C, #9FE3BA, #93CDF2, #B3A3F5, #F2A9D4);
+  --card-tex: radial-gradient(120% 60% at 0% 0%, rgba(255,255,255,0.9), transparent 55%);
+  --card-blur: saturate(160%) blur(18px);
+  --card-shadow: 0 1px 0 rgba(255,255,255,0.9) inset, 0 24px 44px -26px rgba(52,44,120,0.35), 0 2px 6px rgba(52,44,120,0.06);
+  --call-bg: conic-gradient(from 120deg at 50% 50%, #FFC7E8, #FFE6B3, #C9F7D8, #B9E6FF, #D2C6FF, #FFC7E8);
+  --call-shadow: 0 0 0 1px rgba(21,20,28,0.08), 0 12px 28px -14px rgba(74,58,217,0.45), inset 0 1px 0 rgba(255,255,255,0.9);
+  --call-text: #15141C; --call-shine: 0.55;
+  --tab-active-bg: #15141C; --tab-active-text: #FFFFFF; --tab-glow: 0 6px 16px -8px rgba(21,20,28,0.5);
+  --track-fill: linear-gradient(90deg, #F2A9D4, #F7D58C, #9FE3BA, #93CDF2, #B3A3F5);
+  --header-bg: rgba(243,244,248,0.72); --header-blur: saturate(180%) blur(20px);
+  --header-rule: linear-gradient(90deg, #F2A9D4, #F7D58C, #9FE3BA, #93CDF2, #B3A3F5, #F2A9D4);
+  --header-rule-h: 2px;
+  --font-display: 'Syne', 'Avenir Next', system-ui, sans-serif; --display-weight: 700;
+  --display-k: 1.02; --count-k: 1.08; --brand-k: 1.04; --display-transform: none; --display-spacing: -0.015em;
+  --display-style: normal; --display-stretch: normal; --display-glow: none;
+  --font-num: 'Manrope', system-ui, sans-serif; --num-k: 1.02;
+  --font-body: 'Manrope', system-ui, sans-serif;
+  --radius-l: 22px; --radius-m: 14px; --radius-s: 10px; --pill-r: 999px;
+  --fx-a: none; --fx-b: none;
+  --sig-on: #15141C;
+  color-scheme: light;
+}
+@T .brand .name { letter-spacing: 0.02em; font-weight: 800; }
+@T :is(.lead-name, .lp-name) { text-shadow: -0.6px 0 rgba(242,80,170,0.32), 0.6px 0 rgba(40,160,240,0.32); }
+@T .rh-count strong { font-family: var(--font-num); font-weight: 800; letter-spacing: -0.03em; }
+@T .call-btn:active:not(:disabled) { transform: scale(0.985); }
+@T .lead-phone { font-variant-numeric: tabular-nums; font-weight: 600; letter-spacing: 0.01em; }
+@T #mainArea .card { border-width: 1.5px; }
+@T .icon-btn { background: rgba(255,255,255,0.7); border-color: #D9DCE8; border-radius: 14px; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+@T .view-tabs { background: rgba(255,255,255,0.6); border-color: #D9DCE8; border-radius: 999px; padding: 4px; -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+@T .view-tab { border-radius: 999px; font-weight: 600; }
+@T .call-btn { border-radius: 999px; font-family: var(--font-display); font-weight: 700; letter-spacing: 0.01em; font-size: 17px; }
+@T .copy-btn { border-radius: 999px; background: rgba(255,255,255,0.75); border-color: #D9DCE8; }
+@T .outcomes .out-btn { border-radius: 16px; background: rgba(255,255,255,0.72); border: 1px solid #DDE0EB; color: #15141C; font-weight: 600;
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: inset 0 1px 0 #fff, 0 6px 14px -12px rgba(52,44,120,0.4); }
+@T .dot { box-shadow: 0 0 0 2px #fff, 0 0 0 3px color-mix(in srgb, var(--jw, #999) 35%, transparent); }
+@T .dot.interested { --jw: var(--interested); } @T .dot.notinterested { --jw: var(--notinterested); } @T .dot.voicemail { --jw: var(--voicemail); }
+@T .dot.noanswer { --jw: var(--noanswer); } @T .dot.badnum { --jw: var(--badnum); } @T .dot.callback { --jw: var(--callback); }
+@T .rhythm .rh-track { height: 8px; border-radius: 999px; -webkit-mask: none; mask: none; background: rgba(21,20,28,0.07); }
+@T .rhythm .rh-track .bar-fill { border-radius: 999px; }
+@T .rhythm .rh-track.goal .bar-fill { background: linear-gradient(90deg, #C9971F, #F7D58C, #C9971F) !important; }
+@T .modal { background: rgba(255,255,255,0.86); -webkit-backdrop-filter: saturate(170%) blur(26px); backdrop-filter: saturate(170%) blur(26px); border-color: #E2E4EE; border-radius: 26px 26px 0 0;
+  box-shadow: 0 -24px 60px -28px rgba(52,44,120,0.4); }
+@T .modal-overlay { background: rgba(40,36,70,0.28); }
+@T .hub-cat { background: rgba(255,255,255,0.78); border-color: #E0E2EC; border-radius: 18px; }
+@T .filter-chip { background: rgba(255,255,255,0.7); }
+@T .filter-chip.active { background: #15141C; border-color: #15141C; color: #fff; }
+@T .toast { border-radius: 999px; background: rgba(255,255,255,0.9); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); border-color: #E0E2EC; box-shadow: 0 18px 40px -18px rgba(52,44,120,0.45); }
+@T :is(input, textarea, select):focus-visible { outline: 2px solid #4A3AD9; outline-offset: 2px; }
+/* the foil: declared on each element so its hue follows that element's --sig-turn */
+@property --sig-turn { syntax: '<angle>'; inherits: false; initial-value: 120deg; }
+@T :is(#mainArea .card, .deal-bar-card, .pipe-item, .task-item, .hist-item) { --card-frame: conic-gradient(from var(--sig-turn) at 50% 50%, #F2A9D4, #F7D58C, #9FE3BA, #93CDF2, #B3A3F5, #F2A9D4); }
+@T .call-btn { --call-bg: conic-gradient(from var(--sig-turn) at 50% 50%, #FFC7E8, #FFE6B3, #C9F7D8, #B9E6FF, #D2C6FF, #FFC7E8); background: var(--call-bg); }
+@T header.top { --header-rule: linear-gradient(calc(90deg + var(--sig-turn)), #F2A9D4, #F7D58C, #9FE3BA, #93CDF2, #B3A3F5, #F2A9D4); }
+/* the goal turns the foil to gold */
+@T[data-goal] .call-btn { --call-bg: conic-gradient(from var(--sig-turn) at 50% 50%, #F7D58C, #FFF1C9, #E3B656, #FFF1C9, #F7D58C); }
+@T[data-goal] header.top { --header-rule: linear-gradient(90deg, #E3B656, #FFF1C9, #E3B656); }
+@T[data-goal] #mainArea .card { --card-frame: conic-gradient(from var(--sig-turn) at 50% 50%, #E3B656, #FFF1C9, #C9971F, #FFF1C9, #E3B656); }
+@T body.st-live #mainArea .card { border-width: 2px; box-shadow: 0 0 0 4px rgba(179,163,245,0.18), var(--card-shadow); }
+/* logging a call: a spectrum goes around the next card */
+@T[data-flash] #mainArea .card::after { inset: -4px; padding: 3px; box-shadow: none !important; border-radius: calc(var(--radius-l) + 4px);
+  background: conic-gradient(from var(--sig-a, 0deg), #F2A9D4, #F7D58C, #9FE3BA, #93CDF2, #B3A3F5, #F2A9D4);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+/* finish: line icons drawn in the theme's own pen, selection, caret, scrollbars, desktop hover */
+@T :is(.shell, .modal, .srch, .toast, #sigTry) svg[stroke-width] { stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+@T { scrollbar-color: #C9C3EE #F3F4F8; }
+@T ::selection { background: rgba(179,163,245,0.4); color: #15141C; }
+@T :is(input, textarea) { caret-color: #4A3AD9; }
+@media (hover: hover) { @T .outcomes:not(.disabled) .out-btn:hover { transform: translateY(-1px); box-shadow: inset 0 1px 0 #fff, 0 10px 18px -12px rgba(52,44,120,0.5); } @T .outcomes:not(.disabled) .out-btn:hover:active { transform: scale(0.97); } }
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: scroll()) {
+    @M :is(#mainArea .card, .deal-bar-card, .pipe-item, .task-item, .hist-item, .call-btn, header.top) { animation: sigTurn linear both; animation-timeline: scroll(root); }
+  }
+  @M[data-flash] #mainArea .card::after { animation: sigSpectrum 1.2s cubic-bezier(.3,.6,.2,1) forwards !important; }
+}
+@property --sig-a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+@keyframes sigTurn { from { --sig-turn: 40deg; } to { --sig-turn: 400deg; } }
+@keyframes sigSpectrum { 0% { --sig-a: 0deg; opacity: 1; } 70% { opacity: 1; } 100% { --sig-a: 300deg; opacity: 0; } }
+/* a ray split into its spectrum, crossing the page behind everything */
+@T #sigArt .pr-beam { position: absolute; inset: -10% -20%;
+  background: linear-gradient(112deg, transparent 38%, rgba(255,120,170,0.13) 42%, rgba(255,205,110,0.13) 44.5%, rgba(130,225,165,0.13) 47%, rgba(110,185,255,0.13) 49.5%, rgba(165,135,255,0.13) 52%, transparent 56%); }
+/* preview motif: a prism splitting a ray */
+.sig-scope[data-sig="sig-prism"] .sp-motif { position: absolute; right: 10px; top: 6px; width: 20px; height: 17px; z-index: 2;
+  background: conic-gradient(from 200deg at 50% 100%, #F2A9D4, #F7D58C, #9FE3BA, #93CDF2, #B3A3F5);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%); opacity: 0.9; }

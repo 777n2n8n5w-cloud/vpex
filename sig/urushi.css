@@ -1,0 +1,102 @@
+/*! id: sig-urushi */
+/* ============ URUSHI: lacquer and gold ============
+   Roiro black lacquer with tame-nuri red glowing up from the depths, washi-white type, gold maki-e hairlines.
+   Signature: kintsugi seams run across the lacquer behind the app and fill with gold as the day's calls build toward
+   the goal (sig.js draws them; --goal-p drives them). Gold dust drifts in the depth. The Call button is gold leaf.
+   Interested flashes the seams; reaching the goal leaves them glowing. */
+@V {
+  --bg: #0C0908; --surface: #16100E; --surface-raised: #1F1714; --border: #3D2C23;
+  --text: #F3EADB; --text-dim: #CDBFAA; --text-faint: #A89A86;
+  --accent: #D9B25A; --accent-fill: #C79D45; --accent-dim: #6E5728; --accent-text: #1A120C;
+  --interested: #6FBF8E; --notinterested: #E8806F; --voicemail: #E0B64F; --noanswer: #A69C90; --badnum: #E39A63; --callback: #8FB4E6; --danger: #E8806F;
+  --gold: #E6C066; --horizon-c: #8A2416; --horizon-k: 0.6;
+  --bg-image:
+    radial-gradient(120% 70% at 50% -12%, rgba(138,36,22,0.40), transparent 62%),
+    radial-gradient(90% 60% at 105% 105%, rgba(98,22,14,0.34), transparent 70%),
+    radial-gradient(70% 50% at -10% 70%, rgba(60,14,9,0.4), transparent 70%),
+    linear-gradient(180deg, #130C0A 0%, #0A0706 100%);
+  --bg-size: auto;
+  --card-bg:
+    linear-gradient(162deg, rgba(255,240,220,0.085) 0%, rgba(255,240,220,0.02) 18%, rgba(255,240,220,0) 30%),
+    radial-gradient(130% 100% at 0% 0%, #2B1812 0%, #180F0C 52%, #100A08 100%);
+  --card-frame: linear-gradient(135deg, #7E5F25 0%, #F2D68A 26%, #9E7A33 50%, #E9C979 76%, #73561F 100%);
+  --card-tex: radial-gradient(1.2px 1.2px at 22% 30%, rgba(240,205,120,0.35) 50%, transparent 52%) 0 0 / 61px 47px,
+              radial-gradient(1px 1px at 70% 60%, rgba(240,205,120,0.25) 50%, transparent 52%) 0 0 / 43px 59px;
+  --card-shadow: 0 34px 60px -34px rgba(0,0,0,0.95), 0 0 0 1px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,235,200,0.06);
+  --call-bg: linear-gradient(135deg, #F7DD8E 0%, #D6AB4A 34%, #B78A2F 58%, #EBCB79 82%, #C99D41 100%);
+  --call-shadow: 0 14px 30px -14px rgba(230,180,80,0.55), inset 0 1px 0 rgba(255,250,225,0.65), inset 0 -2px 0 rgba(90,60,10,0.35);
+  --call-text: #1A120C; --call-shine: 0.75;
+  --tab-active-bg: linear-gradient(180deg, #EBCB79 0%, #B98C30 100%); --tab-active-text: #1A120C;
+  --tab-glow: 0 6px 16px -8px rgba(217,178,90,0.6);
+  --track-fill: linear-gradient(90deg, #A47B2A, #F3D68B);
+  --header-bg: rgba(12,9,8,0.74); --header-blur: saturate(150%) blur(18px);
+  --header-rule: linear-gradient(90deg, rgba(217,178,90,0) 0%, #D9B25A 18%, #F6DE98 50%, #D9B25A 82%, rgba(217,178,90,0) 100%);
+  --header-rule-h: 1px;
+  --font-display: 'Shippori Mincho B1', 'Hiragino Mincho ProN', 'Yu Mincho', Georgia, serif; --display-weight: 700;
+  --display-k: 1.05; --count-k: 1.12; --brand-k: 1.1; --display-transform: none; --display-spacing: 0.01em;
+  --display-style: normal; --display-stretch: normal; --display-glow: none;
+  --font-num: 'Shippori Mincho B1', Georgia, serif; --num-k: 1.04;
+  --font-body: 'Zen Kaku Gothic New', 'Hiragino Sans', system-ui, sans-serif;
+  --radius-l: 16px; --radius-m: 11px; --radius-s: 8px; --pill-r: 999px;
+  --fx-a: radial-gradient(1.4px 1.4px at 12% 18%, rgba(246,214,130,0.9) 50%, transparent 55%), radial-gradient(1px 1px at 46% 62%, rgba(246,214,130,0.75) 50%, transparent 55%),
+          radial-gradient(1.8px 1.8px at 78% 34%, rgba(246,214,130,0.7) 50%, transparent 55%), radial-gradient(1.1px 1.1px at 88% 82%, rgba(246,214,130,0.8) 50%, transparent 55%),
+          radial-gradient(1.3px 1.3px at 30% 90%, rgba(246,214,130,0.6) 50%, transparent 55%);
+  --fx-a-size: 380px 560px; --fx-a-op: 0.55; --fx-a-inset: -560px 0 0 0; --fx-a-anim: none;
+  --fx-b: radial-gradient(1px 1px at 20% 40%, rgba(255,228,160,0.9) 50%, transparent 55%), radial-gradient(1.6px 1.6px at 64% 12%, rgba(255,228,160,0.8) 50%, transparent 55%),
+          radial-gradient(1.2px 1.2px at 52% 76%, rgba(255,228,160,0.7) 50%, transparent 55%);
+  --fx-b-size: 260px 330px; --fx-b-op: 0.4; --fx-b-inset: 0; --fx-b-anim: none;
+  --sig-on-knob: #1A120C;
+  color-scheme: dark;
+}
+@T .brand .name { letter-spacing: 0.22em; font-weight: 800; }
+@T :is(.lead-name, .lp-name) { letter-spacing: 0.015em; }
+@T .rh-count strong { --name-fill: linear-gradient(180deg, #FBE6A8 0%, #D9B25A 55%, #A57A26 100%); --name-tf: transparent; }
+@T .brand .name { --name-fill: linear-gradient(180deg, #FBE6A8 0%, #D9B25A 60%, #A57A26 100%); --name-tf: transparent; }
+/* lacquer tiles with gold inlay */
+@T .icon-btn { background: linear-gradient(180deg, #221815, #140E0C); border-color: #3D2C23; color: #E6D7BF; box-shadow: inset 0 1px 0 rgba(255,235,200,0.06); }
+@T .view-tabs { background: linear-gradient(180deg, #1A1210, #120C0A); border-color: #3D2C23; box-shadow: inset 0 1px 0 rgba(255,235,200,0.05); }
+@T .view-tab { letter-spacing: 0.04em; }
+@T .call-btn { font-weight: 700; letter-spacing: 0.06em; }
+@T .call-btn:active:not(:disabled) { filter: brightness(1.1) saturate(1.1); transform: translateY(1px); }
+@T .call-btn::before { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit; opacity: 0.55; mix-blend-mode: multiply;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='60' viewBox='0 0 160 60'%3E%3Cpath d='M0 22h40M40 22l12-9M52 13h38M90 13l9 14M99 27h61M28 60l9-22M37 38h44M81 38l10 22M120 0l-6 27' stroke='%23946A1E' stroke-width='0.7' fill='none' opacity='0.55'/%3E%3C/svg%3E") 0 0 / 160px 60px; }
+@T .outcomes .out-btn { background: linear-gradient(180deg, #231915 0%, #170F0D 100%); border-color: #3D2C23; color: #F3EADB;
+  box-shadow: inset 0 1px 0 rgba(255,235,200,0.07), 0 6px 14px -10px rgba(0,0,0,0.9); letter-spacing: 0.02em; }
+@T .outcomes .out-btn .dot { box-shadow: 0 0 0 1.5px rgba(217,178,90,0.85), 0 0 8px -1px var(--jw, transparent); }
+@T .dot.interested { --jw: var(--interested); } @T .dot.notinterested { --jw: var(--notinterested); } @T .dot.voicemail { --jw: var(--voicemail); }
+@T .dot.noanswer { --jw: var(--noanswer); } @T .dot.badnum { --jw: var(--badnum); } @T .dot.callback { --jw: var(--callback); }
+@T .copy-btn { background: linear-gradient(180deg, #221815, #150E0C); border-color: #3D2C23; color: #E6D7BF; }
+@T .rhythm .rh-track { height: 6px; border-radius: 0; -webkit-mask: none; mask: none; background: linear-gradient(90deg, #2A1C16, #1A110E); box-shadow: inset 0 0 0 1px #3D2C23; }
+@T .rhythm .rh-track .bar-fill { box-shadow: 0 0 12px rgba(240,200,110,0.45); }
+@T .modal { background: linear-gradient(180deg, #1D1411 0%, #120C0A 100%); border-color: #4A3529; box-shadow: 0 -24px 60px -24px rgba(0,0,0,0.95), inset 0 1px 0 rgba(242,214,138,0.18); }
+@T .hub-cat { background: linear-gradient(165deg, rgba(255,240,220,0.06), rgba(255,240,220,0) 30%), linear-gradient(180deg, #211714, #150E0C); border-color: #3D2C23; }
+@T .filter-chip.active { background: linear-gradient(180deg, #EBCB79, #B98C30); border-color: #B98C30; color: #1A120C; }
+@T .toast { background: rgba(26,18,15,0.94); border-color: rgba(217,178,90,0.45); color: #F3EADB; }
+@T :is(input, textarea, select):focus-visible { outline: 2px solid #D9B25A; outline-offset: 2px; }
+/* the kintsugi seams (sig.js): a dark crack always there, gold filling it as the day builds */
+@T #sigArt .sg-crack { fill: none; stroke: rgba(255,232,200,0.075); stroke-width: 1.2px; stroke-linecap: round; stroke-linejoin: round; }
+@T #sigArt :is(.sg-gold, .sg-glow) { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1 2;
+  stroke-dashoffset: calc(1 - clamp(0, var(--goal-p, 0) * 6 - var(--i, 0), 1)); }
+@T #sigArt .sg-gold { stroke: url(#sgGold); stroke-width: 1.7px; }
+@T #sigArt .sg-glow { stroke: rgba(255,214,120,0.6); stroke-width: 7px; filter: blur(3px); opacity: 0; }
+@T[data-goal] #sigArt .sg-glow { opacity: 0.5; }
+@T body.st-live #mainArea .card { --card-frame: linear-gradient(135deg, #A47B2A 0%, #FFE9A8 26%, #C99D41 50%, #FFF0C2 76%, #A47B2A 100%); }
+@T[data-flash] #mainArea .card::after { border-color: #F2D68A !important; }
+/* finish: line icons drawn in the theme's own pen, selection, caret, scrollbars, desktop hover */
+@T :is(.shell, .modal, .srch, .toast, #sigTry) svg[stroke-width] { stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+@T { scrollbar-color: #6E5728 #0C0908; }
+@T ::selection { background: rgba(217,178,90,0.35); color: #FFF8EA; }
+@T :is(input, textarea) { caret-color: #D9B25A; }
+@media (hover: hover) { @T .outcomes:not(.disabled) .out-btn:hover { border-color: #8A6A2C; box-shadow: inset 0 1px 0 rgba(255,235,200,0.1), 0 0 0 1px rgba(217,178,90,0.25); } }
+@media (prefers-reduced-motion: no-preference) {
+  @M #sigArt .sg-gold, @M #sigArt .sg-glow { transition: stroke-dashoffset 2.4s cubic-bezier(.2,.8,.2,1), opacity 1.2s ease; }
+  @M #fxLayer::before { animation: sigDust 120s linear infinite; }
+  @M #fxLayer::after { animation: sigTwinkle 6s ease-in-out infinite alternate; }
+  @M[data-flash="interested"] #sigArt .sg-glow, @M[data-flash="goal"] #sigArt .sg-glow { animation: sigSeamFlash 1.3s ease-out; }
+}
+@keyframes sigDust { to { transform: translateY(560px); } }
+@keyframes sigTwinkle { 0% { opacity: 0.15; } 100% { opacity: 0.55; } }
+@keyframes sigSeamFlash { 0% { opacity: 0.2; } 25% { opacity: 1; } 100% { opacity: 0.35; } }
+/* preview motif: a gold seam across the lacquer */
+.sig-scope[data-sig="sig-urushi"] .sp-motif { position: absolute; inset: 0; pointer-events: none; z-index: 2;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 132 172'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' x2='1'%3E%3Cstop offset='0' stop-color='%23A57A26'/%3E%3Cstop offset='.5' stop-color='%23FBE6A8'/%3E%3Cstop offset='1' stop-color='%23C99D41'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M-4 128 L22 116 L30 124 L58 104 L66 110 L96 86 L104 92 L136 70' stroke='url(%23g)' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3Cpath d='M58 104 L62 132 L74 146' stroke='url(%23g)' stroke-width='1.1' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat; }

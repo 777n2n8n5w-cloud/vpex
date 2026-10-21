@@ -3,8 +3,41 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-12-27">
+<meta name="vpex-build" content="2026-12-28">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>
+/* Signature themes: five themes only the VPEX owner's own login can use (sig/*.css, sig.js).
+   On the owner's phone the saved one is applied here, before first paint, so no other theme flashes first.
+   It sits above every stylesheet on purpose: an inline script after a stylesheet would hold up the page until that sheet loads. */
+window.VPEX_SIG = [
+  { id: "sig-horologe", name: "Horologe", mode: "light", kind: "Light",
+    desc: "A fine Swiss watch: silver sunburst dial, blued steel, and a seconds hand on the Call button that keeps real time. Your calls fill a minute track.",
+    gf: "family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..700&family=Hanken+Grotesk:wght@400..700" },
+  { id: "sig-urushi", name: "Urushi", mode: "dark", kind: "Dark",
+    desc: "Black lacquer and gold leaf. Cracks run behind the app, and gold fills them as your calls build toward today’s goal, the way kintsugi mends a bowl.",
+    gf: "family=Shippori+Mincho+B1:wght@600;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700" },
+  { id: "sig-premiere", name: "Premiere", mode: "dark", kind: "Dark",
+    desc: "Opening night: film grain, a marquee Call button, and widescreen bars with a running timer while you’re on a call. Your goal gets a wrap title.",
+    gf: "family=Big+Shoulders+Display:wght@600..900" },
+  { id: "sig-blueprint", name: "Blueprint", mode: "dark", kind: "Dark blue",
+    desc: "An architect’s drawing: grid paper, technical lettering, a scale bar for today’s calls, and anything late marked in red pencil.",
+    gf: "family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700" },
+  { id: "sig-prism", name: "Prism", mode: "light", kind: "Light",
+    desc: "Pearl white and frosted glass. Holographic edges shift color as you scroll, and reaching today’s goal turns the foil gold.",
+    gf: "family=Syne:wght@600..800&family=Manrope:wght@400..700" }
+];
+(function () {
+  try {
+    var t = localStorage.getItem("dovetail_dialer_theme_v1") || "", m = null;
+    if (localStorage.getItem("vpex_sig_ok") !== "1" || localStorage.getItem("dovetail_demo") === "1" || /demo/i.test(location.hash)) return;
+    for (var i = 0; i < VPEX_SIG.length; i++) if (VPEX_SIG[i].id === t) m = VPEX_SIG[i];
+    if (!m) return;
+    var d = document.documentElement, b = ((document.querySelector('meta[name="vpex-build"]') || {}).content) || "";
+    d.setAttribute("data-theme", t); d.classList.add("sig");
+    document.write('<link rel="stylesheet" id="sigCss" href="sig.css?b=' + b + '"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?' + m.gf + '&display=swap">');
+  } catch (e) {}
+})();
+</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="VPEX">
@@ -7384,6 +7417,19 @@
   :root[data-theme="hd_memorial"] { --accent-fill: #C7353F; --accent: #D77077; }
   :root[data-theme="hd_june"] { --accent-fill: #CF3529; --accent: #DB655C; }
   :root[data-theme="poleposition"] { --accent-fill: #D40600; --accent: #E35D59; }
+  /* Signature themes: the owner's entry at the top of the standard picker (the rest lives in sig.css) */
+  .sig-entry { display: flex; align-items: center; gap: 12px; width: 100%; margin: 4px 0 14px; padding: 12px 14px; border-radius: 16px; cursor: pointer; text-align: left;
+    font: inherit; color: var(--text); background: var(--surface-raised); border: 1px solid var(--border); position: relative; overflow: hidden; }
+  .sig-entry::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; pointer-events: none;
+    background: linear-gradient(120deg, #E6C066, #F2A9D4, #93CDF2, #D9B25A);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+  .sig-entry[hidden] { display: none; }
+  .sig-entry-gem { flex: none; width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; color: var(--gold, var(--accent)); background: color-mix(in srgb, var(--gold, var(--accent)) 14%, transparent); }
+  .sig-entry-gem svg { width: 20px; height: 20px; }
+  .sig-entry-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .sig-entry-t b { font-size: 15.5px; }
+  .sig-entry-t span { font-size: 12.5px; color: var(--text-dim); }
+  .sig-entry:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 </style>
 </head>
 <body>
@@ -7607,6 +7653,7 @@
 </div>
 <div id="fxLayer" aria-hidden="true"></div>
 <div id="horizon" aria-hidden="true"></div>
+<div id="sigArt" aria-hidden="true"></div>
 <div class="shell">
 
   <header class="top">
@@ -7824,6 +7871,7 @@
       <h3 class="hub-view-h">Look &amp; app</h3>
       <div class="hub-group">
         <button class="hub-row" id="openThemesBtn" type="button"><span class="hub-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg></span><span class="hub-t"><b>Theme</b><span id="themeCurrent">Auto</span></span><span class="hub-go" aria-hidden="true">›</span></button>
+        <button class="hub-row" id="openSigBtn" type="button" hidden><span class="hub-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3.5h11l3.5 5.5-9 11.5L3 9z"/><path d="M3 9h18"/><path d="M12 20.5L8.5 9l3.5-5.5 3.5 5.5z"/></svg></span><span class="hub-t"><b>Signature themes</b><span id="sigCurrent">Five made for your login only</span></span><span class="hub-go" aria-hidden="true">›</span></button>
         <button class="hub-row" id="openInstallBtn" type="button"><span class="hub-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg></span><span class="hub-t"><b>Install on your phone</b><span>Home screen icon, full screen</span></span><span class="hub-go" aria-hidden="true">›</span></button>
         <button class="hub-row" id="openTourBtn" type="button"><span class="hub-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg></span><span class="hub-t"><b>Take the tour</b><span>A 1-minute walkthrough</span></span><span class="hub-go" aria-hidden="true">›</span></button>
       </div>
@@ -7904,11 +7952,29 @@
     <button class="close-x" id="themeClose">&times;</button>
     <h3>Themes</h3>
     <p class="modal-sub">Pick a look for this phone. Everyone on your team chooses their own.</p>
+    <button class="sig-entry" id="sigEntry" type="button" hidden><span class="sig-entry-gem" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3.5h11l3.5 5.5-9 11.5L3 9z"/><path d="M3 9h18"/><path d="M12 20.5L8.5 9l3.5-5.5 3.5 5.5z"/></svg></span><span class="sig-entry-t"><b>Your Signature themes</b><span>Five made for your login only</span></span><span class="hub-go" aria-hidden="true">›</span></button>
     <label class="up-check motion-row"><input type="checkbox" id="motionToggle"> Motion effects (animated backgrounds and shine)</label>
     <input type="search" id="themeSearch" class="theme-search" placeholder="Search themes, e.g. Halloween or Easter" autocomplete="off" autocapitalize="none" spellcheck="false">
     <div class="filter-row theme-cats" id="themeCats"></div>
     <div class="theme-grid" id="themeSwatchRow"></div>
   </div>
+</div>
+
+<!-- Signature themes: the owner's own five, kept apart from the public themes -->
+<div class="modal-overlay" id="sigModal">
+  <div class="modal sig-modal" role="dialog" aria-modal="true" aria-labelledby="sigTitle">
+    <button class="close-x" id="sigClose" aria-label="Close">&times;</button>
+    <h3 id="sigTitle">Signature themes</h3>
+    <p class="sig-intro">Five themes made for your login only. No one else’s VPEX can see or use them. Try one on your real screens, then keep it or go back.</p>
+    <div class="sig-list" id="sigList"></div>
+    <button class="sig-std" id="sigStd" type="button">Back to the standard themes</button>
+  </div>
+</div>
+<div class="sig-try" id="sigTry" role="region" aria-label="Trying a Signature theme" hidden>
+  <button class="st-nav" id="sigPrev" type="button" aria-label="Previous Signature theme">‹</button>
+  <div class="st-title" aria-live="polite"><b id="sigTryName"></b><span id="sigTryHint">Trying it live. Use the app as usual.</span></div>
+  <button class="st-nav" id="sigNext" type="button" aria-label="Next Signature theme">›</button>
+  <div class="st-acts"><button class="st-back" id="sigBack" type="button">Go back</button><button class="st-keep" id="sigKeep" type="button">Keep this theme</button></div>
 </div>
 
 <!-- Admin controls -->
@@ -8969,6 +9035,10 @@
   applyMotion();
   var THEME_LABELS = {};
   THEMES.forEach(function (t) { THEME_LABELS[t.id] = t.name; });
+  // Signature themes (window.VPEX_SIG, set in the head): the owner's own five, never listed with the public ones.
+  var SIG_THEMES = window.VPEX_SIG || [], SIG_IDS = SIG_THEMES.map(function (t) { return t.id; }), SIG_OK = "vpex_sig_ok", SIG_PREV = "vpex_sig_prev";
+  SIG_THEMES.forEach(function (t) { THEME_LABELS[t.id] = t.name; });
+  function isSigTheme(id) { return SIG_IDS.indexOf(id) !== -1; }
 
   function syncThemeColor() {
     // Matches the phone's status bar / Safari toolbar to the theme.
@@ -8985,7 +9055,11 @@
     var l = document.createElement("link"); l.rel = "stylesheet"; l.href = "https://fonts.googleapis.com/css2?" + q + "&display=swap";
     document.head.appendChild(l);
   }
-  function themeById(id) { for (var i = 0; i < THEMES.length; i++) if (THEMES[i].id === id) return THEMES[i]; return null; }
+  function themeById(id) {
+    for (var i = 0; i < THEMES.length; i++) if (THEMES[i].id === id) return THEMES[i];
+    for (var j = 0; j < SIG_THEMES.length; j++) if (SIG_THEMES[j].id === id) return SIG_THEMES[j];
+    return null;
+  }
   function applyThemeFont(id) { var t = themeById(id); if (t && t.gf) loadGF(t.gf); }
   window.__applyThemeFont = applyThemeFont;
   var previewIO = null;
@@ -9001,29 +9075,40 @@
     try {
       var t = window.localStorage.getItem(THEME_KEY);
       if (THEME_NAMES.indexOf(t) !== -1) { document.documentElement.setAttribute("data-theme", t); applyThemeFont(t); }
+      else if (isSigTheme(t)) {
+        if (sigUsable()) { document.documentElement.setAttribute("data-theme", t); applyThemeFont(t); }
+        else if (!DEMO) sigRevert();
+        else { var pv = lsGet(SIG_PREV); if (THEME_NAMES.indexOf(pv) !== -1) { document.documentElement.setAttribute("data-theme", pv); applyThemeFont(pv); } else document.documentElement.removeAttribute("data-theme"); }
+      }
     } catch (e) {}
+    sigMount();
     syncThemeColor();
   }
 
   function setTheme(name) {
+    if (SIG.trying && name !== SIG.trying.id) { SIG.trying = null; sigTryHide(); }
     if (name === "auto") {
       document.documentElement.removeAttribute("data-theme");
       try { window.localStorage.removeItem(THEME_KEY); } catch (e) {}
       showToast("Theme now follows your phone\u2019s light/dark setting");
     } else {
-      if (THEME_NAMES.indexOf(name) === -1) return;
+      var sig = isSigTheme(name);
+      if (THEME_NAMES.indexOf(name) === -1 && !(sig && sigAllowed())) return;
+      if (sig && !isSigTheme(currentThemeName())) lsSet(SIG_PREV, currentThemeName());
+      if (sig) lsSet(SIG_OK, "1");
       document.documentElement.setAttribute("data-theme", name);
       applyThemeFont(name);
       try { window.localStorage.setItem(THEME_KEY, name); } catch (e) {}
       showToast(THEME_LABELS[name] + " theme applied");
     }
+    sigMount();
     syncThemeColor();
     renderThemeSwatches();
   }
 
   function currentThemeName() {
     var attr = document.documentElement.getAttribute("data-theme");
-    return THEME_NAMES.indexOf(attr) !== -1 ? attr : "auto";
+    return THEME_NAMES.indexOf(attr) !== -1 || isSigTheme(attr) ? attr : "auto";
   }
 
   function themeCardHtml(t, cur) {
@@ -9049,10 +9134,13 @@
     var el = document.getElementById("themeCurrent");
     if (!el) return;
     var cur = currentThemeName();
-    el.textContent = cur === "auto" ? "Auto (follows your phone)" : (THEME_LABELS[cur] || cur);
+    el.textContent = cur === "auto" ? "Auto (follows your phone)" : (THEME_LABELS[cur] || cur) + (isSigTheme(cur) ? " (Signature)" : "");
+    var sc = document.getElementById("sigCurrent");
+    if (sc) sc.textContent = isSigTheme(cur) ? "Using " + THEME_LABELS[cur] : "Five made for your login only";
   }
   function openThemes() {
     closeMenuModal();
+    var se = document.getElementById("sigEntry"); if (se) se.hidden = !sigAllowed();
     document.getElementById("themeModal").classList.add("show");
     renderThemeSwatches();
     var act = document.querySelector("#themeSwatchRow .theme-card.active");
@@ -9092,6 +9180,127 @@
     });
     watchPreviewFonts(grid);
   }
+
+  /** ---------- Signature themes: the owner's own five ----------
+     Only the VPEX owner's login (isOwnerMaster) can see, try or use them. The choice is remembered on the phone with a
+     flag (vpex_sig_ok) so it paints before sign-in; any other login on that phone puts the phone back on its previous
+     standard theme and clears the flag. Styles and the little script load only when needed (sig.css, sig.js). **/
+  var SIG = { assets: null, trying: null };
+  function sigAllowed() { try { return isOwnerMaster(); } catch (e) { return false; } }
+  function sigUsable() { return !DEMO && lsGet(SIG_OK) === "1"; }
+  function sigBuildTag() { return ((document.querySelector('meta[name="vpex-build"]') || {}).content) || ""; }
+  function sigAssets() {
+    if (SIG.assets) return SIG.assets;
+    SIG.assets = new Promise(function (res) {
+      var n = 0, fin = function () { if (++n === 2) res(); }, b = sigBuildTag();
+      var css = document.getElementById("sigCss");
+      if (css && css.sheet) fin();
+      else {
+        if (!css) { css = document.createElement("link"); css.rel = "stylesheet"; css.id = "sigCss"; css.href = "sig.css?b=" + b; document.head.appendChild(css); }
+        css.addEventListener("load", fin); css.addEventListener("error", fin);
+      }
+      if (window.VPEXSig) fin();
+      else { var js = document.createElement("script"); js.src = "sig.js?b=" + b; js.async = true; js.onload = fin; js.onerror = fin; document.head.appendChild(js); }
+      setTimeout(function () { n = 1; fin(); }, 6000);
+    });
+    return SIG.assets;
+  }
+  function sigMount() {
+    var d = document.documentElement, id = d.getAttribute("data-theme"), on = isSigTheme(id);
+    d.classList.toggle("sig", on);
+    if (!on) { if (window.VPEXSig) VPEXSig.mount(null); return; }
+    sigAssets().then(function () {
+      if (d.getAttribute("data-theme") !== id) return;
+      if (window.VPEXSig) VPEXSig.mount(id, { liveAt: function () { return state.awaitingOutcome ? (state.liveAt || 0) : 0; } });
+      syncThemeColor();
+    });
+  }
+  // Back to the theme the phone had before (or Auto). quiet: no toast.
+  function sigRevert() {
+    var prev = lsGet(SIG_PREV), d = document.documentElement;
+    try { window.localStorage.removeItem(SIG_OK); } catch (e) {}
+    if (THEME_NAMES.indexOf(prev) !== -1) { d.setAttribute("data-theme", prev); applyThemeFont(prev); lsSet(THEME_KEY, prev); }
+    else { d.removeAttribute("data-theme"); try { window.localStorage.removeItem(THEME_KEY); } catch (e) {} }
+    sigTryHide(); SIG.trying = null;
+    sigMount(); syncThemeColor();
+  }
+  // After every sign-in: the owner keeps his; anyone else's login never shows them.
+  function sigGuard() {
+    if (DEMO || sigAllowed()) return;
+    if (lsGet(SIG_OK) || isSigTheme(document.documentElement.getAttribute("data-theme")) || isSigTheme(lsGet(THEME_KEY))) sigRevert();
+  }
+  function sigOwnerBits() {
+    var b = document.getElementById("openSigBtn"); if (b) b.hidden = !sigAllowed();
+  }
+  function openSig() {
+    if (!sigAllowed()) return;
+    closeMenuModal(); document.getElementById("themeModal").classList.remove("show");
+    SIG_THEMES.forEach(function (t) { loadGF(t.gf); });
+    sigAssets().then(function () {
+      if (!sigAllowed()) return;
+      renderSig();
+      document.getElementById("sigModal").classList.add("show");
+      var a = document.querySelector("#sigList .sig-tile.active"); if (a && a.scrollIntoView) a.scrollIntoView({ block: "nearest" });
+    });
+  }
+  function closeSig() { document.getElementById("sigModal").classList.remove("show"); }
+  function renderSig() {
+    var cur = SIG.trying ? SIG.trying.from : currentThemeName(), list = document.getElementById("sigList");
+    list.innerHTML = SIG_THEMES.map(function (t) {
+      var on = t.id === cur;
+      return '<div class="sig-tile sig-scope' + (on ? ' active' : '') + '" data-sig="' + t.id + '">' +
+        '<div class="sig-prev" aria-hidden="true"><div class="sp-head"><span class="sp-brand">VPEX</span></div>' +
+          '<div class="sp-card"><span class="sp-name">Jordan Casey</span><span class="sp-phone">(555) 014-2290</span><span class="sp-outs"><i></i><i></i><i></i><i></i></span><span class="sp-call">Call</span></div>' +
+          '<span class="sp-motif"></span></div>' +
+        '<div class="sig-meta"><span class="sig-kind">' + escapeHtml(t.kind) + (on ? ', in use' : '') + '</span><b>' + escapeHtml(t.name) + '</b><p>' + escapeHtml(t.desc) + '</p>' +
+          '<div class="sig-acts"><button class="sig-try-btn" type="button" data-sig-try="' + t.id + '">Try it live</button>' +
+          '<button class="sig-use-btn" type="button" data-sig-use="' + t.id + '"' + (on ? ' disabled' : '') + '>' + (on ? 'In use' : 'Use') + '</button></div></div></div>';
+    }).join("");
+    list.querySelectorAll("[data-sig-try]").forEach(function (b) { b.addEventListener("click", function () { sigTry(b.getAttribute("data-sig-try")); }); });
+    list.querySelectorAll("[data-sig-use]").forEach(function (b) { b.addEventListener("click", function () { sigUse(b.getAttribute("data-sig-use")); }); });
+  }
+  function sigUse(id) {
+    if (!sigAllowed() || !isSigTheme(id)) return;
+    var from = SIG.trying ? SIG.trying.from : currentThemeName();
+    sigTryHide(); SIG.trying = null;
+    if (!isSigTheme(from)) lsSet(SIG_PREV, from);
+    if (window.VPEXSig) VPEXSig.fade();
+    setTheme(id);
+    closeSig();
+  }
+  // Try one live on the real screens: nothing is saved until Keep.
+  function sigTry(id) {
+    if (!sigAllowed() || !isSigTheme(id)) return;
+    if (!SIG.trying) SIG.trying = { from: currentThemeName() };
+    SIG.trying.id = id;
+    closeSig();
+    if (window.VPEXSig) VPEXSig.fade();
+    document.documentElement.setAttribute("data-theme", id); applyThemeFont(id); sigMount(); syncThemeColor();
+    document.body.classList.add("sig-trying");
+    var bar = document.getElementById("sigTry"); bar.hidden = false;
+    document.getElementById("sigTryName").textContent = THEME_LABELS[id];
+    document.getElementById("sigTryHint").textContent = (SIG_IDS.indexOf(id) + 1) + " of " + SIG_IDS.length + ". Use the app as usual; nothing changes until you keep it.";
+    updateThemeLabel();
+  }
+  function sigTryStep(dir) {
+    if (!SIG.trying) return;
+    var i = SIG_IDS.indexOf(SIG.trying.id), n = SIG_IDS.length;
+    sigTry(SIG_IDS[(i + dir + n) % n]);
+  }
+  function sigTryHide() {
+    var bar = document.getElementById("sigTry"); if (bar) bar.hidden = true;
+    document.body.classList.remove("sig-trying");
+  }
+  function sigTryBack() {
+    var tr = SIG.trying; if (!tr) return;
+    SIG.trying = null; sigTryHide();
+    if (window.VPEXSig) VPEXSig.fade();
+    var d = document.documentElement;
+    if (tr.from === "auto") d.removeAttribute("data-theme"); else { d.setAttribute("data-theme", tr.from); applyThemeFont(tr.from); }
+    sigMount(); syncThemeColor(); updateThemeLabel();
+    openSig();
+  }
+  function sigTryKeep() { if (SIG.trying) sigUse(SIG.trying.id); }
 
   /** ---------- Helpers ---------- **/
   function uid() {
@@ -9933,6 +10142,8 @@
     root.setAttribute("data-flow", mode);
     root.style.setProperty("--heat", (mode === "cool" || mode === "ready" ? 0.08 : Math.max(0.2, f.heat)).toFixed(2));
     var tr = document.getElementById("rhTrack"); if (tr) tr.classList.toggle("goal", !!goal && tc >= goal);
+    root.style.setProperty("--goal-p", Math.min(1, goal ? tc / goal : tc / 50).toFixed(3));   // how far today is toward the goal (Signature themes draw it)
+    root.toggleAttribute("data-goal", !!goal && tc >= goal);
   }
   setInterval(function () { if (!document.hidden) renderRhythm(); }, 60000);
   function flowState() {
@@ -10017,7 +10228,7 @@
     var ss = document.getElementById("scriptSummary"); if (ss) ss.textContent = scSummary();
   }
   function render() {
-    migrateHot(); syncSettingsBits(); flowState(); scRefresh(); contactMigrate();
+    migrateHot(); syncSettingsBits(); flowState(); scRefresh(); contactMigrate(); sigOwnerBits();
     var total = totalCount();
     var done = doneCount();
     var lead = currentLead();
@@ -14165,6 +14376,7 @@
     document.getElementById("authConnecting").textContent = "Connecting\u2026";
     TEAM.startDenied = 0;
     TEAM.me = { uid: user.uid, username: m.username || username, name: m.name || username, role: m.role || "rep", createdAt: m.createdAt || 0, closer: !!m.closer, workLoc: m.workLoc || "" };
+    sigGuard();
     STORAGE_KEY = (TEAM.office ? "vpex_team_" : "dovetail_team_") + user.uid;
     state = loadTeamPrefs();
     if (!state.textSettings) { textSettings(); state.textSettings.myName = DEMO && TEAM.me.name === "You" ? "Alex" : firstName(TEAM.me.name); }
@@ -18079,6 +18291,15 @@
     document.getElementById("teamBtn").addEventListener("click", openAdminHub);
     document.getElementById("adminBtn").addEventListener("click", openAdminHub);
     document.getElementById("openThemesBtn").addEventListener("click", openThemes);
+    document.getElementById("openSigBtn").addEventListener("click", openSig);
+    document.getElementById("sigEntry").addEventListener("click", openSig);
+    document.getElementById("sigClose").addEventListener("click", closeSig);
+    document.getElementById("sigStd").addEventListener("click", function () { closeSig(); openThemes(); });
+    document.getElementById("sigModal").addEventListener("click", function (e) { if (e.target.id === "sigModal") closeSig(); });
+    document.getElementById("sigPrev").addEventListener("click", function () { sigTryStep(-1); });
+    document.getElementById("sigNext").addEventListener("click", function () { sigTryStep(1); });
+    document.getElementById("sigBack").addEventListener("click", sigTryBack);
+    document.getElementById("sigKeep").addEventListener("click", sigTryKeep);
     document.getElementById("themeSearch").addEventListener("input", function () {
       renderThemeSwatches();
       var g = document.getElementById("themeSwatchRow"), q = this.value.trim();
@@ -18158,6 +18379,8 @@
 
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape") {
+        if (SIG.trying && !document.querySelector(".modal-overlay.show")) { sigTryBack(); return; }
+        closeSig();
         closeLoadModal(); closeMenuModal(); closeTaskModal(); closeConfirm(); closeLeadProfile();
         closeScript(); lfClose();
         ["themeModal", "adminModal", "teamModal", "scoreModal", "acctModal", "coachModal", "infoModal", "vaultModal", "featModal"].forEach(function (id) { var el = document.getElementById(id); if (el) el.classList.remove("show", "gate"); });
