@@ -790,7 +790,7 @@ def learn(state, ig):
         local = ts.astimezone(ZoneInfo("America/New_York"))
         rows.append({"mid": m["id"], "iid": iid, "kind": kind, "type": (it.get("type") if it else "") or ("reel" if kind == "REELS" else (m.get("media_type") or "").lower().replace("carousel_album", "carousel")),
                      "title": (it.get("title") if it else "") or (m.get("caption") or "").strip().split("\n")[0][:60],
-                     "when": local.strftime("%a %b %d"), "slot": local.strftime("%H:%M"), "day": local.strftime("%a"), "ts": ts.timestamp(),
+                     "when": local.strftime("%a %b %d"), "slot": (it.get("at") or "")[11:16] if it else local.strftime("%H:00"), "day": local.strftime("%a"), "ts": ts.timestamp(),
                      "reach": int(mm.get("reach") or 0), "views": int(mm.get("views") or 0), "likes": int(mm.get("likes") or m.get("like_count") or 0),
                      "comments": int(mm.get("comments") or m.get("comments_count") or 0), "saves": int(mm.get("saved") or 0), "shares": int(mm.get("shares") or 0),
                      "visits": int(mm.get("profile_visits") or 0), "follows": int(mm.get("follows") or 0),
