@@ -2,7 +2,7 @@
 
 Everything that makes VPEX's posts: the brand kit, real app screenshots and footage from a demo office, the Reel builder with original soundtracks, and the pack builder the bot reads. Each week is a folder (`ig3` = week 3, `ig4` = week 4), and the next week starts as a copy of the last one.
 
-One pack feeds three places: Instagram (feed, stories, trial Reels), the VPEX Facebook Page (the same feed posts, with tappable links) and Threads (the same feed posts trimmed to 500 characters, plus two Threads-only posts a day). Every post points to one place on vpexdialer.com, and the site counts what each post brought in: link-page taps, visits, demos, trial forms and sign-ups.
+One pack feeds three places: Instagram (feed, stories, trial Reels), the VPEX Facebook Page (the same feed posts, with tappable links) and Threads (the same feed posts trimmed to 500 characters, plus one Threads-only post a day). Every post points to one place on vpexdialer.com, and the site counts what each post brought in: link-page taps, visits, demos, trial forms and sign-ups.
 
 ## Build next week (about 1–2 hours)
 
@@ -28,21 +28,23 @@ One pack feeds three places: Instagram (feed, stories, trial Reels), the VPEX Fa
    - Captions are 2,200 characters or less; 5 hashtags at most on format-2 packs (Instagram's limit). Alt text is 1,000 characters or less.
    - Images are JPEG; feed images are 4:5. Reels are H.264/AAC, 3–90 seconds.
    - Item ids are unique across all packs (`wN-...`).
-   - Exactly 3 feed posts plus 5 stories per day on Instagram, with no two at the same minute; 2 Threads-only posts a day. Trial Reels don't count.
+   - Every day exactly at the bot's daily ceilings (`instagram/limits.json`: 2 feed posts, 3 stories, 1 Threads-only post), with no two at the same minute. Trial Reels don't count.
    - Every feed post and thread has tags (hook from the list, topic, cta) and a valid `go`; Threads text fits 500 characters and keeps any legal line.
 9. **Ship:** copy the zip to `instagram/`, run `python3 studio/tools/build_bio_page.py` (it refreshes the tiles on vpexdialer.com/ig), commit `instagram/`, `ig/` and the week's studio folder, push to main, then run the bot workflow in mode `check`. Every item should show "waiting".
 
 ## Schedule
 
-Instagram: 8 a day, New York time, since Oct 17, 2026: 3 feed posts and 5 stories. Facebook Page: the same 3 feed posts. Threads: the same 3 feed posts plus 2 Threads-only posts (08:30 and 13:15), so 5 a day. That's 16 posts a day across the three, plus the stories. (Facebook and Threads switch on when their keys are saved; the plan doesn't change.)
+**Safe cadence since Oct 22, 2026.** On Oct 21 Meta blocked the whole VPEX Content app (Instagram, then Facebook and Threads) after weeks of 16 posts a day plus stories and auto-replies from a new account. The bot now enforces daily ceilings from `instagram/limits.json` whatever the plan holds, backs off for 6 hours after any refusal instead of retrying every 15 minutes, and caps automatic comment replies (8 a day, one per person). Plan exactly to the ceilings so nothing is skipped; raise them only one step at a time after a few clean weeks.
 
-Why not more Instagram feed posts: Buffer's study of about 2.1 million posts found reach per post and follower growth keep rising with posting frequency, but each step up adds less than the last, and 10+ a week was the top bucket. At 21 feed posts a week VPEX is past that; more reach now comes from more places (Facebook, Threads), from trial Reels, and from better hooks, not from feed posts competing with each other.
-- **Feed:** 11:00, 15:30 and 19:00. Mix Reels with posts and carousels, and don't run two Reels back to back where you can help it.
+Instagram: 2 feed posts and 3 stories a day, New York time. Facebook Page: the same 2 feed posts. Threads: the same 2 feed posts plus 1 Threads-only post. That's 7 posts a day across the three, plus the stories.
+- **Feed:** 11:00 and 19:00 (the two best-scoring slots in the learn run). Alternate Reels with posts and carousels.
 - **Stories:**
   - 09:00: the sticker story (poll, question or quiz). Stickers can't be added through the API, so it's a `manual` item and the bot sends Vincent a reminder.
-  - 12:30 and 17:30: shares of that day's first two feed posts. For a Reel, post the Reel video itself as the story (`"video": ...`). For a post, use a 1080x1920 story version (`render<N>.py --story-versions`).
-  - 14:30 and 21:00: original stories.
-- **A week** is Tuesday to Monday: 21 feed posts plus 35 stories (7 sticker, 14 shares, 14 originals).
+  - 12:30: share of the 11:00 post. For a Reel, post the Reel video itself as the story (`"video": ...`). For a post, use a 1080x1920 story version (`render<N>.py --story-versions`).
+  - 20:30: share of the 19:00 post, or an original story.
+- **Threads-only:** 08:30.
+- **A week** is Tuesday to Monday: 14 feed posts, 21 stories (7 sticker), 7 Threads-only posts.
+- **Fewer posts, better posts.** With 14 feed posts a week, every one has to earn its slot: proven hooks first, one clear call to action.
 - **Never post in bursts.** On Oct 16, 5 posts within 20 minutes reached 4–8 people each, while spaced posts reached 60–130.
 - **Bridge:** `tools/replan_8day.py` re-timed weeks 3–4 when the cadence changed. The week 4b bridge pack (`ig4/kit4b.py`, Reels S–V in `ig4/reel4.py`, `ig4/make_pack4b.py`) covers Fri Oct 23 at 19:00 through Mon Oct 26. Week 5 starts Tue Oct 27.
 
@@ -59,7 +61,7 @@ On top of the existing fields (`id`, `at`, `type`, `title`, `caption`, `image`, 
 - `go`: where the post's tile on vpexdialer.com/ig and its Facebook/Threads link lead: `demo:<industry>` (that industry's demo office), `home` (the sales page) or `trial` (the trial form). Default: the industry's demo if `ind` is set, else home.
 - `type: "thread"`: a Threads-only post with `threads_text` (500 characters at most; `{link}` becomes the post's own tagged link). Add `image` for a picture.
 - `threads_text` / `fb_caption` on a feed post: write them yourself when the automatic version (opening paragraphs that fit + legal line + link; or the caption with "Comment DEMO"/"Link in bio" turned into the link) won't read well.
-- `trial`: `"SS_PERFORMANCE"` (or `"MANUAL"`) makes a Reel a trial Reel: shown to non-followers first, so two hooks for the same idea can be compared without posting a duplicate to the grid. Instagram allows them from 200 followers; until then the bot skips them, so only build them once `check` says "Trial Reels: available". Trial Reels go to Instagram only and get no tile.
+- `trial`: `"SS_PERFORMANCE"` (or `"MANUAL"`) makes a Reel a trial Reel: shown to non-followers first, so two hooks for the same idea can be compared without posting a duplicate to the grid. Instagram allows them from 200 followers; until then the bot skips them. They also count as feed posts under the daily ceilings, so plan one only on a day with a free feed slot, so only build them once `check` says "Trial Reels: available". Trial Reels go to Instagram only and get no tile.
 - `platforms`: e.g. `["instagram", "threads"]` to keep a post off one platform.
 - `bio: false`: no tile on vpexdialer.com/ig.
 

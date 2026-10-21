@@ -26,8 +26,8 @@ CONTENT_DIR = os.environ.get("IG_CONTENT", os.path.join(os.path.dirname(os.path.
 FEED_GRACE_H = float(os.environ.get("IG_FEED_GRACE_H", "12"))   # a feed post more than this late is skipped, not dumped late
 STORY_GRACE_H = float(os.environ.get("IG_STORY_GRACE_H", "3"))
 # never post in bursts (5 posts in 20 minutes reached 4-8 people each): after an outage, catch up with this much space
-FEED_GAP_MIN = float(os.environ.get("IG_FEED_GAP_MIN", "120"))
-STORY_GAP_MIN = float(os.environ.get("IG_STORY_GAP_MIN", "60"))
+FEED_GAP_MIN = float(os.environ.get("IG_FEED_GAP_MIN", "180"))
+STORY_GAP_MIN = float(os.environ.get("IG_STORY_GAP_MIN", "90"))
 MAX_ATTEMPTS = 3
 SITE = "vpexdialer.com"
 # Facebook Page and Threads: the same feed posts, posted by the same plan. Each is on only when its key is saved.
@@ -35,8 +35,18 @@ FB_GRAPH = os.environ.get("FB_GRAPH_URL", "https://graph.facebook.com/v23.0").rs
 FB_RUPLOAD = os.environ.get("FB_RUPLOAD_URL", "https://rupload.facebook.com/video-upload/v23.0").rstrip("/")
 TH_GRAPH = os.environ.get("TH_GRAPH_URL", "https://graph.threads.net/v1.0").rstrip("/")
 TH_REFRESH_URL = os.environ.get("TH_REFRESH_URL", "https://graph.threads.net/refresh_access_token")
-XP_GAP_MIN = float(os.environ.get("XP_GAP_MIN", "50"))           # at least this long between two posts on the same platform
+XP_GAP_MIN = float(os.environ.get("XP_GAP_MIN", "120"))           # at least this long between two posts on the same platform
 TRIAL_MIN_FOLLOWERS = int(os.environ.get("IG_TRIAL_MIN_FOLLOWERS", "200"))   # Instagram's minimum for trial Reels
+# Account safety. On Oct 21 2026 Meta blocked the whole app (Instagram, then Facebook and Threads) after weeks of ~16 posts a
+# day plus stories and auto-replies from a new account. So: hard daily ceilings per platform, whatever the plan holds (extra
+# items are skipped, keeping the best time slots); after a refusal, no more calls to that platform for BLOCK_BACKOFF_H hours
+# (a new key saved in GitHub is tried right away); and a daily cap on automatic comment replies.
+# Tune the ceilings in instagram/limits.json; IG_DAY_CAPS=off turns them off (tests only).
+DAY_CAPS = {"instagram": {"feed": 2, "story": 3}, "facebook": {"feed": 2}, "threads": {"feed": 2, "thread": 1}}
+PREFERRED_TIMES = ["11:00", "19:00"]       # when a day holds more than the ceiling, these slots are kept first
+BLOCK_BACKOFF_H = float(os.environ.get("BLOCK_BACKOFF_H", "6"))
+REPLY_DAY_MAX = int(os.environ.get("IG_REPLY_DAY_MAX", "8"))
+NY = ZoneInfo("America/New_York")
 
 # Keys never reach the logs (the repo is public): known keys are masked, and any access_token in a URL is hidden.
 SECRETS = set()
@@ -190,7 +200,56 @@ def all_items(packs, platform="instagram"):
             try: out.append((item_time(pk, it), pk, it))
             except Exception as e: log("bad item in", pk.name, it.get("id"), e)
     out.sort(key=lambda x: x[0])
-    return out
+    return apply_caps(out, platform) if platform else out
+
+def kind_of(it): return "story" if it.get("type") == "story" else "thread" if it.get("type") == "thread" else "feed"
+_LIM = {}
+def limits():
+    if "_" not in _LIM:
+        caps = json.loads(json.dumps(DAY_CAPS)); pref = list(PREFERRED_TIMES)
+        path = os.path.join(CONTENT_DIR, "limits.json")
+        if os.path.exists(path):
+            try:
+                j = json.load(open(path))
+                for plat, c in (j.get("per_day") or {}).items(): caps.setdefault(plat, {}).update({k: int(v) for k, v in c.items()})
+                pref = list(j.get("preferred_times") or pref)
+            except Exception as e: log("limits.json ignored:", e)
+        _LIM.update({"_": True, "caps": caps, "pref": pref})
+    return _LIM
+CAPPED = {}
+def apply_caps(out, platform):
+    """At most the day's ceiling of each kind (feed, story, thread) per platform, by New York date. Preferred time slots
+    are kept first, then the earliest. The same plan always gives the same answer, so a skipped item stays skipped."""
+    if os.environ.get("IG_DAY_CAPS", "").lower() == "off": return out
+    L = limits(); caps = L["caps"].get(platform) or {}; pref = L["pref"]
+    groups = {}
+    for x in out: groups.setdefault((x[0].astimezone(NY).date(), kind_of(x[2])), []).append(x)
+    drop = set()
+    for (day, kind), xs in groups.items():
+        cap = caps.get(kind)
+        if cap is None or len(xs) <= cap: continue
+        def rank(x):
+            hm = x[0].astimezone(NY).strftime("%H:%M")
+            return (pref.index(hm) if hm in pref else len(pref), x[0])
+        for x in sorted(xs, key=rank)[cap:]: drop.add(id(x[2]))
+    CAPPED[platform] = [x[2]["id"] for x in out if id(x[2]) in drop]
+    return [x for x in out if id(x[2]) not in drop]
+
+# ---------------------------------------------------------------- backing off after a refusal
+def _khash(secret): return hashlib.sha256((secret or "").encode()).hexdigest()[:16]
+BLOCK_ENV = {"instagram": "IG_TOKEN", "facebook": "FB_PAGE_TOKEN", "threads": "THREADS_TOKEN"}
+def in_backoff(state, plat):
+    """The refusal record for a platform still waiting out its backoff, else None. A different key saved since ends it."""
+    b = state.get("meta", "block_" + plat) or {}
+    if not b.get("until") or time.time() >= b["until"]: return None
+    if b.get("key") and b["key"] != _khash(os.environ.get(BLOCK_ENV[plat], "").strip()): return None
+    return b
+def note_block(state, plat, why):
+    prev = state.get("meta", "block_" + plat) or {}
+    state.set("meta", "block_" + plat, {"until": time.time() + BLOCK_BACKOFF_H * 3600, "why": scrub(why)[:160],
+              "since": prev.get("since") or time.time(), "key": _khash(os.environ.get(BLOCK_ENV[plat], "").strip())})
+def clear_block(state, plat):
+    if (state.get("meta", "block_" + plat) or {}).get("until"): state.set("meta", "block_" + plat, {})
 
 def missing_media(pk, it):
     need = [it.get(k) for k in ("image", "video", "cover") if it.get(k)] + list(it.get("images") or [])
@@ -332,7 +391,11 @@ KEYWORDS = [
 ]
 def answer_comments(ig, state, cfg):
     done = 0
-    since = now_utc() - dt.timedelta(days=14)
+    since = now_utc() - dt.timedelta(days=7)
+    fresh = now_utc() - dt.timedelta(days=3)
+    day_ago = time.time() - 86400
+    recent = [v for v in state.all("replied").values() if (v.get("at") or 0) > day_ago and v.get("reply")]
+    sent, people = len(recent), {(v.get("user") or "").lower() for v in recent}
     media = ig.call("GET", ig.user_id + "/media", fields="id,timestamp", limit=25).get("data", [])
     for m in media:
         try:
@@ -342,10 +405,18 @@ def answer_comments(ig, state, cfg):
         for c in comments:
             if not c.get("id") or (c.get("username") or "").lower() == (ig.username or "").lower(): continue
             if state.get("replied", c["id"]): continue
+            try:
+                if dt.datetime.fromisoformat(c["timestamp"].replace("+0000", "+00:00")) < fresh: continue
+            except Exception: pass
             kind = None
             for rx, k, tpl in KEYWORDS:
                 if rx.search(c.get("text") or ""): kind, text = k, tpl.format(u=c.get("username") or "there", site=SITE); break
             if not kind: continue
+            who = (c.get("username") or "").lower()
+            if sent >= REPLY_DAY_MAX:
+                log("reply limit reached (%d today); %s's comment waits" % (REPLY_DAY_MAX, c.get("username"))); return done
+            if who and who in people:
+                state.set("replied", c["id"], {"at": time.time(), "kind": kind, "user": c.get("username"), "media": m["id"], "skipped": "already answered them today"}); continue
             rec = {"at": time.time(), "kind": kind, "user": c.get("username"), "media": m["id"]}
             try:
                 rec["reply"] = ig.call("POST", c["id"] + "/replies", message=text)["id"]
@@ -353,6 +424,7 @@ def answer_comments(ig, state, cfg):
                 rec["error"] = str(e)
             state.set("replied", c["id"], rec)
             done += 1
+            if rec.get("reply"): sent += 1; people.add(who)
             log("answered", kind, "comment from", c.get("username"), "->", rec.get("reply") or rec.get("error"))
     return done
 
@@ -558,6 +630,9 @@ def crosspost(state, media, note):
     now = now_utc()
     for plat, coll, make in xp_platforms(state):
         client, signed = None, False
+        b = in_backoff(state, plat)
+        if b:
+            log(plat, "refused the bot; not contacting it again until", dt.datetime.fromtimestamp(b["until"], NY).strftime("%I:%M %p").lstrip("0")); continue
         for when, pk, it in all_items(load_packs(), platform=plat):
             iid = it["id"]; rec = state.get(coll, iid) or {}
             if when > now or rec.get("status") in ("posted", "missed", "skipped", "failed"): continue
@@ -574,6 +649,7 @@ def crosspost(state, media, note):
                 if not signed:
                     client = client or make(); client.me(); signed = True
                     al = state.get("meta", coll + "_alert") or {}
+                    clear_block(state, plat)
                     if al.get("msg"): state.set("meta", coll + "_alert", {}); note.send(client.name + " posting is back", client.name + " accepted the key again.")
                 log("posting", iid, "on", plat, "(" + it["type"] + ")")
                 pid, link = client.post(media, pk, it)
@@ -585,8 +661,9 @@ def crosspost(state, media, note):
                 if not signed:                      # couldn't sign in: one alert (again after 12 hours), nothing marked failed
                     al = state.get("meta", coll + "_alert") or {}
                     if not detail.startswith("network:") and (al.get("msg") != detail[:120] or time.time() - (al.get("at") or 0) > 12 * 3600):
-                        note.send(plat.title() + " posting can't sign in", plat.title() + " said: " + detail[:110] + ". Instagram keeps posting.")
+                        note.send(plat.title() + " posting can't sign in", plat.title() + " said: " + detail[:100] + ". Its posts are skipped until that's fixed; the bot tries again every %d hours." % BLOCK_BACKOFF_H)
                         state.set("meta", coll + "_alert", {"msg": detail[:120], "at": time.time()})
+                    if not detail.startswith("network:"): note_block(state, plat, detail)
                     log(plat, "can't sign in:", detail); break
                 tries += 1
                 state.set(coll, iid, {"status": "failed" if tries >= MAX_ATTEMPTS else "retry", "attempts": tries, "error": detail[:300], "at": time.time()})
@@ -991,6 +1068,13 @@ def check(state, ig):
         log("Posts made through the API in the last 24 hours:", lim.get("quota_usage"), "of", (lim.get("config") or {}).get("quota_total"))
     except IGError as e:
         log("couldn't read the posting limit:", e)
+    L = limits()
+    if os.environ.get("IG_DAY_CAPS", "").lower() != "off":
+        log("Daily ceilings:", "; ".join("%s %s" % (p, ", ".join("%d %s" % (v, k) for k, v in c.items())) for p, c in L["caps"].items()),
+            "| kept first:", ", ".join(L["pref"]))
+        for plat in ("instagram", "facebook", "threads"):
+            all_items(packs, platform=plat)
+            if CAPPED.get(plat): log("  %s: %d items in the loaded packs are over the ceilings and skipped" % (plat.title(), len(CAPPED[plat])))
     log("Trial Reels: %s" % ("available" if ig.followers >= TRIAL_MIN_FOLLOWERS else "not yet (Instagram needs %d followers; trial items are skipped until then)" % TRIAL_MIN_FOLLOWERS))
     plats = xp_platforms(state)
     if not plats: log("Facebook Page and Threads: off (no FB_PAGE_TOKEN or THREADS_TOKEN saved).")
@@ -1117,16 +1201,16 @@ def diagnose(state):
         ask(name + ": recent media", "https://graph.instagram.com/v23.0/me/media", tok, fields="id,timestamp", limit="1")
         ask(name + ": refresh", REFRESH_URL, tok, grant_type="ig_refresh_token")
 
-# Keep traffic to Instagram low and steady (Meta locks developer accounts over unusual traffic): a scheduled run only
-# contacts Instagram when something is due, or to check comments at most once an hour.
-COMMENT_EVERY_MIN = float(os.environ.get("IG_COMMENT_EVERY_MIN", "60"))
+# Keep traffic to Instagram low and steady (Meta locks developer accounts over unusual traffic, and blocked this app on Oct 21 2026): a scheduled run only
+# contacts Instagram when something is due, or to check comments at most every 2 hours.
+COMMENT_EVERY_MIN = float(os.environ.get("IG_COMMENT_EVERY_MIN", "120"))
 def quiet_run(state):
     if os.environ.get("IG_ALWAYS_CONTACT") == "1": return False
     now = now_utc()
     for when, pk, it in all_items(load_packs()):
         if when <= now and (state.get("posted", it["id"]) or {}).get("status") not in DONE + ("failed",): return False
     for plat, coll, _ in xp_platforms(state):
-        if xp_due(state, coll, plat, now): return False
+        if not in_backoff(state, plat) and xp_due(state, coll, plat, now): return False
     ago = (time.time() - ((state.get("meta", "comments") or {}).get("at") or 0)) / 60
     if ago < COMMENT_EVERY_MIN:
         log("Nothing due, and comments were checked %d minutes ago. Instagram not contacted this run." % ago); return True
@@ -1269,6 +1353,10 @@ def main():
     if mode == "resend": return resend(state, Media(os.environ.get("BOT_MEDIA", "gcs")), note)
     media = Media(os.environ.get("BOT_MEDIA", "gcs")) if mode in ("run", "test", "scorecard") else None
     try:
+        b = in_backoff(state, "instagram") if mode == "run" else None
+        if b:                                           # refused recently: don't knock again yet, but posts still go to the phone
+            log("Instagram refused the bot; not contacting it again until", dt.datetime.fromtimestamp(b["until"], NY).strftime("%I:%M %p").lstrip("0") + ".")
+            return handoff(state, media, note, b.get("why") or "refused")
         ig = IG(get_token(state))
         try:
             ig.me()
@@ -1280,11 +1368,13 @@ def main():
             if last.get("msg") != detail or time.time() - (last.get("at") or 0) > 12 * 3600:   # alert once, not every 15 minutes
                 note.send("Instagram bot can't sign in", "Instagram said: " + detail[:110] + ". Until it's fixed, the bot sends you each post ready to post by hand.")
                 state.set("meta", "signin_alert", {"msg": detail, "at": time.time()})
+            note_block(state, "instagram", detail)
             if mode == "run": return handoff(state, media, note, detail)
             if mode in ("scorecard", "learn"):       # these can't read Instagram's numbers while it refuses: a warning, not a red run
                 if mode == "scorecard": scorecard(state, note, None, media)
                 raise SoftStop("Instagram is refusing the bot (%s); %s." % (detail, "the scorecard went out without Instagram's numbers" if mode == "scorecard" else "learning waits for tomorrow"))
             raise SystemExit("Instagram rejected the key: " + detail)
+        clear_block(state, "instagram")
         if (state.get("meta", "signin_alert") or {}).get("msg"):
             state.set("meta", "signin_alert", {}); note.send("Instagram bot is back", "Instagram accepted the key again. Posting picks up on the next run.")
             log("Instagram accepted the key again.")

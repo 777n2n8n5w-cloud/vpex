@@ -1,8 +1,9 @@
 # Checks content packs the way the bot reads them: every file present, ids unique, caption/alt limits, media formats for
-# the new pack, and exactly 3 feed posts plus 5 stories every day on Instagram with no two at the same minute.
-# Packs with "format": 2 in plan.json (week 5 on) also need: tags on every feed post and thread (hook from the list, topic, cta), a valid "go",
-# 5 hashtags at most (Instagram's limit), Threads text that fits 500 characters, and 2 Threads-only posts a day.
-# Trial Reels (hook tests shown to non-followers first) don't count toward the 3 feed posts.
+# the new pack, and no two posts at the same minute. Packs with "format": 2 in plan.json (week 5 on) also need: tags on every
+# feed post and thread (hook from the list, topic, cta), a valid "go", 5 hashtags at most (Instagram's limit), Threads text that
+# fits 500 characters, and every day exactly at the bot's daily ceilings (instagram/limits.json, else the bot's defaults; since
+# Oct 22 2026: 2 feed posts, 3 stories, 1 Threads-only post), so nothing planned is skipped. Format-1 packs: 3 feed + 5 stories.
+# Trial Reels (hook tests shown to non-followers first) don't count toward the feed posts.
 # usage: python3 -I studio/tools/validate_packs.py CONTENT_DIR NEW_PACK_NAME FIRST_DAY LAST_DAY
 #   e.g. python3 -I studio/tools/validate_packs.py /tmp/check VPEX-Instagram-Week-5 2026-10-27 2026-11-02
 # (CONTENT_DIR = a folder with copies of instagram/*.zip plus the new zip)
@@ -64,8 +65,11 @@ for t, pk, it in items:
             os.remove(tmp.name)
 print("problems:", prob or "none")
 clash = [k for k, v in minutes.items() if v > 1 and FIRST <= k[:10] <= LAST]; print("same-minute clashes:", clash or "none")
+CAPS = bot.limits()["caps"]
+WANT = (CAPS["instagram"]["feed"], CAPS["instagram"]["story"], CAPS["threads"].get("thread", 0)) if FMT2 else (3, 5, None)
+print("each day needs: feed %d, stories %d" % WANT[:2] + (", Threads-only %d" % WANT[2] if FMT2 else ""))
 def day_ok(d):
-    return (len(days[d]["feed"]), len(days[d]["story"])) == (3, 5) and (len(days[d]["thread"]) == 2 or not FMT2)
+    return (len(days[d]["feed"]), len(days[d]["story"])) == WANT[:2] and (not FMT2 or len(days[d]["thread"]) == WANT[2])
 for d in sorted(days):
     if FIRST <= d <= LAST:
         f, s, th, tr = days[d]["feed"], days[d]["story"], days[d]["thread"], days[d]["trial"]

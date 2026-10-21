@@ -1,0 +1,9 @@
+{
+  "_about": "The bot's daily ceilings per platform (New York days). Anything the plan holds past these is skipped, keeping preferred_times first. Set Oct 22 2026 after Meta blocked the app over volume; raise slowly (one step at a time, a few clean weeks apart). The weekly content task plans exactly to these numbers.",
+  "per_day": {
+    "instagram": {"feed": 2, "story": 3},
+    "facebook": {"feed": 2},
+    "threads": {"feed": 2, "thread": 1}
+  },
+  "preferred_times": ["11:00", "19:00"]
+}

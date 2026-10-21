@@ -180,7 +180,7 @@ def env_for(name, **extra):
     e = dict(os.environ, IG_GRAPH_URL=BASE + "/ig", IG_REFRESH_URL=BASE + "/ig/refresh_access_token", IG_TOKEN="IGTOKEN",
              FB_GRAPH_URL=BASE + "/fb", FB_RUPLOAD_URL=BASE + "/rup", TH_GRAPH_URL=BASE + "/th", TH_REFRESH_URL=BASE + "/th/refresh_access_token",
              BOT_STATE="local:" + os.path.join(d, "state.json"), BOT_MEDIA="local:" + MEDIA + "|http://127.0.0.1:%d" % MPORT, BOT_NOTIFY="off",
-             IG_CONTENT=os.path.join(d, "content"), IG_POLL_S="0.05", XP_GAP_MIN="0", IG_FEED_GAP_MIN="0", IG_STORY_GAP_MIN="0", REPORT_FILE=os.path.join(d, "report.html"), GITHUB_ACTIONS="")
+             IG_CONTENT=os.path.join(d, "content"), IG_POLL_S="0.05", XP_GAP_MIN="0", IG_FEED_GAP_MIN="0", IG_STORY_GAP_MIN="0", IG_DAY_CAPS="off", REPORT_FILE=os.path.join(d, "report.html"), GITHUB_ACTIONS="")
     for k in ("FB_PAGE_TOKEN", "FB_PAGE_ID", "THREADS_TOKEN", "IG_ALWAYS_CONTACT"): e.pop(k, None)
     e.update({k: v for k, v in extra.items() if v is not None})
     return d, e
@@ -251,6 +251,11 @@ bot(dict(e, IG_ALWAYS_CONTACT="1"), "run")
 rep = dict(G["replies"])
 check("k1" in rep and "link in our bio" in rep["k1"] and "Try it now" in rep["k1"], "DEMO reply: points to the link page", rep.get("k1"))
 check("k2" in rep and "$49 per rep" in rep["k2"] and "k3" not in rep, "price reply unchanged; other comments left alone")
+G["comments"][first] += [{"id": "k4", "text": "demo pls", "username": "salesmgr_tx"}, {"id": "k5", "text": "DEMO", "username": "agency_fl"}, {"id": "k6", "text": "DEMO", "username": "agency_ga"}]
+bot(dict(e, IG_ALWAYS_CONTACT="1", IG_REPLY_DAY_MAX="3"), "run")
+rep = dict(G["replies"])
+check("k4" not in rep, "replies: one automatic reply per person a day")
+check(("k5" in rep) != ("k6" in rep), "replies: the daily reply limit holds (3)", sorted(rep))
 
 # ======================================================================= 2. spacing, sign-in trouble, Instagram blocked
 reset()
@@ -269,6 +274,8 @@ s = st(d)
 check(o1.count("NOTIFY: Facebook posting can't sign in") == 1 and "NOTIFY: Facebook posting can't sign in" not in o2, "Facebook key expired: one alert, not every run", (o1[-500:], o2[-300:]))
 check(not any(v.get("status") in ("failed", "retry") for v in s.get("fb", {}).values() if v.get("status") != "missed"), "Facebook key expired: nothing marked failed, so posts go out once the key is fixed")
 check(len(G["ig_posts"]) == 2 and len(G["th"]) == 2, "Facebook key expired: Instagram and Threads keep posting", (len(G["ig_posts"]), len(G["th"])))
+check("facebook refused the bot; not contacting it again" in o2 and s["meta"]["block_facebook"]["until"] > time.time() + 5 * 3600, "Facebook refused: the bot backs off for hours instead of retrying every run", o2[-400:])
+s["meta"]["block_facebook"]["until"] = time.time() - 1; json.dump(s, open(os.path.join(d, "state.json"), "w"))   # 6 hours later
 G["fb_bad"] = False; r3, o3 = bot(e, "run")
 check("NOTIFY: Facebook posting is back" in o3 and len(G["fb"]) == 1, "Facebook key fixed: posting resumes with a 'back' notice", o3[-400:])
 
@@ -280,6 +287,29 @@ s = st(d)
 check("NOTIFY: Instagram bot can't sign in" in out and any(v.get("status") == "handed" for v in s["posted"].values()), "Instagram blocked: the hand-off still goes to Vincent", out[-600:])
 check(len(G["fb"]) == 1 and len(G["th"]) == 1, "Instagram blocked: Facebook and Threads still post on schedule", (len(G["fb"]), len(G["th"])))
 check(r.returncode == 0, "Instagram blocked: the run stays green")
+check(s["meta"]["block_instagram"]["until"] > time.time() + 5 * 3600, "Instagram blocked: backoff recorded")
+calls = len(G["tokens"]); r, out = bot(e, "run"); s = st(d)
+ig_calls = [t for t in G["tokens"][calls:] if t in ("IGTOKEN", "IGTOKEN-REFRESHED")]
+check("Instagram refused the bot; not contacting it again" in out and not ig_calls, "Instagram blocked: the next run doesn't contact Instagram at all", out[-400:])
+check(sum(v.get("status") == "handed" for v in s["posted"].values()) == 2, "Instagram blocked: hand-offs keep coming during the backoff")
+G["blocked"] = False; r, out = bot(dict(e, IG_TOKEN="IGTOKEN-REFRESHED"), "run")
+check("posted" in out and not st(d)["meta"].get("block_instagram", {}).get("until"), "Instagram blocked: a new key is tried right away and clears the backoff", out[-400:])
+
+# daily ceilings: a day with 3 feed posts, 5 stories and 2 Threads-only posts keeps 2 feed (11:00 and 19:00), 3 stories, 1 thread
+d, e = env_for("caps"); e.pop("IG_DAY_CAPS")
+day = (dt.datetime.now(ny) + dt.timedelta(days=2)).strftime("%Y-%m-%d")
+img = "2-Posts/Post-22-TwoReps.jpg"
+plan = [{"id": "c-" + t.replace(":", ""), "at": day + " " + t, "type": "image", "title": "f" + t, "image": img, "caption": "x"} for t in ("11:00", "15:30", "19:00")]
+plan += [{"id": "s-" + t.replace(":", ""), "at": day + " " + t, "type": "story", "title": "s" + t, "image": img} for t in ("09:00", "12:30", "14:30", "17:30", "21:00")]
+plan += [{"id": "t-" + t.replace(":", ""), "at": day + " " + t, "type": "thread", "title": "t", "threads_text": "x {link}"} for t in ("08:30", "13:15")]
+write_pack(e["IG_CONTENT"], "Week-9", plan)
+code = "import importlib.util as u,json;s=u.spec_from_file_location('b',%r);b=u.module_from_spec(s);s.loader.exec_module(b);P=b.load_packs();print(json.dumps({p:[i['id'] for _,_,i in b.all_items(P,platform=p)] for p in ('instagram','facebook','threads')}))" % BOT
+kept = json.loads(subprocess.run([sys.executable, "-c", code], env=e, capture_output=True, text=True).stdout.strip().splitlines()[-1])
+check(kept["instagram"] == ["s-0900", "c-1100", "s-1230", "s-1430", "c-1900"], "ceilings: Instagram keeps 2 feed posts (11:00, 19:00) and the first 3 stories", kept["instagram"])
+check(kept["facebook"] == ["c-1100", "c-1900"] and kept["threads"] == ["t-0830", "c-1100", "c-1900"], "ceilings: Facebook 2 posts, Threads 2 posts + 1 thread", kept)
+json.dump({"per_day": {"instagram": {"feed": 3}}}, open(os.path.join(e["IG_CONTENT"], "limits.json"), "w"))
+kept = json.loads(subprocess.run([sys.executable, "-c", code], env=e, capture_output=True, text=True).stdout.strip().splitlines()[-1])
+check(len([i for i in kept["instagram"] if i.startswith("c-")]) == 3, "ceilings: instagram/limits.json can raise them", kept["instagram"])
 
 # quiet runs: only cross-posts due still counts as work
 reset()
