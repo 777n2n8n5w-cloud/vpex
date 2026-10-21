@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-12-28">
+<meta name="vpex-build" content="2026-12-29">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 /* Signature themes: five themes only the VPEX owner's own login can use (sig/*.css, sig.js).
@@ -9496,6 +9496,8 @@ window.VPEX_SIG = [
     if (j > 0 && msg.length > 46) return [msg.slice(0, j), msg.slice(j + 3)];
     return [msg, ""];
   }
+  // Demo offices never start a real call or open Messages (the numbers are fictional 555s); the toast says so.
+  function dialToast(what) { showToast("Dialing " + what + " \u2026" + (DEMO ? " \u2014 Demo, so no real call goes out" : "")); }
   function showToast(msg, opts) {
     opts = opts || {}; msg = String(msg == null ? "" : msg);
     var now = Date.now();
@@ -10050,12 +10052,58 @@ window.VPEX_SIG = [
       // With auto-advance off, hold on a confirmation screen before the next lead.
       state.paused = !state.autoAdvance && pendingLeads().length > 0;
     }
+    var nudge = demoNudgeDue();
+    if (nudge) pendingText = null;   // the trial card takes the text prompt's place, once
     saveState();
     render();
     renderTextPrompt();
+    if (nudge) showDemoNudge();
     showToast("Logged " + outcomeLabel(outcome) + (followMsg ? " \u00b7 " + followMsg : ""));
     setTimeout(ntRemind, 4000);
   }
+
+  /* ----- demo offices on vpexdialer.com: after the visitor's 3rd call, one card offers the free trial ----- */
+  var DEMO_SELLS = DEMO && !(CUSTOMER.firebase || CUSTOMER.app || CUSTOMER.company), demoNudgeMem = { n: 0, shown: false };
+  function demoNudgeDue() {
+    if (!DEMO_SELLS) return false;
+    hideDemoNudge();
+    var n, shown;
+    try {
+      n = (+window.sessionStorage.getItem("vpex_demo_calls") || 0) + 1; window.sessionStorage.setItem("vpex_demo_calls", String(n));
+      shown = !!window.sessionStorage.getItem("vpex_demo_nudged");
+      if (n >= 3 && !shown) window.sessionStorage.setItem("vpex_demo_nudged", "1");
+    } catch (e) { n = ++demoNudgeMem.n; shown = demoNudgeMem.shown; }
+    if (n < 3 || shown) return false;
+    demoNudgeMem.shown = true;
+    return true;
+  }
+  function showDemoNudge() {
+    var box = document.getElementById("demoNudge");
+    if (!box) { box = document.createElement("div"); box.id = "demoNudge"; box.className = "text-prompt demo-nudge"; box.setAttribute("role", "dialog"); box.setAttribute("aria-label", "Start a free trial"); document.body.appendChild(box); }
+    box.innerHTML =
+      '<div class="tp-head"><span class="tp-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span>' +
+        '<div class="tp-titles"><b>Run your own floor like this</b>' +
+        '<span>Load your list and invite your reps. They call from their own phones. 7 days free, no card needed.</span></div></div>' +
+      '<div class="tp-actions"><button type="button" class="btn-secondary" id="dnLater">Keep exploring</button>' +
+        '<button type="button" class="btn-primary" id="dnTrial">Start free trial</button></div>';
+    box.style.display = "";
+    document.body.classList.add("has-text-prompt");
+    document.getElementById("dnLater").addEventListener("click", hideDemoNudge);
+    document.getElementById("dnTrial").addEventListener("click", function () { exitDemo(IND_KEY || "insurance"); });
+  }
+  function hideDemoNudge() {
+    var box = document.getElementById("demoNudge"); if (!box || box.style.display === "none") return;
+    box.style.display = "none";
+    var tp = document.getElementById("textPrompt"); if (!tp || tp.style.display === "none") document.body.classList.remove("has-text-prompt");
+  }
+  if (DEMO) (function demoHi(tries) {   // once per visit, when the dial card is up: what this is, and that Call is safe to tap
+    setTimeout(function () {
+      try { if (window.sessionStorage.getItem("vpex_demo_hi")) return; } catch (e) {}
+      if (!document.getElementById("callBtn") || document.querySelector(".modal.show, .tour-layer")) { if (tries < 20) demoHi(tries + 1); return; }
+      try { window.sessionStorage.setItem("vpex_demo_hi", "1"); } catch (e) {}
+      showToast("Demo office with sample leads \u2014 Tap Call to try it. No real call goes out.");
+    }, tries ? 500 : 1000);
+  })(0);
 
   function advanceFromPause() {
     state.paused = false;
@@ -10862,7 +10910,7 @@ window.VPEX_SIG = [
     state.paused = false;
     state.activeView = "dial";
     saveState();
-    showToast("Dialing " + lead.phoneRaw + " \u2026");
+    dialToast(lead.phoneRaw);
     setTimeout(render, 50);
     scAutoOpen();
     setTimeout(function () { if (!document.hidden) dialFallback(href); }, 400);
@@ -12252,7 +12300,7 @@ window.VPEX_SIG = [
       '</div>';
 
     document.getElementById("recallCallBtn").addEventListener("click", function () {
-      showToast("Dialing " + lead.phoneRaw + " …");
+      dialToast(lead.phoneRaw);
     });
     document.getElementById("recallCopyBtn").addEventListener("click", function () {
       var ok = copyText(lead.phoneRaw);
@@ -12457,7 +12505,7 @@ window.VPEX_SIG = [
           outcomeButtonHtml("badnum") +
           outcomeButtonHtml("callback") +
         '</div>' +
-        '<div class="hint">' + (state.awaitingOutcome ? "How did it go with " + escapeHtml(firstName(lead.name)) + "? Tap what happened." : "Tap Call, then tap what happened when you hang up. If Call doesn\u2019t open your phone, copy the number instead.") + '</div>' +
+        '<div class="hint">' + (state.awaitingOutcome ? "How did it go with " + escapeHtml(firstName(lead.name)) + "? Tap what happened." : (DEMO ? "Try it: tap Call (it\u2019s a demo, so no real call goes out), then tap what happened." : "Tap Call, then tap what happened when you hang up. If Call doesn\u2019t open your phone, copy the number instead.")) + '</div>' +
       '</div>' +
       autoAdvanceToggleHtml();
 
@@ -12485,7 +12533,7 @@ window.VPEX_SIG = [
       setTimeout(render, 50);
       scAutoOpen();
       var href = telHref(lead.phone);
-      showToast("Dialing " + lead.phoneRaw + " …");
+      dialToast(lead.phoneRaw);
       setTimeout(function () {
         if (!document.hidden) {
           dialFallback(href);
@@ -12503,7 +12551,7 @@ window.VPEX_SIG = [
         setTimeout(render, 50);
         scAutoOpen();
         var href = a.getAttribute("href");
-        showToast("Dialing " + altText(alt) + " \u2026");
+        dialToast(altText(alt));
         setTimeout(function () { if (!document.hidden) dialFallback(href); }, 400);
       });
     });
@@ -12555,7 +12603,7 @@ window.VPEX_SIG = [
     // Only inside Claude's viewer (a locked frame) do we retry through the outer page.
     // In Safari, the Home Screen app, or a saved file, the tap itself dials; a second,
     // script-started attempt makes Safari block the site from starting calls.
-    if (!isFramed()) return;
+    if (!isFramed() || DEMO) return;
     if (dialBlurred) return; // the phone's call prompt already took over
     try { window.top.location.href = href; } catch (e) {}
   }
@@ -18173,6 +18221,7 @@ window.VPEX_SIG = [
         var body = decodeURIComponent((textA.getAttribute("href").split(/[?&]body=/)[1] || ""));
         if (tl && !textA.hasAttribute("data-retry")) logText(tl.id, textA.getAttribute("data-text-kind"), body);
         if (textA.id === "tpSend" || textA.id === "tpRetry") { pendingText = null; setTimeout(renderTextPrompt, 60); }
+        if (DEMO) { showToast("Text logged \u2014 Demo, so Messages doesn\u2019t open. In your office it opens with this text ready to send."); return; }
         showToast("Opening Messages \u2014 tap Send");
         var th = textA.getAttribute("href"), leftAtTap = leftAppCount, tlead = tl, tkind = textA.getAttribute("data-text-kind");
         // Messages opened if the app went to the background. If not: retry once with
@@ -18210,6 +18259,14 @@ window.VPEX_SIG = [
       if (dnb) { var dnl = findLeadById(dnb.getAttribute("data-dnc-toggle")); if (dnl) toggleLeadDnc(dnl); return; }
       var op = e.target.closest("[data-open-lead]");
       if (op) { openLeadProfile(op.getAttribute("data-open-lead")); return; }
+    });
+    // Demo offices: Call and Text links never leave the page (no phone prompt, no Messages, no FaceTime on a computer).
+    // Runs after every handler above, so the call still starts and the outcome buttons light up. vpexDemoDial marks a tap
+    // the app accepted, as opposed to one the call gate stopped.
+    if (DEMO) document.addEventListener("click", function (e) {
+      var a = e.target && e.target.closest ? e.target.closest('a[href^="tel:"], a[href^="sms:"]') : null;
+      if (!a || e.defaultPrevented) return;
+      e.preventDefault(); e.vpexDemoDial = true;
     });
     document.getElementById("leadModal").addEventListener("click", function (e) {
       if (e.target === this) closeLeadProfile();

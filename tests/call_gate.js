@@ -11,7 +11,7 @@ async function open(br, office, iso, c) {
   await page.route(/gstatic\.com\/firebasejs/, r => r.abort());
   await page.goto(BASE + '#demo-' + office); await page.waitForTimeout(2500);
   // stop tel: links from leaving the page; count the dials instead
-  await page.evaluate(() => document.addEventListener('click', e => { const a = e.target.closest && e.target.closest('a[href^="tel:"]'); if (a && !e.defaultPrevented) { e.preventDefault(); window.__dialed = (window.__dialed || 0) + 1; } }));   // bubbling, after the app: the app let it dial
+  await page.evaluate(() => document.addEventListener('click', e => { const a = e.target.closest && e.target.closest('a[href^="tel:"]'); if (a && (!e.defaultPrevented || e.vpexDemoDial)) { e.preventDefault(); window.__dialed = (window.__dialed || 0) + 1; } }));   // bubbling, after the app: the app let it dial (demo offices mark the call vpexDemoDial instead of leaving the page)
   return { ctx, page, errs };
 }
 const sheet = page => page.evaluate(() => {
