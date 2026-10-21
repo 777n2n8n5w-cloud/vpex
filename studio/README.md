@@ -83,6 +83,8 @@ On top of the existing fields (`id`, `at`, `type`, `title`, `caption`, `image`, 
 
 ## What has worked (update this after every week's numbers)
 
+- **The first 3 seconds are the biggest leak (first `learn` run, Oct 20):** Reels so far lose 84–95% of viewers in the first 3 seconds, and the best kept only about a third of its length (Reel I, 34%). Fix openings before anything else: the pain in big words on frame one, movement right away, no slow build or logo.
+
 - **Shared most:** industry-specific carousels ("Built for your floor", 6 shares, 418 views) and calling-hours content ("A lead in LA doesn't want your call at 7:20 AM", 74 reach).
 - **Watched longest:** "Spam Likely" (Reel H), about 15 seconds on average.
 - **Problem first, fix second:** name the pain in big words, then show the real VPEX screen that fixes it.
