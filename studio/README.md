@@ -87,6 +87,14 @@ On top of the existing fields (`id`, `at`, `type`, `title`, `caption`, `image`, 
 
 - **The first 3 seconds are the biggest leak (first `learn` run, Oct 20):** Reels so far lose 84–95% of viewers in the first 3 seconds, and the best kept only about a third of its length (Reel I, 34%). Fix openings before anything else: the pain in big words on frame one, movement right away, no slow build or logo.
 
+- **Learn run, Oct 21 (26 posts, 28 followers, before Meta's block):** nothing is a winner yet; every tag is still "testing" (no tag has 3+ posts with a clear lead), and most posts reached under 30 people, so single posts are mostly noise.
+  - Top scores: "Two reps. One lead." (w3-22, pain / shared-list) +0.91, with 5 sends on 11 reach (45%); the calling-hours carousel (w4-hours, reference / save) +0.75; Reel I "It's 5 PM" (w3-23, pov / manager-view) +0.57, the best-kept Reel at 34% of its length and the lowest skip rate (70%).
+  - Most shares: "Built for your floor" carousel, 6 sends on 71 reach (8.5%).
+  - By hook: reference +0.75 (n=1), pov +0.57 (n=1), pain +0.11 (n=3, the most-tested positive hook); number −0.29 (n=2). By call to action: save +0.32 (n=2), comment −0.12 (n=3), question −0.14 (n=2). By time: 19:00 +0.83 (n=2), 11:00 +0.06 (n=2).
+  - Biggest leak, unchanged: Reel skip rates of 84–95% (Reel I 70%). Plain product-intro Reels did worst ("One tap to call", 95% skip, −0.68).
+  - Week 5 leans on manager's-eye Reels (pov), team pain (shared list, Do Not Call, follow-ups), a save-able calling-hours reference and a "Built for" carousel; it tests quote, feature, offer and question hooks, and send/save calls to action against "Comment DEMO".
+- **Since Oct 21 Meta blocks the bot ("API access blocked"),** so learn and check can't read new numbers until the block lifts; build from these notes meanwhile.
+
 - **Shared most:** industry-specific carousels ("Built for your floor", 6 shares, 418 views) and calling-hours content ("A lead in LA doesn't want your call at 7:20 AM", 74 reach).
 - **Watched longest:** "Spam Likely" (Reel H), about 15 seconds on average.
 - **Problem first, fix second:** name the pain in big words, then show the real VPEX screen that fixes it.

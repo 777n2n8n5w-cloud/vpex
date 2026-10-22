@@ -1,6 +1,132 @@
 {
-"built": "2026-10-20T22:08-04:00",
+"built": "2026-10-22T09:32-04:00",
 "tiles": [
+{
+"id": "w5-goals",
+"at": "2026-11-02T19:00:00-05:00",
+"t": "New month. Does every rep know their number?",
+"img": "t/w5-goals.jpg",
+"go": "home",
+"c": "w5",
+"k": "image"
+},
+{
+"id": "w5-ab",
+"at": "2026-11-02T11:00:00-05:00",
+"t": "She said yes. Then nobody called.",
+"img": "t/w5-ab.jpg",
+"go": "home",
+"c": "w5",
+"k": "reel"
+},
+{
+"id": "w5-aa",
+"at": "2026-11-01T19:00:00-05:00",
+"t": "You paid for the list. Did it pay?",
+"img": "t/w5-aa.jpg",
+"go": "demo:insurance",
+"c": "w5",
+"k": "reel"
+},
+{
+"id": "w5-trial",
+"at": "2026-11-01T11:00:00-05:00",
+"t": "Set it up Sunday. Dial Monday.",
+"img": "t/w5-trial.jpg",
+"go": "trial",
+"c": "w5",
+"k": "image"
+},
+{
+"id": "w5-dst",
+"at": "2026-10-31T19:00:00-04:00",
+"t": "Clocks fall back tonight. Arizona's don't.",
+"img": "t/w5-dst.jpg",
+"go": "home",
+"c": "w5",
+"k": "image"
+},
+{
+"id": "w5-ac",
+"at": "2026-10-31T11:00:00-04:00",
+"t": "Today, Halloween (86 looks)",
+"img": "t/w5-ac.jpg",
+"go": "home",
+"c": "w5",
+"k": "reel"
+},
+{
+"id": "w5-z",
+"at": "2026-10-30T19:00:00-04:00",
+"t": "Friday 5 PM. How'd we do?",
+"img": "t/w5-z.jpg",
+"go": "home",
+"c": "w5",
+"k": "reel"
+},
+{
+"id": "w5-day1",
+"at": "2026-10-30T11:00:00-04:00",
+"t": "Your new rep's first day",
+"img": "t/w5-day1.jpg",
+"go": "home",
+"c": "w5",
+"k": "carousel"
+},
+{
+"id": "w5-mca",
+"at": "2026-10-29T19:00:00-04:00",
+"t": "Built for business funding floors",
+"img": "t/w5-mca.jpg",
+"go": "demo:mca",
+"c": "w5",
+"k": "carousel"
+},
+{
+"id": "w5-y",
+"at": "2026-10-29T11:00:00-04:00",
+"t": "Calling at the wrong hour?",
+"img": "t/w5-y.jpg",
+"go": "home",
+"c": "w5",
+"k": "reel"
+},
+{
+"id": "w5-x",
+"at": "2026-10-28T19:00:00-04:00",
+"t": "Just mail me something",
+"img": "t/w5-x.jpg",
+"go": "demo:insurance",
+"c": "w5",
+"k": "reel"
+},
+{
+"id": "w5-lists",
+"at": "2026-10-28T11:00:00-04:00",
+"t": "Two reps dialed the same list all morning",
+"img": "t/w5-lists.jpg",
+"go": "home",
+"c": "w5",
+"k": "image"
+},
+{
+"id": "w5-dnc",
+"at": "2026-10-27T19:00:00-04:00",
+"t": "Take me off your list",
+"img": "t/w5-dnc.jpg",
+"go": "home",
+"c": "w5",
+"k": "carousel"
+},
+{
+"id": "w5-w",
+"at": "2026-10-27T11:00:00-04:00",
+"t": "One rep is struggling. Which one?",
+"img": "t/w5-w.jpg",
+"go": "home",
+"c": "w5",
+"k": "reel"
+},
 {
 "id": "w4b-v",
 "at": "2026-10-26T19:00:00-04:00",
