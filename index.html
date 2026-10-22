@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-12-29">
+<meta name="vpex-build" content="2026-12-30">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 /* Signature themes: five themes only the VPEX owner's own login can use (sig/*.css, sig.js).
@@ -10101,7 +10101,7 @@ window.VPEX_SIG = [
       try { if (window.sessionStorage.getItem("vpex_demo_hi")) return; } catch (e) {}
       if (!document.getElementById("callBtn") || document.querySelector(".modal.show, .tour-layer")) { if (tries < 20) demoHi(tries + 1); return; }
       try { window.sessionStorage.setItem("vpex_demo_hi", "1"); } catch (e) {}
-      showToast("Demo office with sample leads \u2014 Tap Call to try it. No real call goes out.");
+      showToast("Demo office with sample leads \u2014 " + (document.querySelector(".lead-where.late") ? "After hours for this lead, so Call shows VPEX\u2019s time check first. No real call goes out." : "Tap Call to try it. No real call goes out."));
     }, tries ? 500 : 1000);
   })(0);
 
@@ -10218,7 +10218,7 @@ window.VPEX_SIG = [
     var warm = lead.outcome === "interested" || lead.outcome === "callback";
     if (lead.stalled) return "Parked: " + parkedWhy(lead) + ". Call only if something has changed.";
     var clk = leadZone(lead).iana ? leadClock(lead) : null;
-    if (clk && !clk.ok) return "Not now: " + clk.why + ". Skip it; it comes back when calls are allowed.";
+    if (clk && !clk.ok) return "Not now: " + clk.why + "." + (DEMO ? " On a real floor, reps skip it until calls are allowed. In this demo, tap Call to see the check." : " Skip it; it comes back when calls are allowed.");
     if (ft && ft.pinned) return "They picked this time. Open with what they told you last call.";
     if (ft && state.followupRun && state.runKind === "overdue") {
       var who = assigneeOf(ft), late = Math.floor((Date.now() - taskDueTs(ft)) / 3600000);
@@ -16335,8 +16335,11 @@ window.VPEX_SIG = [
       if (clk && !clk.ok) {
         e.preventDefault();
         var sc = slotCheck(lead, now), nx = sc && !sc.ok && sc.fix ? sc.fix : 0;
-        showGateSheet(lead, "Outside calling hours", "It\u2019s " + clk.t.label + " " + clk.t.abbr + " for " + textFirstName(lead.name) + " in " + clk.st + ": " + clk.why + "." +
-          (nx ? " Calls open " + fmtWhen(nx).replace(/^Today /, "today at ").replace(/^Tomorrow /, "tomorrow at ") + " your time." : "") +
+        var gWhen = "It\u2019s " + clk.t.label + " " + clk.t.abbr + " for " + textFirstName(lead.name) + " in " + clk.st + ": " + clk.why + ".",
+          gOpen = nx ? " Calls open " + fmtWhen(nx).replace(/^Today /, "today at ").replace(/^Tomorrow /, "tomorrow at ") + " your time." : "";
+        // Demo offices never dial, so a visitor after hours sees the check and can still try the call (Try the call is the main button).
+        if (DEMO) showGateSheet(lead, "Outside calling hours", gWhen + " On a real floor, VPEX stops the call here." + gOpen + " This is a demo, so no real call goes out. Try it anyway.", true, { demo: true, num: num });
+        else showGateSheet(lead, "Outside calling hours", gWhen + gOpen +
           " Sales calls outside these hours can break telemarketing rules. Call now only if they asked you to.", true, { wait: true, num: num });
         return false;
       }
@@ -16348,10 +16351,10 @@ window.VPEX_SIG = [
     return true;
   }
   function showGateSheet(lead, title, msg, canCall, opt) {
-    var m = document.getElementById("infoModal"), b = document.getElementById("infoModalBody"), wait = opt && opt.wait;   // wait: waiting is the main button
+    var m = document.getElementById("infoModal"), b = document.getElementById("infoModalBody"), wait = opt && opt.wait, demo = opt && opt.demo;   // wait: waiting is the main button; demo: trying the call is
     b.innerHTML = '<button class="close-x" id="gateClose" aria-label="Close">&times;</button><h3>' + escapeHtml(title) + '</h3><p class="modal-sub">' + escapeHtml(msg) + '</p>' +
-      '<div class="modal-actions"><button class="btn-' + (canCall && !wait ? 'secondary' : 'primary') + '" id="gateNo">' + (wait ? 'Wait' : canCall ? 'Not now' : 'OK') + '</button>' +
-      (canCall ? callLinkHtml(lead, state.activeView || "dial", null, "btn-" + (wait ? "secondary" : "primary") + " gate-call", '<span>Call anyway</span>', opt && opt.num).replace('<a ', '<a data-force="1" ') : '') + '</div>';
+      '<div class="modal-actions"><button class="btn-' + (canCall && !wait ? 'secondary' : 'primary') + '" id="gateNo">' + (wait || demo ? 'Wait' : canCall ? 'Not now' : 'OK') + '</button>' +
+      (canCall ? callLinkHtml(lead, state.activeView || "dial", null, "btn-" + (wait ? "secondary" : "primary") + " gate-call", '<span>' + (demo ? 'Try the call' : 'Call anyway') + '</span>', opt && opt.num).replace('<a ', '<a data-force="1" ') : '') + '</div>';
     m.classList.add("show", "gate");
     function close() { m.classList.remove("show", "gate"); }
     document.getElementById("gateClose").addEventListener("click", close);
