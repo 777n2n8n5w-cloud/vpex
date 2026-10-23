@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-12-30">
+<meta name="vpex-build" content="2026-12-31">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 /* Signature themes: five themes only the VPEX owner's own login can use (sig/*.css, sig.js).
@@ -5170,6 +5170,8 @@ window.VPEX_SIG = [
   .task-body.done { opacity: 0.5; }
   .task-top-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 3px; }
   .task-lead-name { font-size: 13px; font-weight: 600; }
+  .task-lead-name.linkish { position: relative; }
+  .task-lead-name.linkish::after { content: ""; position: absolute; left: 0; right: 0; top: -12px; bottom: -12px; }   /* 44 px to tap, same line height */
   .task-note { font-size: 12px; color: var(--text-dim); }
   .task-due { font-size: 11px; color: var(--text-faint); margin-top: 3px; }
   .task-actions { display: flex; gap: 10px; flex-shrink: 0; }
@@ -8569,6 +8571,22 @@ window.VPEX_SIG = [
     var FN = "James Olivia Robert Emma Michael Sophia David Isabella William Mia Richard Charlotte Joseph Amelia Thomas Harper Charles Evelyn Daniel Abigail Matthew Emily Anthony Ella Mark Grace Steven Chloe Andrew Lily".split(" ");
     var LN = "Walsh Bennett Carter Hughes Foster Graham Reyes Patel Kim Morgan Brooks Price Sanders Ross Coleman Jenkins Perry Powell Long Butler Barnes Fisher Hayes Myers Ford Hamilton Stone Wallace Cole West".split(" ");
     var ST = [["NY", 212], ["NJ", 201], ["FL", 305], ["CA", 415], ["TX", 713], ["IL", 312], ["MA", 617], ["GA", 404], ["AZ", 602], ["CO", 303]];
+    var ZN = { NY: "America/New_York", NJ: "America/New_York", FL: "America/New_York", MA: "America/New_York", GA: "America/New_York", TX: "America/Chicago", IL: "America/Chicago", CA: "America/Los_Angeles", AZ: "America/Phoenix", CO: "America/Denver" };
+    // Seeded follow-ups and appointments land inside the lead's calling hours: 9 AM to 8 PM their time (noon on Sundays),
+    // which is inside every demo state's rule. A time outside that moves forward an hour at a time, minutes kept.
+    var inHours = function (ts, st) {
+      var iana = ZN[st]; if (!iana || typeof Intl === "undefined") return ts;
+      try {
+        var f = new Intl.DateTimeFormat("en-US", { timeZone: iana, hourCycle: "h23", hour: "2-digit", weekday: "short" });
+        for (var g = 0; g < 48; g++) {
+          var o = {}; f.formatToParts(new Date(ts)).forEach(function (q) { o[q.type] = q.value; });
+          var h = Number(o.hour) % 24;
+          if (h >= (o.weekday === "Sun" ? 12 : 9) && h < 20) return ts;
+          ts += 3600000;
+        }
+      } catch (e) {}
+      return ts;
+    };
     var s = 42, rnd = function () { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }, pick = function (a) { return a[Math.floor(rnd() * a.length)]; };
     db["members/dAdm"] = { username: "demo", name: "You", role: "admin", active: true, lastSeen: now };
     reps.forEach(function (r, i) { db["members/" + r.uid] = { username: ["jordan", "sam", "mia"][i], name: r.name, role: "rep", active: true, lastSeen: now }; });
@@ -8605,7 +8623,7 @@ window.VPEX_SIG = [
     Object.keys(days).forEach(function (k) { db["callDays/" + k] = { calls: days[k] }; });
     var stages = ["Qualified", "Pitched", "Qualified", "Pitched", "Objection", "Pitched", "Committed", "Committed"], due = [-2, 0, 1, 3];
     worked.filter(function (id) { return leads[id].outcome === "interested" || leads[id].outcome === "callback"; }).slice(0, 22).forEach(function (id, k) {
-      var L = leads[id], sg = stages[k % stages.length], at = now + due[k % 4] * 86400000 + (k % 3) * 3600000;
+      var L = leads[id], sg = stages[k % stages.length], at = inHours(now + due[k % 4] * 86400000 + (k % 3) * 3600000, L.st);
       L.stage = sg; L.amount = (2 + Math.floor(rnd() * 20)) * IND.demo.amt;
       L.stageLog = [{ s: "Qualified", at: now - 8 * 86400000 }].concat(sg !== "Qualified" ? [{ s: sg, at: now - (k % 6) * 86400000 }] : []);
       if (sg !== "Committed") L.tasks = [{ id: "dt" + k, leadId: id, leadName: L.name, type: "Call", priority: "High", due: new Date(at).toISOString().slice(0, 10), dueAt: at, note: "Follow up on the overview", done: false, auto: true, assignee: L.owner || me }];
@@ -8624,7 +8642,7 @@ window.VPEX_SIG = [
     var closer = { uid: "dR2", name: "Sam Ortiz" };
     worked.filter(function (id) { var L = leads[id]; return L.outcome === "interested" && L.owner && L.owner.uid !== "dR2" && Date.parse(L.calledAt) > now - 6 * 86400000; }).slice(0, 8).forEach(function (id, k) {
       var L = leads[id], at = Date.parse(L.calledAt) + 120000;
-      L.handoff = { from: L.owner, to: closer, at: at, apptAt: at + (1 + k % 3) * 86400000, note: "Wants the details walked through", seen: true };
+      L.handoff = { from: L.owner, to: closer, at: at, apptAt: inHours(at + (1 + k % 3) * 86400000, L.st), note: "Wants the details walked through", seen: true };
       L.owner = closer;
     });
     var acts = {};
