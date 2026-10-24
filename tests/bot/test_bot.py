@@ -394,6 +394,29 @@ check("ci-check" not in json.dumps(L) and "Started a free trial" not in out, "le
 calls = G["insight_calls"]; r, out = bot(e, "learn")
 check(G["insight_calls"] == calls, "learn: numbers aren't asked for again within 2 days", G["insight_calls"] - calls)
 
+# learn while Instagram blocks the bot: the site numbers per post are still scored (no sign-ups in public notes)
+reset(); G["blocked"] = True
+d, e = env_for("learn-blocked")
+write_pack(e["IG_CONTENT"], "Week-9", items_main())
+t0 = time.time()
+json.dump({"posted": {"w9-reel": {"status": "handed", "at": t0 - 50 * 3600, "title": "Reel"}, "w9-car": {"status": "posted", "at": t0 - 70 * 3600},
+                      "w9-img": {"status": "posted", "at": t0 - 3 * 3600}, "w9-story": {"status": "skipped", "at": t0 - 60 * 3600}, "w9-old": {"status": "posted", "at": t0 - 40 * 86400}},
+           "fb": {"w9-car": {"status": "posted", "at": t0 - 69 * 3600}}, "th": {"w9-text": {"status": "posted", "at": t0 - 30 * 3600}},
+           "growth_days": {day: {"c": {"bio_tap~instagram~bio~w9~w9-reel~insurance~m": 7, "demo~instagram~bio~w9~w9-reel~insurance~m": 4, "demo_call~instagram~bio~w9~w9-reel~insurance~m": 2,
+                                       "trial_view~instagram~bio~w9~w9-reel~-~m": 2, "signup~instagram~bio~w9~w9-reel~insurance~m": 1,
+                                       "visit~facebook~post~w9~w9-car~-~d": 3, "visit~ci-check~-~-~-~-~-": 50}}}}, open(os.path.join(d, "state.json"), "w"))
+r, out = bot(e, "learn")
+s = st(d); SL = (s.get("meta") or {}).get("site_learnings") or {}
+rm = {x["iid"]: x for x in SL.get("rows", [])}
+check(r.returncode == 0 and "site numbers only" in out, "learn blocked: the run stays green and says it used the site numbers", out[-600:])
+check(set(rm) == {"w9-reel", "w9-car", "w9-text"}, "learn blocked: posts that went out 20 h to 35 days ago (handed ones too); not too new, too old or skipped", list(rm))
+check(rm.get("w9-reel", {}).get("taps") == 7 and rm["w9-reel"]["demos"] == 4 and rm["w9-reel"]["calls"] == 2 and rm["w9-reel"]["site"] == 11, "learn blocked: a post's bio taps, demos and demo calls", rm.get("w9-reel"))
+check(rm.get("w9-car", {}).get("visits") == 3 and rm["w9-car"]["plats"] == "IG+FB" and rm.get("w9-text", {}).get("plats") == "TH", "learn blocked: Facebook visits counted; platforms listed", [rm.get("w9-car"), rm.get("w9-text")])
+check(SL["rows"][0]["iid"] == "w9-reel" and {x["value"] for x in SL["groups"]["hook"]} >= {"quote", "number"} and all(x["verdict"] == "testing" for x in SL["groups"]["hook"]), "learn blocked: ranked, grouped by hook; one post each is still 'testing'", SL.get("groups", {}).get("hook"))
+check("post | type | went out on | bio taps" in out and "By hook (site actions per post)" in out and "Brought the most site visits: w9-reel" in out, "learn blocked: public notes have the table", out[-1500:])
+check("signup" not in out and "trial_view" not in out and "ci-check" not in json.dumps(SL) and "learnings" not in s.get("meta", {}), "learn blocked: no sign-ups or trial forms in notes; Instagram's learnings untouched", out[-800:])
+check(G["insight_calls"] == 0, "learn blocked: no insight requests while Instagram refuses")
+
 # ======================================================================= 5. the private scorecard
 reset()
 d, e = env_for("score", FB_PAGE_TOKEN="FBTOKEN", THREADS_TOKEN="THTOKEN")

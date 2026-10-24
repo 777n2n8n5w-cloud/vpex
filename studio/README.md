@@ -93,7 +93,7 @@ On top of the existing fields (`id`, `at`, `type`, `title`, `caption`, `image`, 
   - By hook: reference +0.75 (n=1), pov +0.57 (n=1), pain +0.11 (n=3, the most-tested positive hook); number −0.29 (n=2). By call to action: save +0.32 (n=2), comment −0.12 (n=3), question −0.14 (n=2). By time: 19:00 +0.83 (n=2), 11:00 +0.06 (n=2).
   - Biggest leak, unchanged: Reel skip rates of 84–95% (Reel I 70%). Plain product-intro Reels did worst ("One tap to call", 95% skip, −0.68).
   - Week 5 leans on manager's-eye Reels (pov), team pain (shared list, Do Not Call, follow-ups), a save-able calling-hours reference and a "Built for" carousel; it tests quote, feature, offer and question hooks, and send/save calls to action against "Comment DEMO".
-- **Since Oct 21 Meta blocks the bot ("API access blocked"),** so learn and check can't read new numbers until the block lifts; build from these notes meanwhile.
+- **Since Oct 21 Meta blocks the bot ("API access blocked"),** so learn and check can't read Instagram's numbers until the block lifts. Since Oct 24, learn still scores the site side while blocked: "Site-only learning" lists each post that went out (posted or handed off) with its bio taps, visits, demos and demo calls, grouped by hook, topic, format, time and platform (raw counts per post; "winning" needs 3+ posts at 1.5× the average). Build from those and these notes meanwhile.
 
 - **Shared most:** industry-specific carousels ("Built for your floor", 6 shares, 418 views) and calling-hours content ("A lead in LA doesn't want your call at 7:20 AM", 74 reach).
 - **Watched longest:** "Spam Likely" (Reel H), about 15 seconds on average.

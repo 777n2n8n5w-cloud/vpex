@@ -912,6 +912,65 @@ def learn(state, ig):
     log("Widest reach format: %s. Best time slot so far: %s." % (recs["widest_reach_format"] or "-", recs["best_slot"] or "-"))
     return rows
 
+SITE_EVENTS = ("bio_tap", "visit", "demo", "demo_call")
+def site_learn(state):
+    """While Instagram refuses the bot, learn still scores what it can: what each post that went out (posted, or handed to
+    Vincent) brought to vpexdialer.com, grouped by its tags. Raw counts, not rates (no reach without Instagram).
+    Public notes hold content numbers only: no trial forms or sign-ups."""
+    plan = {it["id"]: (when, it) for when, pk, it in all_items(load_packs(), platform=None)}
+    now, out = time.time(), {}
+    for coll, plat in (("posted", "IG"), ("fb", "FB"), ("th", "TH")):
+        for iid, rec in state.all(coll).items():
+            at = rec.get("at") or 0
+            if rec.get("status") not in ("posted", "handed") or not (now - 35 * 86400 <= at <= now - 20 * 3600): continue
+            p = out.setdefault(iid, {"iid": iid, "plats": [], "at": at, "title": rec.get("title") or iid})
+            if plat not in p["plats"]: p["plats"].append(plat)
+            p["at"] = min(p["at"], at)
+    try: g = growth_counts(state, 40)
+    except Exception as e: g = []; log("couldn't read the site counts:", scrub(e)[:200])
+    by_post = {}
+    for h in g:
+        if h["n"] and h["e"] in SITE_EVENTS:
+            b = by_post.setdefault(h["n"], dict.fromkeys(SITE_EVENTS, 0)); b[h["e"]] += h["count"]
+    rows = []
+    for iid, p in out.items():
+        when, it = plan.get(iid, (None, {}))
+        tags = item_tags(it) if it else {}
+        b = by_post.get(iid) or dict.fromkeys(SITE_EVENTS, 0)
+        local = dt.datetime.fromtimestamp(p["at"], NY)
+        rows.append({"iid": iid, "title": (it.get("title") if it else "") or p["title"], "type": (it.get("type") if it else "") or "?", "plats": "+".join(p["plats"]),
+                     "slot": (it.get("at") or "")[11:16] if it else local.strftime("%H:00"), "when": local.strftime("%a %b %d"),
+                     "taps": b["bio_tap"], "visits": b["visit"], "demos": b["demo"], "calls": b["demo_call"], "site": b["bio_tap"] + b["visit"] + b["demo"],
+                     "hook": tags.get("hook", ""), "topic": tags.get("topic", ""), "ind": tags.get("ind", "") or ("all" if it else ""), "cta": tags.get("cta", "")})
+    rows.sort(key=lambda r: (-r["site"], -r["calls"], r["iid"]))
+    avg = (sum(r["site"] for r in rows) / len(rows)) if rows else 0
+    def groups(key):
+        acc = {}
+        for r in rows: acc.setdefault(r.get(key) or "untagged", []).append(r)
+        res = []
+        for k, gr in acc.items():
+            a = sum(r["site"] for r in gr) / len(gr)
+            verdict = "testing" if len(gr) < 3 or avg <= 0 else ("winning" if a >= 1.5 * avg else "losing" if a <= 0.5 * avg else "average")
+            res.append({"value": k, "n": len(gr), "site": round(a, 1), "demos": sum(r["demos"] for r in gr), "verdict": verdict})
+        res.sort(key=lambda x: (-x["site"], -x["n"]))
+        return res
+    G = {k: groups(k) for k in ("hook", "topic", "type", "cta", "slot", "ind", "plats")}
+    def pick(k, v): return [x["value"] for x in G[k] if x["verdict"] == v and x["value"] != "untagged"]
+    recs = {"more": pick("hook", "winning")[:3] + pick("topic", "winning")[:3], "less": pick("hook", "losing")[:2] + pick("topic", "losing")[:2],
+            "top_posts": [r["iid"] for r in rows[:3] if r["site"]]}
+    state.set("meta", "site_learnings", {"at": now, "groups": G, "recs": recs, "rows": rows[:60]})
+    log("Site-only learning (Instagram's numbers wait for the block to lift): %d posts that went out 20 hours to 35 days ago, %d site actions tagged to them." % (len(rows), sum(r["site"] for r in rows)))
+    if not rows: return rows
+    log("post | type | went out on | bio taps | visits | demos | demo calls | hook / topic")
+    for r in rows:
+        log("%s | %s | %s | %d | %d | %d | %d | %s / %s" % (r["iid"][:28], r["type"][:8], r["plats"], r["taps"], r["visits"], r["demos"], r["calls"], r["hook"] or "?", r["topic"] or "?"))
+    for k, title in (("hook", "By hook"), ("topic", "By topic"), ("type", "By format"), ("cta", "By call to action"), ("slot", "By time"), ("ind", "By industry"), ("plats", "By platform")):
+        log("%s (site actions per post): %s" % (title, "; ".join("%s %.1f (n=%d, %s)" % (x["value"], x["site"], x["n"], x["verdict"]) for x in G[k])))
+    log("Brought the most site visits: " + (", ".join(recs["top_posts"]) or "no post has brought a site visit yet"))
+    log("Make more of: " + (", ".join(recs["more"]) or "nothing proven yet (needs 3+ posts of a kind)"))
+    log("Make less of: " + (", ".join(recs["less"]) or "nothing proven yet"))
+    return rows
+
 # ---------------------------------------------------------------- scorecard: the whole funnel, privately, every Monday
 def office_stats(state, now_ms):
     """Trial offices from the app's database: when each was created and the days it made calls. Counts only.
@@ -1372,7 +1431,10 @@ def main():
             if mode == "run": return handoff(state, media, note, detail)
             if mode in ("scorecard", "learn"):       # these can't read Instagram's numbers while it refuses: a warning, not a red run
                 if mode == "scorecard": scorecard(state, note, None, media)
-                raise SoftStop("Instagram is refusing the bot (%s); %s." % (detail, "the scorecard went out without Instagram's numbers" if mode == "scorecard" else "learning waits for tomorrow"))
+                if mode == "learn":
+                    try: site_learn(state)
+                    except Exception as e2: log("site-only learning stopped:", scrub(e2)[:300])
+                raise SoftStop("Instagram is refusing the bot (%s); %s." % (detail, "the scorecard went out without Instagram's numbers" if mode == "scorecard" else "learning scored the site numbers only; Instagram's numbers wait for the block to lift"))
             raise SystemExit("Instagram rejected the key: " + detail)
         clear_block(state, "instagram")
         if (state.get("meta", "signin_alert") or {}).get("msg"):

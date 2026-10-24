@@ -25,7 +25,7 @@ async function mk(br, c) {
     await p.goto(ROOT + '/ig/'); await p.waitForTimeout(1200);
     const s = await p.evaluate(() => {
       const tiles = [...document.querySelectorAll('#grid a')];
-      const small = [...document.querySelectorAll('a,button')].filter(e => e.offsetParent && !e.closest('#grid') && !e.closest('footer')).map(e => [e.textContent.trim(), Math.round(e.getBoundingClientRect().height)]).filter(x => x[1] < 44);
+      const small = [...document.querySelectorAll('a,button')].filter(e => e.offsetParent && !e.closest('#grid')).map(e => [e.textContent.trim(), Math.round(e.getBoundingClientRect().height)]).filter(x => x[1] < 44);
       return { n: tiles.length, ids: tiles.map(a => a.getAttribute('data-n')), hrefs: tiles.map(a => a.getAttribute('href')),
         inds: [...document.querySelectorAll('.inds a')].map(a => a.getAttribute('href')), trial: document.querySelector('.trial').getAttribute('href'),
         sw: document.documentElement.scrollWidth, vw: innerWidth, small, more: !document.getElementById('more').hidden,
