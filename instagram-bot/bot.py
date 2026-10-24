@@ -935,6 +935,7 @@ def site_learn(state):
     rows = []
     for iid, p in out.items():
         when, it = plan.get(iid, (None, {}))
+        if (it.get("type") if it else "") == "story" or iid.endswith("-share"): continue   # stories carry no post link of their own (learn skips them too)
         tags = item_tags(it) if it else {}
         b = by_post.get(iid) or dict.fromkeys(SITE_EVENTS, 0)
         local = dt.datetime.fromtimestamp(p["at"], NY)
@@ -943,14 +944,16 @@ def site_learn(state):
                      "taps": b["bio_tap"], "visits": b["visit"], "demos": b["demo"], "calls": b["demo_call"], "site": b["bio_tap"] + b["visit"] + b["demo"],
                      "hook": tags.get("hook", ""), "topic": tags.get("topic", ""), "ind": tags.get("ind", "") or ("all" if it else ""), "cta": tags.get("cta", "")})
     rows.sort(key=lambda r: (-r["site"], -r["calls"], r["iid"]))
-    avg = (sum(r["site"] for r in rows) / len(rows)) if rows else 0
+    total = sum(r["site"] for r in rows)
+    avg = (total / len(rows)) if rows else 0
+    SITE_MIN = 20                                   # below this many site actions in all, every group is still noise: no verdicts
     def groups(key):
         acc = {}
         for r in rows: acc.setdefault(r.get(key) or "untagged", []).append(r)
         res = []
         for k, gr in acc.items():
             a = sum(r["site"] for r in gr) / len(gr)
-            verdict = "testing" if len(gr) < 3 or avg <= 0 else ("winning" if a >= 1.5 * avg else "losing" if a <= 0.5 * avg else "average")
+            verdict = "testing" if len(gr) < 3 or avg <= 0 or total < SITE_MIN or k == "untagged" else ("winning" if a >= 1.5 * avg else "losing" if a <= 0.5 * avg else "average")
             res.append({"value": k, "n": len(gr), "site": round(a, 1), "demos": sum(r["demos"] for r in gr), "verdict": verdict})
         res.sort(key=lambda x: (-x["site"], -x["n"]))
         return res
@@ -967,7 +970,7 @@ def site_learn(state):
     for k, title in (("hook", "By hook"), ("topic", "By topic"), ("type", "By format"), ("cta", "By call to action"), ("slot", "By time"), ("ind", "By industry"), ("plats", "By platform")):
         log("%s (site actions per post): %s" % (title, "; ".join("%s %.1f (n=%d, %s)" % (x["value"], x["site"], x["n"], x["verdict"]) for x in G[k])))
     log("Brought the most site visits: " + (", ".join(recs["top_posts"]) or "no post has brought a site visit yet"))
-    log("Make more of: " + (", ".join(recs["more"]) or "nothing proven yet (needs 3+ posts of a kind)"))
+    log("Make more of: " + (", ".join(recs["more"]) or ("nothing proven yet (needs 3+ posts of a kind)" if total >= SITE_MIN else "too few site visits so far (%d of %d) to call a winner" % (total, SITE_MIN))))
     log("Make less of: " + (", ".join(recs["less"]) or "nothing proven yet"))
     return rows
 

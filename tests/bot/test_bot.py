@@ -416,6 +416,25 @@ check(SL["rows"][0]["iid"] == "w9-reel" and {x["value"] for x in SL["groups"]["h
 check("post | type | went out on | bio taps" in out and "By hook (site actions per post)" in out and "Brought the most site visits: w9-reel" in out, "learn blocked: public notes have the table", out[-1500:])
 check("signup" not in out and "trial_view" not in out and "ci-check" not in json.dumps(SL) and "learnings" not in s.get("meta", {}), "learn blocked: no sign-ups or trial forms in notes; Instagram's learnings untouched", out[-800:])
 check(G["insight_calls"] == 0, "learn blocked: no insight requests while Instagram refuses")
+check("w9-story" not in rm and "too few site visits so far" in out, "learn blocked: stories left out; no winner called on a handful of visits", out[-500:])
+# with enough visits, a hook on 3+ posts well above the average is called winning
+from importlib import util as _u
+_sp = _u.spec_from_file_location("botmod2", BOT); B2 = _u.module_from_spec(_sp); _sp.loader.exec_module(B2)
+class _S:
+    def __init__(s, d): s.d = d; s.db = None; s.data = d
+    def all(s, c): return dict(s.d.get(c, {}))
+    def set(s, c, k, v): s.d.setdefault(c, {})[k] = v
+pk = {"posted": {}, "growth_days": {day: {"c": {}}}}
+items = [("p%d" % i, "pain" if i < 3 else "news") for i in range(6)]
+for i, (iid, hk) in enumerate(items):
+    pk["posted"][iid] = {"status": "posted", "at": t0 - 30 * 3600}
+    pk["growth_days"][day]["c"]["visit~facebook~post~w9~%s~-~d" % iid] = 9 if hk == "pain" else 1
+B2.load_packs = lambda: []
+B2.all_items = lambda packs, platform=None: [(None, None, {"id": iid, "type": "image", "title": iid, "tags": {"hook": hk}}) for iid, hk in items]
+_st = _S(pk); _rows = B2.site_learn(_st)
+_v = {x["value"]: x["verdict"] for x in _st.d["meta"]["site_learnings"]["groups"]["hook"]}
+check(len(_rows) == 6 and sum(r["site"] for r in _rows) == 30 and _v == {"pain": "winning", "news": "losing"} and _st.d["meta"]["site_learnings"]["recs"]["more"] == ["pain"],
+      "site learn: with 30 visits, a hook on 3 posts well above average wins, one well below loses", _v)
 
 # ======================================================================= 5. the private scorecard
 reset()
