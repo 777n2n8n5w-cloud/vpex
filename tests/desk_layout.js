@@ -83,6 +83,7 @@ async function demo(br, o, c) {
     const ctx = await br.newContext({ timezoneId: 'America/New_York' });
     const desk = await ctx.newPage(); await desk.setViewportSize({ width: 1440, height: 900 });
     const errs = []; desk.on('pageerror', e => errs.push(e.message));
+    await desk.clock.install({ time: new Date() });
     await desk.route(/gstatic\.com\/firebasejs/, r => r.abort());
     await desk.goto(BASE + '#mockbench'); await desk.waitForTimeout(500);
     await desk.evaluate(() => {
@@ -94,7 +95,9 @@ async function demo(br, o, c) {
     await desk.goto(BASE); await desk.waitForTimeout(2800);
     const phone = await ctx.newPage(); await phone.setViewportSize({ width: 390, height: 844 });
     phone.on('pageerror', e => errs.push('phone: ' + e.message));
+    await phone.clock.install({ time: new Date() });
     await phone.route(/gstatic\.com\/firebasejs/, r => r.abort());
+    await phone.addInitScript(() => { const mm = window.matchMedia.bind(window); window.matchMedia = q => /pointer:\s*coarse/.test(q) ? { matches: true, media: q, onchange: null, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {}, dispatchEvent() { return false; } } : mm(q); });   // a touch phone
     await phone.addInitScript(() => { try { sessionStorage.setItem('__mocksess', JSON.stringify({ uid: 'dR2', email: 'sam@dovetail-f863c.firebaseapp.com' })); } catch (e) {} window.addEventListener('click', e => { const a = e.target.closest && e.target.closest('a[href^="tel:"]'); if (a) e.preventDefault(); }); });
     await phone.goto(BASE); await phone.waitForTimeout(2800);
     const D0 = await lay(desk);
@@ -134,6 +137,41 @@ async function demo(br, o, c) {
     await phone.evaluate(() => document.querySelector('.out-btn[data-outcome="noanswer"]').click()); await desk.waitForTimeout(900);
     const k2 = await desk.evaluate(() => ({ n: +document.querySelector('#deskLive .dl-kpi b').textContent, focus: document.activeElement && document.activeElement.id }));
     check('live: panel updates while typing a note on the computer (focus kept)', k2.n === k1 + 1 && k2.focus === 'leadNotesInput', { k1, k2 });
+    // "On a call": tapping Call on the phone shows the call on the computer, with a running timer; logging it clears it
+    {
+      await desk.evaluate(() => document.activeElement && document.activeElement.blur());
+      const oc = () => desk.evaluate(() => { const c = document.querySelector('#deskLive .dl-oncall'); return c ? { name: (c.querySelector('.dl-oc-name') || {}).textContent, src: (c.querySelector('.dl-oc-src') || {}).textContent, t: (c.querySelector('.dl-oc-t') || {}).textContent, sub: (c.querySelector('.dl-oc-sub') || {}).textContent || '' } : null; });
+      check('live: nothing shown as on a call before Call is tapped', !(await oc()), await oc());
+      await phone.clock.fastForward(30000); await desk.clock.fastForward(30000); await phone.waitForTimeout(300);   // past the phone's spacing between dials
+      const who = await phone.evaluate(() => document.querySelector('.lead-name').textContent.trim());
+      const t0 = Date.now();
+      await phone.evaluate(() => document.getElementById('callBtn').click());
+      await phone.evaluate(() => { const g = document.querySelector('#infoModalBody .gate-call'); if (g && document.getElementById('infoModal').classList.contains('show')) g.click(); });
+      let got = null; while (Date.now() - t0 < 3000) { got = await oc(); if (got && got.name === who) break; await desk.waitForTimeout(50); }
+      const ms = Date.now() - t0; if (process.env.VERBOSE) console.log('on-call latency', ms, 'ms');
+      check('live: Call on the phone shows "On a call from your phone" on the computer within 1.5 s', got && got.name === who && got.src === 'from your phone' && ms < 1500 && /^0:0\d$/.test(got.t) && /555/.test(got.sub), { got, who, ms });
+      await desk.waitForTimeout(3200);
+      const later = await oc();
+      check('live: the call timer runs', later && /^0:0[1-9]$/.test(later.t) && later.t !== got.t, { got, later });
+      check('live: the phone keeps its own layout (no Live panel)', !(await phone.evaluate(() => document.body.classList.contains('desk') || !!document.querySelector('#deskLive .dl-oncall:not([hidden])') && getComputedStyle(document.getElementById('deskLive')).display !== 'none')));
+      const t1 = Date.now();
+      await phone.evaluate(() => document.querySelector('.out-btn[data-outcome="notinterested"]').click());
+      let gone = null; while (Date.now() - t1 < 3000) { gone = await oc(); if (!gone) break; await desk.waitForTimeout(50); }
+      const top = await desk.evaluate(() => (document.querySelector('#deskLive .dl-call .dl-name') || {}).textContent);
+      check('live: logging the outcome clears "On a call" and adds the call', !gone && top === who && Date.now() - t1 < 1500, { gone, top, who });
+      // the desk itself dialing shows "here"
+      await desk.clock.fastForward(30000); await desk.waitForTimeout(300);
+      await desk.evaluate(() => { window.__noTel = 1; document.addEventListener('click', e => { const a = e.target.closest && e.target.closest('a[href^="tel:"]'); if (a) e.preventDefault(); }); document.getElementById('callBtn').click(); });
+      await desk.evaluate(() => { const g = document.querySelector('#infoModalBody .gate-call'); if (g && document.getElementById('infoModal').classList.contains('show')) g.click(); });
+      await desk.waitForTimeout(600);
+      const here = await oc();
+      check('live: a call started on the computer says "here"', here && here.src === 'here', here);
+      await desk.evaluate(() => document.querySelector('.out-btn[data-outcome="noanswer"]').click()); await desk.waitForTimeout(600);
+      check('live: and clears when logged', !(await oc()));
+      // the activity record holds only the small presence note (no phone number)
+      const rec = await desk.evaluate(() => { const db = JSON.parse(localStorage.getItem('__mockfs') || '{}'); const k = Object.keys(db).filter(x => /callDays\/act_/.test(x)).sort().pop(); return k ? db[k].live : null; });
+      check('live: presence note saved as live.<uid> with no phone number', rec && rec.dR2 && rec.dR2.s === 'idle' && !/555/.test(JSON.stringify(rec)), rec);
+    }
     check('live: no page errors', errs.length === 0, errs);
     await desk.evaluate(() => { localStorage.removeItem('vpex_mockbench'); localStorage.removeItem('__mockfs'); });
     await ctx.close();

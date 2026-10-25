@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-01-02">
+<meta name="vpex-build" content="2027-01-03">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 /* Signature themes: five themes only the VPEX owner's own login can use (sig/*.css, sig.js).
@@ -7524,6 +7524,23 @@ window.VPEX_SIG = [
     .dl-fu span { font-size: 12px; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .dl-fu span.late { color: color-mix(in srgb, var(--danger) 70%, var(--text)); font-weight: 650; }
     .dl-foot { font-size: 11.5px; color: var(--text-faint); text-align: right; }
+    .dl-oncall { border: 1.5px solid color-mix(in srgb, var(--interested) 55%, var(--border)); background: color-mix(in srgb, var(--interested) 10%, var(--surface-raised));
+      border-radius: var(--radius-m); padding: 12px 13px; display: flex; flex-direction: column; gap: 4px; animation: dlIn 0.35s ease-out; }
+    @keyframes dlIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+    .dl-oc-top { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--text); }
+    .dl-oc-top b { font-weight: 750; color: color-mix(in srgb, var(--interested) 70%, var(--text)); }
+    .dl-oc-src { color: var(--text-dim); }
+    .dl-oc-t { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 750; font-size: 14px; color: var(--text); }
+    .dl-oc-dot { display: inline-block; flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--interested); margin-right: 2px; vertical-align: 1px;
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--interested) 60%, transparent); animation: dlPulse 1.6s ease-out infinite; }
+    .dl-oc-name { text-align: left; font: inherit; font-family: var(--font-display, inherit); font-size: 19px; font-weight: 750; color: var(--text); background: none; border: 0; padding: 0; min-height: 30px; cursor: pointer;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dl-oc-name:hover { text-decoration: underline; }
+    .dl-oc-sub { font-size: 12.5px; color: var(--text-dim); }
+    .dl-oc-notes { font-size: 12.5px; color: var(--text); line-height: 1.4; margin-top: 2px; padding-top: 6px; border-top: 1px solid var(--border); }
+    .dl-oc-row b { display: flex; align-items: center; gap: 6px; }
+    html[data-motion="off"] .dl-oc-dot, html[data-motion="off"] .dl-oncall { animation: none; }
+    @media (prefers-reduced-motion: reduce) { .dl-oc-dot, .dl-oncall { animation: none; } }
     /* hover affordances a mouse expects */
     body.desk .view-tab:not(.active):hover, body.desk .icon-btn:hover { color: var(--text); background: var(--surface-raised); }
   }
@@ -8953,6 +8970,7 @@ window.VPEX_SIG = [
 
   function saveState() {
     state.savedAt = Date.now();
+    if (TEAM.on && TEAM.me) presenceSync();
     clearTimeout(localTimer);
     localTimer = setTimeout(writeLocalNow, 120);
     if (cloud.ready) scheduleCloud(2500);
@@ -12904,7 +12922,7 @@ window.VPEX_SIG = [
       The phone layout, spread over the whole screen: the tabs move into the top bar, today's progress, the list
       filters and Up next sit on the left, the lead in the middle, and a Live panel on the right. The Live panel
       reads the same shared call log the phone writes to, so calls logged on a phone show up here within a second. **/
-  var DESK = { on: false, mq: null, slots: {}, seen: null, scope: "me", tick: null };
+  var DESK = { on: false, mq: null, slots: {}, seen: null, scope: "me", tick: null, sec: null };
   try { DESK.scope = window.localStorage.getItem("vpex_desk_scope") === "floor" ? "floor" : "me"; } catch (e) {}
   function deskSetup() {
     var shell = document.querySelector(".shell"); if (!shell || document.getElementById("deskLeft")) return;
@@ -12937,12 +12955,42 @@ window.VPEX_SIG = [
       if (hdr && right) put("viewTabs", hdr, right);
       ["progressWrap", "queueControls", "queueBlock"].forEach(function (id) { put(id, left); });
       clearInterval(DESK.tick); DESK.tick = setInterval(function () { if (!document.hidden) deskRenderLive(); }, 30000);
+      clearInterval(DESK.sec); DESK.sec = setInterval(function () {
+        var ts = document.querySelectorAll("#deskLive time[data-since]"); if (!ts.length) return;
+        ts.forEach(function (t) { var at = +t.getAttribute("data-since"); if (Date.now() - at >= PRES_STALE) { deskRenderLive(); return; } t.textContent = presClock(at); });
+      }, 1000);
     } else {
       ["viewTabs", "progressWrap", "queueControls", "queueBlock"].forEach(function (id) { var m = DESK.slots[id]; if (m && m.parentNode) put(id, m.parentNode, m.nextSibling); });
-      clearInterval(DESK.tick);
+      clearInterval(DESK.tick); clearInterval(DESK.sec);
     }
     deskRenderLive();
   }
+  // "On a call" for the computer: when Call (or Copy number) starts a call, this phone writes a small note to today's
+  // activity record (callDays/act_<date>, field live.<uid>: lead, name, start time, phone or computer); logging the
+  // outcome sets it back to idle. Every login of the office already listens to that record, so the computer shows the
+  // call within a second. Uses the existing database rules (the same record the note activity uses).
+  var PRES = { key: "", dev: "computer" };
+  try { PRES.dev = window.matchMedia("(pointer: coarse)").matches ? "phone" : "computer"; } catch (e) {}
+  var PRES_STALE = 20 * 60000;   // a call left open (app closed mid-call) stops showing after 20 minutes
+  function presenceSync() {
+    if (!TEAM.on || !TEAM.me || !TEAM.db) return;
+    var key = state.awaitingOutcome ? String(state.liveAt || "on") : "";
+    if (key === PRES.key) return;
+    var was = PRES.key; PRES.key = key;
+    if (key) {
+      var l = currentLead(); if (!l) { PRES.key = was; return; }
+      actWrite("live", TEAM.me.uid, { s: "call", lead: l.id, name: String(l.name || "").slice(0, 80), at: state.liveAt || Date.now(), dev: PRES.dev, by: String(TEAM.me.name || "").slice(0, 60) }).catch(function () {});
+    } else if (was) {
+      actWrite("live", TEAM.me.uid, { s: "idle", at: Date.now(), dev: PRES.dev, by: String(TEAM.me.name || "").slice(0, 60) }).catch(function () {});
+    }
+    if (DESK.on) Promise.resolve().then(deskRenderLive);
+  }
+  function presenceNow() {   // who is on a call right now, from today's activity record (newest first)
+    var out = [], live = ((TEAM.acts || {})[actDocId()] || {}).live || {}, now = Date.now();
+    Object.keys(live).forEach(function (uid) { var p = live[uid] || {}; if (p.s === "call" && p.lead && now - (p.at || 0) < PRES_STALE && (p.at || 0) <= now + 60000) out.push({ uid: uid, p: p }); });
+    return out.sort(function (a, b) { return (b.p.at || 0) - (a.p.at || 0); });
+  }
+  function presClock(at) { var s = Math.max(0, Math.floor((Date.now() - at) / 1000)); return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
   function deskTime(iso) { var d = new Date(iso); return isNaN(d) ? "" : d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); }
   function deskRenderLive() {
     var el = document.getElementById("deskLive");
@@ -12956,6 +13004,7 @@ window.VPEX_SIG = [
     }
     var n = { calls: calls.length, talk: 0, interested: 0, callback: 0, vm: 0 };
     calls.forEach(function (c) { if (CONTACT_OUTCOMES[c.outcomeKey]) n.talk++; if (c.outcomeKey === "interested") n.interested++; if (c.outcomeKey === "callback") n.callback++; if (c.outcomeKey === "voicemail") n.vm++; });
+    var lm0 = leadMap();
     var first = !DESK.seen, seen = DESK.seen || {}, fresh = {}, tnow = Date.now();
     calls.forEach(function (c) { var id = c.id || (c.timestamp + c.name); if (!seen[id]) seen[id] = first ? 1 : tnow + 2400; if (seen[id] > tnow) fresh[id] = 2400 - (seen[id] - tnow); });   // new calls flash once, even across redraws
     DESK.seen = seen;
@@ -12966,6 +13015,25 @@ window.VPEX_SIG = [
       '<div class="dl-sub">' + (TEAM.on || DEMO ? "Calls logged on your phone show up here right away." : "Sign in to your office to see calls from your phone here.") + '</div></div>' +
       '<span class="dl-live' + (liveOk ? " on" : "") + '" title="' + escapeHtml(stTxt) + '"><i aria-hidden="true"></i>' + escapeHtml(stTxt) + '</span></div>';
     if (teamy) h += '<div class="dl-scope" role="group" aria-label="Whose calls"><button type="button" data-desk-scope="me" class="' + (floor ? "" : "on") + '" aria-pressed="' + !floor + '">Me</button><button type="button" data-desk-scope="floor" class="' + (floor ? "on" : "") + '" aria-pressed="' + floor + '">Whole floor</button></div>';
+    var onc = presenceNow().filter(function (x) { return floor || (TEAM.me && x.uid === TEAM.me.uid); });
+    if (onc.length) {
+      var mine = TEAM.me && onc[0].uid === TEAM.me.uid;
+      if (!floor && mine) {
+        var p0 = onc[0].p, here = !!PRES.key && p0.dev === PRES.dev, pl = lm0[p0.lead] || null, pc = pl ? leadClock(pl) : null;
+        h += '<div class="dl-oncall" role="status"><div class="dl-oc-top"><span class="dl-oc-dot" aria-hidden="true"></span><b>On a call</b><span class="dl-oc-src">' + (here ? "here" : (p0.dev === "phone" ? "from your phone" : "from your computer")) + '</span>' +
+          '<time class="dl-oc-t" data-since="' + (+p0.at) + '">' + presClock(p0.at) + '</time></div>' +
+          '<button type="button" class="dl-oc-name linkish" data-desk-lead="' + escapeHtml(p0.lead) + '">' + escapeHtml(p0.name || (pl && pl.name) || "Lead") + '</button>' +
+          (pl ? '<div class="dl-oc-sub">' + escapeHtml(formatPhoneDisplay(pl.phoneRaw)) + (pc && pc.st ? " \u00b7 " + escapeHtml(pc.st) : "") + (pl.stage ? " \u00b7 " + escapeHtml(pl.stage) : "") + '</div>' : '') +
+          (pl && pl.notes ? '<div class="dl-oc-notes">' + escapeHtml(String(pl.notes).slice(0, 160)) + '</div>' : '') + '</div>';
+      } else {
+        h += '<div class="dl-sec">On calls now <span>' + onc.length + '</span></div><ul class="dl-fus">';
+        onc.slice(0, 8).forEach(function (x) {
+          var me = TEAM.me && x.uid === TEAM.me.uid;
+          h += '<li><button type="button" class="dl-fu dl-oc-row" data-desk-lead="' + escapeHtml(x.p.lead) + '"><b><span class="dl-oc-dot" aria-hidden="true"></span>' + escapeHtml(me ? "You" : firstName(x.p.by || "Rep")) + ' \u00b7 ' + escapeHtml(x.p.name || "Lead") + '</b><span><time data-since="' + (+x.p.at) + '">' + presClock(x.p.at) + '</time></span></button></li>';
+        });
+        h += '</ul>';
+      }
+    }
     h += '<div class="dl-kpis">' + kpi(n.calls, n.calls === 1 ? "call" : "calls") + kpi(n.talk, "talked", "talk") + kpi(n.interested, "interested", "int") + kpi(n.callback, n.callback === 1 ? "callback" : "callbacks", "cb") + '</div>';
     if (n.calls) h += '<div class="dl-rate">Reached ' + Math.round(n.talk * 100 / n.calls) + '% · ' + n.vm + ' voicemail' + (n.vm === 1 ? "" : "s") + '</div>';
     h += '<div class="dl-sec">Latest calls</div>';
@@ -12982,7 +13050,7 @@ window.VPEX_SIG = [
       });
       h += '</ol>';
     }
-    var lm = leadMap(), now = Date.now(), end = new Date(); end.setHours(23, 59, 59, 999);
+    var lm = lm0, now = Date.now(), end = new Date(); end.setHours(23, 59, 59, 999);
     var due = dueTasks(), later = state.tasks.filter(function (t) { var ts = taskDueTs(t); return !t.done && t.leadId && myTask(t) && ts > now && ts <= end.getTime() && lm[t.leadId] && !isDnc(lm[t.leadId]); })
       .sort(function (a, b) { return taskDueTs(a) - taskDueTs(b); });
     var row = function (t, late) { var l = lm[t.leadId] || {}; return '<li><button type="button" class="dl-fu" data-desk-lead="' + escapeHtml(t.leadId) + '"><b>' + escapeHtml(l.name || "Lead") + '</b><span class="' + (late ? "late" : "") + '">' + escapeHtml(late ? "Due now" : deskTime(taskDueTs(t))) + (t.note ? " · " + escapeHtml(String(t.note).slice(0, 60)) : "") + '</span></button></li>'; };
