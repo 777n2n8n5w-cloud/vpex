@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2026-12-31">
+<meta name="vpex-build" content="2027-01-01">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 /* Signature themes: five themes only the VPEX owner's own login can use (sig/*.css, sig.js).
@@ -9538,6 +9538,8 @@ window.VPEX_SIG = [
     t.setAttribute("role", n.kind === "err" ? "alert" : "status");
     if (act) t.querySelector(".nt-act").addEventListener("click", function (e) { e.stopPropagation(); ntHide(); try { act.fn(); } catch (x) {} });
     if (NT.cur) { t.classList.remove("bump"); void t.offsetWidth; t.classList.add("bump"); }
+    var dpl = document.querySelector(".demo-pill"), dpb = dpl ? dpl.getBoundingClientRect().bottom : 0;   // demo offices: drop below the demo bar so Start free trial and Exit stay tappable
+    t.style.top = dpb > 0 ? Math.round(dpb + 6) + "px" : "";
     t.classList.add("show");
     NT.cur = n; NT.shownAt = Date.now(); ntTimer(n);
   }
