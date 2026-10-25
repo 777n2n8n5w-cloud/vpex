@@ -37,7 +37,7 @@ jobs:
     env:
       PROJECT: dovetail-f863c
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Wait for the keys
         id: gate
@@ -53,19 +53,19 @@ jobs:
           fi
 
       - if: steps.gate.outputs.ready == 'yes'
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
         with:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
 
       - if: steps.gate.outputs.ready == 'yes'
-        uses: google-github-actions/setup-gcloud@v2
+        uses: google-github-actions/setup-gcloud@v3
 
       - if: steps.gate.outputs.ready == 'yes'
         name: Turn on storage and the database
         run: gcloud services enable storage.googleapis.com firestore.googleapis.com fcm.googleapis.com --project "$PROJECT" >/dev/null
 
       - if: steps.gate.outputs.ready == 'yes'
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
