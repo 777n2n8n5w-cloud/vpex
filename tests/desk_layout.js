@@ -57,6 +57,21 @@ async function demo(br, o, c) {
       check(tag + ' ' + v + ': full width, side panels hidden', L.view === v && !L.left.vis && !L.live.vis && L.main.w >= Math.min(1100, L.vw - 80) && L.sw <= L.vw, [L.main, L.vw]);
       if (v === 'pipeline') check(tag + ' pipeline stages side by side', L.stages.length >= 3 && L.stages[1][0] > L.stages[0][0] && Math.abs(L.stages[1][1] - L.stages[0][1]) < 4, L.stages);
     }
+    // polish: toolbar on one row (History), toasts bottom-right, the profile as a right-hand panel, outcomes in 3 columns from 1200 px
+    await page.evaluate(() => document.querySelector('#viewTabs [data-view="history"]').click()); await page.waitForTimeout(350);
+    const tb = await page.evaluate(() => { const r = s => { const e = document.querySelector(s); if (!e) return null; const b = e.getBoundingClientRect(); return { t: Math.round(b.top), b: Math.round(b.bottom), l: Math.round(b.left), r: Math.round(b.right) }; }; return { rep: r('#mainArea > .qc-order select'), search: r('#mainArea > .crm-search'), chips: r('#filterRow'), list: r('#histListWrap') }; });
+    check(tag + ' History: rep, search and filters on one toolbar row above the list', tb.rep && tb.search && tb.chips && Math.abs(tb.rep.t - tb.search.t) < 12 && tb.search.r <= tb.chips.l && tb.chips.t < tb.search.b && tb.list.t >= Math.max(tb.search.b, tb.rep.b), tb);
+    await page.evaluate(() => document.querySelector('#viewTabs [data-view="dial"]').click()); await page.waitForTimeout(350);
+    await page.clock.fastForward(20000); await page.waitForTimeout(100);
+    await page.evaluate(() => document.getElementById('callBtn').click()); await page.waitForTimeout(500);
+    const ui = await page.evaluate(() => { const t = document.getElementById('toast').getBoundingClientRect(), o = [...document.querySelectorAll('#outcomesRow .out-btn')].map(b => Math.round(b.getBoundingClientRect().top)); return { tr: Math.round(t.right), tb: Math.round(t.bottom), vw: innerWidth, vh: innerHeight, rows: new Set(o).size, n: o.length }; });
+    check(tag + ' toast sits at the bottom right', ui.tr >= ui.vw - 40 && ui.tb >= ui.vh - 40 && ui.tb <= ui.vh, ui);
+    check(tag + ' outcomes: ' + (c.w >= 1200 ? '3 columns' : '2 columns'), ui.n === 6 && ui.rows === (c.w >= 1200 ? 2 : 3), ui);
+    await page.evaluate(() => document.querySelector('.out-btn[data-outcome="noanswer"]').click()); await page.waitForTimeout(600);
+    await page.evaluate(() => document.querySelector('#deskLive [data-desk-lead]:not([disabled])').click()); await page.waitForTimeout(500);
+    const dr = await page.evaluate(() => { const b = document.querySelector('#leadModal .modal').getBoundingClientRect(); return { l: Math.round(b.left), r: Math.round(b.right), t: Math.round(b.top), h: Math.round(b.height), vw: innerWidth, vh: innerHeight, open: document.getElementById('leadModal').classList.contains('show') }; });
+    check(tag + ' lead profile opens as a full-height panel on the right', dr.open && dr.r >= dr.vw - 1 && dr.l >= dr.vw - 580 && dr.t <= 1 && dr.h >= dr.vh - 2, dr);
+    await page.keyboard.press('Escape'); await page.waitForTimeout(300);
     check(tag + ' no page errors', errs.length === 0, errs);
     await ctx.close();
   }
