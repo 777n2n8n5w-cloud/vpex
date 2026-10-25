@@ -357,6 +357,7 @@ repeating-linear-gradient(90deg, #22050A 0, #4A0C13 16px, #64141B 24px, #3E0A10 
 html.sig.sig[data-theme="sig-premiere"] #sigArt .pm-cl { left: 0; -webkit-mask: linear-gradient(90deg, #000 55%, transparent); mask: linear-gradient(90deg, #000 55%, transparent); }
 html.sig.sig[data-theme="sig-premiere"] #sigArt .pm-cr { right: 0; -webkit-mask: linear-gradient(270deg, #000 55%, transparent); mask: linear-gradient(270deg, #000 55%, transparent); }
 @media (max-width: 700px) { html.sig.sig[data-theme="sig-premiere"] #sigArt .pm-curtain { display: none; } }
+html.sig.sig[data-theme="sig-premiere"] body.desk #sigArt .pm-curtain { width: 22px; }
 html.sig.sig[data-theme="sig-premiere"] #sigArt .pm-flare { position: absolute; left: -20%; right: -20%; top: 0; height: 120px;
 background: radial-gradient(50% 2.5% at 50% 6%, rgba(160,215,255,0.75), transparent), radial-gradient(18% 8% at 50% 6%, rgba(110,193,255,0.35), transparent),
 radial-gradient(4% 12% at 50% 5%, rgba(220,240,255,0.5), transparent); opacity: 0.55; }

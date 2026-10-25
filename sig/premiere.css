@@ -108,6 +108,8 @@
 @T #sigArt .pm-cl { left: 0; -webkit-mask: linear-gradient(90deg, #000 55%, transparent); mask: linear-gradient(90deg, #000 55%, transparent); }
 @T #sigArt .pm-cr { right: 0; -webkit-mask: linear-gradient(270deg, #000 55%, transparent); mask: linear-gradient(270deg, #000 55%, transparent); }
 @media (max-width: 700px) { @T #sigArt .pm-curtain { display: none; } }
+/* the computer layout fills the screen: the curtains become a thin velvet edge so they never cover the side panels */
+@T body.desk #sigArt .pm-curtain { width: 22px; }
 /* the projector's anamorphic flare at the top of the frame */
 @T #sigArt .pm-flare { position: absolute; left: -20%; right: -20%; top: 0; height: 120px;
   background: radial-gradient(50% 2.5% at 50% 6%, rgba(160,215,255,0.75), transparent), radial-gradient(18% 8% at 50% 6%, rgba(110,193,255,0.35), transparent),

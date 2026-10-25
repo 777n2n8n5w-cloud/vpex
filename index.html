@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-01-01">
+<meta name="vpex-build" content="2027-01-02">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 /* Signature themes: five themes only the VPEX owner's own login can use (sig/*.css, sig.js).
@@ -7432,6 +7432,101 @@ window.VPEX_SIG = [
   .sig-entry-t b { font-size: 15.5px; }
   .sig-entry-t span { font-size: 12.5px; color: var(--text-dim); }
   .sig-entry:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ---- Computer layout (1100 px and wider; body.desk is set by the same media query in deskApply) ----
+     Top bar with the tabs, then three columns: today + Up next | the lead | Live. Other tabs use the full width. */
+  .desk-col { display: none; }
+  @media (min-width: 1100px) {
+    body.desk .shell { max-width: none; padding: 0 28px 40px; display: grid; grid-template-columns: clamp(280px, 19vw, 360px) minmax(0, 1fr) clamp(320px, 22vw, 420px); grid-template-rows: auto auto 1fr; align-content: start; column-gap: 28px; align-items: start; }
+    body.desk header.top { grid-column: 1 / -1; flex-wrap: nowrap; gap: 24px; padding: 14px 0; margin: 0 -28px; padding-left: 28px; padding-right: 28px; }
+    body.desk .brand { flex: 0 1 260px; }
+    body.desk .brand .name { font-size: 20px; }
+    body.desk header.top .view-tabs { flex: 0 1 620px; margin: 0 auto; }
+    body.desk .view-tab { font-size: 13.5px; min-height: 38px; padding: 9px 14px; }
+    body.desk .header-right { display: flex; gap: 8px; }
+    body.desk .header-right .icon-btn { width: 40px; height: 40px; }
+    body.desk #syncBanner { grid-column: 1 / -1; }
+    body.desk .desk-col { display: flex; flex-direction: column; gap: 14px; position: sticky; top: 92px; max-height: calc(100vh - 108px); overflow-y: auto; margin-top: 20px;
+      scrollbar-width: thin; overscroll-behavior: contain; }
+    body.desk #deskLeft { grid-column: 1; grid-row: 3; }
+    body.desk #mainArea { grid-column: 2; grid-row: 3; min-width: 0; width: 100%; max-width: 860px; justify-self: center; }
+    body.desk #deskLive { grid-column: 3; grid-row: 3; }
+    body.desk #statsBlock { display: none !important; }
+    body.desk #mainArea > .card:first-of-type, body.desk #mainArea > .dial-strip:first-child { margin-top: 20px; }
+    /* left column: the day's progress and the list as cards */
+    body.desk #deskLeft > #progressWrap, body.desk #deskLeft > #queueBlock { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-l); padding: 18px 18px 16px; box-shadow: var(--card-shadow, none); }
+    body.desk #deskLeft > #queueControls { margin: 0; }
+    body.desk #deskLeft > #queueControls :is(.filter-row, .qc-row, .chip-row) { flex-wrap: wrap; overflow: visible; }
+    body.desk #deskLeft .section-head { margin: 0 0 10px; }
+    body.desk #deskLeft #toggleQueueBtn { display: none; }
+    body.desk #deskLeft #queueList { display: flex !important; }
+    body.desk #deskLeft .queue-item { background: var(--surface-raised); padding: 9px 11px; }
+    body.desk.st-live #deskLeft > #progressWrap, body.desk.st-live #deskLeft > #queueBlock { display: block !important; }
+    /* other tabs: the whole width */
+    body.desk:not([data-view="dial"]) .desk-col { display: none; }
+    body.desk:not([data-view="dial"]) #mainArea { grid-column: 1 / -1; max-width: 1640px; padding-top: 6px; }
+    body.desk[data-view="history"] .hist-list, body.desk[data-view="vault"] #vaultList { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    body.desk[data-view="tasks"] #mainArea { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 14px; align-items: start; }
+    body.desk[data-view="tasks"] #mainArea > :not(.task-item) { grid-column: 1 / -1; }
+    body.desk[data-view="tasks"] .task-item { margin: 0 0 12px; }
+    /* Pipeline: a board, one column per stage */
+    body.desk[data-view="pipeline"] #mainArea { display: grid; grid-template-columns: repeat(auto-fit, minmax(264px, 1fr)); gap: 16px; align-items: start; }
+    body.desk[data-view="pipeline"] #mainArea > :not(.stage-section) { grid-column: 1 / -1; }
+    body.desk[data-view="pipeline"] .stage-section { background: color-mix(in srgb, var(--surface) 55%, transparent); border: 1px solid var(--border); border-radius: var(--radius-l); padding: 14px 12px 6px; margin: 0; min-width: 0; }
+    body.desk[data-view="pipeline"] .stage-section .stage-head { margin-top: 0; }
+    body.desk[data-view="pipeline"] .pipe-item { margin-left: 0; margin-right: 0; }
+    body.desk[data-view="pipeline"] .pipe-item-controls { flex-wrap: wrap; }
+    body.desk[data-view="pipeline"] .pipe-item-controls .pipe-select { flex: 1 1 100%; width: 100%; max-width: none; }
+    body.desk[data-view="pipeline"] .pipe-item-controls .pipe-amount { flex: 1 1 0; width: auto; min-width: 0; }
+    /* Live panel */
+    body.desk #deskLive { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-l); padding: 18px; box-shadow: var(--card-shadow, none); gap: 12px; }
+    .dl-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+    .dl-title { font-family: var(--font-display, inherit); font-size: 17px; font-weight: 750; color: var(--text); }
+    .dl-sub { font-size: 12.5px; color: var(--text-dim); margin-top: 3px; line-height: 1.35; }
+    .dl-live { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; color: var(--text-dim);
+      background: var(--surface-raised); border: 1px solid var(--border); white-space: nowrap; }
+    .dl-live i { width: 8px; height: 8px; border-radius: 50%; background: var(--noanswer); }
+    .dl-live.on { color: color-mix(in srgb, var(--interested) 70%, var(--text)); border-color: color-mix(in srgb, var(--interested) 40%, var(--border)); }
+    .dl-live.on i { background: var(--interested); box-shadow: 0 0 0 0 color-mix(in srgb, var(--interested) 60%, transparent); animation: dlPulse 2s ease-out infinite; }
+    @keyframes dlPulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--interested) 55%, transparent); } 70%, 100% { box-shadow: 0 0 0 7px transparent; } }
+    .dl-scope { display: flex; gap: 4px; padding: 3px; background: var(--surface-raised); border: 1px solid var(--border); border-radius: var(--radius-m); }
+    .dl-scope button { flex: 1; min-height: 34px; border: 0; border-radius: calc(var(--radius-m) - 3px); background: transparent; color: var(--text-dim); font: inherit; font-size: 13px; font-weight: 650; cursor: pointer; }
+    .dl-scope button.on { background: var(--accent-fill, var(--accent)); color: var(--accent-text); }
+    .dl-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .dl-kpi { background: var(--surface-raised); border: 1px solid var(--border); border-radius: var(--radius-m); padding: 11px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .dl-kpi b { font-size: 26px; line-height: 1.05; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; font-family: var(--font-display, inherit); }
+    .dl-kpi span { font-size: 12px; font-weight: 600; color: var(--text-dim); }
+    .dl-kpi.talk b { color: color-mix(in srgb, var(--callback) 70%, var(--text)); }
+    .dl-kpi.int b { color: color-mix(in srgb, var(--interested) 70%, var(--text)); }
+    .dl-kpi.cb b { color: color-mix(in srgb, var(--voicemail) 70%, var(--text)); }
+    .dl-rate { font-size: 12.5px; color: var(--text-dim); margin-top: -4px; }
+    .dl-sec { display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; font-weight: 750; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-faint); margin-top: 4px; }
+    .dl-sec span { letter-spacing: 0; font-size: 12px; color: var(--text-dim); }
+    .dl-empty { font-size: 13px; color: var(--text-dim); line-height: 1.45; padding: 12px; border: 1px dashed var(--border); border-radius: var(--radius-m); }
+    .dl-feed, .dl-fus { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+    .dl-call { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; column-gap: 8px; row-gap: 1px; align-items: center; padding: 8px 10px;
+      border-radius: var(--radius-s); background: var(--surface-raised); border: 1px solid transparent; }
+    .dl-call .dl-name { grid-column: 1; text-align: left; font: inherit; font-size: 14px; font-weight: 650; color: var(--text); background: none; border: 0; padding: 0; min-height: 22px; cursor: pointer;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dl-call .dl-name:disabled { cursor: default; }
+    .dl-call .dl-name:not(:disabled):hover { text-decoration: underline; }
+    .dl-call .qi-status { grid-column: 2; grid-row: 1 / span 2; font-size: 11.5px; padding: 3px 8px; border-radius: 999px; font-weight: 650; white-space: nowrap; }
+    .dl-call .dl-when { grid-column: 1; font-size: 12px; color: var(--text-faint); }
+    .dl-call.fresh { animation: dlFresh 2.4s ease-out; }
+    @keyframes dlFresh { 0% { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 22%, var(--surface-raised)); transform: translateY(-4px); }
+      18% { transform: none; } 100% { border-color: transparent; background: var(--surface-raised); } }
+    html[data-motion="off"] .dl-call.fresh, html[data-motion="off"] .dl-live.on i { animation: none; }
+    @media (prefers-reduced-motion: reduce) { .dl-call.fresh, .dl-live.on i { animation: none; } }
+    .dl-fu { width: 100%; display: flex; flex-direction: column; gap: 2px; text-align: left; font: inherit; color: var(--text); background: var(--surface-raised); border: 1px solid var(--border);
+      border-radius: var(--radius-s); padding: 9px 11px; min-height: 44px; cursor: pointer; }
+    .dl-fu:hover { border-color: var(--accent); }
+    .dl-fu b { font-size: 14px; font-weight: 650; }
+    .dl-fu span { font-size: 12px; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dl-fu span.late { color: color-mix(in srgb, var(--danger) 70%, var(--text)); font-weight: 650; }
+    .dl-foot { font-size: 11.5px; color: var(--text-faint); text-align: right; }
+    /* hover affordances a mouse expects */
+    body.desk .view-tab:not(.active):hover, body.desk .icon-btn:hover { color: var(--text); background: var(--surface-raised); }
+  }
 </style>
 </head>
 <body>
@@ -8876,7 +8971,9 @@ window.VPEX_SIG = [
   }
 
   function setSaveStatus(st) {
+    var stWas = cloud.status;
     cloud.status = st;
+    if (stWas !== st && DESK && DESK.on) Promise.resolve().then(deskRenderLive);
     var el = document.getElementById("savePill");
     if (!el) return;
     var map = {
@@ -10309,6 +10406,8 @@ window.VPEX_SIG = [
     if (lcp) { lcp.hidden = !myLoc; lcp.textContent = myLoc ? LOCS[myLoc] : ""; lcp.className = "loc-chip loc-" + myLoc; }
 
     if (["dial", "history", "pipeline", "tasks", "vault"].indexOf(state.activeView || "dial") < 0) state.activeView = "dial";   // e.g. a saved view from the removed Ops tab
+    document.body.setAttribute("data-view", state.activeView || "dial");
+    if (DESK && DESK.on) Promise.resolve().then(deskRenderLive);
     document.getElementById("viewTabs").style.display = total > 0 ? "" : "none";
     document.getElementById("viewTabDial").classList.toggle("active", state.activeView === "dial");
     document.getElementById("viewTabHistory").classList.toggle("active", state.activeView === "history");
@@ -12801,6 +12900,102 @@ window.VPEX_SIG = [
     list.innerHTML = html;
   }
 
+  /** ---------- Computer layout (1100 px and wider) ----------
+      The phone layout, spread over the whole screen: the tabs move into the top bar, today's progress, the list
+      filters and Up next sit on the left, the lead in the middle, and a Live panel on the right. The Live panel
+      reads the same shared call log the phone writes to, so calls logged on a phone show up here within a second. **/
+  var DESK = { on: false, mq: null, slots: {}, seen: null, scope: "me", tick: null };
+  try { DESK.scope = window.localStorage.getItem("vpex_desk_scope") === "floor" ? "floor" : "me"; } catch (e) {}
+  function deskSetup() {
+    var shell = document.querySelector(".shell"); if (!shell || document.getElementById("deskLeft")) return;
+    var left = document.createElement("aside"); left.id = "deskLeft"; left.className = "desk-col desk-left"; left.setAttribute("aria-label", "Today and up next");
+    var live = document.createElement("aside"); live.id = "deskLive"; live.className = "desk-col desk-live"; live.setAttribute("aria-label", "Live calls");
+    live.setAttribute("aria-live", "polite");
+    shell.appendChild(left); shell.appendChild(live);
+    ["viewTabs", "progressWrap", "queueControls", "queueBlock"].forEach(function (id) {
+      var el = document.getElementById(id); if (!el) return;
+      var mark = document.createComment("desk:" + id); el.parentNode.insertBefore(mark, el); DESK.slots[id] = mark;
+    });
+    live.addEventListener("click", function (e) {
+      var sc = e.target.closest("[data-desk-scope]");
+      if (sc) { DESK.scope = sc.getAttribute("data-desk-scope"); try { window.localStorage.setItem("vpex_desk_scope", DESK.scope); } catch (x) {} deskRenderLive(); return; }
+      var ld = e.target.closest("[data-desk-lead]");
+      if (ld) openLeadProfile(ld.getAttribute("data-desk-lead"));
+    });
+    DESK.mq = window.matchMedia("(min-width: 1100px)");
+    var on = function () { deskApply(); };
+    if (DESK.mq.addEventListener) DESK.mq.addEventListener("change", on); else if (DESK.mq.addListener) DESK.mq.addListener(on);
+    deskApply();
+  }
+  function deskApply() {
+    var want = !!(DESK.mq && DESK.mq.matches);
+    if (want === DESK.on && document.body.classList.contains("desk") === want) return;
+    DESK.on = want; document.body.classList.toggle("desk", want);
+    var hdr = document.querySelector("header.top"), right = hdr && hdr.querySelector(".header-right"), left = document.getElementById("deskLeft");
+    var put = function (id, parent, before) { var el = document.getElementById(id); if (el) parent.insertBefore(el, before || null); };
+    if (want) {
+      if (hdr && right) put("viewTabs", hdr, right);
+      ["progressWrap", "queueControls", "queueBlock"].forEach(function (id) { put(id, left); });
+      clearInterval(DESK.tick); DESK.tick = setInterval(function () { if (!document.hidden) deskRenderLive(); }, 30000);
+    } else {
+      ["viewTabs", "progressWrap", "queueControls", "queueBlock"].forEach(function (id) { var m = DESK.slots[id]; if (m && m.parentNode) put(id, m.parentNode, m.nextSibling); });
+      clearInterval(DESK.tick);
+    }
+    deskRenderLive();
+  }
+  function deskTime(iso) { var d = new Date(iso); return isNaN(d) ? "" : d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); }
+  function deskRenderLive() {
+    var el = document.getElementById("deskLive");
+    if (!el || !DESK.on || typeof state === "undefined" || !state || !state.callLog) return;
+    var today = new Date().toDateString(), teamy = TEAM.on && canSeeTeam() && Object.keys(TEAM.members || {}).filter(function (k) { return (TEAM.members[k] || {}).active; }).length > 1;
+    var floor = teamy && DESK.scope === "floor";
+    var calls = [];
+    for (var i = state.callLog.length - 1; i >= 0 && calls.length < 400; i--) {
+      var c = state.callLog[i]; if (new Date(c.timestamp).toDateString() !== today) { if (calls.length) break; continue; }
+      if (floor || myCall(c)) calls.push(c);
+    }
+    var n = { calls: calls.length, talk: 0, interested: 0, callback: 0, vm: 0 };
+    calls.forEach(function (c) { if (CONTACT_OUTCOMES[c.outcomeKey]) n.talk++; if (c.outcomeKey === "interested") n.interested++; if (c.outcomeKey === "callback") n.callback++; if (c.outcomeKey === "voicemail") n.vm++; });
+    var first = !DESK.seen, seen = DESK.seen || {}, fresh = {}, tnow = Date.now();
+    calls.forEach(function (c) { var id = c.id || (c.timestamp + c.name); if (!seen[id]) seen[id] = first ? 1 : tnow + 2400; if (seen[id] > tnow) fresh[id] = 2400 - (seen[id] - tnow); });   // new calls flash once, even across redraws
+    DESK.seen = seen;
+    var st = cloud.status, liveOk = TEAM.on ? st === "teamsynced" : DEMO;
+    var stTxt = !TEAM.on && !DEMO ? "This device only" : (liveOk ? "Live" : (st === "teamoffline" ? "Reconnecting…" : "Syncing…"));
+    var kpi = function (v, l, cls) { return '<div class="dl-kpi' + (cls ? " " + cls : "") + '"><b>' + v + '</b><span>' + l + '</span></div>'; };
+    var h = '<div class="dl-head"><div><div class="dl-title">' + (floor ? "Your floor today" : "Your day") + '</div>' +
+      '<div class="dl-sub">' + (TEAM.on || DEMO ? "Calls logged on your phone show up here right away." : "Sign in to your office to see calls from your phone here.") + '</div></div>' +
+      '<span class="dl-live' + (liveOk ? " on" : "") + '" title="' + escapeHtml(stTxt) + '"><i aria-hidden="true"></i>' + escapeHtml(stTxt) + '</span></div>';
+    if (teamy) h += '<div class="dl-scope" role="group" aria-label="Whose calls"><button type="button" data-desk-scope="me" class="' + (floor ? "" : "on") + '" aria-pressed="' + !floor + '">Me</button><button type="button" data-desk-scope="floor" class="' + (floor ? "on" : "") + '" aria-pressed="' + floor + '">Whole floor</button></div>';
+    h += '<div class="dl-kpis">' + kpi(n.calls, n.calls === 1 ? "call" : "calls") + kpi(n.talk, "talked", "talk") + kpi(n.interested, "interested", "int") + kpi(n.callback, n.callback === 1 ? "callback" : "callbacks", "cb") + '</div>';
+    if (n.calls) h += '<div class="dl-rate">Reached ' + Math.round(n.talk * 100 / n.calls) + '% · ' + n.vm + ' voicemail' + (n.vm === 1 ? "" : "s") + '</div>';
+    h += '<div class="dl-sec">Latest calls</div>';
+    if (!calls.length) h += '<div class="dl-empty">No calls yet today. Dial from your phone or right here; each call lands in this list the moment it’s logged.</div>';
+    else {
+      h += '<ol class="dl-feed">';
+      calls.slice(0, 14).forEach(function (c) {
+        var id = c.id || (c.timestamp + c.name), m = OUTCOME_META[c.outcomeKey] || { label: c.outcome || "Call", cls: "noanswer" };
+        var who = floor && c.by && !(TEAM.me && c.by.uid === TEAM.me.uid) ? firstName(c.by.name) + " · " : "";
+        h += '<li class="dl-call' + (fresh[id] !== undefined ? " fresh" : "") + '"' + (fresh[id] > 0 ? ' style="animation-delay:-' + Math.round(fresh[id]) + 'ms"' : "") + '>' +
+          '<button type="button" class="dl-name linkish" data-desk-lead="' + escapeHtml(c.leadId || "") + '"' + (c.leadId ? "" : " disabled") + '>' + escapeHtml(c.name || "Unknown") + '</button>' +
+          '<span class="qi-status ' + m.cls + '">' + escapeHtml(m.label) + '</span>' +
+          '<span class="dl-when">' + escapeHtml(who) + '<time datetime="' + escapeHtml(String(c.timestamp)) + '" title="' + escapeHtml(deskTime(c.timestamp)) + '">' + escapeHtml(agoStr(c.timestamp)) + '</time></span></li>';
+      });
+      h += '</ol>';
+    }
+    var lm = leadMap(), now = Date.now(), end = new Date(); end.setHours(23, 59, 59, 999);
+    var due = dueTasks(), later = state.tasks.filter(function (t) { var ts = taskDueTs(t); return !t.done && t.leadId && myTask(t) && ts > now && ts <= end.getTime() && lm[t.leadId] && !isDnc(lm[t.leadId]); })
+      .sort(function (a, b) { return taskDueTs(a) - taskDueTs(b); });
+    var row = function (t, late) { var l = lm[t.leadId] || {}; return '<li><button type="button" class="dl-fu" data-desk-lead="' + escapeHtml(t.leadId) + '"><b>' + escapeHtml(l.name || "Lead") + '</b><span class="' + (late ? "late" : "") + '">' + escapeHtml(late ? "Due now" : deskTime(taskDueTs(t))) + (t.note ? " · " + escapeHtml(String(t.note).slice(0, 60)) : "") + '</span></button></li>'; };
+    if (due.length || later.length) {
+      h += '<div class="dl-sec">Follow-ups today <span>' + (due.length + later.length) + '</span></div><ul class="dl-fus">';
+      due.slice(0, 4).forEach(function (t) { h += row(t, true); });
+      later.slice(0, Math.max(0, 6 - Math.min(due.length, 4))).forEach(function (t) { h += row(t, false); });
+      h += '</ul>';
+    }
+    h += '<div class="dl-foot">Updated ' + escapeHtml(new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" })) + '</div>';
+    el.innerHTML = h;
+  }
+
   /** ---------- CSV export ---------- **/
   function exportCsv() {
     if (state.callLog.length === 0) { showToast("No calls logged yet"); return; }
@@ -14865,7 +15060,7 @@ window.VPEX_SIG = [
     teamRenderSoon.t = setTimeout(function () {
       if (!TEAM.me) return;
       var ae = document.activeElement;
-      if (ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) { TEAM.renderPending = true; return; }
+      if (ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) { TEAM.renderPending = true; if (DESK && DESK.on) deskRenderLive(); return; }
       render();
       if (teamModalOpen()) renderTeamPanel();
       var sm = document.getElementById("scoreModal");
@@ -18467,6 +18662,7 @@ window.VPEX_SIG = [
       }
     });
 
+    deskSetup();
     if (teamAvailable()) teamBoot();
     else if (fbShouldRetry()) fbRetryBoot(0);
     else { vaultStart(); render(); startCloudSync(); }
