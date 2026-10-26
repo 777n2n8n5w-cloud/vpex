@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-01-05">
+<meta name="vpex-build" content="2027-01-06">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 /* Signature themes: five themes only the VPEX owner's own login can use (sig/*.css, sig.js).
@@ -6074,10 +6074,13 @@ window.VPEX_SIG = [
   .vb-foot b { color: var(--text); font-size: 15px; }
   .vt-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0; border-top: 1px solid var(--border); }
   .vt-row:first-child { border-top: 0; padding-top: 2px; }
+  #suSlug:empty { display: none; }   /* no gap under Office name until there's a hint */
   .vt-chip { flex: none; padding: 6px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 700; white-space: nowrap; }
   .vt-chip.ok { background: color-mix(in srgb, var(--interested) 15%, transparent); color: var(--interested); }
   .vt-chip.bad { background: color-mix(in srgb, var(--notinterested) 15%, transparent); color: var(--notinterested); }
   .vt-row.late b { color: var(--text-dim); }
+  .vt-chip.dim { background: color-mix(in srgb, var(--text-faint) 16%, transparent); color: var(--text-dim); }
+  .vg-live.on { background: var(--interested); box-shadow: 0 0 0 3px color-mix(in srgb, var(--interested) 22%, transparent); }
   .vig-guard { border-color: color-mix(in srgb, var(--voicemail) 45%, var(--border)); }
   .vig-guard b { display: block; font-size: 16px; font-weight: 750; line-height: 1.3; }
   .vig-guard p { margin: 6px 0 14px; font-size: 13.5px; line-height: 1.45; color: var(--text-dim); }
@@ -6150,7 +6153,7 @@ window.VPEX_SIG = [
     #authScreen.landing .hero-h { font-size: 62px; }
     .lp-ctas { grid-template-columns: auto auto; justify-content: start; }
     #authScreen.landing .hero-cta, .lp-ghost { width: auto; padding: 16px 26px; }
-    .lp-works { text-align: left; }
+    .lp-works { text-align: left; margin-left: 0; max-width: 34em; }   /* lines up with the hero copy */
     .lp-sec { margin-top: 110px; }
     .lp-feats { gap: 88px; }
     .lp-feat { grid-template-columns: 1fr 1fr; align-items: center; gap: 64px; }
@@ -7667,7 +7670,7 @@ window.VPEX_SIG = [
           <div class="lp-tag lp-tag-c" aria-hidden="true"><span class="lt-ic gold">+1</span><span><b>Logged. Next lead.</b><small>Scoreboard updated</small></span></div>
         </div>
       </section>
-      <p class="lp-works"><b>Made for insurance, real estate, business funding, auto and solar floors.</b><br>Works in the browser on any iPhone or Android. Nothing to install.</p>
+      <p class="lp-works"><b>Made for insurance, real estate, business funding, auto and solar floors.</b><br>Works in the browser on any iPhone, Android or computer. Nothing to install.</p>
 
       <section class="lp-sec lp-skip">
         <h2 class="lp-h2">Everything your floor can skip</h2>
@@ -7695,6 +7698,15 @@ window.VPEX_SIG = [
             <div class="vb-row"><span class="vb-n">3</span><b>Chris</b><span class="vb-bar"><i style="width:77%"></i></span><span class="vb-c">37</span></div>
             <div class="vb-row"><span class="vb-n">4</span><b>Sam</b><span class="vb-bar"><i style="width:60%"></i></span><span class="vb-c">29</span></div>
             <div class="vb-foot"><span><b>155</b> calls</span><span><b>12</b> interested</span><span><b>4</b> appointments</span></div>
+          </div>
+        </article>
+        <article class="lp-feat">
+          <div class="lp-feat-copy"><h3>Watch the floor from your desk.</h3><p>Open VPEX on a computer and it fills the screen: the list on one side, the lead in the middle and a live panel. Every call a rep logs on their phone shows up there right away, along with who's on a call now.</p></div>
+          <div class="lp-vig vig-desk" aria-hidden="true">
+            <div class="vg-head"><span><i class="vg-live on"></i>Live &middot; whole floor</span><em>On a computer</em></div>
+            <div class="vt-row"><div><b>Maya is on a call</b><small>Rosa Diaz &middot; from her phone</small></div><span class="vt-chip ok">2:14</span></div>
+            <div class="vt-row"><div><b>Jordan &rarr; Dana Price</b><small>Just now</small></div><span class="vt-chip ok">Interested</span></div>
+            <div class="vt-row"><div><b>Sam &rarr; Leo Grant</b><small>1m ago</small></div><span class="vt-chip dim">Voicemail</span></div>
           </div>
         </article>
         <article class="lp-feat">
@@ -12201,6 +12213,8 @@ window.VPEX_SIG = [
   }
 
   /** ---------- Pipeline ---------- **/
+  function pipeMoney(n) { n = Math.max(0, Math.round(Number(n) || 0)); return "$" + n.toLocaleString("en-US"); }
+  function pipeAmountOf(v) { var n = Number(String(v || "").replace(/[^0-9.]/g, "")); return isFinite(n) && n > 0 ? Math.round(n) : 0; }
   function renderPipelineTab() {
     var main = document.getElementById("mainArea");
     if (state.leads.length === 0) {
@@ -12242,7 +12256,7 @@ window.VPEX_SIG = [
               '<select class="pipe-select" data-pipe-stage="' + l.id + '" aria-label="Stage for ' + escapeHtml(l.name) + '">' +
                 STAGES.map(function (s2) { return '<option value="' + s2 + '"' + (s2 === stage ? " selected" : "") + '>' + s2 + '</option>'; }).join("") +
               '</select>' +
-              '<input class="pipe-amount" type="number" min="0" step="1000" inputmode="numeric" value="' + (Number(l.amount) || 0) + '" data-pipe-amount="' + l.id + '" aria-label="Amount for ' + escapeHtml(l.name) + '">' +
+              '<input class="pipe-amount" type="text" inputmode="numeric" autocomplete="off" value="' + pipeMoney(l.amount) + '" data-pipe-amount="' + l.id + '" aria-label="Amount for ' + escapeHtml(l.name) + '">' +
               callLinkHtml(l, "pipeline", next ? next.id : null, "pipe-call", callIconSvg()) +
             '</div>' +
             (l.stalled ? '<div class="pipe-parked"><span>Parked \u00b7 ' + escapeHtml(parkedWhy(l)) + '</span><button type="button" data-revive="' + l.id + '">Revive</button></div>'
@@ -12260,9 +12274,13 @@ window.VPEX_SIG = [
       });
     });
     main.querySelectorAll("[data-pipe-amount]").forEach(function (inp) {
+      // Shows "$850,000"; while editing it's the plain number, so the number pad works.
+      inp.addEventListener("focus", function () { var lead = findLeadById(inp.getAttribute("data-pipe-amount")); inp.value = lead && Number(lead.amount) ? String(Math.round(Number(lead.amount))) : ""; try { inp.select(); } catch (e) {} });
+      inp.addEventListener("blur", function () { var lead = findLeadById(inp.getAttribute("data-pipe-amount")); if (lead && pipeAmountOf(inp.value) === Math.round(Number(lead.amount) || 0)) inp.value = pipeMoney(lead.amount); });
+      inp.addEventListener("keydown", function (e) { if (e.key === "Enter") inp.blur(); });
       inp.addEventListener("change", function () {
         var lead = findLeadById(inp.getAttribute("data-pipe-amount"));
-        if (lead) { lead.amount = Math.max(0, Number(inp.value) || 0); saveState(); render(); }
+        if (lead) { lead.amount = pipeAmountOf(inp.value); saveState(); render(); }
       });
     });
     main.querySelectorAll("[data-delete-pipe]").forEach(function (btn) {
