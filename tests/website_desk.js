@@ -16,21 +16,49 @@ const ctxFor = (br, c) => br.newContext({ viewport: { width: c.w, height: 900 },
     await page.goto(BASE + '#mockbench'); await page.waitForTimeout(2000);
     const r = await page.evaluate(() => {
       const box = el => { const b = el.getBoundingClientRect(); return { l: Math.round(b.left), r: Math.round(b.right), t: Math.round(b.top), b: Math.round(b.bottom), h: Math.round(b.height) }; };
-      const works = document.querySelector('.lp-works'), copy = document.querySelector('.lp-hero-copy'), h1 = document.querySelector('.hero-h');
+      const worksAll = [...document.querySelectorAll('.lp-works')], works = worksAll.find(w => w.offsetParent), visN = worksAll.filter(w => w.offsetParent).length, copy = document.querySelector('.lp-hero-copy'), h1 = document.querySelector('.hero-h');
       const feat = [...document.querySelectorAll('.lp-feat')].find(a => /Watch the floor from your desk/.test(a.innerText));
       const slug = document.getElementById('suSlug'), off = document.getElementById('suOffice'), ind = document.querySelector('label[for="suInd"]'), name = document.querySelector('label[for="suName"]'), indSel = document.getElementById('suInd');
-      return { works: box(works), copy: box(copy), h1: box(h1), worksText: works.innerText, feat: !!feat, featText: feat ? feat.innerText : '', vig: feat ? box(feat.querySelector('.lp-vig')) : null,
+      return { visN, inCopy: !!works.closest('.lp-hero-copy'), ctaB: Math.round(document.querySelector('.lp-assure').getBoundingClientRect().bottom), works: box(works), copy: box(copy), h1: box(h1), worksText: works.innerText, feat: !!feat, featText: feat ? feat.innerText : '', vig: feat ? box(feat.querySelector('.lp-vig')) : null,
         featCopy: feat ? box(feat.querySelector('.lp-feat-copy')) : null, slugH: slug.getBoundingClientRect().height, gapA: Math.round(ind.getBoundingClientRect().top - off.getBoundingClientRect().bottom),
         gapB: Math.round(name.getBoundingClientRect().top - indSel.getBoundingClientRect().bottom), sw: document.documentElement.scrollWidth, vw: innerWidth };
     });
     check(tag + ': works note mentions computers', /iPhone, Android or computer/.test(r.worksText), r.worksText);
-    if (c.w >= 900) check(tag + ': works note lines up with the hero copy', Math.abs(r.works.l - r.h1.l) <= 2, r);
+    check(tag + ': one works note shown', r.visN === 1, r.visN);
+    if (c.w >= 900) { check(tag + ': works note lines up with the hero copy', Math.abs(r.works.l - r.h1.l) <= 2, r); check(tag + ': works note sits right under the trial buttons', r.inCopy && r.works.t - r.ctaB >= 10 && r.works.t - r.ctaB <= 50, r); }
     else check(tag + ': works note centred on phones', Math.abs((r.works.l + r.works.r) / 2 - r.vw / 2) <= 3, r);
     check(tag + ': desk feature shown', r.feat && /on a call now/.test(r.featText) && /Maya is on a call/.test(r.featText), r.featText);
     if (c.w >= 900) check(tag + ': desk feature copy and picture side by side', r.vig && r.featCopy && (r.vig.l >= r.featCopy.r - 2 || r.featCopy.l >= r.vig.r - 2), r);
     check(tag + ': empty Office name hint takes no space', r.slugH === 0, r.slugH);
     check(tag + ': Office name → What you sell gap matches the others', Math.abs(r.gapA - r.gapB) <= 4, { a: r.gapA, b: r.gapB });
     check(tag + ': no sideways scroll', r.sw <= r.vw, r);
+    // top bar: follows the visitor on computers once the hero buttons scroll away
+    const bar = () => page.evaluate(() => { const t = document.querySelector('#authScreen .auth-top'), b = t.getBoundingClientRect(), d = document.getElementById('lpTopDemo'), c2 = t.querySelector('.lp-topcta'), cb = c2.getBoundingClientRect();
+      const hit = el => { const r = el.getBoundingClientRect(); if (!r.width) return false; const x = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return !!x && (x === el || el.contains(x)); };
+      return { stuck: t.classList.contains('stuck'), top: Math.round(b.top), pos: getComputedStyle(t).position, demo: d.offsetParent ? Math.round(d.getBoundingClientRect().height) : 0, demoTab: d.tabIndex, ctaHit: hit(c2), demoHit: d.offsetParent ? hit(d) : false }; });
+    const b0 = await bar();
+    check(tag + ': top bar plain at the top', !b0.stuck && b0.demo === 0 && b0.demoTab === -1, b0);
+    await page.evaluate(() => { document.getElementById('authScreen').scrollTop = 2200; }); await page.waitForTimeout(500);
+    const b1 = await bar();
+    if (c.w >= 900) {
+      check(tag + ': top bar stays on screen after scrolling', b1.stuck && b1.top >= 0 && b1.top <= 20 && b1.pos === 'sticky', b1);
+      check(tag + ': Try a demo and Start free trial answer taps there', b1.demo >= 40 && b1.demoTab === 0 && b1.demoHit && b1.ctaHit, b1);
+      await page.click('#lpTopDemo'); await page.waitForTimeout(1000);
+      const dv = await page.evaluate(() => { const b = document.getElementById('heroDemos').getBoundingClientRect(); return b.top > 60 && b.bottom < innerHeight; });
+      check(tag + ': Try a demo brings the industry demos into view below the bar', dv);
+      await page.click('#authScreen .auth-top .lp-topcta'); await page.waitForTimeout(1100);
+      const fv = await page.evaluate(() => ({ f: document.activeElement && document.activeElement.id, t: Math.round(document.getElementById('suOffice').getBoundingClientRect().top) }));
+      check(tag + ': Start free trial in the bar opens the form', fv.f === 'suOffice' && fv.t > 0, fv);
+      await page.evaluate(() => { document.getElementById('authScreen').scrollTop = 0; }); await page.waitForTimeout(500);
+      const b2 = await bar(); check(tag + ': back at the top the bar is plain again', !b2.stuck && b2.demo === 0, b2);
+    } else {
+      check(tag + ': phones keep the bottom bar instead (top bar scrolls away)', b1.top < 0 && b1.demo === 0, b1);
+      const dock = await page.evaluate(() => document.getElementById('lpDock').classList.contains('on'));
+      check(tag + ': phone bottom trial bar shows', dock);
+      await page.evaluate(() => { document.getElementById('authScreen').scrollTop = 0; }); await page.waitForTimeout(400);
+    }
+    const faq = await page.evaluate(() => [...document.querySelectorAll('.auth-faq details, details')].map(d => d.textContent).join(' | '));
+    check(tag + ': FAQ mentions the computer view', /on a computer to see each call/.test(faq) && /Managers can open it on a computer too/.test(faq), faq.slice(0, 200));
     // the hint still shows when there is one
     await page.fill('#suOffice', 'Shoreline Realty Group'); await page.waitForTimeout(300);
     const hint = await page.evaluate(() => { const s = document.getElementById('suSlug'); return { txt: s.textContent, h: s.getBoundingClientRect().height }; });

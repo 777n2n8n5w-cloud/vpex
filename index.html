@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-01-06">
+<meta name="vpex-build" content="2027-01-07">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 /* Signature themes: five themes only the VPEX owner's own login can use (sig/*.css, sig.js).
@@ -5974,7 +5974,7 @@ window.VPEX_SIG = [
   .hero-demo { width: 100%; margin-top: 12px; padding: 13px; }
   .auth-faq h2 { font-family: var(--font-display, inherit); font-size: 20px; line-height: 1.15; letter-spacing: -0.01em; font-weight: 800; margin: 0 0 12px; }
   .lp-topr { display: flex; align-items: center; gap: 14px; }
-  .lp-topcta, .lp-dock { display: none; }
+  .lp-topcta, .lp-dock, .lp-topdemo { display: none; }
 
   /* ---- Sales page (the signup view). Follows the phone's light or dark mode. ---- */
   #authScreen.landing { --lp-gold: #E8B94A; --lp-gold-hi: #F2C964; --lp-ink: #131A3E; --lp-gold-text: #FFC94D;
@@ -6037,6 +6037,7 @@ window.VPEX_SIG = [
   @keyframes lpTag { from { opacity: 0; transform: translateY(8px) scale(0.94); } to { opacity: 1; transform: none; } }
   .lp-works { margin: 26px auto 0; max-width: 30em; text-align: center; font-size: 13px; line-height: 1.55; color: var(--text-faint); }
   .lp-works b { font-weight: 650; color: var(--text-dim); }
+  .lp-works-in { display: none; }
 
   /* sections */
   .lp-sec { margin-top: 72px; }
@@ -6147,13 +6148,19 @@ window.VPEX_SIG = [
     #authScreen.landing { padding-left: 40px; padding-right: 40px; padding-bottom: 60px; }
     #authScreen.landing .lp-topcta { display: inline-flex; align-items: center; padding: 10px 18px; border-radius: 10px; font: inherit; font-size: 14.5px; font-weight: 750; cursor: pointer; }
     #authScreen.landing .lp-dock { display: none; }
+    /* the top bar follows the visitor once the hero buttons scroll away: Try a demo, Sign in, Start free trial */
+    #authScreen.landing .auth-top { position: sticky; top: 0; z-index: 6; transition: background-color 0.2s, box-shadow 0.2s; }
+    #authScreen.landing .auth-top.stuck { background: var(--bg); box-shadow: 0 0 0 100vmax var(--bg), 0 1px 0 100vmax var(--border); clip-path: inset(-40px -100vmax -1px); }   /* full width, and covers the page's top padding too */
+    #authScreen.landing .auth-top.stuck .lp-topdemo { display: inline-flex; align-items: center; min-height: 40px; padding: 9px 16px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font: inherit; font-size: 14.5px; font-weight: 650; cursor: pointer; }
+    #authScreen.landing .auth-top.stuck .lp-topdemo:hover { border-color: color-mix(in srgb, var(--lp-gold) 60%, var(--border)); }
     .lp-hero { grid-template-columns: 1fr 1fr; align-items: center; gap: 40px; margin-top: 48px; }
     .lp-reel { width: 300px; }
     .lp-tag-a { left: -10px; top: 25%; } .lp-tag-b { right: -10px; top: 62%; } .lp-tag-c { left: -2px; top: 81%; bottom: auto; }
     #authScreen.landing .hero-h { font-size: 62px; }
     .lp-ctas { grid-template-columns: auto auto; justify-content: start; }
     #authScreen.landing .hero-cta, .lp-ghost { width: auto; padding: 16px 26px; }
-    .lp-works { text-align: left; margin-left: 0; max-width: 34em; }   /* lines up with the hero copy */
+    .lp-works { text-align: left; margin-left: 0; max-width: 34em; }
+    .lp-works-out { display: none; } .lp-works-in { display: block; margin-top: 28px; }   /* under the trial buttons, in the hero copy */
     .lp-sec { margin-top: 110px; }
     .lp-feats { gap: 88px; }
     .lp-feat { grid-template-columns: 1fr 1fr; align-items: center; gap: 64px; }
@@ -7647,7 +7654,7 @@ window.VPEX_SIG = [
 </div>
 <div class="auth-screen" id="authScreen" style="display:none">
   <div class="auth-card">
-    <div class="auth-top"><div class="auth-brand">VPEX Dialer</div><div class="lp-topr"><button class="auth-link hero-signin" id="heroSignin" type="button" style="display:none">Sign in</button><button class="lp-topcta" type="button" data-lp-cta>Start free trial</button></div></div>
+    <div class="auth-top"><div class="auth-brand">VPEX Dialer</div><div class="lp-topr"><button class="lp-topdemo" id="lpTopDemo" type="button" tabindex="-1">Try a demo</button><button class="auth-link hero-signin" id="heroSignin" type="button" style="display:none">Sign in</button><button class="lp-topcta" type="button" data-lp-cta>Start free trial</button></div></div>
     <div id="authHero" class="hero" style="display:none">
       <section class="lp-hero">
         <div class="lp-hero-copy">
@@ -7659,6 +7666,7 @@ window.VPEX_SIG = [
             <button class="lp-ghost" id="heroTry" type="button">Try it with sample leads</button>
           </div>
           <ul class="lp-assure"><li>7 days free</li><li>No card needed</li><li>Cancel any time</li></ul>
+          <p class="lp-works lp-works-in"><b>Made for insurance, real estate, business funding, auto and solar floors.</b><br>Works in the browser on any iPhone, Android or computer. Nothing to install.</p>
         </div>
         <div class="lp-stage">
           <div class="lp-reel">
@@ -7670,7 +7678,7 @@ window.VPEX_SIG = [
           <div class="lp-tag lp-tag-c" aria-hidden="true"><span class="lt-ic gold">+1</span><span><b>Logged. Next lead.</b><small>Scoreboard updated</small></span></div>
         </div>
       </section>
-      <p class="lp-works"><b>Made for insurance, real estate, business funding, auto and solar floors.</b><br>Works in the browser on any iPhone, Android or computer. Nothing to install.</p>
+      <p class="lp-works lp-works-out"><b>Made for insurance, real estate, business funding, auto and solar floors.</b><br>Works in the browser on any iPhone, Android or computer. Nothing to install.</p>
 
       <section class="lp-sec lp-skip">
         <h2 class="lp-h2">Everything your floor can skip</h2>
@@ -7803,13 +7811,13 @@ window.VPEX_SIG = [
       </div>
       <div class="auth-faq" id="authFaq">
         <h2>Questions</h2>
-        <details><summary>Do my reps need to install anything?</summary><p>No. They open vpexdialer.com on their phone, sign in and tap to call. They can add it to their home screen like an app.</p></details>
+        <details><summary>Do my reps need to install anything?</summary><p>No. They open vpexdialer.com on their phone, sign in and tap to call. They can add it to their home screen like an app. Managers can open it on a computer too.</p></details>
         <details><summary>Do we need to buy phone lines?</summary><p>No. Calls go out from each rep's own phone, so there's nothing to set up and no shared numbers to get flagged.</p></details>
         <details><summary>What does it cost?</summary><p>$49 per rep, per month. Every active login counts as a rep. 7 days free with no card to start, and you can cancel any time.</p></details>
         <details><summary>What happens when a rep leaves?</summary><p>Turn their access off in Team &amp; access. They're signed out within seconds and your bill drops by itself.</p></details>
         <details><summary>Can I bring my own lead lists?</summary><p>Yes. Upload Excel, CSV, text or contacts, or paste a list. Numbers already in your list, or on your Do Not Call list, are skipped.</p></details>
         <details><summary>Does it work for my industry?</summary><p>VPEX has versions for insurance, real estate, business funding, auto and solar, each in your floor's own words. Try the demo office for yours above.</p></details>
-        <details><summary>Can I see what my reps are doing?</summary><p>Yes. A live scoreboard, a daily recap, answer times by hour, and a sales coach that shows who needs help.</p></details>
+        <details><summary>Can I see what my reps are doing?</summary><p>Yes. Open VPEX on a computer to see each call as it's logged and who's on a call right now. There's also a live scoreboard, a daily recap, answer times by hour, and a sales coach that shows who needs help.</p></details>
       </div>
     </div>
     <div id="authJoin" style="display:none">
@@ -18693,7 +18701,11 @@ window.VPEX_SIG = [
         if (v.paused) { TEAM.heroPaused = false; var pp = v.play(); if (pp && pp.catch) pp.catch(function () {}); } else { TEAM.heroPaused = true; v.pause(); } setTimeout(vidBtn, 60); });
       var hv0 = document.getElementById("heroVid"); if (hv0) { hv0.addEventListener("play", vidBtn); hv0.addEventListener("pause", vidBtn); hv0.addEventListener("error", function () { setTimeout(vidBtn, 0); }); }
       vidBtn();
+      var top = document.querySelector("#authScreen .auth-top"), tdemo = document.getElementById("lpTopDemo");
+      if (tdemo) tdemo.addEventListener("click", function () { var d = document.getElementById("heroDemos"); if (d && d.scrollIntoView) d.scrollIntoView({ behavior: "smooth", block: "center" }); });
       TEAM.lpDock = function () {
+        if (top) { var c0 = document.getElementById("heroCta"), st = scr.classList.contains("landing") && seen.cta === false && !!c0 && c0.getBoundingClientRect().bottom < 0;
+          top.classList.toggle("stuck", st); if (tdemo) tdemo.tabIndex = st ? 0 : -1; }
         if (!dock) return;
         var cta = document.getElementById("heroCta"), on = scr.classList.contains("landing") && seen.cta === false && seen.form === false && cta && cta.getBoundingClientRect().bottom < 0;
         dock.classList.toggle("on", !!on); var b = dock.querySelector("button"); if (b) b.tabIndex = on ? 0 : -1;
