@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Built by tools/build_calling_hours.py from this template and index.html's calling-hours rules. Edit the template, not calling-hours/index.html. -->
+<title>Telemarketing calling hours by state ({{YEAR}}): can I call this lead now? | VPEX</title>
+<meta name="description" content="Free checker: pick a state and see if a sales call is allowed right now, in the lead's local time. 8 AM to 9 PM federal rule, plus the {{N_STRICT}} states with stricter hours, Sunday and holiday bans and 3-call limits. Updated {{UPDATED}}.">
+<link rel="canonical" href="https://vpexdialer.com/calling-hours/">
+<meta property="og:title" content="Can I call this lead right now? Calling hours by state">
+<meta property="og:description" content="Pick a state: their local time, today's calling window and when calls open again. Free, from VPEX.">
+<meta property="og:image" content="https://vpexdialer.com/vpex-og.jpg">
+<meta property="og:url" content="https://vpexdialer.com/calling-hours/">
+<meta name="theme-color" content="#0D1224">
+<link rel="icon" href="/vpex-icon-64.png">
+<link rel="apple-touch-icon" href="/vpex-icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0D1224; --surface: #141B34; --raised: #1B2344; --border: #283258; --text: #EDF0FB; --dim: #A2AACB;
+    --gold: #E8B94A; --gold-hi: #F2C964; --gold-text: #FFC94D; --ink: #131A3E; --focus: #E8B94A;
+    --ok: #57C08A; --ok-bg: rgba(87,192,138,0.14); --no: #FF8A8A; --no-bg: rgba(255,120,120,0.13);
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root { --bg: #ECEFF7; --surface: #FFFFFF; --raised: #F5F7FD; --border: #D4DAEB; --text: #11172E; --dim: #4F5A7C; --gold-text: #8A630C;
+      --ok: #17784A; --ok-bg: rgba(23,120,74,0.10); --no: #B3261E; --no-bg: rgba(179,38,30,0.08); color-scheme: light; }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 'Archivo', system-ui, -apple-system, sans-serif;
+    background-image: radial-gradient(110% 420px at 100% -60px, rgba(90,128,255,0.22), transparent 70%); background-repeat: no-repeat; }
+  @media (prefers-color-scheme: light) { body { background-image: radial-gradient(110% 420px at 100% -60px, rgba(47,91,235,0.10), transparent 70%); } }
+  main { max-width: 720px; margin: 0 auto; padding: calc(14px + env(safe-area-inset-top, 0px)) 16px calc(48px + env(safe-area-inset-bottom, 0px)); }
+  a { color: inherit; }
+  a:focus-visible, button:focus-visible, select:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 8px; }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .wm { display: inline-flex; align-items: center; min-height: 44px; font-weight: 850; font-stretch: 120%; font-size: 20px; text-decoration: none; }
+  .topcta { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 10px; background: var(--gold); color: #111827; font-weight: 750; font-size: 14.5px; text-decoration: none; }
+  h1 { font-size: clamp(32px, 9vw, 52px); line-height: 1; letter-spacing: -0.03em; font-weight: 850; font-stretch: 104%; margin: 22px 0 12px; }
+  h1 em { font-style: normal; color: var(--gold-text); }
+  .lede { color: var(--dim); margin: 0 0 22px; font-size: 17px; max-width: 34em; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 18px; }
+  label { display: block; font-size: 13px; font-weight: 700; color: var(--dim); margin: 0 0 6px; }
+  select { width: 100%; min-height: 50px; font: inherit; font-size: 17px; font-weight: 650; color: var(--text); background: var(--raised); border: 1px solid var(--border); border-radius: 12px; padding: 0 14px; }
+  #verdict { margin-top: 16px; border-radius: 14px; padding: 16px; display: none; }
+  #verdict.on { display: block; }
+  #verdict.ok { background: var(--ok-bg); }
+  #verdict.no { background: var(--no-bg); }
+  .vh { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 800; letter-spacing: -0.01em; }
+  .ok .vh { color: var(--ok); } .no .vh { color: var(--no); }
+  .dot { width: 12px; height: 12px; border-radius: 50%; background: currentColor; flex: none; }
+  .vl { margin: 8px 0 0; color: var(--text); }
+  .vl b { font-weight: 750; }
+  .vs { margin: 6px 0 0; color: var(--dim); font-size: 14.5px; }
+  .note { margin: 14px 0 0; font-size: 13.5px; color: var(--dim); }
+  h2 { font-size: clamp(24px, 6vw, 32px); line-height: 1.1; letter-spacing: -0.02em; font-weight: 820; margin: 44px 0 10px; }
+  .tw { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -16px; padding: 0 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14.5px; min-width: 520px; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--dim); font-weight: 700; }
+  td:first-child { font-weight: 700; white-space: nowrap; }
+  .fine { font-size: 13.5px; color: var(--dim); }
+  .sell { margin-top: 44px; }
+  .sell p { color: var(--dim); margin: 0 0 14px; max-width: 34em; }
+  .demos { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+  .demos a, .cta2 { display: inline-flex; align-items: center; min-height: 46px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); font-weight: 650; text-decoration: none; }
+  .cta { display: flex; align-items: center; justify-content: center; min-height: 52px; border-radius: 12px; background: var(--gold); color: #111827; font-weight: 800; font-size: 16.5px; text-decoration: none; max-width: 360px; }
+  .assure { font-size: 13.5px; color: var(--dim); margin: 8px 0 0; }
+  footer { margin-top: 48px; font-size: 13.5px; color: var(--dim); display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  footer a { display: inline-flex; align-items: center; min-height: 44px; }
+  ul.faq { padding-left: 20px; margin: 0; } ul.faq li { margin: 0 0 10px; }
+</style>
+</head>
+<body>
+<main>
+  <div class="top"><a class="wm" href="/?utm_source=calling-hours&amp;utm_medium=tool&amp;utm_content=logo">VPEX</a><a class="topcta" data-cta="top" href="/?utm_source=calling-hours&amp;utm_medium=tool&amp;utm_content=top&amp;trial=start">Start free trial</a></div>
+  <h1>Can I call this lead <em>right now?</em></h1>
+  <p class="lede">Pick the lead's state. You'll see their local time, today's calling window, and when calls open again if it's closed. Federal rule: 8 AM to 9 PM their time. {{N_STRICT}} states are stricter.</p>
+
+  <section class="card" aria-label="Calling hours checker">
+    <label for="st">Lead's state</label>
+    <select id="st"><option value="">Choose a state…</option>{{OPTIONS}}</select>
+    <div id="verdict" role="status" aria-live="polite"></div>
+    <p class="note">Uses each state's main time zone. Parts of some states are an hour off (the Florida panhandle, West Texas, East Tennessee, parts of Kentucky, Indiana, Michigan, Idaho, Oregon and the Dakotas). When in doubt, check the lead's own local time.</p>
+  </section>
+
+  <h2>The {{N_STRICT}} states with stricter calling hours</h2>
+  <p class="fine">For sales calls, in the lead's local time. Every other state follows the federal 8 AM to 9 PM.</p>
+  <div class="tw"><table>
+    <thead><tr><th>State</th><th>Hours</th><th>Saturday</th><th>Sunday</th><th>Holidays</th><th>Calls per person</th></tr></thead>
+    <tbody>{{TABLE}}</tbody>
+  </table></div>
+  <p class="fine">{{LEGAL}}</p>
+
+  <h2>Good to know</h2>
+  <ul class="faq">
+    <li><b>Federal rule:</b> sales calls only between 8 AM and 9 PM in the called person's local time.</li>
+    <li><b>Holiday bans</b> ({{HOL_STATES}}) follow federal legal holidays, including the weekday a holiday is observed on.</li>
+    <li><b>3-call limits</b> ({{MAX3_STATES}}): no more than 3 sales calls to the same person in 24 hours.</li>
+    <li><b>Do Not Call:</b> these hours don't replace the National Do Not Call Registry or your own Do Not Call list.</li>
+  </ul>
+
+  <section class="sell" aria-label="VPEX">
+    <h2>VPEX checks this on every lead, before your reps dial.</h2>
+    <p>VPEX is the power dialer for sales floors. Every lead shows their local time. Call asks first when a lead is outside their state's hours, and follow-ups land inside them. Reps call from their own phones, with no phone lines to buy.</p>
+    <div class="demos">
+      <a data-cta="demo-insurance" href="/?utm_source=calling-hours&amp;utm_medium=tool&amp;utm_content=demo-insurance#demo-insurance">Insurance demo</a>
+      <a data-cta="demo-realestate" href="/?utm_source=calling-hours&amp;utm_medium=tool&amp;utm_content=demo-realestate#demo-realestate">Real estate</a>
+      <a data-cta="demo-mca" href="/?utm_source=calling-hours&amp;utm_medium=tool&amp;utm_content=demo-mca#demo-mca">Business funding</a>
+      <a data-cta="demo-auto" href="/?utm_source=calling-hours&amp;utm_medium=tool&amp;utm_content=demo-auto#demo-auto">Auto</a>
+      <a data-cta="demo-solar" href="/?utm_source=calling-hours&amp;utm_medium=tool&amp;utm_content=demo-solar#demo-solar">Solar</a>
+    </div>
+    <a class="cta" data-cta="trial" href="/?utm_source=calling-hours&amp;utm_medium=tool&amp;utm_content=trial&amp;trial=start">Start my free trial</a>
+    <p class="assure">7 days free. No card needed. $49 per rep per month after that.</p>
+  </section>
+
+  <footer><a href="/?utm_source=calling-hours&amp;utm_medium=tool&amp;utm_content=footer">vpexdialer.com</a><a href="mailto:support@vpexdialer.com">support@vpexdialer.com</a></footer>
+</main>
+<script>
+(function () {
+  "use strict";
+  // ---- Copied verbatim from index.html by tools/build_calling_hours.py (tests/calling_hours_page.js checks they match) ----
+{{RULES}}
+  // ---- Page logic ----
+  var NAMES = {{NAMES}};
+  var fmtCache = {};
+  function parts(iana, ts) {
+    var f = fmtCache[iana] || (fmtCache[iana] = new Intl.DateTimeFormat("en-US", { timeZone: iana, year: "numeric", month: "2-digit", day: "2-digit", weekday: "short", hour: "numeric", minute: "2-digit", hour12: false, timeZoneName: "short" }));
+    var p = {}; f.formatToParts(new Date(ts)).forEach(function (x) { p[x.type] = x.value; });
+    var h = Number(p.hour) % 24, m = Number(p.minute);
+    return { hour: h, min: m, wd: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(p.weekday), ymd: p.year + "-" + p.month + "-" + p.day, abbr: p.timeZoneName || "" };
+  }
+  function isOpen(st, ts) {
+    var z = ZONE_OF[st]; if (!z) return { open: true };
+    var t = parts(z.iana, ts), w = dayWindow(st, t), h = t.hour + t.min / 60;
+    if (w.closed) return { open: false, t: t, w: w, why: w.closed };
+    return { open: h >= w.open && h < w.close, t: t, w: w, why: h < w.open ? "before" : "after" };
+  }
+  // The next moment calls are allowed (15-minute steps, up to 8 days ahead)
+  function nextOpen(st, ts) {
+    var q = 15 * 60000, x = Math.ceil(ts / q) * q;
+    for (var i = 0; i < 8 * 96; i++, x += q) if (isOpen(st, x).open) {
+      for (var b = x - q; b < x; b += 60000) if (isOpen(st, b).open) return b;   // the exact minute
+      return x;
+    }
+    return null;
+  }
+  function closesAt(st, ts) {
+    var x = ts; for (var i = 0; i < 24 * 60; i++, x += 60000) if (!isOpen(st, x).open) return x; return null;
+  }
+  function clock(iana, ts) { return new Intl.DateTimeFormat("en-US", { timeZone: iana, hour: "numeric", minute: "2-digit" }).format(new Date(ts)); }
+  function dayWord(iana, ts, now) {
+    var d = new Intl.DateTimeFormat("en-CA", { timeZone: iana, year: "numeric", month: "2-digit", day: "2-digit" });
+    var a = d.format(new Date(ts)), b = d.format(new Date(now)), c = d.format(new Date(now + 864e5));
+    if (a === b) return "today"; if (a === c) return "tomorrow";
+    return new Intl.DateTimeFormat("en-US", { timeZone: iana, weekday: "long" }).format(new Date(ts));
+  }
+  function check(st, now) {
+    var z = ZONE_OF[st], r = isOpen(st, now), you = Intl.DateTimeFormat().resolvedOptions().timeZone || z.iana, out = { st: st, open: r.open };
+    var local = clock(z.iana, now) + " " + r.t.abbr + ", " + new Intl.DateTimeFormat("en-US", { timeZone: z.iana, weekday: "long" }).format(new Date(now));
+    out.local = local;
+    if (r.open) {
+      var c = closesAt(st, now); out.until = c;
+      out.head = "Yes, you can call now";
+      out.line = "It's <b>" + local + "</b> in " + NAMES[st] + ". Calls are allowed until <b>" + clock(z.iana, c) + "</b> their time" + (you !== z.iana ? " (" + clock(you, c) + " your time)" : "") + ".";
+    } else {
+      var n = nextOpen(st, now); out.next = n;
+      out.head = "No, not right now";
+      var why = r.w.closed ? r.w.closed.replace(/^no /, "No ").replace(/^holiday/, "Holiday") : (r.why === "before" ? "Too early: " : "Too late: ") + NAMES[st] + " allows " + hourLabel(r.w.open) + " to " + hourLabel(r.w.close) + " today";
+      out.line = "It's <b>" + local + "</b> in " + NAMES[st] + ". " + why + ".";
+      if (n) out.line2 = "Calls open again <b>" + dayWord(z.iana, n, now) + " at " + clock(z.iana, n) + "</b> their time" + (you !== z.iana ? " (" + dayWord(you, n, now) + " at " + clock(you, n) + " your time)" : "") + ".";
+    }
+    var rule = STATE_HOURS[st];
+    if (rule && rule.max3) out.extra = NAMES[st] + " also allows only 3 sales calls to the same person in 24 hours.";
+    return out;
+  }
+  window.vpexHours = { check: check, isOpen: isOpen, nextOpen: nextOpen, STATE_HOURS: STATE_HOURS, ZONE_OF: ZONE_OF };
+  var sel = document.getElementById("st"), box = document.getElementById("verdict");
+  function show() {
+    var st = sel.value; if (!st) { box.className = ""; box.innerHTML = ""; return; }
+    var o = check(st, Date.now());
+    box.className = "on " + (o.open ? "ok" : "no");
+    box.innerHTML = '<div class="vh"><span class="dot"></span>' + o.head + '</div><p class="vl">' + o.line + '</p>' + (o.line2 ? '<p class="vl">' + o.line2 + '</p>' : '') + (o.extra ? '<p class="vs">' + o.extra + '</p>' : '') +
+      '<p class="vs">{{LEGAL}}</p>';
+    try { history.replaceState(null, "", location.pathname + "?st=" + st); } catch (e) {}
+  }
+  sel.addEventListener("change", show);
+  try { var q = new URLSearchParams(location.search).get("st"); if (q && NAMES[q.toUpperCase()]) { sel.value = q.toUpperCase(); show(); } } catch (e) {}
+  setInterval(function () { if (sel.value && !document.hidden) show(); }, 60000);
+})();
+</script>
+</body>
+</html>

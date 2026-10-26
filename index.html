@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-01-07">
+<meta name="vpex-build" content="2027-01-08">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 /* Signature themes: five themes only the VPEX owner's own login can use (sig/*.css, sig.js).
@@ -6080,6 +6080,7 @@ window.VPEX_SIG = [
   .vt-chip.ok { background: color-mix(in srgb, var(--interested) 15%, transparent); color: var(--interested); }
   .vt-chip.bad { background: color-mix(in srgb, var(--notinterested) 15%, transparent); color: var(--notinterested); }
   .vt-row.late b { color: var(--text-dim); }
+  .lp-inlink { display: inline-flex; align-items: center; min-height: 44px; color: var(--lp-gold-text, var(--accent)); font-weight: 650; text-decoration: underline; text-underline-offset: 3px; }
   .vt-chip.dim { background: color-mix(in srgb, var(--text-faint) 16%, transparent); color: var(--text-dim); }
   .vg-live.on { background: var(--interested); box-shadow: 0 0 0 3px color-mix(in srgb, var(--interested) 22%, transparent); }
   .vig-guard { border-color: color-mix(in srgb, var(--voicemail) 45%, var(--border)); }
@@ -7718,7 +7719,7 @@ window.VPEX_SIG = [
           </div>
         </article>
         <article class="lp-feat">
-          <div class="lp-feat-copy"><h3>Calls at the right hour.</h3><p>Every lead shows their local time. Anyone outside their state’s calling hours is flagged and VPEX asks before you dial, including stricter states like Florida, Texas and Pennsylvania, and VPEX learns when your leads actually pick up.</p></div>
+          <div class="lp-feat-copy"><h3>Calls at the right hour.</h3><p>Every lead shows their local time. Anyone outside their state’s calling hours is flagged and VPEX asks before you dial, including stricter states like Florida, Texas and Pennsylvania, and VPEX learns when your leads actually pick up. <a class="lp-inlink" href="/calling-hours/">Check any state's calling hours now</a></p></div>
           <div class="lp-vig vig-time" aria-hidden="true">
             <div class="vt-row"><div><b>Mark Walsh</b><small>Newark, NJ</small></div><span class="vt-chip ok">11:01 AM</span></div>
             <div class="vt-row"><div><b>Rosa Diaz</b><small>San Diego, CA</small></div><span class="vt-chip ok">8:01 AM</span></div>
@@ -14742,6 +14743,14 @@ window.VPEX_SIG = [
     document.getElementById("psPrice").textContent = admin && st.kind !== "paused" ? "$" + officePrice(TEAM.officeDoc) + " per rep per month \u00b7 cancel any time" : "";
   }
   setInterval(function () { if (TEAM.office) updatePaused(); }, 60000);
+  // Turning someone off or removing them also changes the invite link: otherwise the link they joined with
+  // would let them make a new login (or recreate a removed one) and see the lead list again. Resolves true when
+  // changed, false when it couldn't be saved, null when there's no invite (the original team).
+  function rotateInvite() {
+    var ref = officeRef(); if (!ref || !TEAM.officeDoc || !TEAM.officeDoc.invite) return Promise.resolve(null);
+    var code = inviteCode();
+    return ref.update({ invite: code, updatedAt: Date.now() }).then(function () { TEAM.officeDoc.invite = code; return true; }, function () { return false; });
+  }
   function inviteLink() { return TEAM.officeDoc && TEAM.officeDoc.invite ? TEAM_LINK + "?o=" + TEAM.office + "&code=" + TEAM.officeDoc.invite : ""; }
   // The office record: name, industry, trial and billing state. Everyone in the office can read it.
   function teamWatchOffice() {
@@ -15516,7 +15525,7 @@ window.VPEX_SIG = [
     body.innerHTML =
       '<button class="close-x" id="teamClose">&times;</button>' +
       '<h3>Team &amp; access</h3>' +
-      '<p class="modal-sub">' + (TEAM.office ? 'Text reps the invite link and they make their own login, or create one for them below. Turning someone off signs them out within seconds.' : 'Reps sign in at your app link with the username and password you create here. Turning someone off signs them out within seconds.') + '</p>' +
+      '<p class="modal-sub">' + (TEAM.office ? 'Text reps the invite link and they make their own login, or create one for them below. Turning someone off signs them out within seconds and changes the invite link.' : 'Reps sign in at your app link with the username and password you create here. Turning someone off signs them out within seconds.') + '</p>' +
       (TEAM.office ? '<div class="tm-invite"><div><b>Invite link</b><span>Office code: <code>' + escapeHtml(TEAM.office) + '</code></span></div><div class="tm-invite-btns"><button class="btn-primary" id="tmInvite" type="button">Copy invite link</button><button class="btn-secondary" id="tmInviteReset" type="button" title="Old links stop working">Reset</button></div></div>' : '') +
       '<div class="tm-list">' + (rows || '<div class="pipe-empty">No one yet.</div>') + '</div>' +
       '<div class="settings-heading" style="margin-top:18px">Add a rep</div>' +
@@ -15567,8 +15576,10 @@ window.VPEX_SIG = [
       b.addEventListener("click", function () {
         var id = b.getAttribute("data-tm-toggle"), m = TEAM.members[id];
         if (!m) return;
+        var off = !!m.active;
         tcol("members").doc(id).update({ active: !m.active }).then(function () {
-          showToast(m.active ? (m.name + " is signed out and locked out") : (m.name + " can sign in again"));
+          if (!off) { showToast(m.name + " can sign in again"); return; }
+          rotateInvite().then(function (ok) { showToast(m.name + " is signed out and locked out" + (ok === true ? ". Your invite link changed too, so old links stop working." : ok === false ? ". Reset the invite link in Team & access so an old link can\u2019t bring them back." : "")); });
         }).catch(function () { showToast("Couldn\u2019t change access. Check your connection."); });
       });
     });
@@ -15594,7 +15605,7 @@ window.VPEX_SIG = [
           saveState();
           teamScheduleFlush(0);
           tcol("members").doc(id).delete().then(function () {
-            showToast(m.name + " was removed");
+            return rotateInvite().then(function (ok) { showToast(m.name + " was removed" + (ok === true ? ". Your invite link changed too, so old links stop working." : ok === false ? ". Reset the invite link in Team & access so an old link can\u2019t bring them back." : "")); });
           }).catch(function () { showToast("Couldn\u2019t remove them. Check your connection."); });
         }, "Remove");
       });
