@@ -126,14 +126,15 @@ jobs:
             | python3 -c "import sys,json; r=json.load(sys.stdin); print(r[0]['result']['aggregateFields']['n']['integerValue'])" 2>/dev/null || echo "?")
           echo "$N phone(s) have alerts turned on." | note "Phones"
 
-          # 6. What happened for real phones (no keys or tokens printed; user ids shortened)
+          # 6. What happened for real phones (no keys or tokens printed; user ids and office names shortened: run notes are public)
           curl -s -H "Authorization: Bearer $T" "$FS/pushTokens?pageSize=50" | python3 -c "
           import sys, json, time
           docs = json.load(sys.stdin).get('documents', [])
           now = time.time() * 1000
           for d in docs:
               f = d.get('fields', {}); g = lambda k: list(f.get(k, {}).values())[0] if f.get(k) else ''
-              print('phone uid=%s.. office=%s ua=%s tz=%s saved %d min ago' % (str(g('uid'))[:6], g('office') or '-', g('ua'), g('tz'), (now - int(g('at') or 0)) / 60000))
+              o = str(g('office') or '')
+              print('phone uid=%s.. office=%s ua=%s tz=%s saved %d min ago' % (str(g('uid'))[:6], (o[:2] + '..') if o else '-', g('ua'), g('tz'), (now - int(g('at') or 0)) / 60000))
           print(len(docs), 'phone(s)')" | note "Phones signed up"
           curl -s -H "Authorization: Bearer $T" "$FS/pushTests?pageSize=20" | python3 -c "
           import sys, json; d = json.load(sys.stdin).get('documents', []); print(len(d), 'test request(s) still waiting', [x['name'].split('/')[-1][:24] for x in d])" | note "Waiting test requests"
@@ -145,6 +146,9 @@ jobs:
               msg = j.get('message') or e.get('textPayload') or ''
               extra = {k: v for k, v in j.items() if k not in ('message',)}
               if 'uid' in extra: extra['uid'] = str(extra['uid'])[:6] + '..'
+              if extra.get('office'): extra['office'] = str(extra['office'])[:2] + '..'
+              for k in ('lead', 'leadId', 'leads'): extra.pop(k, None)
+              msg = re.sub(r'offices/[a-z0-9-]+', 'offices/..', msg)
               s = '%s %s %s %s %s' % (e.get('timestamp','')[11:19], e.get('severity',''), e.get('resource',{}).get('labels',{}).get('service_name',''), msg[:300], json.dumps(extra)[:400] if extra else '')
               print(re.sub(r'(token|Bearer)[\\s:=\"]+[A-Za-z0-9_\\-:.]{20,}', r'\\1 [hidden]', s))" | note "Server log (last 2 hours)"
 
@@ -183,6 +187,34 @@ jobs:
             A=$(curl -s -o /dev/null -w '%{http_code}' "https://firebasestorage.googleapis.com/v0/b/$BK/o/offices%2Fci-check%2FleadFiles%2Fx%2Fy")
             echo "A signed-out request for a file got HTTP $A (403 = refused, right)." | note "Lead files: signed out"
             [ "$A" = "403" ] || fail "Lead files" "A signed-out request got HTTP $A; it should be 403."
+          fi
+
+          # 10. Backups: a daily backup of the whole database, kept 4 weeks (made once here if missing).
+          #     To restore: gcloud firestore databases restore --source-backup=<backup name below> --destination-database=restore-<date>,
+          #     check the copy, then move what's needed back. The live database is never overwritten by a restore.
+          gcloud firestore backups schedules list --database='(default)' --project "$PROJECT" --format=json > /tmp/bks.json 2>/tmp/bks.err || true
+          NS=$(python3 -c "import json; print(len(json.load(open('/tmp/bks.json'))))" 2>/dev/null || echo 0)
+          if [ "$NS" = "0" ]; then
+            if gcloud firestore backups schedules create --database='(default)' --recurrence=daily --retention=4w --project "$PROJECT" > /tmp/bkc.txt 2>&1; then
+              echo "Made a daily backup schedule (kept 4 weeks). The first backup lands within a day." | note "Backups"
+            else fail "Backups" "No backup schedule, and making one failed: $(tail -c 300 /tmp/bkc.txt | tr '\n' ' ')"; fi
+          else
+            gcloud firestore backups list --location "$LOC" --project "$PROJECT" --format=json > /tmp/bkl.json 2>/dev/null || echo "[]" > /tmp/bkl.json
+            python3 - <<'PY' > /tmp/bk.txt
+          import json, time, calendar
+          sch = json.load(open('/tmp/bks.json')); bks = [b for b in json.load(open('/tmp/bkl.json')) if str(b.get('database', '')).endswith('/(default)')]
+          ts = lambda s: calendar.timegm(time.strptime(s[:19], '%Y-%m-%dT%H:%M:%S')) if s else 0
+          made = min(ts(x.get('createTime', '')) or time.time() for x in sch)
+          ready = sorted([b for b in bks if b.get('state') == 'READY'], key=lambda b: b.get('snapshotTime', ''))
+          last = ts(ready[-1]['snapshotTime']) if ready else 0
+          age_h = (time.time() - last) / 3600 if last else None
+          print("Schedule: %s, kept %s. %d backup(s) ready%s." % ("daily" if any(x.get('dailyRecurrence') is not None for x in sch) else "set", (str(int(str(sch[0].get('retention', '0s')).rstrip('s') or 0) // 86400) + ' days'), len(ready),
+                (", newest %.0f hours old (%s)" % (age_h, ready[-1].get('name', '').split('/')[-1][:8] + '..')) if ready else ""))
+          stale = (time.time() - made) > 36 * 3600 and (age_h is None or age_h > 36)
+          print("STALE" if stale else "OK")
+          PY
+            head -1 /tmp/bk.txt | note "Backups"
+            grep -q "^STALE" /tmp/bk.txt && fail "Backups" "The newest database backup is more than 36 hours old (or missing)."
           fi
 
           [ "$BAD" = "0" ] && echo "Everything checks out." | note "Result"
