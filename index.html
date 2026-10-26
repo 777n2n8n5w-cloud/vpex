@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-01-04">
+<meta name="vpex-build" content="2027-01-05">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 /* Signature themes: five themes only the VPEX owner's own login can use (sig/*.css, sig.js).
@@ -5529,6 +5529,8 @@ window.VPEX_SIG = [
   .queue-item .qi-phone { color: var(--text-faint); font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
   .queue-item.done { opacity: 0.5; }
   .queue-item .qi-status { font-size: 11px; padding: 2px 7px; border-radius: 10px; font-weight: 600; }
+  button.queue-item { width: 100%; margin: 0; min-height: 44px; text-align: left; font-family: inherit; line-height: inherit; color: inherit; cursor: pointer; -webkit-appearance: none; appearance: none; }   /* tap a name in Up next to open that lead */
+  button.queue-item:active { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
   .qi-status.interested { background: rgba(111,160,133,0.18); color: var(--interested); }
   .qi-status.notinterested { background: rgba(168,92,104,0.18); color: var(--notinterested); }
   .qi-status.voicemail { background: rgba(201,162,39,0.18); color: var(--voicemail); }
@@ -12976,12 +12978,12 @@ window.VPEX_SIG = [
 
     var html = "";
     pending.slice(1, 21).forEach(function (l) {
-      html += '<div class="queue-item"><span class="qi-name">' + escapeHtml(l.name) + '</span><span class="qi-phone">' + escapeHtml(formatPhoneDisplay(l.phoneRaw)) + '</span></div>';
+      html += '<button type="button" class="queue-item" data-queue-lead="' + escapeHtml(l.id) + '" aria-label="Open ' + escapeHtml(l.name) + '"><span class="qi-name">' + escapeHtml(l.name) + '</span><span class="qi-phone">' + escapeHtml(formatPhoneDisplay(l.phoneRaw)) + '</span></button>';
     });
     if (recentDone.length) {
       recentDone.forEach(function (l) {
         var m = OUTCOME_META[l.outcome] || { label: l.outcome, cls: "noanswer" };
-        html += '<div class="queue-item done"><span class="qi-name">' + escapeHtml(l.name) + '</span><span class="qi-status ' + m.cls + '">' + m.label + '</span></div>';
+        html += '<button type="button" class="queue-item done" data-queue-lead="' + escapeHtml(l.id) + '" aria-label="Open ' + escapeHtml(l.name) + ', ' + escapeHtml(m.label) + '"><span class="qi-name">' + escapeHtml(l.name) + '</span><span class="qi-status ' + m.cls + '">' + m.label + '</span></button>';
       });
     }
     list.innerHTML = html;
@@ -18783,6 +18785,11 @@ window.VPEX_SIG = [
     document.getElementById("openFuRulesBtn").addEventListener("click", function () { closeMenuModal(); openFuRules(); });
     document.getElementById("openScriptBtn").addEventListener("click", function () { closeMenuModal(); openScriptEditor(); });
 
+    // Up next: tap (or click, on a computer) a name to open that lead's profile; Call there dials it.
+    document.getElementById("queueList").addEventListener("click", function (e) {
+      var q = e.target.closest && e.target.closest("[data-queue-lead]");
+      if (q && findLeadById(q.getAttribute("data-queue-lead"))) openLeadProfile(q.getAttribute("data-queue-lead"));
+    });
     document.getElementById("toggleQueueBtn").addEventListener("click", function () {
       queueHidden = !queueHidden;
       state.showUpNext = !queueHidden; saveState();
