@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<!-- Built by tools/build_calling_hours.py from this template and index.html's calling-hours rules. Edit the template, not calling-hours/index.html. -->
+<!-- Built by tools/build_calling_hours.js from this template and index.html's calling-hours rules. Edit the template, not calling-hours/index.html. -->
 <title>Telemarketing calling hours by state (2026): can I call this lead now? | VPEX</title>
 <meta name="description" content="Free checker: pick a state and see if a sales call is allowed right now, in the lead's local time. 8 AM to 9 PM federal rule, plus the 20 states with stricter hours, Sunday and holiday bans and 3-call limits. Updated October 2026.">
 <link rel="canonical" href="https://vpexdialer.com/calling-hours/">
@@ -72,6 +72,20 @@
   footer { margin-top: 48px; font-size: 13.5px; color: var(--dim); display: flex; flex-wrap: wrap; gap: 4px 16px; }
   footer a { display: inline-flex; align-items: center; min-height: 44px; }
   ul.faq { padding-left: 20px; margin: 0; } ul.faq li { margin: 0 0 10px; }
+  .crumb { display: inline-flex; align-items: center; min-height: 44px; margin-top: 10px; font-size: 14.5px; font-weight: 650; color: var(--dim); }
+  .crumb + h1 { margin-top: 4px; }
+  .facts { margin-top: 16px; }
+  .facts h2 { margin: 0 0 10px; font-size: clamp(21px, 5.4vw, 26px); }
+  .facts dl { margin: 0; display: grid; grid-template-columns: minmax(110px, 38%) 1fr; }
+  .facts dt, .facts dd { margin: 0; padding: 9px 0; border-bottom: 1px solid var(--border); }
+  .facts dt { color: var(--dim); font-size: 14.5px; font-weight: 700; padding-right: 12px; }
+  .facts dd { font-weight: 650; }
+  .facts p { margin: 12px 0 0; }
+  .states { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0 12px; }
+  .states a { display: flex; align-items: center; min-height: 44px; border-bottom: 1px solid var(--border); text-decoration: none; font-weight: 600; font-size: 15px; }
+  .states a:hover { color: var(--gold-text); }
+  .states a[aria-current] { color: var(--gold-text); font-weight: 800; }
+  .states a b { margin-left: 6px; color: var(--gold-text); font-size: 12px; font-weight: 800; }
 </style>
 </head>
 <body>
@@ -122,6 +136,9 @@
     <li><b>Do Not Call:</b> these hours don't replace the National Do Not Call Registry or your own Do Not Call list.</li>
   </ul>
 
+  <h2>Calling hours in each state</h2>
+  <nav class="states" aria-label="Calling hours by state"><a href="/calling-hours/alabama/">Alabama<b aria-label="stricter">•</b></a><a href="/calling-hours/alaska/">Alaska</a><a href="/calling-hours/arizona/">Arizona</a><a href="/calling-hours/arkansas/">Arkansas</a><a href="/calling-hours/california/">California</a><a href="/calling-hours/colorado/">Colorado</a><a href="/calling-hours/connecticut/">Connecticut<b aria-label="stricter">•</b></a><a href="/calling-hours/delaware/">Delaware</a><a href="/calling-hours/district-of-columbia/">District of Columbia</a><a href="/calling-hours/florida/">Florida<b aria-label="stricter">•</b></a><a href="/calling-hours/georgia/">Georgia</a><a href="/calling-hours/hawaii/">Hawaii</a><a href="/calling-hours/idaho/">Idaho</a><a href="/calling-hours/illinois/">Illinois</a><a href="/calling-hours/indiana/">Indiana</a><a href="/calling-hours/iowa/">Iowa</a><a href="/calling-hours/kansas/">Kansas</a><a href="/calling-hours/kentucky/">Kentucky<b aria-label="stricter">•</b></a><a href="/calling-hours/louisiana/">Louisiana<b aria-label="stricter">•</b></a><a href="/calling-hours/maine/">Maine</a><a href="/calling-hours/maryland/">Maryland<b aria-label="stricter">•</b></a><a href="/calling-hours/massachusetts/">Massachusetts<b aria-label="stricter">•</b></a><a href="/calling-hours/michigan/">Michigan<b aria-label="stricter">•</b></a><a href="/calling-hours/minnesota/">Minnesota<b aria-label="stricter">•</b></a><a href="/calling-hours/mississippi/">Mississippi<b aria-label="stricter">•</b></a><a href="/calling-hours/missouri/">Missouri</a><a href="/calling-hours/montana/">Montana</a><a href="/calling-hours/nebraska/">Nebraska</a><a href="/calling-hours/nevada/">Nevada<b aria-label="stricter">•</b></a><a href="/calling-hours/new-hampshire/">New Hampshire</a><a href="/calling-hours/new-jersey/">New Jersey</a><a href="/calling-hours/new-mexico/">New Mexico<b aria-label="stricter">•</b></a><a href="/calling-hours/new-york/">New York</a><a href="/calling-hours/north-carolina/">North Carolina</a><a href="/calling-hours/north-dakota/">North Dakota</a><a href="/calling-hours/ohio/">Ohio</a><a href="/calling-hours/oklahoma/">Oklahoma<b aria-label="stricter">•</b></a><a href="/calling-hours/oregon/">Oregon<b aria-label="stricter">•</b></a><a href="/calling-hours/pennsylvania/">Pennsylvania<b aria-label="stricter">•</b></a><a href="/calling-hours/rhode-island/">Rhode Island<b aria-label="stricter">•</b></a><a href="/calling-hours/south-carolina/">South Carolina</a><a href="/calling-hours/south-dakota/">South Dakota<b aria-label="stricter">•</b></a><a href="/calling-hours/tennessee/">Tennessee</a><a href="/calling-hours/texas/">Texas<b aria-label="stricter">•</b></a><a href="/calling-hours/utah/">Utah</a><a href="/calling-hours/vermont/">Vermont</a><a href="/calling-hours/virginia/">Virginia</a><a href="/calling-hours/washington/">Washington<b aria-label="stricter">•</b></a><a href="/calling-hours/west-virginia/">West Virginia</a><a href="/calling-hours/wisconsin/">Wisconsin</a><a href="/calling-hours/wyoming/">Wyoming<b aria-label="stricter">•</b></a></nav>
+
   <section class="sell" aria-label="VPEX">
     <h2>VPEX checks this on every lead, before your reps dial.</h2>
     <p>VPEX is the power dialer for sales floors. Every lead shows their local time. Call asks first when a lead is outside their state's hours, and follow-ups land inside them. Reps call from their own phones, with no phone lines to buy.</p>
@@ -141,7 +158,7 @@
 <script>
 (function () {
   "use strict";
-  // ---- Copied verbatim from index.html by tools/build_calling_hours.py (tests/calling_hours_page.js checks they match) ----
+  // ---- Copied verbatim from index.html by tools/build_calling_hours.js (tests/calling_hours_page.js checks they match) ----
   var ZONE_OF = {};
   (function () {
     function put(list, group, iana) {
@@ -204,7 +221,7 @@
       return { open: w[0], close: w[1], strict: w[0] !== 8 || w[1] !== 21 };
     }
   // ---- Page logic ----
-  var NAMES = {"AL":"Alabama","AK":"Alaska","AZ":"Arizona","AR":"Arkansas","CA":"California","CO":"Colorado","CT":"Connecticut","DE":"Delaware","DC":"District of Columbia","FL":"Florida","GA":"Georgia","HI":"Hawaii","ID":"Idaho","IL":"Illinois","IN":"Indiana","IA":"Iowa","KS":"Kansas","KY":"Kentucky","LA":"Louisiana","ME":"Maine","MD":"Maryland","MA":"Massachusetts","MI":"Michigan","MN":"Minnesota","MS":"Mississippi","MO":"Missouri","MT":"Montana","NE":"Nebraska","NV":"Nevada","NH":"New Hampshire","NJ":"New Jersey","NM":"New Mexico","NY":"New York","NC":"North Carolina","ND":"North Dakota","OH":"Ohio","OK":"Oklahoma","OR":"Oregon","PA":"Pennsylvania","RI":"Rhode Island","SC":"South Carolina","SD":"South Dakota","TN":"Tennessee","TX":"Texas","UT":"Utah","VT":"Vermont","VA":"Virginia","WA":"Washington","WV":"West Virginia","WI":"Wisconsin","WY":"Wyoming"};
+  var NAMES = {"AL":"Alabama","AK":"Alaska","AZ":"Arizona","AR":"Arkansas","CA":"California","CO":"Colorado","CT":"Connecticut","DE":"Delaware","DC":"District of Columbia","FL":"Florida","GA":"Georgia","HI":"Hawaii","ID":"Idaho","IL":"Illinois","IN":"Indiana","IA":"Iowa","KS":"Kansas","KY":"Kentucky","LA":"Louisiana","ME":"Maine","MD":"Maryland","MA":"Massachusetts","MI":"Michigan","MN":"Minnesota","MS":"Mississippi","MO":"Missouri","MT":"Montana","NE":"Nebraska","NV":"Nevada","NH":"New Hampshire","NJ":"New Jersey","NM":"New Mexico","NY":"New York","NC":"North Carolina","ND":"North Dakota","OH":"Ohio","OK":"Oklahoma","OR":"Oregon","PA":"Pennsylvania","RI":"Rhode Island","SC":"South Carolina","SD":"South Dakota","TN":"Tennessee","TX":"Texas","UT":"Utah","VT":"Vermont","VA":"Virginia","WA":"Washington","WV":"West Virginia","WI":"Wisconsin","WY":"Wyoming"}, PRE = "";
   var fmtCache = {};
   function parts(iana, ts) {
     var f = fmtCache[iana] || (fmtCache[iana] = new Intl.DateTimeFormat("en-US", { timeZone: iana, year: "numeric", month: "2-digit", day: "2-digit", weekday: "short", hour: "numeric", minute: "2-digit", hour12: false, timeZoneName: "short" }));
@@ -264,10 +281,10 @@
     box.className = "on " + (o.open ? "ok" : "no");
     box.innerHTML = '<div class="vh"><span class="dot"></span>' + o.head + '</div><p class="vl">' + o.line + '</p>' + (o.line2 ? '<p class="vl">' + o.line2 + '</p>' : '') + (o.extra ? '<p class="vs">' + o.extra + '</p>' : '') +
       '<p class="vs">Based on published state rules as of October 2026. Not legal advice.</p>';
-    try { history.replaceState(null, "", location.pathname + "?st=" + st); } catch (e) {}
+    if (!PRE) try { history.replaceState(null, "", location.pathname + "?st=" + st); } catch (e) {}
   }
   sel.addEventListener("change", show);
-  try { var q = new URLSearchParams(location.search).get("st"); if (q && NAMES[q.toUpperCase()]) { sel.value = q.toUpperCase(); show(); } } catch (e) {}
+  try { var q = new URLSearchParams(location.search).get("st"); if (q && NAMES[q.toUpperCase()]) sel.value = q.toUpperCase(); else if (PRE) sel.value = PRE; if (sel.value) show(); } catch (e) {}
   setInterval(function () { if (sel.value && !document.hidden) show(); }, 60000);
 })();
 </script>
