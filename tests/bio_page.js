@@ -62,13 +62,15 @@ async function mk(br, c) {
     const h = await p.evaluate(() => document.querySelector('.inds a').getAttribute('href'));
     check('threads: links say utm_source=threads', /utm_source=threads/.test(h) && hits[0] && hits[0].s === 'threads', [h, hits[0]]);
     check('threads: no errors', !errs.length, errs); await ctx.close(); }
-  // Older posts: 24 at first, then Show older posts
+  // Older posts: 24 at first, then 24 more per Show older posts until all are shown
   { const { ctx, p } = await mk(br, { w: 390, s: 'dark' }); await p.clock.setSystemTime(new Date('2026-11-30T12:00:00-05:00'));
     await p.goto(ROOT + '/ig/'); await p.waitForTimeout(1000);
     const a = await p.evaluate(() => document.querySelectorAll('#grid a').length);
-    await p.click('#more'); await p.waitForTimeout(300);
-    const b = await p.evaluate(() => ({ n: document.querySelectorAll('#grid a').length, more: !document.getElementById('more').hidden }));
-    check('paging: 24, then all ' + feed.tiles.length, a === Math.min(24, feed.tiles.length) && b.n === feed.tiles.length && !b.more, { a, b }); await ctx.close(); }
+    const steps = [a];
+    while (await p.evaluate(() => !document.getElementById('more').hidden) && steps.length < 20) { await p.click('#more'); await p.waitForTimeout(300); steps.push(await p.evaluate(() => document.querySelectorAll('#grid a').length)); }
+    const b = { n: steps[steps.length - 1], more: await p.evaluate(() => !document.getElementById('more').hidden) };
+    const by24 = steps.every((n, i) => n === Math.min(24 * (i + 1), feed.tiles.length));
+    check('paging: 24 at a time, then all ' + feed.tiles.length, a === Math.min(24, feed.tiles.length) && by24 && b.n === feed.tiles.length && !b.more, { steps, b }); await ctx.close(); }
   // Before any post is out: the posts section stays hidden
   { const { ctx, p, errs } = await mk(br, { w: 390, s: 'dark' }); await p.clock.setSystemTime(new Date('2026-01-01T12:00:00-05:00'));
     await p.goto(ROOT + '/ig/'); await p.waitForTimeout(900);
