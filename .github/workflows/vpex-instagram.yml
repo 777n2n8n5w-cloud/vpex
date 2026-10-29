@@ -8,7 +8,7 @@ name: VPEX Instagram bot
 
 on:
   schedule:
-    - cron: "*/15 * * * *"      # every 15 minutes: post what's due, answer comments
+    - cron: "4,19,34,49 * * * *"  # every 15 minutes, off the busy top of the hour: post what's due, answer comments
     - cron: "5 13 * * 1"        # Mondays 9:05 AM New York (8:05 in winter): the private scorecard
     - cron: "20 14 * * *"       # every day 10:20 AM New York (9:20 in winter): learn from every post's numbers
   workflow_dispatch:
@@ -23,10 +23,6 @@ on:
         required: false
         default: ""
 
-concurrency:
-  group: vpex-instagram
-  cancel-in-progress: false
-
 permissions:
   contents: read
 
@@ -34,6 +30,9 @@ jobs:
   bot:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
+    concurrency:                # one bot at a time (the relay below has its own lane, so a sleeping relay never holds it up)
+      group: vpex-instagram
+      cancel-in-progress: false
     env:
       PROJECT: dovetail-f863c
     steps:
@@ -84,3 +83,43 @@ jobs:
           MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || (github.event.schedule == '5 13 * * 1' && 'scorecard' || (github.event.schedule == '20 14 * * *' && 'learn' || 'run')) }}
           IG_ITEM: ${{ inputs.item }}
         run: python instagram-bot/bot.py "$MODE"
+
+  # GitHub's 15-minute schedule is best effort; since Oct 27 2026 it has fired only every 3 to 6 hours, so stories and
+  # hand-offs were missed (3-hour grace). After each regular run, the relay sleeps until the next planned post (only when
+  # it's under 5 h 45 min away) and starts one run then. At most one relay sleeps at a time. It never contacts Meta and
+  # changes no limit, gap or backoff: the run it starts is the same run the schedule would start.
+  relay:
+    needs: bot
+    if: always() && (github.event_name == 'schedule' && github.event.schedule == '4,19,34,49 * * * *' || github.event_name == 'workflow_dispatch' && inputs.mode == 'run')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install -q requests
+      - name: Start a run at the next planned post
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          secs=$(python instagram-bot/bot.py next)
+          if [ "$secs" = "none" ] || [ "$secs" -gt 20700 ]; then
+            echo "::notice title=Relay::Next planned post is more than 5 h 45 min away (or paused); the regular schedule picks it up."; exit 0
+          fi
+          others=$(gh api "repos/$REPO/actions/workflows/vpex-instagram.yml/runs?status=in_progress&per_page=20" --jq ".workflow_runs[] | select(.id != $RUN_ID) | .id")
+          for r in $others; do
+            if gh api "repos/$REPO/actions/runs/$r/jobs" --jq '.jobs[] | select(.name == "relay" and .status == "in_progress") | .id' | grep -q .; then
+              echo "::notice title=Relay::Another relay is already waiting for the next post."; exit 0
+            fi
+          done
+          wait=$((secs + 90))
+          echo "::notice title=Relay::Starting a run in $((wait / 60)) minutes, at the next planned post."
+          sleep "$wait"
+          gh api -X POST "repos/$REPO/actions/workflows/vpex-instagram.yml/dispatches" -f ref=main -f "inputs[mode]=run" >/dev/null
+          echo "Started a run."

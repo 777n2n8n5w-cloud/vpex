@@ -9,6 +9,7 @@ Runs on GitHub every 15 minutes (see .github/workflows/vpex-instagram.yml):
   scorecard Monday (also "report"): posts per platform, reach, the site funnel by source and post, sign-ups, offices that
             made a first call and offices still calling in week 2; sent to Vincent's phone as a private page
   check     test the keys and show the account, the plan and what's next (changes nothing)
+  next      seconds until the next planned post (plan only, no keys or network); used by the workflow's relay job
 
 Content lives in content packs under instagram/: a folder or a .zip holding plan.json plus the media it names.
 State (what's posted, which comments were answered, the refreshed Instagram key) lives in Firestore under igBot/,
@@ -1456,8 +1457,22 @@ def main():
             try: crosspost(state, media, note)
             except Exception as e: log("cross-posting stopped:", scrub(e)[:300])
 
+def next_due(now=None):
+    """The next planned post time (UTC) after now on any platform, from the plan alone (no state, no network): the workflow's
+    relay job sleeps until then and starts a run, because GitHub's 15-minute schedule can arrive hours late."""
+    if os.path.exists(os.path.join(CONTENT_DIR, "PAUSE")) or os.environ.get("IG_PAUSED", "").lower() == "true": return None
+    now = now or now_utc(); packs = load_packs(); best = None
+    for plat in ("instagram", "facebook", "threads"):
+        for when, pk, it in all_items(packs, plat):
+            if when > now:
+                if best is None or when < best: best = when
+                break
+    return best
+
 if __name__ == "__main__":
     _mode = sys.argv[1] if len(sys.argv) > 1 else "run"
+    if _mode == "next":                              # seconds until the next planned post, or "none" (prints nothing else)
+        _w = next_due(); print(int((_w - now_utc()).total_seconds()) if _w else "none"); sys.exit(0)
     try:
         main()
     except SoftStop as e:

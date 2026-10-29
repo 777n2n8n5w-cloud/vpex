@@ -504,6 +504,33 @@ write_pack(e["IG_CONTENT"], "Week-9", items_main())
 r, out = bot(e, "check")
 check(r.returncode != 0 and "rejected the key" in out and "WRONG" not in out.replace("[hidden]", ""), "a bad key stops with a clear message, key not shown", out[-300:])
 
+# ======================================================================= 7. relay: seconds to the next planned post (plan only)
+reset()
+d, e = env_for("relay")
+e2 = dict(e, IG_TOKEN="", FB_PAGE_TOKEN="", THREADS_TOKEN="", BOT_STATE="nowhere:", BOT_MEDIA="nowhere:", IG_DAY_CAPS="")
+write_pack(e["IG_CONTENT"], "Week-9", [
+    {"id": "r-past", "at": at(-30), "type": "image", "title": "Past", "image": "2-Posts/Post-22-TwoReps.jpg", "caption": "x"},
+    {"id": "r-story", "at": at(95), "type": "story", "title": "Story", "image": "3-Stories/Story-Mon-2.jpg"},
+    {"id": "r-feed", "at": at(240), "type": "image", "title": "Later", "image": "2-Posts/Post-26-RepQuit.jpg", "caption": "y"}])
+r, out = bot(e2, "next")
+secs = int(out.strip()) if out.strip().lstrip("-").isdigit() else None
+check(r.returncode == 0 and secs is not None and 90 * 60 - 120 <= secs <= 95 * 60 + 5, "next: seconds to the next planned post (a story in 95 min), no keys or state needed", out[-300:])
+check(out.strip().count("\n") == 0 and not G["ig_posts"] and not G["fb"] and not G["th"], "next prints only the number and contacts no platform")
+write_pack(e["IG_CONTENT"], "Week-9", [{"id": "r-th", "at": at(50), "type": "thread", "title": "T", "threads_text": "x {link}"}])
+r, out = bot(e2, "next")
+check(out.strip().isdigit() and 45 * 60 <= int(out.strip()) <= 50 * 60 + 5, "next counts Threads-only posts too", out[-200:])
+write_pack(e["IG_CONTENT"], "Week-9", [{"id": "r-past", "at": at(-30), "type": "image", "title": "Past", "image": "2-Posts/Post-22-TwoReps.jpg", "caption": "x"}])
+r, out = bot(e2, "next")
+check(out.strip() == "none", "next: nothing planned ahead says none", out[-200:])
+write_pack(e["IG_CONTENT"], "Week-9", [{"id": "r-story", "at": at(95), "type": "story", "title": "Story", "image": "3-Stories/Story-Mon-2.jpg"}])
+open(os.path.join(e["IG_CONTENT"], "PAUSE"), "w").write("")
+r, out = bot(e2, "next")
+check(out.strip() == "none", "next: a PAUSE file means no relay", out[-200:])
+wf = open(os.path.join(ROOT, ".github", "workflows", "vpex-instagram.yml")).read()
+check("cancel-in-progress: false" in wf and "group: vpex-instagram\n" in wf and wf.count("python instagram-bot/bot.py next") == 1 and "-gt 20700" in wf
+      and "inputs[mode]=run" in wf and "actions: write" in wf.split("relay:")[1] and "actions: write" not in wf.split("relay:")[0],
+      "workflow: relay waits at most 5 h 45 min, starts a normal run, only it may start runs, the bot lane is unchanged")
+
 shutil.rmtree(TMP, ignore_errors=True)
 print("bot: %d passed, %d failed" % (F["p"], F["f"]))
 sys.exit(1 if F["f"] else 0)
