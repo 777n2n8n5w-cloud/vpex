@@ -1,6 +1,132 @@
 {
-"built": "2026-10-22T09:32-04:00",
+"built": "2026-10-29T09:21-04:00",
 "tiles": [
+{
+"id": "w6-vets",
+"at": "2026-11-09T19:00:00-05:00",
+"t": "Wednesday is Veterans Day. No sales calls in 3 states.",
+"img": "t/w6-vets.jpg",
+"go": "home",
+"c": "w6",
+"k": "image"
+},
+{
+"id": "w6-aj",
+"at": "2026-11-09T11:00:00-05:00",
+"t": "Monday's list came in a mess",
+"img": "t/w6-aj.jpg",
+"go": "trial",
+"c": "w6",
+"k": "reel"
+},
+{
+"id": "w6-ai",
+"at": "2026-11-08T19:00:00-05:00",
+"t": "Your best rep quit.",
+"img": "t/w6-ai.jpg",
+"go": "home",
+"c": "w6",
+"k": "reel"
+},
+{
+"id": "w6-trial",
+"at": "2026-11-08T11:00:00-05:00",
+"t": "Day one of your free trial",
+"img": "t/w6-trial.jpg",
+"go": "trial",
+"c": "w6",
+"k": "image"
+},
+{
+"id": "w6-sunday",
+"at": "2026-11-07T19:00:00-05:00",
+"t": "Calling leads tomorrow? Sunday rules",
+"img": "t/w6-sunday.jpg",
+"go": "home",
+"c": "w6",
+"k": "carousel"
+},
+{
+"id": "w6-ah",
+"at": "2026-11-07T11:00:00-05:00",
+"t": "Your number got flagged. Again.",
+"img": "t/w6-ah.jpg",
+"go": "home",
+"c": "w6",
+"k": "reel"
+},
+{
+"id": "w6-ag",
+"at": "2026-11-06T19:00:00-05:00",
+"t": "Two reps. One lead.",
+"img": "t/w6-ag.jpg",
+"go": "home",
+"c": "w6",
+"k": "reel"
+},
+{
+"id": "w6-myth",
+"at": "2026-11-06T11:00:00-05:00",
+"t": "Myth: you need desks, headsets and an IT guy",
+"img": "t/w6-myth.jpg",
+"go": "trial",
+"c": "w6",
+"k": "image"
+},
+{
+"id": "w6-rules",
+"at": "2026-11-05T19:00:00-05:00",
+"t": "How many times do you call a no-answer?",
+"img": "t/w6-rules.jpg",
+"go": "home",
+"c": "w6",
+"k": "carousel"
+},
+{
+"id": "w6-af",
+"at": "2026-11-05T11:00:00-05:00",
+"t": "Who's winning today?",
+"img": "t/w6-af.jpg",
+"go": "home",
+"c": "w6",
+"k": "reel"
+},
+{
+"id": "w6-ae",
+"at": "2026-11-04T19:00:00-05:00",
+"t": "8:15 AM. Can you call Connecticut?",
+"img": "t/w6-ae.jpg",
+"go": "home",
+"c": "w6",
+"k": "reel"
+},
+{
+"id": "w6-office",
+"at": "2026-11-04T11:00:00-05:00",
+"t": "In office vs. remote. Same numbers?",
+"img": "t/w6-office.jpg",
+"go": "home",
+"c": "w6",
+"k": "image"
+},
+{
+"id": "w6-solar",
+"at": "2026-11-03T19:00:00-05:00",
+"t": "Built for solar floors",
+"img": "t/w6-solar.jpg",
+"go": "demo:solar",
+"c": "w6",
+"k": "carousel"
+},
+{
+"id": "w6-ad",
+"at": "2026-11-03T11:00:00-05:00",
+"t": "Slow Tuesday? Start a contest.",
+"img": "t/w6-ad.jpg",
+"go": "home",
+"c": "w6",
+"k": "reel"
+},
 {
 "id": "w5-goals",
 "at": "2026-11-02T19:00:00-05:00",

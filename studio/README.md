@@ -46,7 +46,7 @@ Instagram: 2 feed posts and 3 stories a day, New York time. Facebook Page: the s
 - **A week** is Tuesday to Monday: 14 feed posts, 21 stories (7 sticker), 7 Threads-only posts.
 - **Fewer posts, better posts.** With 14 feed posts a week, every one has to earn its slot: proven hooks first, one clear call to action.
 - **Never post in bursts.** On Oct 16, 5 posts within 20 minutes reached 4–8 people each, while spaced posts reached 60–130.
-- **Bridge:** `tools/replan_8day.py` re-timed weeks 3–4 when the cadence changed. The week 4b bridge pack (`ig4/kit4b.py`, Reels S–V in `ig4/reel4.py`, `ig4/make_pack4b.py`) covers Fri Oct 23 at 19:00 through Mon Oct 26. Week 5 starts Tue Oct 27.
+- **Bridge:** `tools/replan_8day.py` re-timed weeks 3–4 when the cadence changed. The week 4b bridge pack (`ig4/kit4b.py`, Reels S–V in `ig4/reel4.py`, `ig4/make_pack4b.py`) covers Fri Oct 23 at 19:00 through Mon Oct 26. Week 5 starts Tue Oct 27; week 6 Tue Nov 3.
 
 ## Plan item fields (format 2)
 
@@ -93,6 +93,10 @@ On top of the existing fields (`id`, `at`, `type`, `title`, `caption`, `image`, 
   - By hook: reference +0.75 (n=1), pov +0.57 (n=1), pain +0.11 (n=3, the most-tested positive hook); number −0.29 (n=2). By call to action: save +0.32 (n=2), comment −0.12 (n=3), question −0.14 (n=2). By time: 19:00 +0.83 (n=2), 11:00 +0.06 (n=2).
   - Biggest leak, unchanged: Reel skip rates of 84–95% (Reel I 70%). Plain product-intro Reels did worst ("One tap to call", 95% skip, −0.68).
   - Week 5 leans on manager's-eye Reels (pov), team pain (shared list, Do Not Call, follow-ups), a save-able calling-hours reference and a "Built for" carousel; it tests quote, feature, offer and question hooks, and send/save calls to action against "Comment DEMO".
+- **Learn run, Oct 29 (site-only; Meta still blocking):** 30 posts that went out, 13 site actions tagged to them (too few to call a winner; every tag still "testing").
+  - Brought the most site visits: the calling-hours carousel (w4-hours, reference / save, 19:00): 1 bio tap, 4 visits, 3 demos, 2 demo calls; Reel M (w4-m, pov / calling-hours) and the $49 post (w4-price, offer) 1 tap and 1 visit each.
+  - By hook (site actions per post): reference 4.5 (n=2), offer 2.0 (n=1), pov 0.5 (n=4); pain, number, news, contrast, quote 0 so far. By topic: calling-hours 2.0 (n=5), the most-tested topic with actions. By format: carousel 1.5 (n=6), image 0.2 (n=8), reel 0.1 (n=16). By call to action: save 4.0 (n=2), bio 2.0 (n=1), comment 0.1 (n=17). By time: 19:00 0.9 (n=11), 11:00 0.2 (n=11).
+  - Week 6 leans on that: calling hours three new ways (8:15 AM in Connecticut, Sunday rules, Veterans Day), carousels and "Save this" at 19:00, a Reel remake of "Two reps. One lead." (top Instagram post, Oct 21), and "Built for" solar; it moves calls to action from "Comment DEMO" toward save, bio and "Send this to your manager", and tests the myth hook (never tried in the feed).
 - **Since Oct 21 Meta blocks the bot ("API access blocked"),** so learn and check can't read Instagram's numbers until the block lifts. Since Oct 24, learn still scores the site side while blocked: "Site-only learning" lists each post that went out (posted or handed off) with its bio taps, visits, demos and demo calls, grouped by hook, topic, format, time and platform (raw counts per post; "winning" needs 3+ posts at 1.5× the average). Build from those and these notes meanwhile.
 
 - **Shared most:** industry-specific carousels ("Built for your floor", 6 shares, 418 views) and calling-hours content ("A lead in LA doesn't want your call at 7:20 AM", 74 reach).
