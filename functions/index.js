@@ -246,18 +246,30 @@ exports.igDone = onRequest({ invoker: "public", cors: true, maxInstances: 2, tim
 // No app user can read growth/ (the database rules have no rule for it); the Instagram bot reads it for the weekly scorecard.
 let hitWindow = 0, hitCount = 0;
 function hitBudget(now) { if (now - hitWindow > 60000) { hitWindow = now; hitCount = 0; } return ++hitCount <= 1200; }
+// The counter names already in today's document, read once per server instance per day (to cap new ones; see L.capHit).
+let hitDay = "", hitSeen = null;
+async function hitKeysToday(day) {
+  if (hitDay !== day || !hitSeen) {
+    const snap = await db.doc("growth/days/items/" + day).get();
+    const c = snap.exists ? snap.get("c") : null;
+    hitSeen = new Set(c && typeof c === "object" ? Object.keys(c) : []); hitDay = day;
+  }
+  return hitSeen;
+}
 exports.hit = onRequest({ invoker: "public", cors: L.HIT_ORIGINS, maxInstances: 3, timeoutSeconds: 10 }, async function (req, res) {
   const now = Date.now();
   if (req.method !== "POST") { res.status(405).end(); return; }
   const origin = req.get("origin") || "";
-  if (origin && L.HIT_ORIGINS.indexOf(origin) < 0) { res.status(403).end(); return; }
+  if (!L.hitOriginOk(origin)) { res.status(403).end(); return; }
   if (!hitBudget(now)) { res.status(429).end(); return; }
   const raw = req.rawBody ? req.rawBody.toString("utf8") : (typeof req.body === "string" ? req.body : JSON.stringify(req.body || {}));
-  const h = raw.length <= 2000 ? L.parseHit(raw) : null;
-  if (!h) { res.status(400).end(); return; }
+  const parsed = raw.length <= 2000 ? L.parseHit(raw) : null;
+  if (!parsed) { res.status(400).end(); return; }
   const day = L.nyDate(now), inc = admin.firestore.FieldValue.increment(1);
   try {
-    const writes = [db.doc("growth/days/items/" + day).set({ day: day, t: inc, c: { [L.hitKey(h)]: inc } }, { merge: true })];
+    const seen = await hitKeysToday(day), h = L.capHit(parsed, seen), key = L.hitKey(h);
+    seen.add(key);
+    const writes = [db.doc("growth/days/items/" + day).set({ day: day, t: inc, c: { [key]: inc } }, { merge: true })];
     if (h.e === "signup") writes.push((async function () {
       const o = await db.doc("offices/" + h.o).get();
       if (!o.exists || !L.freshOffice(o.data(), now)) return;

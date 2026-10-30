@@ -244,6 +244,16 @@ function parseHit(body) {
   if (e === "signup") { var sl = String(o.o || ""); if (!/^[a-z0-9-]{3,40}$/.test(sl)) return null; h.o = sl; }
   return h;
 }
+// Only the site's own pages may count. A browser always sends Origin on these POSTs; a request without one is a script.
+function hitOriginOk(origin) { return HIT_ORIGINS.indexOf(String(origin || "")) >= 0; }
+// A day's counters live in one document (1 MiB cap, about 8,000 counters). Past HIT_DAY_KEYS different combinations in a
+// day, a new combination is counted as source "other" with no medium, campaign or post (step, industry and phone/computer
+// kept), so junk tags can't fill the document and stop the real counts. Combinations already seen that day still count.
+var HIT_DAY_KEYS = 2000;
+function capHit(h, seen) {
+  if (!h || !seen || seen.has(hitKey(h)) || seen.size < HIT_DAY_KEYS) return h;
+  var f = { e: h.e, s: "other", m: "", c: "", n: "", i: h.i, d: h.d }; if (h.o) f.o = h.o; return f;
+}
 // One counter per combination, in one document per New York day.
 function hitKey(h) { return [h.e, h.s, h.m || "-", h.c || "-", h.n || "-", h.i || "-", h.d || "-"].join("~"); }
 function unHitKey(k) { var p = String(k).split("~"), f = function (x) { return x === "-" || x == null ? "" : x; };
@@ -255,4 +265,4 @@ function freshOffice(d, now) { return !!(d && typeof d.createdAt === "number" &&
 module.exports = { APP_URL, STALE_MS, DROP_MS, APPT_LEAD_MS, queueId, notifyAt, assigneeOf, taskEntries, diffQueue, handoffEvents, officeOpen,
   fmtWhen, leadLink, dueMessages, handoffMessage, testMessage, fcmMessage, deadToken, officeFromEmail, safeTz, firstName,
   localParts, digestDue, localDayBounds, digestCounts, digestMessage,
-  HIT_EVENTS, HIT_INDS, HIT_ORIGINS, hitTok, parseHit, hitKey, unHitKey, nyDate, freshOffice };
+  HIT_EVENTS, HIT_INDS, HIT_ORIGINS, HIT_DAY_KEYS, hitOriginOk, capHit, hitTok, parseHit, hitKey, unHitKey, nyDate, freshOffice };
