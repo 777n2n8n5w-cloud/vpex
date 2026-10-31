@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Comparison page. PhoneBurner's prices and features are from phoneburner.com/pricing and phoneburner.com/faq, checked
+     on the date in CHECKED below. Re-check them before changing this page (tests/compare_page.js checks the page itself). -->
+<title>PhoneBurner alternative for sales floors: VPEX at $49 per rep (2026)</title>
+<meta name="description" content="PhoneBurner starts at $165 per user a month billed monthly. VPEX is $49 per rep a month, with no phone lines to buy. An honest side-by-side, including what PhoneBurner does that VPEX doesn't.">
+<link rel="canonical" href="https://vpexdialer.com/phoneburner-alternative/">
+<meta property="og:title" content="A PhoneBurner alternative at $49 per rep">
+<meta property="og:description" content="Price, calls, recording, texting and calling hours, side by side. Sources and the date they were checked are on the page.">
+<meta property="og:image" content="https://vpexdialer.com/vpex-og.jpg">
+<meta property="og:url" content="https://vpexdialer.com/phoneburner-alternative/">
+<meta name="theme-color" content="#0D1224">
+<link rel="icon" href="/vpex-icon-64.png">
+<link rel="apple-touch-icon" href="/vpex-icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0D1224; --surface: #141B34; --raised: #1B2344; --border: #283258; --text: #EDF0FB; --dim: #A2AACB;
+    --gold: #E8B94A; --gold-text: #FFC94D; --focus: #E8B94A; --ok: #57C08A; --no: #FF8A8A;
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root { --bg: #ECEFF7; --surface: #FFFFFF; --raised: #F5F7FD; --border: #D4DAEB; --text: #11172E; --dim: #4F5A7C; --gold-text: #8A630C;
+      --ok: #17784A; --no: #B3261E; color-scheme: light; }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 'Archivo', system-ui, -apple-system, sans-serif;
+    background-image: radial-gradient(110% 420px at 100% -60px, rgba(90,128,255,0.22), transparent 70%); background-repeat: no-repeat; }
+  @media (prefers-color-scheme: light) { body { background-image: radial-gradient(110% 420px at 100% -60px, rgba(47,91,235,0.10), transparent 70%); } }
+  main { max-width: 760px; margin: 0 auto; padding: calc(14px + env(safe-area-inset-top, 0px)) 16px calc(48px + env(safe-area-inset-bottom, 0px)); }
+  a { color: inherit; }
+  a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 8px; }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .wm { display: inline-flex; align-items: center; min-height: 44px; font-weight: 850; font-stretch: 120%; font-size: 20px; text-decoration: none; }
+  .topcta { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 10px; background: var(--gold); color: #111827; font-weight: 750; font-size: 14.5px; text-decoration: none; }
+  h1 { font-size: clamp(32px, 9vw, 52px); line-height: 1.02; letter-spacing: -0.03em; font-weight: 850; font-stretch: 104%; margin: 22px 0 12px; }
+  h1 em { font-style: normal; color: var(--gold-text); }
+  .lede { color: var(--dim); margin: 0 0 22px; font-size: 17px; max-width: 36em; }
+  h2 { font-size: clamp(24px, 6vw, 32px); line-height: 1.1; letter-spacing: -0.02em; font-weight: 820; margin: 44px 0 10px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 18px; }
+  .calc label { display: block; font-size: 13px; font-weight: 700; color: var(--dim); margin: 0 0 6px; }
+  .stepper { display: flex; align-items: center; gap: 8px; }
+  .stepper button { width: 50px; height: 50px; flex: none; border-radius: 12px; border: 1px solid var(--border); background: var(--raised); color: var(--text); font: inherit; font-size: 24px; font-weight: 700; cursor: pointer; }
+  .stepper input { width: 96px; height: 50px; text-align: center; font: inherit; font-size: 22px; font-weight: 800; color: var(--text); background: var(--raised); border: 1px solid var(--border); border-radius: 12px; }
+  .rows { margin: 16px 0 0; display: grid; grid-template-columns: 1fr auto; }
+  .rows dt, .rows dd { margin: 0; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .rows dt { color: var(--dim); font-weight: 650; padding-right: 12px; }
+  .rows dd { font-weight: 800; text-align: right; font-variant-numeric: tabular-nums; }
+  .rows .vp { color: var(--text); } .rows .vp + dd { color: var(--ok); }
+  .save { margin: 14px 0 0; font-size: 18px; font-weight: 750; }
+  .save b { color: var(--gold-text); }
+  .fine { font-size: 13.5px; color: var(--dim); }
+  .tw { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -16px; padding: 0 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14.5px; min-width: 560px; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--dim); font-weight: 700; }
+  td:first-child { font-weight: 700; width: 26%; }
+  @media (max-width: 599px) { table { min-width: 0; font-size: 13.5px; } th, td { padding: 9px 5px; } th:first-child, td:first-child { padding-left: 0; } th:last-child, td:last-child { padding-right: 0; } }
+  ul.list { padding-left: 20px; margin: 0; } ul.list li { margin: 0 0 10px; }
+  ul.list a { display: inline-block; padding: 10px 0; margin: -10px 0; font-weight: 650; }
+  .sell p { color: var(--dim); margin: 0 0 14px; max-width: 36em; }
+  .demos { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+  .demos a { display: inline-flex; align-items: center; min-height: 46px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); font-weight: 650; text-decoration: none; }
+  .cta { display: flex; align-items: center; justify-content: center; min-height: 52px; border-radius: 12px; background: var(--gold); color: #111827; font-weight: 800; font-size: 16.5px; text-decoration: none; max-width: 360px; }
+  .assure { font-size: 13.5px; color: var(--dim); margin: 8px 0 0; }
+  .src a { display: inline-flex; align-items: center; min-height: 44px; }
+  footer { margin-top: 48px; font-size: 13.5px; color: var(--dim); display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  footer a { display: inline-flex; align-items: center; min-height: 44px; }
+</style>
+</head>
+<body>
+<main>
+  <div class="top"><a class="wm" href="/?utm_source=compare&amp;utm_medium=page&amp;utm_campaign=phoneburner&amp;utm_content=logo">VPEX</a><a class="topcta" data-cta="top" href="/?utm_source=compare&amp;utm_medium=page&amp;utm_campaign=phoneburner&amp;utm_content=top&amp;trial=start">Start free trial</a></div>
+  <h1>A PhoneBurner alternative at <em>$49 per rep.</em></h1>
+  <p class="lede">PhoneBurner starts at $165 per user a month, billed monthly ($140 billed yearly). VPEX is $49 per rep a month, billed monthly, and your reps call from their own phones, so there are no lines or minutes to buy. Here's an honest side-by-side, including what PhoneBurner does that VPEX doesn't.</p>
+
+  <section class="card calc" aria-label="Monthly cost for your floor">
+    <label for="reps">Reps on your floor</label>
+    <div class="stepper">
+      <button type="button" id="minus" aria-label="One rep fewer">−</button>
+      <input id="reps" type="number" inputmode="numeric" min="1" max="500" value="10" aria-describedby="saveLine">
+      <button type="button" id="plus" aria-label="One rep more">+</button>
+    </div>
+    <dl class="rows">
+      <dt class="vp">VPEX, billed monthly</dt><dd id="cVpex">$490</dd>
+      <dt>PhoneBurner Standard, billed monthly</dt><dd id="cPbM">$1,650</dd>
+      <dt>PhoneBurner Standard, billed yearly</dt><dd id="cPbA">$1,400</dd>
+    </dl>
+    <p class="save" id="saveLine" role="status" aria-live="polite">VPEX costs <b>$1,160 less a month</b> than PhoneBurner Standard billed monthly ($13,920 a year).</p>
+    <p class="fine">List prices per user a month. PhoneBurner add-ons (numbers, ARMOR, Connect Scores) aren't priced on its page and aren't included. VPEX reps use their own phone plan for calls.</p>
+  </section>
+
+  <h2>Side by side</h2>
+  <div class="tw"><table>
+    <thead><tr><th></th><th>VPEX</th><th>PhoneBurner</th></tr></thead>
+    <tbody>
+      <tr><td>Price, billed monthly</td><td>$49 per rep</td><td>$165 Standard, $195 Professional, $215 Premium per user</td></tr>
+      <tr><td>Price, billed yearly</td><td>Monthly only</td><td>$140, $165, $183 per user</td></tr>
+      <tr><td>Contract</td><td>None. Cancel any time</td><td>None</td></tr>
+      <tr><td>Free trial</td><td>7 days, no card</td><td>Free trial with free minutes, no card</td></tr>
+      <tr><td>How calls go out</td><td>Each rep's own phone and number, one tap per call</td><td>Any phone, or its softphone (Professional and up); your own numbers or numbers bought from PhoneBurner</td></tr>
+      <tr><td>Call recording</td><td>No (calls run on reps' own phones)</td><td>Yes, kept 30 days, 90 days or unlimited by plan</td></tr>
+      <tr><td>Voicemail drop</td><td>No</td><td>Yes, one-click voicemails</td></tr>
+      <tr><td>Texting</td><td>Ready-made texts sent from the rep's own phone</td><td>In the app on Premium (1,000 outbound a month; carrier registration needed)</td></tr>
+      <tr><td>Seeing the floor</td><td>Live scoreboard; who's on a call and every call as it's logged</td><td>Live call monitoring and coaching (Professional and up)</td></tr>
+      <tr><td>CRM</td><td>Lead profiles, pipeline, follow-ups, files and notes</td><td>Included on every plan</td></tr>
+    </tbody>
+  </table></div>
+  <p class="fine src">PhoneBurner's prices and features as listed on <a href="https://www.phoneburner.com/pricing" rel="noopener" target="_blank">phoneburner.com/pricing</a> and <a href="https://www.phoneburner.com/faq" rel="noopener" target="_blank">its FAQ</a>, checked <span id="checked">October 31, 2026</span>. Prices change, so check their site. PhoneBurner is a trademark of its owner; VPEX isn't affiliated with it.</p>
+
+  <h2>When PhoneBurner is the better pick</h2>
+  <ul class="list">
+    <li>You need <b>recorded calls</b> for training or compliance.</li>
+    <li>Your reps leave a lot of voicemails and want <b>voicemail drop</b>.</li>
+    <li>You want calls to go out from <b>business numbers</b> or a softphone on a computer instead of reps' phones.</li>
+    <li>You want <b>texting inside the dialer</b> rather than from each rep's phone.</li>
+  </ul>
+
+  <h2>When VPEX is the better pick</h2>
+  <ul class="list">
+    <li><b>Price per seat matters.</b> $49 per rep, billed monthly, no seat minimum. Turn a rep off and the bill follows.</li>
+    <li><b>Your reps already call from their own phones</b> (insurance, real estate, business funding, auto, solar floors). Nothing to install and no lines to set up: they sign in at vpexdialer.com and dial the same day.</li>
+    <li><b>Calling hours by state are checked on every lead.</b> Each lead shows their local time, and Call asks first when they're outside their state's hours, including the 20 stricter states like Florida, Texas and Pennsylvania. <a href="/calling-hours/">Check any state now</a>.</li>
+    <li><b>One shared list for the whole floor</b>, so no two reps dial the same lead, with follow-ups that come back on time, setter-to-closer handoffs, contests and a sales coach.</li>
+  </ul>
+
+  <section class="sell" aria-label="Try VPEX">
+    <h2>See it with your own kind of leads.</h2>
+    <p>Open a demo office for your industry. Sample leads, your floor's own words, no sign-up. Calls in the demo never leave the page.</p>
+    <div class="demos">
+      <a data-cta="demo-insurance" href="/?utm_source=compare&amp;utm_medium=page&amp;utm_campaign=phoneburner&amp;utm_content=demo-insurance#demo-insurance">Insurance demo</a>
+      <a data-cta="demo-realestate" href="/?utm_source=compare&amp;utm_medium=page&amp;utm_campaign=phoneburner&amp;utm_content=demo-realestate#demo-realestate">Real estate</a>
+      <a data-cta="demo-mca" href="/?utm_source=compare&amp;utm_medium=page&amp;utm_campaign=phoneburner&amp;utm_content=demo-mca#demo-mca">Business funding</a>
+      <a data-cta="demo-auto" href="/?utm_source=compare&amp;utm_medium=page&amp;utm_campaign=phoneburner&amp;utm_content=demo-auto#demo-auto">Auto</a>
+      <a data-cta="demo-solar" href="/?utm_source=compare&amp;utm_medium=page&amp;utm_campaign=phoneburner&amp;utm_content=demo-solar#demo-solar">Solar</a>
+    </div>
+    <a class="cta" data-cta="trial" href="/?utm_source=compare&amp;utm_medium=page&amp;utm_campaign=phoneburner&amp;utm_content=trial&amp;trial=start">Start my free trial</a>
+    <p class="assure">7 days free. No card needed. $49 per rep per month after that.</p>
+  </section>
+
+  <footer><a href="/?utm_source=compare&amp;utm_medium=page&amp;utm_campaign=phoneburner&amp;utm_content=footer">vpexdialer.com</a><a href="/calling-hours/">Calling hours by state</a><a href="mailto:support@vpexdialer.com">support@vpexdialer.com</a></footer>
+</main>
+<script>
+(function () {
+  "use strict";
+  var VPEX = 49, PB_M = 165, PB_A = 140;
+  var inp = document.getElementById("reps");
+  function money(n) { return "$" + n.toLocaleString("en-US"); }
+  function reps() { var n = Math.round(Number(inp.value)); return isFinite(n) && n >= 1 ? Math.min(n, 500) : 1; }
+  function draw() {
+    var n = reps(), v = n * VPEX, m = n * PB_M, a = n * PB_A, d = m - v;
+    document.getElementById("cVpex").textContent = money(v);
+    document.getElementById("cPbM").textContent = money(m);
+    document.getElementById("cPbA").textContent = money(a);
+    document.getElementById("saveLine").innerHTML = "VPEX costs <b>" + money(d) + " less a month</b> than PhoneBurner Standard billed monthly (" + money(d * 12) + " a year).";
+  }
+  function step(k) { inp.value = Math.max(1, Math.min(500, reps() + k)); draw(); }
+  document.getElementById("minus").addEventListener("click", function () { step(-1); });
+  document.getElementById("plus").addEventListener("click", function () { step(1); });
+  inp.addEventListener("input", draw);
+  inp.addEventListener("change", function () { inp.value = reps(); draw(); });
+  draw();
+})();
+</script>
+</body>
+</html>
