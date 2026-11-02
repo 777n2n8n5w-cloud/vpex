@@ -1,4 +1,4 @@
-// vpexdialer.com/phoneburner-alternative/ and /batchdialer-alternative/ (the comparison pages) and the sales page's looks count.
+// vpexdialer.com/phoneburner-alternative/, /batchdialer-alternative/ and /mojo-dialer-alternative/ (the comparison pages) and the sales page's looks count.
 //   python3 -m http.server 8765   (in the repo root)
 //   NODE_PATH=<dir with playwright> node tests/compare_page.js
 const { chromium } = require('playwright');
@@ -20,7 +20,13 @@ function ratio(a, b) { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.
       src: ['https://www.phoneburner.com/pricing', 'https://www.phoneburner.com/faq'], tier: 'PhoneBurner Standard', other: '/batchdialer-alternative/' },
     { slug: 'batchdialer', name: 'BatchDialer', dir: 'batchdialer-alternative', ids: ['cVpex', 'cRvM', 'cRvA'], m: 119, a: 95,
       src: ['https://batchdialer.com/pricing'], tier: 'BatchDialer Starter', other: '/phoneburner-alternative/' },
+    // Mojo: no yearly price; the third row is Triple Line + Agent Access ($139 + $10), the first Single Line + Agent Access ($89 + $10)
+    { slug: 'mojo', name: 'Mojo Dialer', dir: 'mojo-dialer-alternative', ids: ['cVpex', 'cRvM', 'cRvA'], m: 99, a: 149,
+      src: ['https://www.mojosells.com/pricing/', 'https://www.mojosells.com/faq/'], tier: 'Mojo Single Line', other: '/phoneburner-alternative/' },
   ];
+  // Every comparison page links every other one
+  for (const P of PAGES) { const h = fs.readFileSync(path.join(__dirname, '..', P.dir, 'index.html'), 'utf8');
+    for (const Q of PAGES) if (Q !== P) check(P.slug + ': footer links /' + Q.dir + '/', h.includes('href="/' + Q.dir + '/"')); }
   const sm = fs.readFileSync(path.join(__dirname, '..', 'sitemap.xml'), 'utf8');
   const app = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
   const money = n => '$' + n.toLocaleString('en-US');
@@ -98,7 +104,7 @@ function ratio(a, b) { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.
     const page = await ctx.newPage(); const errs = []; page.on('pageerror', e => errs.push(e.message));
     await page.route(/gstatic|googleapis/, r => r.abort());
     await page.goto(ROOT + 'index.html#mockbench'); await page.waitForTimeout(1500);
-    for (const [href, label] of [['/phoneburner-alternative/', /Coming from PhoneBurner\? Compare the cost/], ['/batchdialer-alternative/', /Coming from BatchDialer\? Compare the cost/]]) {
+    for (const [href, label] of [['/phoneburner-alternative/', /Coming from PhoneBurner\? Compare the cost/], ['/batchdialer-alternative/', /Coming from BatchDialer\? Compare the cost/], ['/mojo-dialer-alternative/', /Coming from Mojo\? Compare the cost/]]) {
       const s = await page.evaluate((href) => {
         const a = [...document.querySelectorAll('a')].find(x => x.getAttribute('href') === href);
         a && a.scrollIntoView({ block: 'center' });
