@@ -113,7 +113,7 @@ function buildAll() {
   return out;
 }
 function sitemap() {
-  const urls = ['/', '/phoneburner-alternative/', '/batchdialer-alternative/', '/mojo-dialer-alternative/', '/power-dialer-for-insurance-agents/', '/calling-hours/'].concat(Object.keys(NAMES).sort((a, b) => NAMES[a].localeCompare(NAMES[b])).map(st => '/calling-hours/' + slug(st) + '/'));
+  const urls = ['/', '/phoneburner-alternative/', '/batchdialer-alternative/', '/mojo-dialer-alternative/', '/power-dialer-for-insurance-agents/', '/power-dialer-for-real-estate-agents/', '/power-dialer-for-business-funding/', '/power-dialer-for-auto-sales/', '/power-dialer-for-solar-sales/', '/calling-hours/'].concat(Object.keys(NAMES).sort((a, b) => NAMES[a].localeCompare(NAMES[b])).map(st => '/calling-hours/' + slug(st) + '/'));
   return '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + urls.map(u => '  <url><loc>https://vpexdialer.com' + u + '</loc></url>\n').join('') + '</urlset>\n';
 }
 module.exports = { build, buildAll, sitemap, slug, NAMES };

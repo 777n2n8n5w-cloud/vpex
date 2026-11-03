@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Industry page (Solar). Every feature named here is in index.html (QUALIFY, INDUSTRIES, the call scripts, the lead notes,
+     STATE_HOURS); tests/industry_page.js checks it. No claims the app doesn't back, no invented numbers or testimonials. -->
+<title>Power dialer for solar sales teams: VPEX at $49 per rep (2026)</title>
+<meta name="description" content="A power dialer and CRM for solar and home improvement setters and closers. Reps call from their own phones, homeowner details sit on every lead, calling hours are checked by state. $49 per rep a month, 7 days free.">
+<link rel="canonical" href="https://vpexdialer.com/power-dialer-for-solar-sales/">
+<meta property="og:title" content="The power dialer for solar sales teams, at $49 per rep">
+<meta property="og:description" content="Homeowner details on every lead, a homeowner reminder, setter-to-closer handoffs, calling hours by state. Try the solar demo, no sign-up.">
+<meta property="og:image" content="https://vpexdialer.com/vpex-og.jpg">
+<meta property="og:url" content="https://vpexdialer.com/power-dialer-for-solar-sales/">
+<meta name="theme-color" content="#0D1224">
+<link rel="icon" href="/vpex-icon-64.png">
+<link rel="apple-touch-icon" href="/vpex-icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0D1224; --surface: #141B34; --raised: #1B2344; --border: #283258; --text: #EDF0FB; --dim: #A2AACB;
+    --gold: #E8B94A; --gold-text: #FFC94D; --focus: #E8B94A; --ok: #57C08A; --no: #FF8A8A;
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root { --bg: #ECEFF7; --surface: #FFFFFF; --raised: #F5F7FD; --border: #D4DAEB; --text: #11172E; --dim: #4F5A7C; --gold-text: #8A630C;
+      --ok: #17784A; --no: #B3261E; color-scheme: light; }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 'Archivo', system-ui, -apple-system, sans-serif;
+    background-image: radial-gradient(110% 420px at 100% -60px, rgba(90,128,255,0.22), transparent 70%); background-repeat: no-repeat; }
+  @media (prefers-color-scheme: light) { body { background-image: radial-gradient(110% 420px at 100% -60px, rgba(47,91,235,0.10), transparent 70%); } }
+  main { max-width: 760px; margin: 0 auto; padding: calc(14px + env(safe-area-inset-top, 0px)) 16px calc(48px + env(safe-area-inset-bottom, 0px)); }
+  a { color: inherit; }
+  a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 8px; }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .wm { display: inline-flex; align-items: center; min-height: 44px; font-weight: 850; font-stretch: 120%; font-size: 20px; text-decoration: none; }
+  .topcta { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 10px; background: var(--gold); color: #111827; font-weight: 750; font-size: 14.5px; text-decoration: none; }
+  h1 { font-size: clamp(32px, 9vw, 52px); line-height: 1.02; letter-spacing: -0.03em; font-weight: 850; font-stretch: 104%; margin: 22px 0 12px; }
+  h1 em { font-style: normal; color: var(--gold-text); }
+  .lede { color: var(--dim); margin: 0 0 22px; font-size: 17px; max-width: 36em; }
+  h2 { font-size: clamp(24px, 6vw, 32px); line-height: 1.1; letter-spacing: -0.02em; font-weight: 820; margin: 44px 0 10px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 18px; }
+  .calc label { display: block; font-size: 13px; font-weight: 700; color: var(--dim); margin: 0 0 6px; }
+  .stepper { display: flex; align-items: center; gap: 8px; }
+  .stepper button { width: 50px; height: 50px; flex: none; border-radius: 12px; border: 1px solid var(--border); background: var(--raised); color: var(--text); font: inherit; font-size: 24px; font-weight: 700; cursor: pointer; }
+  .stepper input { width: 96px; height: 50px; text-align: center; font: inherit; font-size: 22px; font-weight: 800; color: var(--text); background: var(--raised); border: 1px solid var(--border); border-radius: 12px; }
+  .rows { margin: 16px 0 0; display: grid; grid-template-columns: 1fr auto; }
+  .rows dt, .rows dd { margin: 0; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .rows dt { color: var(--dim); font-weight: 650; padding-right: 12px; }
+  .rows dd { font-weight: 800; text-align: right; font-variant-numeric: tabular-nums; }
+  .rows .vp { color: var(--text); } .rows .vp + dd { color: var(--ok); }
+  .save { margin: 14px 0 0; font-size: 18px; font-weight: 750; }
+  .save b { color: var(--gold-text); }
+  .fine { font-size: 13.5px; color: var(--dim); }
+  .tw { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -16px; padding: 0 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14.5px; min-width: 560px; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--dim); font-weight: 700; }
+  td:first-child { font-weight: 700; width: 26%; }
+  @media (max-width: 599px) { table { min-width: 0; font-size: 13.5px; } th, td { padding: 9px 5px; } th:first-child, td:first-child { padding-left: 0; } th:last-child, td:last-child { padding-right: 0; } }
+  ul.list { padding-left: 20px; margin: 0; } ul.list li { margin: 0 0 10px; }
+  ul.list a { display: inline-block; padding: 10px 0; margin: -10px 0; font-weight: 650; }
+  .sell p { color: var(--dim); margin: 0 0 14px; max-width: 36em; }
+  .demos { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+  .demos a { display: inline-flex; align-items: center; min-height: 46px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); font-weight: 650; text-decoration: none; }
+  .cta { display: flex; align-items: center; justify-content: center; min-height: 52px; border-radius: 12px; background: var(--gold); color: #111827; font-weight: 800; font-size: 16.5px; text-decoration: none; max-width: 360px; }
+  .assure { font-size: 13.5px; color: var(--dim); margin: 8px 0 0; }
+  .src a { display: inline-flex; align-items: center; min-height: 44px; }
+  footer { margin-top: 48px; font-size: 13.5px; color: var(--dim); display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  footer a { display: inline-flex; align-items: center; min-height: 44px; }
+  .feat { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+  .feat li { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 14px 16px; }
+  .feat b { display: block; font-size: 17px; margin: 0 0 4px; }
+  .feat span { color: var(--dim); }
+  @media (min-width: 760px) { .feat { grid-template-columns: 1fr 1fr; } }
+  .price { display: flex; align-items: baseline; gap: 8px; margin: 0 0 6px; } .price b { font-size: 40px; font-weight: 850; color: var(--gold-text); }
+  .comp a, .fine a { display: inline-block; padding: 12px 0; margin: -12px 0; }
+  .comp { font-size: 13.5px; color: var(--dim); margin: 10px 0 0; }
+</style>
+</head>
+<body>
+<main>
+  <div class="top"><a class="wm" href="/?utm_source=landing&amp;utm_medium=page&amp;utm_campaign=solar&amp;utm_content=logo">VPEX</a><a class="topcta" data-cta="top" href="/?utm_source=landing&amp;utm_medium=page&amp;utm_campaign=solar&amp;utm_content=top&amp;trial=solar">Start free trial</a></div>
+  <h1>The power dialer for <em>solar sales teams.</em></h1>
+  <p class="lede">For solar and home improvement setters and closers. Your reps dial from their own phones, every lead carries the homeowner's bill, roof and credit, and VPEX checks each state's calling hours before a call goes out. $49 per rep a month.</p>
+  <div><a class="cta" data-cta="demo-solar" href="/?utm_source=landing&amp;utm_medium=page&amp;utm_campaign=solar&amp;utm_content=demo-solar#demo-solar">Try the solar demo</a></div>
+  <p class="assure">A sample solar team with homeowner leads, no sign-up. Calls in the demo never leave the page.</p>
+
+  <h2>What your floor gets</h2>
+  <ul class="feat">
+    <li><b>Homeowner details on every lead</b><span>Owns the home, electric bill a month, utility, roof age, shade, credit 650+ and whether all owners will be at the appointment, one tap from the dial screen.</span></li>
+    <li><b>Upload your lead list as it is</b><span>Columns like homeowner, electric bill, utility, roof and credit score fill the homeowner details. Every other column lands in the notes instead of being dropped.</span></li>
+    <li><b>A reminder when they rent</b><span>When a lead doesn't own the home, the lead shows: only the homeowner can sign for solar, so set the appointment with them.</span></li>
+    <li><b>Calling hours checked on every lead</b><span>Each lead shows their local time and their state's rule, including the 20 stricter states and the 3-calls-in-24-hours limit in Florida, Maryland, Oklahoma and Oregon. Call asks first when it's outside their hours.</span></li>
+    <li><b>Script and rebuttals for solar</b><span>A starter script and answers to "It's too expensive", "My roof is old", "I rent my home" and more. Edit them for your team.</span></li>
+    <li><b>A pipeline in your words</b><span>Proposal sent, financing, signed, installed, activated, with closing steps from the cancel period and site survey through permit and install to permission to operate.</span></li>
+    <li><b>Setters hand off to closers</b><span>The closer gets the lead with the appointment time, and the homeowner can get a ready-to-send confirmation of their solar consultation. No two setters dial the same lead.</span></li>
+    <li><b>See the floor live</b><span>A scoreboard, who's on a call and every call as it's logged, on a phone or a computer.</span></li>
+  </ul>
+  <p class="comp">Based on published state rules as of October 2026. Not legal advice. <a href="/calling-hours/">Check any state's calling hours</a>.</p>
+
+  <h2>What VPEX doesn't do</h2>
+  <ul class="list">
+    <li>No call recording: calls run on your setters' own phones.</li>
+    <li>No voicemail drop and no predictive dialing that rings several numbers at once.</li>
+    <li>No business or local-presence caller ID: setters call from their own numbers.</li>
+    <li>It doesn't check the National Do Not Call Registry. It skips your team's own Do Not Call list.</li>
+  </ul>
+
+  <section class="sell" aria-label="Try VPEX">
+    <h2>One price, no lines to buy.</h2>
+    <div class="card">
+      <p class="price"><b>$49</b><span>per rep a month</span></p>
+      <p class="fine" style="margin:0 0 14px">Billed monthly, no contract, no seat minimum. Setters use their own phone plan for calls. Coming from another dialer? <a href="/phoneburner-alternative/">PhoneBurner</a>, <a href="/batchdialer-alternative/">BatchDialer</a>, <a href="/mojo-dialer-alternative/">Mojo</a>.</p>
+      <a class="cta" data-cta="trial" href="/?utm_source=landing&amp;utm_medium=page&amp;utm_campaign=solar&amp;utm_content=trial&amp;trial=solar">Start my free trial</a>
+      <p class="assure">7 days free. No card needed.</p>
+    </div>
+  </section>
+
+  <h2>Other floors</h2>
+  <div class="demos"><a href="/power-dialer-for-insurance-agents/">Insurance</a><a href="/power-dialer-for-real-estate-agents/">Real estate</a><a href="/power-dialer-for-business-funding/">Business funding</a><a href="/power-dialer-for-auto-sales/">Auto</a></div>
+
+  <footer><a href="/?utm_source=landing&amp;utm_medium=page&amp;utm_campaign=solar&amp;utm_content=footer">vpexdialer.com</a><a href="/calling-hours/">Calling hours by state</a><a href="/phoneburner-alternative/">VPEX vs PhoneBurner</a><a href="/batchdialer-alternative/">VPEX vs BatchDialer</a><a href="/mojo-dialer-alternative/">VPEX vs Mojo</a><a href="mailto:support@vpexdialer.com">support@vpexdialer.com</a></footer>
+</main>
+</body>
+</html>
