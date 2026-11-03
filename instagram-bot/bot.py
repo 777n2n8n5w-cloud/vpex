@@ -345,9 +345,12 @@ class Notify:
                 self.uid = auth.get_user_by_email(OWNER_EMAIL).uid
             except Exception as e:
                 log("notifications to the owner are off:", e); self.mode = "off"
-    def send(self, title, body, link="https://" + SITE + "/"):
+    def send(self, title, body, link="https://" + SITE + "/", private=False):
+        # private: the text carries site/sign-up numbers, so it goes to the phone only; the public run notes get a placeholder
         self.sent.append({"title": title, "body": body, "link": link})
-        log("NOTIFY:", title, "|", body)
+        if os.environ.get("BOT_NOTIFY_FILE"):          # local tests only: what reached the phone
+            with open(os.environ["BOT_NOTIFY_FILE"], "a") as f: f.write(json.dumps(self.sent[-1]) + "\n")
+        log("NOTIFY: (private, sent to Vincent's phone only)" if private else "NOTIFY: " + title + " | " + body)
         if self.mode != "live" or not self.uid: return
         try:
             from firebase_admin import messaging
@@ -1110,7 +1113,7 @@ def scorecard(state, note, ig, media):
     url = media.page("scorecard-" + now.strftime("%Y%m%d"), html, hours=24 * 7) if media else ""
     open(os.environ.get("REPORT_FILE", "report.html"), "w").write(html)
     head = "%d posts" % sum(posts.values()) + (", %s reached" % f"{int(ins['reach']):,}" if ins.get("reach") else "") + ", %d site visits, %d demos, %d trials" % (vis, dem, sup)
-    note.send("VPEX this week: " + head, "Tap for the scorecard: what worked, where people drop off, what to do next.", url or "https://" + SITE + "/")
+    note.send("VPEX this week: " + head, "Tap for the scorecard: what worked, where people drop off, what to do next.", url or "https://" + SITE + "/", private=True)
     log("Scorecard ready and sent to Vincent's phone as a private page (numbers stay out of this public log).")
     return html
 

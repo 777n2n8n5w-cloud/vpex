@@ -453,9 +453,13 @@ state = {"posted": {"a": {"status": "posted", "at": t0 - 3600}, "b": {"status": 
                           "old-c": {"createdAt": ms(17), "plan": "paid", "days": [D(16), D(8), D(1)]}, "old-d": {"createdAt": ms(16), "plan": "trial", "days": [D(15)]},
                           "vpex": {"createdAt": ms(1), "plan": "comp", "days": [D(1)]}, "ci-files-x": {"createdAt": ms(1), "plan": "trial", "days": [D(1)]}}}
 json.dump(state, open(os.path.join(d, "state.json"), "w"))
+e["BOT_NOTIFY_FILE"] = os.path.join(d, "phone.jsonl")
 r, out = bot(e, "report")
 html = open(os.path.join(d, "report.html")).read()
-check(r.returncode == 0 and "NOTIFY: VPEX this week: 5 posts, 4,100 reached, 60 site visits, 22 demos, 2 trials" in out, "scorecard: phone alert with the week's headline (deploy test hits left out)", out[-600:])
+phone = [json.loads(x) for x in open(e["BOT_NOTIFY_FILE"])] if os.path.exists(e["BOT_NOTIFY_FILE"]) else []
+check(r.returncode == 0 and any(m["title"] == "VPEX this week: 5 posts, 4,100 reached, 60 site visits, 22 demos, 2 trials" for m in phone), "scorecard: phone alert with the week's headline (deploy test hits left out)", phone)
+check("NOTIFY: (private, sent to Vincent's phone only)" in out and "site visits" not in out and "trials" not in out.split("NOTIFY:")[-1], "scorecard: the phone alert's numbers stay out of the public run notes", out[-600:])
+del e["BOT_NOTIFY_FILE"]
 check("Instagram</td><td class=n>2" in html and "Threads</td><td class=n>2" in html and "Facebook</td><td class=n>1" in html, "scorecard: posts per platform this week")
 check("312 <small>(+12 this week)</small>" in html.replace(",", "") and "Taps on the bio link</td><td class=n>37" in html, "scorecard: followers gained and bio-link taps")
 check("Opened a demo office</td><td class=n>22" in html and "Started a free trial</td><td class=n>2" in html and "55% of visits opened a demo" in html.replace("37%", "55%") or "Opened a demo office</td><td class=n>22" in html, "scorecard: the site funnel")
