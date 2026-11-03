@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-01-16">
+<meta name="vpex-build" content="2027-01-17">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 /* Signature themes: five themes only the VPEX owner's own login can use (sig/*.css, sig.js).
@@ -9927,7 +9927,9 @@ window.VPEX_SIG = [
             else if (before.ownerUid !== me || after.ownerUid !== me || inv(after) < inv(before)) throw err("permission-denied");
           }
           if (!isAdminUser(app)) {
-            if (path.indexOf("leadChunks/") === 0) {
+            if (path === "leadChunks/r_" + app._user.uid) {                                     // a rep's own record (as in the real rules): make it, add to it
+              if (!after || (before && (!after.leads || !superset(after.leads, before.leads || {})))) throw err("permission-denied");
+            } else if (path.indexOf("leadChunks/") === 0) {
               if (!before && after) throw err("permission-denied");
               if (before && !after) throw err("permission-denied");                                   // only the admin deletes (as in the real rules)
               if (before && after && (!before.leads || !after.leads || !sameKeys(before.leads, after.leads))) throw err("permission-denied");   // team settings: admin only
@@ -10315,7 +10317,7 @@ window.VPEX_SIG = [
     clearTimeout(localTimer);
     localTimer = setTimeout(writeLocalNow, 120);
     if (cloud.ready) scheduleCloud(2500);
-    if (TEAM.on && TEAM.me) teamScheduleFlush();
+    if (TEAM.on && TEAM.me) { teamScheduleFlush(); prefsSoon(); }
   }
 
   function writeLocalNow() {
@@ -10578,6 +10580,7 @@ window.VPEX_SIG = [
     sigMount();
     syncThemeColor();
     renderThemeSwatches();
+    prefsSoon(800);
   }
 
   function currentThemeName() {
@@ -15631,6 +15634,9 @@ window.VPEX_SIG = [
   function tcol(name) { return TEAM.office ? TEAM.db.collection("offices").doc(TEAM.office).collection(name) : TEAM.db.collection(name); }
   function officeRef() { return TEAM.office ? TEAM.db.collection("offices").doc(TEAM.office) : null; }
   var TEAM_LINK = CUSTOMER.firebase || /^https?:$/.test(location.protocol) ? location.origin + location.pathname : "https://777n2n8n5w-cloud.github.io/vpex/";
+  // Where a rep signs in: an office's own link (no office code to type), or for VPEX's original team the ?legacy=1 page
+  // (the plain site asks new phones for an office code). Customer copies have one team, so the plain link.
+  function signInLink(office) { return office ? TEAM_LINK + "?o=" + encodeURIComponent(office) : CUSTOMER.firebase ? TEAM_LINK : TEAM_LINK + "?legacy=1"; }
   var CHUNK_MAX = 150, CHUNK_BYTES = 600000;
   function chunkMax() { return TEAM.office ? 25 : CHUNK_MAX; }
   var CLAIM_TTL = 20 * 60 * 1000;
@@ -15987,11 +15993,13 @@ window.VPEX_SIG = [
     var u = usernameClean(rawU), pw = document.getElementById("authPw").value;
     function fail(t) { msg.textContent = t; msg.style.display = ""; btn.disabled = false; }
     if (!u || !pw) return fail("Enter your username and password.");
-    var ow = document.getElementById("authOfficeWrap"), withOffice = ow.style.display !== "none";
+    var ow = document.getElementById("authOfficeWrap"), withOffice = ow.style.display !== "none", noCode = false;
     if (withOffice) {
       var oc = officeFromInput(document.getElementById("authOffice").value);
-      if (!oc) return fail("Enter your office code. It\u2019s in the invite your admin sent, or ask them for it.");
-      setOffice(oc);
+      // no office code: the original team's logins (made in Team & access, no office) sign in here too
+      if (!oc && !CUSTOMER.firebase) { setOffice(null); withOffice = false; noCode = true; }
+      else if (!oc) return fail("Enter your office code. It\u2019s in the invite your admin sent, or ask them for it.");
+      else setOffice(oc);
     } else if (/legacy/i.test(location.hash + location.search)) setOffice(null);
     btn.disabled = true;
     if (TEAM.setupMode) {
@@ -16004,6 +16012,7 @@ window.VPEX_SIG = [
     TEAM.auth.signInWithEmailAndPassword(emailFor(u), pw).then(function () { btn.disabled = false; })
       .catch(function (e) {
         var bad = /invalid-credential|wrong-password|user-not-found|invalid-email|invalid-login/.test((e && e.code) || "");
+        if (bad && noCode) return fail("Wrong username or password. If your login is for an office, enter its office code too. It\u2019s in your invite link (after o=), or ask your admin.");
         fail(bad && withOffice ? "Wrong office code, username or password. Your office code is in your invite link (after o=), or ask your admin." : authError(e));
       });
   }
@@ -16080,7 +16089,7 @@ window.VPEX_SIG = [
     var pw = genPassword(), who = m.name || m.username || "them";
     box.innerHTML = '<div class="pw-out">Setting a new password for ' + escapeHtml(who) + '\u2026</div>';
     connectorPost("/reset-password", { office: office || "", uid: m.uid, password: pw }).then(function () {
-      var msg = "Your new VPEX password: " + pw + "\nUsername: " + (m.username || "") + (office ? "\nOffice code: " + office : "") + "\nSign in at " + TEAM_LINK + (office ? "?o=" + office : "") + "\nYou can change it any time from the menu (Change my password).";
+      var msg = "Your new VPEX password: " + pw + "\nUsername: " + (m.username || "") + (office ? "\nOffice code: " + office : "") + "\nSign in at " + signInLink(office) + "\nYou can change it any time from the menu (Change my password).";
       var dig = String(phone || "").replace(/[^0-9+]/g, "");
       box.innerHTML = '<div class="pw-out"><b>New password for ' + escapeHtml(who) + '</b><code>' + escapeHtml(pw) + '</code>' +
         '<div class="modal-actions"><button class="btn-secondary" type="button" data-pw-copy>Copy</button>' +
@@ -16360,6 +16369,7 @@ window.VPEX_SIG = [
     STORAGE_KEY = (TEAM.office ? "vpex_team_" : "dovetail_team_") + user.uid;
     state = loadTeamPrefs();
     if (!state.textSettings) { textSettings(); state.textSettings.myName = DEMO && TEAM.me.name === "You" ? "Alex" : firstName(TEAM.me.name); }
+    clearTimeout(PREFS.timer); PREFS.seen = false; PREFS.timer = null; PREFS.due = 0;
     TEAM.ready = false; TEAM.lastSent = {}; TEAM.fastSig = {}; TEAM.lastCk = {}; TEAM.days = {}; TEAM.migrationChecked = false; TEAM.myClaimId = null; TEAM.forceRemote = {};
     hideAuthScreen();
     applyTeamVisibility();
@@ -16705,6 +16715,8 @@ window.VPEX_SIG = [
       var id = ch.doc.id; changed[id] = true;
       if (ch.type === "removed") delete cache[id]; else cache[id] = ch.doc.data() || {};
     });
+    if (TEAM.me) { var myCk = "r_" + TEAM.me.uid, fromServer = !(qs.metadata && qs.metadata.fromCache);
+      if (changed[myCk] || (!PREFS.seen && fromServer)) prefsApply((cache[myCk] || {}).prefs, fromServer); }
     var remote = {}, sizes = {};
     TEAM.chunkBytesDirty = TEAM.chunkBytesDirty || {};
     Object.keys(cache).forEach(function (ck) {
@@ -16849,7 +16861,7 @@ window.VPEX_SIG = [
     } finally { TEAM.rebalancing = false; TEAM.sizeCheckAt = 0; setTimeout(teamFlush, 50); }
   }
   function teamPickChunk() {
-    var ids = Object.keys(TEAM.chunkSizes).sort();
+    var ids = Object.keys(TEAM.chunkSizes).filter(function (k) { return k.slice(0, 2) !== "r_"; }).sort();   // reps' own records hold their adds and settings
     for (var i = 0; i < ids.length; i++) {
       if (TEAM.chunkSizes[ids[i]] < chunkMax() && !((TEAM.chunkBytes || {})[ids[i]] > 450000)) { TEAM.chunkSizes[ids[i]]++; return ids[i]; }
     }
@@ -17174,7 +17186,7 @@ window.VPEX_SIG = [
       var newUid = cred.user.uid;
       try { await sa.signOut(); } catch (e) {}
       await tcol("members").doc(newUid).set({ username: user, name: name, role: "rep", active: true, createdAt: Date.now(), createdBy: TEAM.me.uid, lastSeen: 0 });
-      var details = SHORT_NAME + " login\nLink: " + TEAM_LINK + "\nUsername: " + user + "\nPassword: " + pw;
+      var details = SHORT_NAME + " login\nLink: " + signInLink(TEAM.office) + (TEAM.office ? "\nOffice code: " + TEAM.office : "") + "\nUsername: " + user + "\nPassword: " + pw;
       document.getElementById("tmName").value = "";
       document.getElementById("tmUser").value = "";
       document.getElementById("tmPw").value = "";
@@ -17242,6 +17254,80 @@ window.VPEX_SIG = [
     var p = {};
     Object.keys(state).forEach(function (k) { if (k !== "leads" && k !== "tasks" && k !== "texts" && k !== "callLog") p[k] = state[k]; });
     return p;
+  }
+
+  /** ---------- My settings follow my login (any phone, computer or Home Screen app) ---------- **/
+  // Each login's own choices (theme, texts, daily goal, list and sort, dialing options) are kept with the account in
+  // leadChunks/r_<uid>, field prefs (the record reps can already write; no rule change). The newest copy wins: a new
+  // phone, the Home Screen app (iPhone keeps it apart from Safari) or a phone that cleared its storage gets them back.
+  // Only these keys travel; work in progress (current lead, open call, runs) stays on the device.
+  var PREF_KEYS = ["dailyGoal", "textSettings", "queueFilter", "queueOrder", "queueList", "autoAdvance", "manualDial", "showUpNext", "scriptAuto", "historyFilter", "dealTarget", "tourDone"];
+  var PREFS = { seen: false, timer: null, applying: false };
+  function prefsOn() { return !!(TEAM.on && TEAM.me && TEAM.db && !DEMO); }
+  function prefsLocalKey() { return "vpex_prefs_" + (TEAM.office || "_") + "_" + TEAM.me.uid; }
+  function prefsLocal() { try { return JSON.parse(window.localStorage.getItem(prefsLocalKey()) || "null") || { at: 0, h: "" }; } catch (e) { return { at: 0, h: "" }; } }
+  function prefsSnapshot() {
+    var v = {};
+    PREF_KEYS.forEach(function (k) { if (state[k] !== undefined) v[k] = JSON.parse(JSON.stringify(state[k])); });
+    var t = lsGet(THEME_KEY) || "auto";
+    v.theme = THEME_NAMES.indexOf(t) !== -1 || (isSigTheme(t) && sigAllowed()) ? t : "auto";
+    return v;
+  }
+  function prefsHash(v) { return JSON.stringify(v); }
+  // Something changed here: send it to the account a moment later (one write per burst of changes).
+  // A pending send is never pushed later by more changes (saving runs often while dialing).
+  function prefsSoon(ms) {
+    if (!prefsOn() || !PREFS.seen || PREFS.applying) return;
+    var due = Date.now() + (ms || 2500);
+    if (PREFS.timer && (!ms || PREFS.due <= due)) return;   // routine saves wait for the pending send; a theme pick can bring it forward
+    clearTimeout(PREFS.timer);
+    PREFS.due = due; PREFS.timer = setTimeout(prefsPush, ms || 2500);
+  }
+  function prefsPush() {
+    clearTimeout(PREFS.timer); PREFS.timer = null; PREFS.due = 0;
+    if (!prefsOn() || !PREFS.seen) return Promise.resolve();
+    var v = prefsSnapshot(), h = prefsHash(v), loc = prefsLocal();
+    if (h === loc.h) return Promise.resolve();
+    var at = Math.max(Date.now(), (loc.at || 0) + 1), uid = TEAM.me.uid, key = prefsLocalKey();
+    lsSet(key, JSON.stringify({ at: at, h: h }));
+    v.at = at;
+    // update only the prefs field (never touches the leads in this record); make the record if there isn't one yet
+    var ref = tcol("leadChunks").doc("r_" + uid);
+    return ref.update({ prefs: v }).catch(function (e) {
+      if (e && e.code === "not-found") return ref.set({ leads: {}, prefs: v });
+      throw e;
+    }).catch(function (e) {
+      // a paused office, or offline for now: it's still saved on this phone; try again on the next change or open
+      try { if (TEAM.me && TEAM.me.uid === uid) lsSet(key, JSON.stringify({ at: loc.at || 0, h: loc.h || "" })); } catch (x) {}
+    });
+  }
+  // The account's copy arrived (first load or another device changed something).
+  function prefsApply(p, fromServer) {
+    if (!prefsOn()) return;
+    var loc = prefsLocal();
+    if (p && typeof p === "object" && Number(p.at) > (loc.at || 0)) {
+      PREFS.applying = true;
+      try {
+        PREF_KEYS.forEach(function (k) { if (p[k] !== undefined) state[k] = JSON.parse(JSON.stringify(p[k])); });
+        if (typeof p.theme === "string" && p.theme !== currentThemeName()) themeQuiet(p.theme);
+        lsSet(prefsLocalKey(), JSON.stringify({ at: Number(p.at), h: prefsHash(prefsSnapshot()) }));
+        writeLocalNow();
+      } finally { PREFS.applying = false; }
+      if (!PREFS.seen) PREFS.seen = true;
+      render();
+      return;
+    }
+    if (!PREFS.seen && (p || fromServer)) { PREFS.seen = true; if (prefsHash(prefsSnapshot()) !== loc.h) prefsSoon(15000); }   // nothing newer on the account: send this phone's once it's settled
+  }
+  // Switch theme without a toast (used when the account's theme arrives).
+  function themeQuiet(name) {
+    var d = document.documentElement;
+    if (name === "auto") { d.removeAttribute("data-theme"); try { window.localStorage.removeItem(THEME_KEY); } catch (e) {} }
+    else if (THEME_NAMES.indexOf(name) !== -1 || (isSigTheme(name) && sigAllowed())) {
+      if (isSigTheme(name)) { if (!isSigTheme(currentThemeName())) lsSet(SIG_PREV, currentThemeName()); lsSet(SIG_OK, "1"); }
+      d.setAttribute("data-theme", name); applyThemeFont(name); lsSet(THEME_KEY, name);
+    } else return;
+    sigMount(); syncThemeColor(); renderThemeSwatches();
   }
 
   /** ---------- Scoreboard, daily recap, answer-time learning, lead recycling ---------- **/
@@ -19930,8 +20016,8 @@ window.VPEX_SIG = [
       (needs.length ? '<div class="hub-needs"><div class="hub-needs-h">Needs you</div>' +
         needs.map(function (n) { return '<button class="hub-need" type="button" data-hub-go="' + n[0] + '"><span>' + n[1] + '</span><span class="hub-go" aria-hidden="true">›</span></button>'; }).join("") + '</div>' : '') +
       grid +
-      (admin ? '<div class="hub-note">' + (TEAM.office ? 'Reps sign in at <b>' + escapeHtml(TEAM_LINK) + '</b> with office code <b>' + escapeHtml(TEAM.office) + '</b>, or join with the invite link in Team &amp; access.'
-        : 'Reps sign in at <b>' + escapeHtml(TEAM_LINK) + '</b> with the logins you create in Team &amp; access.') + '</div>' : '') + '</div>' +
+      (admin ? '<div class="hub-note">' + (TEAM.office ? 'Reps sign in at <b>' + escapeHtml(signInLink(TEAM.office)) + '</b> (office code <b>' + escapeHtml(TEAM.office) + '</b>), or join with the invite link in Team &amp; access.'
+        : 'Reps sign in at <b>' + escapeHtml(signInLink("")) + '</b> with the logins you create in Team &amp; access.') + '</div>' : '') + '</div>' +
       views;
     function hubShow(key) {
       body.querySelectorAll("[data-hub-view]").forEach(function (v) { v.hidden = v.getAttribute("data-hub-view") !== key; });
