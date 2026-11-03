@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-01-13">
+<meta name="vpex-build" content="2027-01-14">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 /* Signature themes: five themes only the VPEX owner's own login can use (sig/*.css, sig.js).
@@ -6875,6 +6875,61 @@ window.VPEX_SIG = [
   .int-dot { width: 7px; height: 7px; background: var(--interested); display: inline-block; transform: rotate(45deg); margin: 0 2px 1px 1px; }
   .filter-chip.active .int-dot { background: var(--accent-text); }
   .int-run-btn { display: block; width: 100%; margin: 4px 0 12px; padding: 12px 14px; border-radius: var(--radius-s); }
+  /* Interested in History: the calls as people, and why each is or isn't in the run */
+  .int-sum { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-m, 14px); padding: 14px 14px 4px; margin: 0 0 12px; }
+  .int-sum .is-head { display: flex; flex-direction: column; gap: 2px; margin-bottom: 10px; }
+  .int-sum .is-head b { font-size: 15px; }
+  .int-sum .is-head span { font-size: 12.5px; color: var(--text-dim); }
+  .int-sum .is-bar { display: flex; gap: 2px; height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 10px; }
+  .int-sum .is-bar i { display: block; min-width: 4px; }
+  .int-sum .is-rows { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 5px; font-size: 13px; color: var(--text-dim); }
+  .int-sum .is-rows li { display: flex; align-items: baseline; gap: 7px; }
+  .int-sum .is-rows b { color: var(--text); font-variant-numeric: tabular-nums; min-width: 2ch; text-align: right; }
+  .int-sum .is-dot { flex: none; width: 9px; height: 9px; border-radius: 50%; transform: translateY(1px); }
+  .int-sum .is-ok { background: var(--interested); } .int-sum .is-park { background: var(--voicemail); } .int-sum .is-book { background: var(--callback); }
+  .int-sum .is-won { background: var(--accent); } .int-sum .is-lost { background: var(--notinterested); } .int-sum .is-other { background: var(--noanswer); }
+  .int-sum .int-run-btn { margin: 0 0 10px; }
+  .int-sum .is-none { font-size: 13px; color: var(--text-dim); margin: 0 0 12px; }
+  @media (min-width: 900px) { .int-sum .is-rows { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 18px; } }
+  /* Book the follow-up */
+  .fu-overlay { z-index: 105; }
+  .fu-modal { max-width: 520px; padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)); }
+  .fu-modal h3 { font-size: 19px; margin: 6px 36px 4px 0; line-height: 1.25; }
+  .fu-modal .modal-sub { margin-bottom: 12px; }
+  .fu-tag { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; }
+  .fu-tag::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .fu-tag.fu-int { color: var(--interested); background: color-mix(in srgb, var(--interested) 14%, transparent); }
+  .fu-tag.fu-cb { color: var(--callback); background: color-mix(in srgb, var(--callback) 14%, transparent); }
+  .fu-label { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12.5px; font-weight: 600; color: var(--text-dim); margin: 14px 0 7px; }
+  .fu-key { font-weight: 500; font-size: 11.5px; color: var(--text-faint); display: inline-flex; align-items: center; gap: 5px; }
+  .fu-key i { width: 6px; height: 6px; border-radius: 50%; background: var(--interested); }
+  .fu-row { display: flex; gap: 7px; overflow-x: auto; scroll-snap-type: x proximity; padding: 2px 2px 6px; margin: 0 -2px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .fu-row::-webkit-scrollbar { display: none; }
+  .fu-stages { flex-wrap: wrap; overflow: visible; gap: 6px; }
+  @media (min-width: 700px) { .fu-days { flex-wrap: wrap; overflow: visible; } }
+  .fu-stages .fu-chip { flex: 1 1 auto; padding: 7px 10px; font-size: 13.5px; }
+  .fu-chip { flex: none; scroll-snap-align: start; position: relative; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+    min-height: 44px; padding: 7px 13px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface-raised); color: var(--text);
+    font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .fu-chip small { font-size: 10.5px; font-weight: 500; color: var(--text-faint); }
+  .fu-chip.on { background: var(--accent-fill, var(--accent)); border-color: var(--accent-fill, var(--accent)); color: var(--accent-text); }
+  .fu-chip.on small { color: inherit; opacity: 0.8; }
+  .fu-t.best::after { content: ""; position: absolute; top: 5px; right: 5px; width: 6px; height: 6px; border-radius: 50%; background: var(--interested); }
+  .fu-t.on.best::after { background: var(--accent-text); }
+  .fu-pick { color: var(--text-dim); font-weight: 600; overflow: hidden; }
+  .fu-pick input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; border: 0; padding: 0; }
+  .fu-empty { font-size: 13px; color: var(--text-dim); padding: 12px 4px; white-space: nowrap; }
+  .fu-sum { margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: var(--surface-raised); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--text-dim); }
+  .fu-sum b { color: var(--text); font-size: 15px; }
+  .fu-sum.bad { border-color: var(--notinterested); }
+  .fu-sum .link-btn { background: none; border: 0; padding: 0; color: var(--accent); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; }
+  .fu-note { margin-top: 14px; }
+  .modal input.fu-note { font-size: 16px; }
+  .fu-acts { margin: 14px -20px -20px; padding: 10px 20px 20px; position: sticky; bottom: -20px; background: var(--surface); z-index: 1; }
+  @media (max-height: 700px) { .fu-modal .modal-sub { display: none; } .fu-label { margin-top: 10px; } }
+  .fu-acts .btn-secondary { flex: 0 0 30%; }
+  .fu-acts .btn-primary { flex: 1; }
+  .fu-acts .btn-primary:disabled { opacity: 0.5; cursor: default; }
   .int-note .link-btn { background: none; border: none; padding: 0; color: var(--accent); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; }
   .filter-chip.active .now-dot { background: var(--accent-text); }
   .lead-where {
@@ -9326,6 +9381,11 @@ window.VPEX_SIG = [
   </div>
 </div>
 
+<!-- Book the follow-up (after Interested / Callback later) -->
+<div class="modal-overlay fu-overlay" id="fuSheet">
+  <div class="modal fu-modal" id="fuBody" role="dialog" aria-modal="true" aria-labelledby="fuTitle"></div>
+</div>
+
 <!-- Team & access (admin) -->
 <div class="modal-overlay" id="teamModal">
   <div class="modal" id="teamModalBody"></div>
@@ -10872,9 +10932,182 @@ window.VPEX_SIG = [
     if (!ch && !ok) return;
     var lf = state.lastFollow; if (!lf) return;
     if (ok) { state.lastFollow = null; saveState(); render(); return; }
-    var lead = findLeadById(lf.leadId);
-    openTaskModal(lf.taskId, { title: lf.kind === "callback" ? "When should we call back?" : "When should we follow up?", sub: "Enter it in your time." + tzHint(lead) });
+    openFollowSheet({ leadId: lf.leadId, taskId: lf.taskId, kind: lf.kind });
   });
+
+  /* ----- Book the follow-up: right after Interested or Callback later, on screen, in two taps ----- */
+  // Pick the day and the time the lead agreed to (every time offered is inside their state's calling hours; ● marks
+  // their best answer hours), where the deal stands, and what to open with next time. The time is theirs, so later
+  // automatic changes never move it. The thank-you text, if on, follows with the booked time in it.
+  var FU = null;
+  var FU_STAGES = ["Qualified", "Pitched", "Objection", "Committed"];
+  function fuSlotOk(lead, ts) {
+    var c = slotCheck(lead, ts);
+    if (c) return c.ok;
+    var h = new Date(ts).getHours();
+    return h >= 8 && h < 21;
+  }
+  // Half-hour slots on one of the rep's days that are ahead of now and inside the lead's calling hours.
+  function fuSlots(lead, ymd) {
+    var p = ymd.split("-"), out = [], now = Date.now() + 10 * 60000, iana = leadZone(lead).iana;
+    for (var k = 12; k < 48; k++) {
+      var ts = new Date(+p[0], +p[1] - 1, +p[2], Math.floor(k / 2), k % 2 ? 30 : 0).getTime();
+      if (ts < now || !fuSlotOk(lead, ts)) continue;
+      var th = iana ? zonedParts(ts, iana).h : new Date(ts).getHours();
+      out.push({ ts: ts, best: (HOUR_SCORE[th] || 0) >= 0.9 });
+    }
+    return out;
+  }
+  function fuDays(lead) {
+    var out = [], d = new Date(); d.setHours(12, 0, 0, 0);
+    for (var i = 0; i < 21 && out.length < 6; i++) {
+      var ymd = localDateStr(d);
+      if (fuSlots(lead, ymd).length) out.push(ymd);
+      d.setDate(d.getDate() + 1);
+    }
+    return out;
+  }
+  function fuDayLabel(ymd) {
+    var p = ymd.split("-"), d = new Date(+p[0], +p[1] - 1, +p[2]), l = dayLabel(d);
+    return l === "Today" || l === "Tomorrow" ? l : d.toLocaleDateString(undefined, { weekday: "short" }) + " " + d.getDate();
+  }
+  function fuTime(ts) { var d = new Date(ts); return d.toLocaleTimeString(undefined, d.getMinutes() ? { hour: "numeric", minute: "2-digit" } : { hour: "numeric" }); }
+  function openFollowSheet(o) {
+    var lead = findLeadById(o.leadId); if (!lead) return;
+    var t = o.taskId ? state.tasks.filter(function (x) { return x.id === o.taskId; })[0] : null;
+    var sug = t && t.dueAt && t.dueAt > Date.now() ? t.dueAt : slotAt(lead, 1, 10);
+    FU = { leadId: lead.id, taskId: t ? t.id : null, kind: o.kind || "interested", sug: sug, at: sug, day: localDateStr(new Date(sug)),
+      stage: lead.stage && lead.stage !== "New Lead" ? lead.stage : "Qualified", note: "", text: o.text || null, custom: false };
+    renderFollowSheet();
+    document.getElementById("fuSheet").classList.add("show");
+    setTimeout(function () {
+      renderFollowSheet(true);
+      var b = document.getElementById("fuBook"); if (b) b.focus({ preventScroll: true });
+    }, 60);
+  }
+  function fuTheir(ts, lead) {   // "9 AM TX" when their clock differs from yours
+    var z = leadZone(lead); if (!z.iana) return "";
+    var d = new Date(ts), o = d.getMinutes() ? { hour: "numeric", minute: "2-digit" } : { hour: "numeric" };
+    try { var th = d.toLocaleTimeString("en-US", Object.assign({ timeZone: z.iana }, o)), me = d.toLocaleTimeString("en-US", o); return th === me ? "" : th + " " + z.st; } catch (e) { return ""; }
+  }
+  function renderFollowSheet(reveal) {
+    var box = document.getElementById("fuBody"), lead = FU && findLeadById(FU.leadId);
+    if (!box || !lead) return;
+    var keep = {}; ["fu-days", "fu-times"].forEach(function (k) { var el = box.querySelector("." + k); if (el) keep[k] = el.scrollLeft; });
+    var first = escapeHtml(textFirstName(lead.name)), cb = FU.kind === "callback";
+    var days = fuDays(lead);
+    if (days.indexOf(FU.day) === -1 && !FU.custom) days = days.concat([FU.day]).sort();
+    var slots = fuSlots(lead, FU.day), clk = leadZone(lead).iana ? leadClock(lead) : null;
+    var tt = theirTime(FU.at, lead), chk = slotCheck(lead, FU.at), bad = chk ? !chk.ok : !fuSlotOk(lead, FU.at);
+    var past = FU.at < Date.now();
+    var dateLong = new Date(FU.at).toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" });
+    box.innerHTML =
+      '<button class="close-x" type="button" id="fuX" aria-label="Keep the suggested time">&times;</button>' +
+      '<div class="fu-tag fu-' + (cb ? 'cb' : 'int') + '">' + (cb ? 'Callback later' : 'Interested') + ' · logged</div>' +
+      '<h3 id="fuTitle">' + (cb ? 'When should you call ' + first + ' back?' : 'When’s the follow-up with ' + first + '?') + '</h3>' +
+      '<p class="modal-sub">' + (clk && clk.t ? 'It’s ' + escapeHtml(clk.t.label || "") + ' for ' + first + ' right now (' + escapeHtml(clk.st) + '). ' : '') + 'Times are yours; every one offered is inside their calling hours.</p>' +
+      '<div class="fu-label">Day</div>' +
+      '<div class="fu-row fu-days" role="group" aria-label="Day">' + days.map(function (d) {
+        return '<button type="button" class="fu-chip' + (d === FU.day ? ' on' : '') + '" data-fu-day="' + d + '" aria-pressed="' + (d === FU.day) + '">' + escapeHtml(fuDayLabel(d)) + '</button>';
+      }).join("") +
+        '<label class="fu-chip fu-pick"><span>Other day</span><input type="date" id="fuDate" min="' + localDateStr(new Date()) + '" value="' + FU.day + '" aria-label="Pick another day"></label></div>' +
+      '<div class="fu-label">Time <span class="fu-key"><i></i> best time to reach ' + first + '</span></div>' +
+      '<div class="fu-row fu-times" role="group" aria-label="Time">' + (slots.length ? slots.map(function (s) {
+        var their = fuTheir(s.ts, lead);
+        return '<button type="button" class="fu-chip fu-t' + (s.ts === FU.at ? ' on' : '') + (s.best ? ' best' : '') + '" data-fu-at="' + s.ts + '" aria-pressed="' + (s.ts === FU.at) + '">' +
+          '<b>' + escapeHtml(fuTime(s.ts)) + '</b>' + (their ? '<small>' + escapeHtml(their) + '</small>' : '') + '</button>';
+      }).join("") : '<span class="fu-empty">No calling hours left that day. Pick another day.</span>') +
+        '<label class="fu-chip fu-pick"><span>Exact time</span><input type="time" id="fuTimeIn" step="300" value="' + pad2(new Date(FU.at).getHours()) + ':' + pad2(new Date(FU.at).getMinutes()) + '" aria-label="Exact time"></label></div>' +
+      '<div class="fu-sum' + (bad || past ? ' bad' : '') + '" aria-live="polite"><b>' + escapeHtml(dateLong) + ' at ' + escapeHtml(fuTime(FU.at)) + '</b>' +
+        (tt ? '<span>' + escapeHtml(tt) + ' for ' + first + '</span>' : '') +
+        (past ? '<span>That time has passed. Pick a later one.</span>' : bad ? '<span>Outside their calling hours (' + escapeHtml(chk && chk.why || "8 AM–9 PM") + ').' +
+          (chk && chk.fix ? ' <button type="button" class="link-btn" id="fuFix" data-at="' + chk.fix + '">Move to ' + escapeHtml(fmtWhen(chk.fix)) + '</button>' : '') + '</span>' : '') + '</div>' +
+      (cb ? '' : '<div class="fu-label">Where are they?</div><div class="fu-row fu-stages" role="group" aria-label="Deal stage">' + FU_STAGES.map(function (s) {
+        return '<button type="button" class="fu-chip' + (s === FU.stage ? ' on' : '') + '" data-fu-stage="' + s + '" aria-pressed="' + (s === FU.stage) + '">' + s + '</button>';
+      }).join("") + '</div>') +
+      '<input type="text" id="fuNote" class="fu-note" maxlength="200" autocomplete="off" placeholder="What to open with next time (optional)" value="' + escapeHtml(FU.note) + '" aria-label="Note for the next call">' +
+      '<div class="modal-actions fu-acts"><button type="button" class="btn-secondary" id="fuKeep" aria-label="Skip, keep ' + escapeHtml(fmtWhen(FU.sug)) + '">Skip</button>' +
+        '<button type="button" class="btn-primary" id="fuBook"' + (past ? ' disabled' : '') + '>Book ' + escapeHtml(fuDayLabel(localDateStr(new Date(FU.at)))) + ' ' + escapeHtml(fuTime(FU.at)) + '</button></div>';
+    Object.keys(keep).forEach(function (k) { var el = box.querySelector("." + k); if (el) el.scrollLeft = keep[k]; });
+    var on = box.querySelector(".fu-times .on"), row = box.querySelector(".fu-times");   // the chosen time always in view
+    if (on && row) { var r = on.getBoundingClientRect(), rr = row.getBoundingClientRect(); if (reveal || r.left < rr.left || r.right > rr.right) row.scrollLeft += (r.left + r.width / 2) - (rr.left + rr.width / 2); }
+  }
+  function closeFollowSheet() {
+    var m = document.getElementById("fuSheet"); if (m) m.classList.remove("show");
+    var f = FU; FU = null;
+    if (!f) return;
+    state.lastFollow = null;
+    if (f.text) {   // the thank-you text, now with the booked time in it
+      var lead = findLeadById(f.leadId), ts = textSettings();
+      if (lead && !lead.noText) { pendingText = { leadId: lead.id, kind: f.text.kind, body: fillTemplate(f.text.kind === "interested" ? ts.interestedTpl : ts.noAnswerTpl, lead) }; }
+    }
+    saveState(); render(); renderTextPrompt();
+  }
+  function bookFollowSheet() {
+    if (!FU) return;
+    var lead = findLeadById(FU.leadId); if (!lead) { closeFollowSheet(); return; }
+    if (FU.at < Date.now()) { showToast("That time has passed. Pick a later one."); return; }
+    var t = FU.taskId ? state.tasks.filter(function (x) { return x.id === FU.taskId && !x.done; })[0] : null;
+    if (!t) {   // parked by the follow-up rules, so nothing was scheduled: a time they agreed to is a real next step
+      lead.stalled = null; lead.stallWhy = null; lead.touches = Math.min(lead.touches || 0, 1); lead.touchAt = Date.now();
+      t = addAutoTask(lead, FU.kind === "callback" ? "Call" : "Follow-up", "High", FU.at, "");
+    }
+    t.dueAt = FU.at; t.due = localDateStr(new Date(FU.at)); t.pinned = true;
+    if (FU.note.trim()) t.note = FU.note.trim();
+    else if (FU.kind === "callback") t.note = "They picked this time";
+    else t.note = "They picked this time — move them forward";
+    if (FU.kind !== "callback" && FU.stage && FU.stage !== lead.stage) setStage(lead, FU.stage);
+    var tt = theirTime(FU.at, lead);
+    showToast((FU.kind === "callback" ? "Callback" : "Follow-up") + " booked " + fmtWhen(FU.at) + (tt ? " · " + tt + " for " + firstName(lead.name) : ""));
+    closeFollowSheet();
+  }
+  document.addEventListener("click", function (e) {
+    if (!FU || !e.target.closest) return;
+    var m = document.getElementById("fuSheet");
+    if (e.target === m) { closeFollowSheet(); return; }
+    var lead = findLeadById(FU.leadId); if (!lead) return;
+    var d = e.target.closest("[data-fu-day]"), a = e.target.closest("[data-fu-at]"), s = e.target.closest("[data-fu-stage]"), fx = e.target.closest("#fuFix");
+    if (d) {   // same time of day on the new day when it's open, else the first good slot (their best hour if there is one)
+      FU.day = d.getAttribute("data-fu-day"); FU.custom = false;
+      var sl = fuSlots(lead, FU.day), cur = new Date(FU.at), p = FU.day.split("-");
+      var same = new Date(+p[0], +p[1] - 1, +p[2], cur.getHours(), cur.getMinutes()).getTime();
+      FU.at = sl.some(function (x) { return x.ts === same; }) ? same : sl.length ? (sl.filter(function (x) { return x.best; })[0] || sl[0]).ts : same;
+      renderFollowSheet(true); return;
+    }
+    if (a) { FU.at = +a.getAttribute("data-fu-at"); renderFollowSheet(); return; }
+    if (s) { FU.stage = s.getAttribute("data-fu-stage"); renderFollowSheet(); return; }
+    if (fx) { FU.at = +fx.getAttribute("data-at"); FU.day = localDateStr(new Date(FU.at)); renderFollowSheet(true); return; }
+    if (e.target.closest("#fuBook")) { bookFollowSheet(); return; }
+    if (e.target.closest("#fuKeep") || e.target.closest("#fuX")) {
+      if (FU.taskId) { var kt = state.tasks.filter(function (x) { return x.id === FU.taskId; })[0]; if (kt && FU.note.trim()) kt.note = FU.note.trim(); }
+      closeFollowSheet();
+    }
+  });
+  document.addEventListener("input", function (e) {
+    if (!FU) return;
+    if (e.target.id === "fuNote") FU.note = e.target.value;
+  });
+  document.addEventListener("change", function (e) {
+    if (!FU) return;
+    var p, q;
+    if (e.target.id === "fuDate" && e.target.value) {
+      p = e.target.value.split("-"); var cur = new Date(FU.at);
+      FU.day = e.target.value; FU.custom = true;
+      FU.at = new Date(+p[0], +p[1] - 1, +p[2], cur.getHours(), cur.getMinutes()).getTime();
+      var sl = fuSlots(findLeadById(FU.leadId), FU.day);
+      if (sl.length && !sl.some(function (x) { return x.ts === FU.at; })) FU.at = (sl.filter(function (x) { return x.best; })[0] || sl[0]).ts;
+      renderFollowSheet(true);
+    } else if (e.target.id === "fuTimeIn" && e.target.value) {
+      p = FU.day.split("-"); q = e.target.value.split(":");
+      FU.at = new Date(+p[0], +p[1] - 1, +p[2], +q[0], +q[1]).getTime();
+      renderFollowSheet(true);
+    }
+  });
+  document.addEventListener("keydown", function (e) {
+    if (!FU) return;
+    if (e.key === "Escape") { e.stopPropagation(); closeFollowSheet(); }
+    else if (e.key === "Enter" && e.target && (e.target.id === "fuNote" || e.target.id === "fuBook")) { e.preventDefault(); bookFollowSheet(); }
+  }, true);
 
   /* ----- Notifications: one banner at a time, at the top, with the right icon, color and (when useful) an action ----- */
   var NT = { q: [], cur: null, tm: null, shownAt: 0, lastMsg: "", lastAt: 0, seen: {} };
@@ -11296,15 +11529,84 @@ window.VPEX_SIG = [
     return state.leads.filter(function (l) { return l.status === "pending" && !claimedByOther(l) && inPrefWindow(l) && !isDnc(l) && listAllowed(l); });
   }
 
-  // ---- Interested run: be fed your own Interested leads, longest-waiting first ----
-  // A lead qualifies while its latest outcome is Interested and it hasn't moved to
-  // Committed or Closed Lost. Calls logged during the run drop the lead off the run.
+  // ---- Interested run: be fed every lead who said yes, the most urgent first ----
+  // A lead stays interested from the call they said yes until something ends it: a later "Not interested",
+  // a bad number, Do Not Call, Committed (won) or Closed Lost. A voicemail or no-answer on a follow-up doesn't
+  // cool them (it used to: the lead's latest outcome decided, so most interested leads quietly fell off the run).
+  // History counts Interested calls; the run counts people. Calls logged during the run drop the lead off the run.
   function intMine(l) { return !TEAM.on || !TEAM.me || !l.owner || l.owner.uid === TEAM.me.uid; }
-  function interestedPool() {
-    return state.leads.filter(function (l) {
-      return l.status === "done" && l.outcome === "interested" && !l.stalled && !l.retired && !l.badNumber && !isDnc(l) && !claimedByOther(l) && intMine(l) &&
-        l.stage !== "Committed" && l.stage !== "Closed Lost";
+  var warmIdx = { ref: null, len: -1, map: null };
+  function warmIndex() {   // per lead: when they last said yes, and when they last said no (or the number was bad)
+    var cl = state.callLog;
+    if (warmIdx.ref === cl && warmIdx.len === cl.length) return warmIdx.map;
+    var m = {};
+    for (var i = 0; i < cl.length; i++) {
+      var c = cl[i]; if (!c || !c.leadId) continue;
+      var k = c.outcomeKey, ts = c.timestamp || "", e;
+      if (k === "interested") { e = m[c.leadId] || (m[c.leadId] = {}); if (!e.yes || ts > e.yes) e.yes = ts; }
+      else if (k === "notinterested" || k === "badnum") { e = m[c.leadId] || (m[c.leadId] = {}); if (!e.no || ts > e.no) e.no = ts; }
+    }
+    warmIdx = { ref: cl, len: cl.length, map: m };
+    return m;
+  }
+  // Still interested? (Whoever owns them.) Leads moved into the pipeline by hand count too.
+  function saidYes(l) {
+    if (!l || l.stage === "Committed" || l.stage === "Closed Lost") return false;
+    if (l.outcome === "notinterested" || l.outcome === "badnum") return false;
+    var e = warmIndex()[l.id];
+    if (e && e.yes) return !(e.no && e.no > e.yes);
+    return l.outcome === "interested" || stageRank(l.stage) >= 1;
+  }
+  // The open follow-up the lead picked themselves, when it's still more than 15 minutes away: the run leaves them be until then.
+  function bookedLater(l, now) {
+    var t = openTasksFor(l.id)[0];
+    return t && t.pinned && taskDueTs(t) > (now || Date.now()) + 900000 ? t : null;
+  }
+  // Where an interested lead stands: "ready" (in the run), "parked", "booked", "teammate", "bad", "retired", "queue"; null = not interested.
+  function intState(l, now) {
+    if (!saidYes(l)) return null;
+    if (l.badNumber || isDnc(l)) return "bad";
+    if (l.retired) return "retired";
+    if (!intMine(l) || claimedByOther(l)) return "teammate";
+    if (l.status === "pending") return "queue";
+    if (l.stalled) return "parked";
+    if (bookedLater(l, now)) return "booked";
+    return "ready";
+  }
+  function interestedPool(withParked) {
+    if (withParked === undefined) withParked = !!state.intParked;
+    var now = Date.now();
+    return state.leads.filter(function (l) { var s = intState(l, now); return s === "ready" || (withParked && s === "parked"); });
+  }
+  // Every lead with an Interested call in your History, sorted into why it is or isn't in your run.
+  function intBreakdown(calls) {
+    var ids = {}, out = { calls: 0, leads: 0, ready: 0, parked: 0, booked: 0, won: 0, lost: 0, teammate: 0, bad: 0, retired: 0, queue: 0, gone: 0, nextBooked: null };
+    var now = Date.now(), m = leadMap();
+    calls.forEach(function (c) { if (c.outcomeKey !== "interested") return; out.calls++; ids[c.leadId] = 1; });
+    Object.keys(ids).forEach(function (id) {
+      out.leads++;
+      var l = m[id];
+      if (!l) { out.gone++; return; }
+      if (l.stage === "Committed") { out.won++; return; }
+      var s = intState(l, now);
+      if (!s) { out.lost++; return; }
+      out[s]++;
+      if (s === "booked") { var t = bookedLater(l, now); if (t && (!out.nextBooked || taskDueTs(t) < out.nextBooked)) out.nextBooked = taskDueTs(t); }
     });
+    out.pool = interestedPool(false).length;   // can be more than ready: leads moved into the pipeline by hand, or a teammate's call
+    return out;
+  }
+  // Run order: callable right now first; then follow-ups they're due (times they picked, then the rest); then whoever
+  // is closest to closing and worth the most; then whoever has waited longest.
+  function intOrder(list) {
+    var now = Date.now();
+    return list.map(function (l) {
+      var t = openTasksFor(l.id)[0], due = t && taskDueTs(t) <= now;
+      var ok = !leadZone(l).iana || leadClock(l).ok;
+      return { l: l, ok: ok ? 0 : 1, g: due && t.pinned ? 0 : due ? 1 : 2, r: stageRank(l.stage), a: Number(l.amount) || 0, c: l.calledAt || "" };
+    }).sort(function (x, y) {
+      return (x.ok - y.ok) || (x.g - y.g) || (y.r - x.r) || (y.a - x.a) || (x.c < y.c ? -1 : x.c > y.c ? 1 : 0);
+    }).map(function (x) { return x.l; });
   }
   function isRun(f) { f = f === undefined ? state.queueFilter : f; return f === "int" || f === "hot"; }
   function hotPool() {
@@ -11327,10 +11629,8 @@ window.VPEX_SIG = [
     var list = runPool(kind).filter(function (l) { return !(since && l.calledAt && l.calledAt >= since); });
     var ql = state.queueList || "all";
     if (ql !== "all") list = list.filter(function (l) { return (l.source || "Original list") === ql; });
-    var o = state.queueOrder || "imported";
     if (kind === "hot") list = closenessSort(list);
-    else if (o === "imported" || o === "smart") list = list.slice().sort(function (a, b) { return (a.calledAt || "") < (b.calledAt || "") ? -1 : (a.calledAt || "") > (b.calledAt || "") ? 1 : 0; });
-    if (o === "smart") list = smartSort(list);
+    else list = intOrder(list);
     if (skipped.length) {
       var later = skipped.map(function (id) { return list.filter(function (l) { return l.id === id; })[0]; }).filter(Boolean);
       list = list.filter(function (l) { return skipped.indexOf(l.id) === -1; }).concat(later);
@@ -11338,10 +11638,11 @@ window.VPEX_SIG = [
     return list;
   }
   // Resumes today's run where you left off; a new day (or "Start over") begins a fresh round.
-  function startInterestedRun(fresh) { return startRun("int", fresh); }
-  function startRun(kind, fresh) {
+  function startInterestedRun(fresh, withParked) { return startRun("int", fresh, withParked); }
+  function startRun(kind, fresh, withParked) {
     if (state.awaitingOutcome) { showToast("Log the outcome for this call first"); return false; }
     if (state.manualDial) state.manualDial = false;
+    if (kind === "int" && withParked !== undefined) state.intParked = !!withParked;
     var today = localDateStr(new Date());
     if (fresh || !state.intSince || state.intDay !== today || (state.runKind || "int") !== kind) { state.intSince = new Date().toISOString(); state.intSkipped = []; state.intDay = today; }
     state.runKind = kind;
@@ -11446,6 +11747,8 @@ window.VPEX_SIG = [
     if (TEAM.on && TEAM.me) teamLogCall(callEntry);
     state.completedStack.push(lead.id);
     state.awaitingOutcome = false;
+    // A parked lead the rep chose to call again from the interested run gets a fresh count of follow-ups.
+    if (lead.stalled && state.queueFilter === "int" && state.intParked) { lead.stalled = null; lead.stallWhy = null; lead.touches = 0; lead.touchAt = Date.now(); lead.exhausted = false; lead.restUntil = null; }
     var followMsg = applyFollowupRules(lead, outcome, focusTaskId);
     var newest = null;
     state.tasks.forEach(function (t) { if (!t.done && t.auto && t.leadId === lead.id && (!newest || (t.createdAt || 0) >= (newest.createdAt || 0))) newest = t; });
@@ -11468,13 +11771,17 @@ window.VPEX_SIG = [
       // With auto-advance off, hold on a confirmation screen before the next lead.
       state.paused = !state.autoAdvance && pendingLeads().length > 0;
     }
+    // Interested / Callback later: book the exact follow-up on screen; the thank-you text waits until it's booked.
+    var sheet = outcome === "interested" || outcome === "callback" ? { leadId: lead.id, taskId: newest ? newest.id : null, kind: outcome, text: pendingText } : null;
+    if (sheet) { pendingText = null; state.lastFollow = null; }
     var nudge = demoNudgeDue();
-    if (nudge) pendingText = null;   // the trial card takes the text prompt's place, once
+    if (nudge) { pendingText = null; if (sheet) sheet.text = null; }   // the trial card takes the text prompt's place, once
     saveState();
     render();
     renderTextPrompt();
     if (nudge) showDemoNudge();
-    showToast("Logged " + outcomeLabel(outcome) + (followMsg ? " \u00b7 " + followMsg : ""));
+    if (sheet) openFollowSheet(sheet);
+    showToast("Logged " + outcomeLabel(outcome) + (followMsg && !sheet ? " \u00b7 " + followMsg : ""));
     setTimeout(ntRemind, 4000);
   }
 
@@ -11631,11 +11938,12 @@ window.VPEX_SIG = [
     if (!lead || lead.stage === "Closed Lost") return "";
     var cfg = fuCfg(), st = lead.stage || "New Lead", tc = lead.touches || 0, last = lastCallFor(lead.id);
     var ft = state.focusTaskId ? state.tasks.filter(function (t) { return t.id === state.focusTaskId; })[0] : null;
-    var warm = lead.outcome === "interested" || lead.outcome === "callback";
+    if (!ft && lead.status !== "pending") { var nt = openTasksFor(lead.id)[0]; if (nt && nt.pinned && taskDueTs(nt) <= Date.now() + 900000) ft = nt; }   // a time they booked, now due
+    var warm = saidYes(lead) || lead.outcome === "callback";
     if (lead.stalled) return "Parked: " + parkedWhy(lead) + ". Call only if something has changed.";
     var clk = leadZone(lead).iana ? leadClock(lead) : null;
     if (clk && !clk.ok) return "Not now: " + clk.why + "." + (DEMO ? " On a real floor, reps skip it until calls are allowed. In this demo, tap Call to see the check." : " Skip it; it comes back when calls are allowed.");
-    if (ft && ft.pinned) return "They picked this time. Open with what they told you last call.";
+    if (ft && ft.pinned) return "They picked this time. " + (ft.note && !/^They picked this time/.test(ft.note) ? "Open with: " + ft.note : "Open with what they told you last call.");
     if (ft && state.followupRun && state.runKind === "overdue") {
       var who = assigneeOf(ft), late = Math.floor((Date.now() - taskDueTs(ft)) / 3600000);
       return (who && !(TEAM.me && who.uid === TEAM.me.uid) ? firstName(who.name) + "\u2019s lead, " : "") + lateText(late) + ". Own the delay in one line, then book the next step.";
@@ -11673,7 +11981,7 @@ window.VPEX_SIG = [
   function flowGuideHtml(lead) {
     var st = lead.stage || "New Lead", r = stageRank(st), cfg = fuCfg(), out = "";
     if (r >= 1) {
-      var left = cfg.stall && !lead.stalled && (lead.outcome === "interested" || lead.outcome === "callback") ? Math.max(0, cfg.stall - (lead.touches || 0)) : -1;
+      var left = cfg.stall && !lead.stalled && (saidYes(lead) || lead.outcome === "callback") ? Math.max(0, cfg.stall - (lead.touches || 0)) : -1;
       out += '<div class="deal-track' + (st === "Committed" ? ' won' : '') + '" role="img" aria-label="Stage ' + (r + 1) + ' of 5: ' + escapeHtml(st) + '"><span class="dt-steps">' +
         DEAL_STEPS.map(function (x, k) { return '<i class="' + (k < r ? 'on' : k === r ? 'on cur' : '') + '"></i>'; }).join("") + '</span>' +
         '<span class="dt-label">' + escapeHtml(st) + '</span>' +
@@ -11987,13 +12295,16 @@ window.VPEX_SIG = [
     var now = Date.now();
     var m = leadMap();
     return state.tasks.filter(function (t) { return !t.done && t.leadId && taskDueTs(t) <= now && myTask(t) && !isDnc(m[t.leadId]) && (t.pinned || inPrefWindow(m[t.leadId])); })
-      .sort(function (a, b) {
+      .map(function (t) { var l = m[t.leadId]; return { t: t, ok: !l || !leadZone(l).iana || leadClock(l).ok }; })
+      .sort(function (x, y) {
+        if (x.ok !== y.ok) return x.ok ? -1 : 1;                              // ones you can call right now, before ones outside their calling hours
+        var a = x.t, b = y.t;
         if (!!a.pinned !== !!b.pinned) return a.pinned ? -1 : 1;              // times the lead asked for come first
         var la = m[a.leadId] || {}, lb = m[b.leadId] || {};
         var r = stageRank(lb.stage) - stageRank(la.stage); if (r) return r;   // then whoever is closest to closing
         var d = (Number(lb.amount) || 0) - (Number(la.amount) || 0); if (d) return d;
         return taskDueTs(a) - taskDueTs(b);
-      });
+      }).map(function (x) { return x.t; });
   }
   function isoNice(v) {
     var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(v || ""));
@@ -13308,6 +13619,45 @@ window.VPEX_SIG = [
   }
 
   /** ---------- History ---------- **/
+  // Interested filter: the calls become people, each sorted into why they are or aren't in your run, with one tap to call them.
+  var INT_ROWS = [
+    ["ready", "ready to call", "ok"], ["parked", "parked: follow-ups stalled or they stopped answering", "park"],
+    ["booked", "booked for a time they picked", "book"], ["queue", "back in your call list", "book"],
+    ["won", "committed", "won"], ["lost", "said no later, or closed lost", "lost"],
+    ["teammate", "with a teammate", "other"], ["bad", "bad number or Do Not Call", "other"],
+    ["retired", "retired after no answers", "other"], ["gone", "removed from your leads", "other"]
+  ];
+  function intSummaryHtml(calls) {
+    var b = intBreakdown(calls);
+    if (!b.calls) return "";
+    var rows = INT_ROWS.filter(function (r) { return b[r[0]]; });
+    var bar = rows.map(function (r) { return '<i class="is-' + r[2] + '" style="flex:' + b[r[0]] + '"></i>'; }).join("");
+    var withParked = b.pool + b.parked;
+    return '<div class="int-sum" role="region" aria-label="Interested leads">' +
+      '<div class="is-head"><b>' + b.calls + ' interested call' + (b.calls === 1 ? '' : 's') + ' · ' + b.leads + ' ' + (b.leads === 1 ? 'person' : 'people') + '</b>' +
+        '<span>A lead stays interested until they say no, close, or commit.</span></div>' +
+      '<div class="is-bar" aria-hidden="true">' + bar + '</div>' +
+      '<ul class="is-rows">' + rows.map(function (r) {
+        var extra = r[0] === "booked" && b.nextBooked ? ' · next ' + escapeHtml(fmtWhen(b.nextBooked)) : '';
+        return '<li><span class="is-dot is-' + r[2] + '"></span><b>' + b[r[0]] + '</b> ' + r[1] + extra + '</li>';
+      }).join("") + '</ul>' +
+      (b.pool ? '<button class="btn-primary int-run-btn" id="histIntRun" type="button">Call ' + b.pool + ' interested lead' + (b.pool === 1 ? '' : 's') + ' now</button>' : '') +
+      (b.parked ? '<button class="btn-secondary int-run-btn" id="histIntParked" type="button">' + (b.pool ? 'Call all ' + withParked + ', parked ones too' : 'Call the ' + b.parked + ' parked lead' + (b.parked === 1 ? '' : 's')) + '</button>' : '') +
+      (!b.pool && !b.parked ? '<p class="is-none">' + (b.booked ? 'Everyone who’s still interested has a time booked. They’ll come up in Tasks when it’s time.' : 'No interested leads to call right now.') + '</p>' : '') +
+    '</div>';
+  }
+  function wireIntSummary(toDial) {
+    [["histIntRun", false], ["histIntParked", true]].forEach(function (x) {
+      var el = document.getElementById(x[0]); if (!el) return;
+      el.addEventListener("click", function () {
+        if (!startInterestedRun(false, x[1])) return;
+        if (toDial) state.activeView = "dial";
+        saveState(); render(); window.scrollTo(0, 0);
+        var n = runLeads("int").length;
+        showToast(n ? "Interested run: " + n + " lead" + (n === 1 ? "" : "s") + ", most urgent first" : "Everyone in this run is already called today");
+      });
+    });
+  }
   function renderHistoryTab() {
     var main = document.getElementById("mainArea");
     if (state.callLog.length === 0) {
@@ -13327,8 +13677,9 @@ window.VPEX_SIG = [
       (TEAM.on && canSeeTeam() ? repSelectHtml() : '') +
       '<div class="crm-search"><input type="search" id="histSearch" placeholder="Search name or number" autocomplete="off" value="' + escapeHtml(historyQuery) + '"></div>' +
       '<div class="filter-row" id="filterRow">' + chips + '</div>' +
-      (filter === "interested" && interestedPool().length ? '<button class="btn-primary int-run-btn" id="histIntRun">Call my ' + interestedPool().length + ' interested lead' + (interestedPool().length === 1 ? '' : 's') + ' in Dial</button>' : '') +
+      (filter === "interested" ? intSummaryHtml(scoped) : '') +
       '<div id="histListWrap"></div>';
+    wireIntSummary(true);
     document.querySelectorAll("#filterRow .filter-chip").forEach(function (btn) {
       btn.addEventListener("click", function () {
         state.historyFilter = btn.getAttribute("data-filter");
@@ -13337,8 +13688,6 @@ window.VPEX_SIG = [
         render();
       });
     });
-    var hir = document.getElementById("histIntRun");
-    if (hir) hir.addEventListener("click", function () { if (startInterestedRun(false)) { state.activeView = "dial"; saveState(); render(); window.scrollTo(0, 0); } });
     var hrs = document.getElementById("histRepSelect");
     if (hrs) hrs.addEventListener("change", function (e) { TEAM.histRep = e.target.value; historyLimit = 150; render(); });
     document.getElementById("histSearch").addEventListener("input", function (e) {
@@ -13570,7 +13919,7 @@ window.VPEX_SIG = [
           : '<span class="task-lead-name">' + escapeHtml(t.leadName || "Unlinked") + '</span>') +
         '<span class="qi-status noanswer">' + escapeHtml(t.type || "Task") + '</span>' +
         (t.priority === "High" ? '<span class="qi-status notinterested">High</span>' : '') +
-        (t.auto ? '<span class="qi-status callback">Auto</span>' : '') +
+        (t.pinned ? '<span class="qi-status interested">Booked</span>' : t.auto ? '<span class="qi-status callback">Auto</span>' : '') +
         (TEAM.on && isAdmin() && !myTask(t) && assigneeOf(t) ? '<span class="qi-status voicemail">' + escapeHtml(firstName(assigneeOf(t).name)) + '</span>' : '') + '</div>' +
         (t.note ? '<div class="task-note">' + escapeHtml(t.note) + '</div>' : '') +
         '<div class="task-due">' + (overdue ? 'Overdue \u00b7 ' : '') + escapeHtml(taskWhen(t, lead)) + '</div>' +
@@ -13784,18 +14133,22 @@ window.VPEX_SIG = [
 
     if (!lead && isRun()) {
       var poolN = runPool().length, hotRun = state.queueFilter === "hot";
+      var parkedN = hotRun ? 0 : interestedPool(true).length - interestedPool(false).length;
       main.innerHTML = lastFollowHtml() +
         '<div class="card done-panel card-enter">' +
           '<div class="glyph">\u2713</div>' +
           '<h2>' + (poolN ? (hotRun ? 'Every hot lead called' : 'Every interested lead called') : (hotRun ? 'No hot leads yet' : 'No interested leads yet')) + '</h2>' +
           '<p>' + (poolN ? 'You\u2019ve reached all ' + poolN + ' of your ' + (hotRun ? 'hot' : 'interested') + ' leads in this round.' + ((state.queueList || "all") !== "all" ? ' (This list only.)' : '') + ' Start over to go through them again, or go back to your regular queue.'
                          : hotRun ? 'Tap \u2605 on any lead to add it to your hot list.' : 'Leads you mark Interested will be waiting here.') + '</p>' +
+          (!hotRun && !state.intParked && parkedN ? '<button class="btn-primary int-run-btn" id="intParkedBtn">Call the ' + parkedN + ' parked interested lead' + (parkedN === 1 ? '' : 's') + ' too</button>' : '') +
           '<div class="modal-actions">' + (poolN ? '<button class="btn-secondary" id="intRestartBtn">Start over</button>' : '') +
-            '<button class="btn-primary" id="intExitBtn">Back to all leads</button></div>' +
+            '<button class="' + (!hotRun && !state.intParked && parkedN ? 'btn-secondary' : 'btn-primary') + '" id="intExitBtn">Back to all leads</button></div>' +
           (state.completedStack.length ? '<div style="margin-top:12px">' + prevButtonHtml() + '</div>' : '') +
         '</div>';
       var rb = document.getElementById("intRestartBtn");
       if (rb) rb.addEventListener("click", function () { if (startRun(state.queueFilter, true)) { saveState(); render(); } });
+      var ipb = document.getElementById("intParkedBtn");
+      if (ipb) ipb.addEventListener("click", function () { if (startInterestedRun(false, true)) { saveState(); render(); } });
       document.getElementById("intExitBtn").addEventListener("click", function () { state.queueFilter = "all"; saveState(); render(); });
       wirePrevButton();
       return;
@@ -13838,7 +14191,7 @@ window.VPEX_SIG = [
           '<div class="glyph">✓</div>' +
           '<h2>Queue complete</h2>' +
           '<p>You worked every lead in this session. Load more, or export today\'s log.</p>' +
-          (interestedPool().length ? '<button class="btn-primary int-run-btn" id="donePanelInt" style="margin:4px 0 10px;">Call my ' + interestedPool().length + ' interested lead' + (interestedPool().length === 1 ? '' : 's') + '</button>' : '') +
+          (interestedPool(false).length ? '<button class="btn-primary int-run-btn" id="donePanelInt" style="margin:4px 0 10px;">Call my ' + interestedPool(false).length + ' interested lead' + (interestedPool(false).length === 1 ? '' : 's') + '</button>' : '') +
           '<div class="modal-actions">' +
             '<button class="btn-secondary" id="donePanelLoad">Load more</button>' +
             '<button class="btn-primary" id="donePanelExport">Export log</button>' +
@@ -13848,7 +14201,7 @@ window.VPEX_SIG = [
         autoAdvanceToggleHtml();
       document.getElementById("donePanelLoad").addEventListener("click", openLoadModal);
       var dpi = document.getElementById("donePanelInt");
-      if (dpi) dpi.addEventListener("click", function () { if (startInterestedRun(false)) { saveState(); render(); } });
+      if (dpi) dpi.addEventListener("click", function () { if (startInterestedRun(false, false)) { saveState(); render(); } });
       document.getElementById("donePanelExport").addEventListener("click", exportCsv);
       wireAlerts();
       wireAutoAdvanceToggle();
@@ -15211,7 +15564,7 @@ window.VPEX_SIG = [
       b.addEventListener("click", function () {
         if (state.awaitingOutcome) { showToast("Log the outcome for this call first"); return; }
         var qf = b.getAttribute("data-qfilter");
-        if (qf === "int" || qf === "hot") { if (!startRun(qf, false)) return; } else state.queueFilter = qf;
+        if (qf === "int" || qf === "hot") { if (!startRun(qf, false, qf === "int" && f !== "int" ? false : undefined)) return; } else state.queueFilter = qf;
         saveState();
         render();
       });
@@ -17185,7 +17538,7 @@ window.VPEX_SIG = [
     state.leads.forEach(function (l) {
       if (!mineL(l)) return;
       var active = l.stage && l.stage !== "New Lead" && l.stage !== "Closed Lost";
-      var hot = active || l.outcome === "interested" || l.outcome === "callback";
+      var hot = active || saidYes(l) || l.outcome === "callback";
       if (!hot || l.stage === "Closed Lost" || openTasksFor(l.id).length) return;
       noNext++;
       var last = lastCallFor(l.id);
