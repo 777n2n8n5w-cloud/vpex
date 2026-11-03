@@ -3,7 +3,8 @@
 //    and send handoff alerts to the closer right away.
 //  - sendDue: every minute, send the follow-ups that just came due.
 //  - sendTest: the "Send a test" button in the app.
-//  - morningDigest: weekdays at 8:30 in each rep's time zone, what's waiting today.
+//  - morningDigest: weekdays at 8:30 in each rep's time zone, what's waiting today; Mondays, admins and managers also get
+//    last week on the floor (calls, conversations, interested, change from the week before, top caller).
 //  - igDone: the "Done" button on an Instagram hand-off page (marks that post as posted by hand; needs the page's own key).
 //  - hit: anonymous funnel counts from vpexdialer.com (page seen, demo opened, trial form, sign-up), by where people came from.
 // Tokens live in pushTokens/{id} (written by the app, readable only here). The queue lives in pushQueue/{id}.
@@ -193,13 +194,23 @@ exports.morningDigest = onSchedule({ schedule: "30 * * * *", timeZone: "Etc/UTC"
     if (typeof uid !== "string" || people.has(uid)) return;
     people.set(uid, { office: typeof d.get("office") === "string" ? d.get("office") : "", tz: L.safeTz(d.get("tz")) });
   });
-  const officeCache = new Map(), chunkCache = new Map();
-  let sent = 0, due = 0;
+  const officeCache = new Map(), chunkCache = new Map(), weekCache = new Map();
+  let sent = 0, due = 0, weekSent = 0;
   for (const [uid, p] of people) {
     const lp = L.localParts(now, p.tz);
     if (!L.digestDue(lp)) continue;
     due++;
     if (!(await allowed(p.office, uid, now, officeCache))) continue;
+    let name = "", role = "";
+    try { const m = await memberRef(p.office, uid).get(); name = (m.exists && m.get("name")) || ""; role = (m.exists && m.get("role")) || ""; } catch (e) {}
+    // Mondays, admins and managers: last week on the floor (its own once-a-week mark; never stops the morning summary).
+    if (L.weekDue(lp) && L.weekLead(role)) {
+      try {
+        await db.doc("pushMeta/week_" + uid + "_" + lp.date).create({ at: now });
+        const msg = L.weekMessage(name, await floorWeek(p.office, now, p.tz, weekCache), p.office);
+        if (msg) weekSent += (await sendTo(uid, [msg], 6 * 3600)).sent;
+      } catch (e) { if (!/exists/i.test(String(e && e.message)) && !(e && (e.code === 6 || e.code === "already-exists"))) logger.warn("week summary failed", { err: String(e) }); }
+    }
     try { await db.doc("pushMeta/digest_" + uid + "_" + lp.date).create({ at: now }); } catch (e) { continue; }   // already sent today
     let chunks = chunkCache.get(p.office);
     if (!chunks) {
@@ -207,15 +218,34 @@ exports.morningDigest = onSchedule({ schedule: "30 * * * *", timeZone: "Etc/UTC"
       chunks = qs.docs.filter(function (d) { return d.id.charAt(0) !== "_"; }).map(function (d) { return d.data(); });
       chunkCache.set(p.office, chunks);
     }
-    let name = "";
-    try { const m = await memberRef(p.office, uid).get(); name = (m.exists && m.get("name")) || ""; } catch (e) {}
     const msg = L.digestMessage(name, L.digestCounts(chunks, uid, now, p.tz), p.office, p.tz);
     if (!msg) continue;
     const r = await sendTo(uid, [msg], 4 * 3600);
     sent += r.sent;
   }
-  logger.info("morning summary", { people: people.size, due, sent });
+  logger.info("morning summary", { people: people.size, due, sent, weekSent });
 });
+
+// Last week's calls for one office (and the week before, for the change), read one UTC day at a time so a big floor
+// never holds two weeks of calls at once. Cached per office and time zone for the run.
+async function floorWeek(office, now, tz, cache) {
+  const key = office + "|" + tz;
+  if (cache.has(key)) return cache.get(key);
+  const col = db.collection(office ? "offices/" + office + "/callDays" : "callDays"), ID = admin.firestore.FieldPath.documentId();
+  const b = L.lastWeekBounds(now, tz), pb = L.lastWeekBounds(b.start + 12 * 3600000, tz);
+  const read = async function (bounds, w) {
+    for (const d of L.weekDates(bounds)) {
+      const qs = await col.where(ID, ">=", d).where(ID, "<=", d + "~").get();   // {date}, {date}_{uid}, {date}_{uid}_{HH}; not n_ / act_
+      qs.docs.forEach(function (x) { L.weekAdd(w, x.data(), bounds); });
+    }
+    return w;
+  };
+  const w = await read(b, L.weekNew());
+  w.prev = (await read(pb, L.weekNew())).calls;
+  w.seen = {};
+  cache.set(key, w);
+  return w;
+}
 
 // The Instagram bot's hand-off page: Vincent taps Done after posting by hand. Each page carries a one-time key that the bot
 // saved with that post, so only that page can mark that post. Nothing else can be read or changed through this.

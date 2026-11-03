@@ -225,6 +225,60 @@ function digestMessage(name, c, office, tz) {
     link: leadLink(office, ""), tag: "vpex-digest", leadId: "", office: office || "" };
 }
 
+// ---------- Monday: last week on the floor (admins and managers) ----------
+// Mondays in the same 8 o'clock hour as the morning summary: calls, conversations and interested for the whole floor
+// last week (Monday to Sunday in the reader's time zone), the change from the week before and the top caller.
+var DAY_MS = 86400000;
+var CONTACT = { interested: 1, notinterested: 1, callback: 1 };   // same as the app's CONTACT_OUTCOMES ("talked")
+function weekDue(lp) { return lp.hour === DIGEST_HOUR && lp.weekday === "Mon"; }
+function weekLead(role) { return role === "admin" || role === "manager"; }
+// Last week's local Monday 00:00 up to this Monday 00:00 (found the same way as the day bounds, so clock changes are safe).
+function lastWeekBounds(now, tz) {
+  var today = localDayBounds(now, tz);
+  return { start: localDayBounds(today.start - 7 * DAY_MS + 12 * 3600000, tz).start, end: today.start };
+}
+function utcDate(ms) { return new Date(ms).toISOString().slice(0, 10); }
+// The UTC dates whose call records can hold calls between start and end (records are named {UTC date}_{uid}_{UTC hour}).
+function weekDates(b) { var out = [], d = utcDate(b.start), last = utcDate(b.end - 1); while (d <= last) { out.push(d); d = utcDate(Date.parse(d + "T12:00:00Z") + DAY_MS); } return out; }
+// Add one call record's calls into the week's totals (only calls inside the week; each call id once).
+function weekAdd(w, data, b) {
+  var calls = (data && data.calls) || {};
+  Object.keys(calls).forEach(function (id) {
+    var c = calls[id] || {}, t = Date.parse(c.timestamp);
+    if (!isFinite(t) || t < b.start || t >= b.end || w.seen[id]) return;
+    w.seen[id] = 1; w.calls++;
+    if (CONTACT[c.outcomeKey]) w.talk++;
+    if (c.outcomeKey === "interested") w.interested++;
+    var u = c.by && typeof c.by.uid === "string" ? c.by.uid : "";
+    if (u) { var r = w.reps[u] || (w.reps[u] = { name: "", calls: 0 }); r.calls++; if (c.by.name) r.name = str(c.by.name, 40); }
+  });
+  return w;
+}
+function weekNew() { return { calls: 0, talk: 0, interested: 0, reps: {}, seen: {}, prev: 0 }; }
+function weekMessage(name, w, office) {
+  if (!w || (!w.calls && !w.prev)) return null;
+  var n = function (x) { return Number(x).toLocaleString("en-US"); }, bits = [];
+  var head = n(w.calls) + " call" + (w.calls === 1 ? "" : "s");
+  if (w.prev > 0) {
+    var pct = Math.round((w.calls - w.prev) / w.prev * 100);
+    head += pct > 0 ? " (up " + n(pct) + "% from the week before)" : pct < 0 ? " (down " + n(-pct) + "% from the week before)" : " (same as the week before)";
+  }
+  bits.push(head);
+  if (w.calls) {
+    bits.push(n(w.talk) + " conversation" + (w.talk === 1 ? "" : "s"));
+    bits.push(n(w.interested) + " interested");
+    var ids = Object.keys(w.reps).filter(function (u) { return w.reps[u].calls > 0; });
+    if (ids.length >= 2) {
+      ids.sort(function (a, b) { return w.reps[b].calls - w.reps[a].calls; });
+      var top = w.reps[ids[0]], tn = firstName(top.name);
+      if (tn && top.calls > w.reps[ids[1]].calls) bits.push("Top caller: " + tn + ", " + n(top.calls));
+    }
+  }
+  var fn = firstName(name);
+  return { kind: "week", title: "Your floor last week" + (fn ? ", " + fn : ""), body: bits.join(" · ") + ".",
+    link: leadLink(office, ""), tag: "vpex-week", leadId: "", office: office || "" };
+}
+
 // ---------- growth: anonymous funnel counts from vpexdialer.com (no cookies, no names, no numbers, no addresses) ----------
 // The site sends one small beacon per step: the sales page seen, a demo opened, a first call in the demo, the trial form
 // opened, an office created, VPEX opened from the Home Screen, and the Instagram link page seen or a post on it tapped.
@@ -265,4 +319,5 @@ function freshOffice(d, now) { return !!(d && typeof d.createdAt === "number" &&
 module.exports = { APP_URL, STALE_MS, DROP_MS, APPT_LEAD_MS, queueId, notifyAt, assigneeOf, taskEntries, diffQueue, handoffEvents, officeOpen,
   fmtWhen, leadLink, dueMessages, handoffMessage, testMessage, fcmMessage, deadToken, officeFromEmail, safeTz, firstName,
   localParts, digestDue, localDayBounds, digestCounts, digestMessage,
+  weekDue, weekLead, lastWeekBounds, weekDates, weekAdd, weekNew, weekMessage, utcDate,
   HIT_EVENTS, HIT_INDS, HIT_ORIGINS, HIT_DAY_KEYS, hitOriginOk, capHit, hitTok, parseHit, hitKey, unHitKey, nyDate, freshOffice };

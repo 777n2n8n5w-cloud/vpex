@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-01-15">
+<meta name="vpex-build" content="2027-01-16">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 /* Signature themes: five themes only the VPEX owner's own login can use (sig/*.css, sig.js).
@@ -11382,7 +11382,8 @@ window.VPEX_SIG = [
       '<li>' + PUSH_BELL + '<span><b>Follow-ups and callbacks</b> the minute they come due</span></li>' +
       '<li>' + PUSH_BELL + '<span><b>Appointments</b> 10 minutes before they start</span></li>' +
       '<li>' + PUSH_BELL + '<span><b>New handoffs</b> the moment a lead is handed to you</span></li>' +
-      '<li>' + PUSH_BELL + '<span><b>A morning summary</b> at 8:30 on weekdays with what’s waiting</span></li></ul>';
+      '<li>' + PUSH_BELL + '<span><b>A morning summary</b> at 8:30 on weekdays with what’s waiting</span></li>' +
+      (TEAM.on && TEAM.me && (isAdmin() || isManager()) ? '<li>' + PUSH_BELL + '<span><b>Your floor’s week</b> on Monday mornings: calls, conversations, interested and the top caller</span></li>' : '') + '</ul>';
     var share = '<svg class="push-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Share"><path d="M12 15V3"/><path d="M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>';
     var h = "";
     if (st === "on") {
