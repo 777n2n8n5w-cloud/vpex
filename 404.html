@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Built by tools/build_calling_hours.js from tools/not_found_template.html. GitHub Pages serves it for any address that doesn't exist. Edit the template, not 404.html. -->
+<title>Page not found · VPEX Dialer</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0D1224">
+<link rel="icon" href="/vpex-icon-64.png">
+<link rel="apple-touch-icon" href="/vpex-icon-180.png">
+<script>
+// Old, shortened or mistyped addresses go straight to the right page (keeping any ?utm tags), before anything is drawn.
+(function () {
+  var STATES = {"al":"alabama","alabama":"alabama","ak":"alaska","alaska":"alaska","az":"arizona","arizona":"arizona","ar":"arkansas","arkansas":"arkansas","ca":"california","california":"california","co":"colorado","colorado":"colorado","ct":"connecticut","connecticut":"connecticut","de":"delaware","delaware":"delaware","dc":"district-of-columbia","districtofcolumbia":"district-of-columbia","fl":"florida","florida":"florida","ga":"georgia","georgia":"georgia","hi":"hawaii","hawaii":"hawaii","id":"idaho","idaho":"idaho","il":"illinois","illinois":"illinois","in":"indiana","indiana":"indiana","ia":"iowa","iowa":"iowa","ks":"kansas","kansas":"kansas","ky":"kentucky","kentucky":"kentucky","la":"louisiana","louisiana":"louisiana","me":"maine","maine":"maine","md":"maryland","maryland":"maryland","ma":"massachusetts","massachusetts":"massachusetts","mi":"michigan","michigan":"michigan","mn":"minnesota","minnesota":"minnesota","ms":"mississippi","mississippi":"mississippi","mo":"missouri","missouri":"missouri","mt":"montana","montana":"montana","ne":"nebraska","nebraska":"nebraska","nv":"nevada","nevada":"nevada","nh":"new-hampshire","newhampshire":"new-hampshire","nj":"new-jersey","newjersey":"new-jersey","nm":"new-mexico","newmexico":"new-mexico","ny":"new-york","newyork":"new-york","nc":"north-carolina","northcarolina":"north-carolina","nd":"north-dakota","northdakota":"north-dakota","oh":"ohio","ohio":"ohio","ok":"oklahoma","oklahoma":"oklahoma","or":"oregon","oregon":"oregon","pa":"pennsylvania","pennsylvania":"pennsylvania","ri":"rhode-island","rhodeisland":"rhode-island","sc":"south-carolina","southcarolina":"south-carolina","sd":"south-dakota","southdakota":"south-dakota","tn":"tennessee","tennessee":"tennessee","tx":"texas","texas":"texas","ut":"utah","utah":"utah","vt":"vermont","vermont":"vermont","va":"virginia","virginia":"virginia","wa":"washington","washington":"washington","wv":"west-virginia","westvirginia":"west-virginia","wi":"wisconsin","wisconsin":"wisconsin","wy":"wyoming","wyoming":"wyoming"};
+  var PAGES = ["/phoneburner-alternative/","/batchdialer-alternative/","/mojo-dialer-alternative/","/power-dialer-for-insurance-agents/","/power-dialer-for-real-estate-agents/","/power-dialer-for-business-funding/","/power-dialer-for-auto-sales/","/power-dialer-for-solar-sales/","/calling-hours/","/calling-hours/alabama/","/calling-hours/alaska/","/calling-hours/arizona/","/calling-hours/arkansas/","/calling-hours/california/","/calling-hours/colorado/","/calling-hours/connecticut/","/calling-hours/delaware/","/calling-hours/district-of-columbia/","/calling-hours/florida/","/calling-hours/georgia/","/calling-hours/hawaii/","/calling-hours/idaho/","/calling-hours/illinois/","/calling-hours/indiana/","/calling-hours/iowa/","/calling-hours/kansas/","/calling-hours/kentucky/","/calling-hours/louisiana/","/calling-hours/maine/","/calling-hours/maryland/","/calling-hours/massachusetts/","/calling-hours/michigan/","/calling-hours/minnesota/","/calling-hours/mississippi/","/calling-hours/missouri/","/calling-hours/montana/","/calling-hours/nebraska/","/calling-hours/nevada/","/calling-hours/new-hampshire/","/calling-hours/new-jersey/","/calling-hours/new-mexico/","/calling-hours/new-york/","/calling-hours/north-carolina/","/calling-hours/north-dakota/","/calling-hours/ohio/","/calling-hours/oklahoma/","/calling-hours/oregon/","/calling-hours/pennsylvania/","/calling-hours/rhode-island/","/calling-hours/south-carolina/","/calling-hours/south-dakota/","/calling-hours/tennessee/","/calling-hours/texas/","/calling-hours/utah/","/calling-hours/vermont/","/calling-hours/virginia/","/calling-hours/washington/","/calling-hours/west-virginia/","/calling-hours/wisconsin/","/calling-hours/wyoming/","/ig/"];
+  var ALIAS = {
+    "trial": "/?trial=start", "free-trial": "/?trial=start", "signup": "/?trial=start", "sign-up": "/?trial=start", "start": "/?trial=start",
+    "register": "/?trial=start", "get-started": "/?trial=start", "try": "/?trial=start",
+    "login": "/", "log-in": "/", "signin": "/", "sign-in": "/", "app": "/", "dialer": "/", "home": "/", "index": "/",
+    "hours": "/calling-hours/", "calling-hours-checker": "/calling-hours/", "callinghours": "/calling-hours/", "calling-hour": "/calling-hours/",
+    "insurance": "/power-dialer-for-insurance-agents/", "real-estate": "/power-dialer-for-real-estate-agents/", "realestate": "/power-dialer-for-real-estate-agents/",
+    "business-funding": "/power-dialer-for-business-funding/", "mca": "/power-dialer-for-business-funding/", "funding": "/power-dialer-for-business-funding/",
+    "auto": "/power-dialer-for-auto-sales/", "solar": "/power-dialer-for-solar-sales/",
+    "phoneburner": "/phoneburner-alternative/", "batchdialer": "/batchdialer-alternative/", "mojo": "/mojo-dialer-alternative/", "mojo-dialer": "/mojo-dialer-alternative/"
+  };
+  var DEMO = { "insurance": "insurance", "real-estate": "realestate", "realestate": "realestate", "mca": "mca", "business-funding": "mca", "funding": "mca", "auto": "auto", "solar": "solar" };
+  function target(raw) {
+    var p = raw;
+    try { p = decodeURIComponent(p); } catch (e) {}
+    p = p.toLowerCase().replace(/[\s_]+/g, "-").replace(/\/index\.html?$/, "/").replace(/\.html?$/, "").replace(/\/{2,}/g, "/").replace(/\/+$/, "");
+    if (!p) return "";
+    if (PAGES.indexOf(p + "/") >= 0 && p + "/" !== raw) return p + "/";
+    var parts = p.split("/").filter(Boolean);
+    var st = function (x) { x = String(x || "").replace(/[^a-z]/g, ""); return STATES[x] ? "/calling-hours/" + STATES[x] + "/" : ""; };
+    if (parts.length === 2 && /^(calling-hours?|hours|callinghours)$/.test(parts[0])) return st(parts[1]);
+    if (parts.length === 1) {
+      var m = /^(.+?)-calling-hours$/.exec(parts[0]);
+      if (m) return st(m[1]);
+      m = /^demo-(.+)$/.exec(parts[0]);
+      if (m && DEMO[m[1]]) return "/#demo-" + DEMO[m[1]];
+      if (ALIAS[parts[0]]) return ALIAS[parts[0]];
+    }
+    if (parts.length === 2 && /^demos?$/.test(parts[0]) && DEMO[parts[1]]) return "/#demo-" + DEMO[parts[1]];
+    return "";
+  }
+  window.vpex404Target = target;
+  var t = target(location.pathname);
+  if (t) {
+    var q = location.search ? location.search.slice(1) : "";
+    var url = t.split("#")[0], h = t.indexOf("#") >= 0 ? t.slice(t.indexOf("#")) : location.hash;
+    if (q) url += (url.indexOf("?") >= 0 ? "&" : "?") + q;
+    location.replace(url + h);
+    document.documentElement.setAttribute("data-moving", "1");
+  }
+})();
+</script>
+<style>
+  :root {
+    --bg: #0D1224; --surface: #141B34; --border: #283258; --text: #EDF0FB; --dim: #A2AACB;
+    --gold: #E8B94A; --gold-text: #FFC94D; --focus: #E8B94A; color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root { --bg: #ECEFF7; --surface: #FFFFFF; --border: #D4DAEB; --text: #11172E; --dim: #4F5A7C; --gold-text: #8A630C; color-scheme: light; }
+  }
+  html[data-moving] body { visibility: hidden; }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 system-ui, -apple-system, 'Segoe UI', sans-serif;
+    background-image: radial-gradient(110% 420px at 100% -60px, rgba(90,128,255,0.22), transparent 70%); background-repeat: no-repeat; }
+  @media (prefers-color-scheme: light) { body { background-image: radial-gradient(110% 420px at 100% -60px, rgba(47,91,235,0.10), transparent 70%); } }
+  main { max-width: 720px; margin: 0 auto; padding: calc(14px + env(safe-area-inset-top, 0px)) 16px calc(48px + env(safe-area-inset-bottom, 0px)); }
+  a { color: inherit; }
+  a:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 8px; }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .wm { display: inline-flex; align-items: center; min-height: 44px; font-weight: 850; font-size: 20px; letter-spacing: 0.02em; text-decoration: none; }
+  .topcta { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 10px; background: var(--gold); color: #111827; font-weight: 750; font-size: 14.5px; text-decoration: none; }
+  h1 { font-size: clamp(32px, 9vw, 48px); line-height: 1.05; letter-spacing: -0.03em; font-weight: 850; margin: 28px 0 12px; }
+  .lede { color: var(--dim); margin: 0 0 8px; font-size: 17px; max-width: 34em; }
+  h2 { font-size: 15px; font-weight: 750; color: var(--dim); margin: 28px 0 10px; }
+  .pills { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pills a { display: inline-flex; align-items: center; min-height: 46px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); font-weight: 650; text-decoration: none; }
+  .pills a:hover { border-color: var(--gold); }
+  .cta { display: flex; align-items: center; justify-content: center; min-height: 52px; border-radius: 12px; background: var(--gold); color: #111827; font-weight: 800; font-size: 16.5px; text-decoration: none; max-width: 360px; margin-top: 28px; }
+  .assure { font-size: 13.5px; color: var(--dim); margin: 8px 0 0; }
+  footer { margin-top: 48px; font-size: 13.5px; color: var(--dim); display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  footer a { display: inline-flex; align-items: center; min-height: 44px; }
+</style>
+</head>
+<body>
+<main>
+  <div class="top"><a class="wm" href="/">VPEX</a><a class="topcta" href="/?trial=start">Start free trial</a></div>
+  <h1>That page isn't here.</h1>
+  <p class="lede">The link may be old or mistyped. VPEX is the power dialer for sales floors: reps call from their own phones, and every lead shows their local time and calling hours.</p>
+
+  <h2>Try a demo office (no sign-up)</h2>
+  <nav class="pills" aria-label="Demo offices">
+    <a href="/#demo-insurance">Insurance demo</a>
+    <a href="/#demo-realestate">Real estate</a>
+    <a href="/#demo-mca">Business funding</a>
+    <a href="/#demo-auto">Auto</a>
+    <a href="/#demo-solar">Solar</a>
+  </nav>
+  <a class="cta" href="/?trial=start">Start my free trial</a>
+  <p class="assure">7 days free. No card needed. $49 per rep per month after that.</p>
+
+  <h2>Free tool</h2>
+  <nav class="pills" aria-label="Free tool">
+    <a href="/calling-hours/">Calling hours by state</a>
+  </nav>
+
+  <h2>VPEX for your floor</h2>
+  <nav class="pills" aria-label="VPEX by industry">
+    <a href="/power-dialer-for-insurance-agents/">Insurance agents</a>
+    <a href="/power-dialer-for-real-estate-agents/">Real estate agents</a>
+    <a href="/power-dialer-for-business-funding/">Business funding</a>
+    <a href="/power-dialer-for-auto-sales/">Auto sales</a>
+    <a href="/power-dialer-for-solar-sales/">Solar sales</a>
+  </nav>
+
+  <h2>Compare the cost</h2>
+  <nav class="pills" aria-label="Comparisons">
+    <a href="/phoneburner-alternative/">PhoneBurner</a>
+    <a href="/batchdialer-alternative/">BatchDialer</a>
+    <a href="/mojo-dialer-alternative/">Mojo Dialer</a>
+  </nav>
+
+  <footer><a href="/">vpexdialer.com</a><a href="mailto:support@vpexdialer.com">support@vpexdialer.com</a></footer>
+</main>
+</body>
+</html>

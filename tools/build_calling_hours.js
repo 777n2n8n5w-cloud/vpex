@@ -1,4 +1,4 @@
-// Builds vpexdialer.com/calling-hours/ (calling-hours/index.html, plus one page per state: calling-hours/<state>/index.html, and sitemap.xml) from tools/calling_hours_template.html and the calling-hours
+// Builds 404.html (any missing address: short links go to the right page) and vpexdialer.com/calling-hours/ (calling-hours/index.html, plus one page per state: calling-hours/<state>/index.html, and sitemap.xml) from tools/calling_hours_template.html and the calling-hours
 // rules in index.html, so the free checker always matches the app. Run after changing STATE_HOURS: node tools/build_calling_hours.js
 // tests/calling_hours_page.js fails if the committed page is out of date.
 const fs = require('fs'), path = require('path'), vm = require('vm');
@@ -112,14 +112,27 @@ function buildAll() {
   Object.keys(NAMES).forEach(st => { out['calling-hours/' + slug(st) + '/index.html'] = build(st); });
   return out;
 }
+function siteUrls() {
+  return ['/', '/phoneburner-alternative/', '/batchdialer-alternative/', '/mojo-dialer-alternative/', '/power-dialer-for-insurance-agents/', '/power-dialer-for-real-estate-agents/', '/power-dialer-for-business-funding/', '/power-dialer-for-auto-sales/', '/power-dialer-for-solar-sales/', '/calling-hours/'].concat(Object.keys(NAMES).sort((a, b) => NAMES[a].localeCompare(NAMES[b])).map(st => '/calling-hours/' + slug(st) + '/'));
+}
 function sitemap() {
-  const urls = ['/', '/phoneburner-alternative/', '/batchdialer-alternative/', '/mojo-dialer-alternative/', '/power-dialer-for-insurance-agents/', '/power-dialer-for-real-estate-agents/', '/power-dialer-for-business-funding/', '/power-dialer-for-auto-sales/', '/power-dialer-for-solar-sales/', '/calling-hours/'].concat(Object.keys(NAMES).sort((a, b) => NAMES[a].localeCompare(NAMES[b])).map(st => '/calling-hours/' + slug(st) + '/'));
+  const urls = siteUrls();
   return '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + urls.map(u => '  <url><loc>https://vpexdialer.com' + u + '</loc></url>\n').join('') + '</urlset>\n';
 }
-module.exports = { build, buildAll, sitemap, slug, NAMES };
+// 404.html: GitHub Pages serves it for any address that doesn't exist. Short or mistyped addresses (/calling-hours/pa, /Texas-calling-hours,
+// /trial, /solar, /demo/auto, /IG) go straight to the right page; anything else gets demos, the trial, the checker and the industry pages.
+function notFound() {
+  const states = {};
+  Object.keys(NAMES).forEach(st => { states[st.toLowerCase()] = slug(st); states[NAMES[st].toLowerCase().replace(/[^a-z]/g, '')] = slug(st); });
+  const pages = siteUrls().filter(u => u !== '/').concat(['/ig/']);
+  const tpl = fs.readFileSync(path.join(__dirname, 'not_found_template.html'), 'utf8');
+  return tpl.replace(/\{\{([A-Z]+)\}\}/g, (m, k) => { if (k === 'STATES') return JSON.stringify(states); if (k === 'PAGES') return JSON.stringify(pages); throw new Error('unknown placeholder ' + k); });
+}
+module.exports = { build, buildAll, sitemap, siteUrls, notFound, slug, NAMES };
 if (require.main === module) {
   const pages = buildAll();
   for (const [rel, html] of Object.entries(pages)) { fs.mkdirSync(path.dirname(path.join(ROOT, rel)), { recursive: true }); fs.writeFileSync(path.join(ROOT, rel), html); }
   fs.writeFileSync(path.join(ROOT, 'sitemap.xml'), sitemap());
-  console.log('wrote ' + Object.keys(pages).length + ' calling-hours pages and sitemap.xml');
+  fs.writeFileSync(path.join(ROOT, '404.html'), notFound());
+  console.log('wrote ' + Object.keys(pages).length + ' calling-hours pages, sitemap.xml and 404.html');
 }

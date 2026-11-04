@@ -105,9 +105,11 @@ const legal = /Based on published state rules as of [A-Z][a-z]+ \d{4}\. Not lega
     const page = await ctx.newPage(); const errs = []; page.on('pageerror', e => errs.push(e.message));
     await page.route(/gstatic\.com\/firebasejs|fonts\.googleapis|cloudfunctions/, r => r.abort());
     await page.goto(BASE + 'calling-hours/'); await page.waitForTimeout(300);
-    const links = await page.evaluate(() => [...document.querySelectorAll('a[href^="/"]:not([href^="/calling-hours/"])')].map(a => ({ h: a.getAttribute('href'), size: Math.round(Math.min(a.getBoundingClientRect().height, 999)) })));
+    const links = await page.evaluate(() => [...document.querySelectorAll('a[href^="/"]:not([href^="/calling-hours/"]):not([href^="/power-dialer-for-"])')].map(a => ({ h: a.getAttribute('href'), size: Math.round(Math.min(a.getBoundingClientRect().height, 999)) })));
     check('every link to the site carries utm_source=calling-hours', links.length >= 8 && links.every(l => /utm_source=calling-hours&utm_medium=tool/.test(l.h)), links.filter(l => !/utm_source=calling-hours/.test(l.h)));
     check('links are 44 px+ tap targets', links.every(l => l.size >= 44), links.filter(l => l.size < 44));
+    const floors = await page.evaluate(() => [...document.querySelectorAll('nav.floors a')].map(a => ({ h: a.getAttribute('href'), size: Math.round(a.getBoundingClientRect().height) })));
+    check('links to the 5 industry pages, 44 px+, each page exists', floors.length === 5 && floors.every(f => f.size >= 44 && fs.existsSync(path.join(ROOT, f.h, 'index.html'))), floors);
     await page.click('a[data-cta="demo-solar"]'); await page.waitForTimeout(2500);
     const d = await page.evaluate(() => ({ hash: location.hash, attr: JSON.parse(localStorage.getItem('vpex_attr') || 'null'), bar: !!document.querySelector('.demo-pill'), q: location.search }));
     check('demo link opens the solar demo', d.hash === '#demo-solar' && d.bar, d);
@@ -141,7 +143,8 @@ const legal = /Based on published state rules as of [A-Z][a-z]+ \d{4}\. Not lega
         desc: document.querySelector('meta[name=description]').content, sel: document.getElementById('st').value, v: document.getElementById('verdict').className, vt: document.getElementById('verdict').innerText,
         dd: [...document.querySelectorAll('.facts dd')].map(d => d.textContent), facts: (document.querySelector('.facts') || {}).innerText || '',
         nav: [...document.querySelectorAll('.states a')].map(a => a.getAttribute('href')), cur: (document.querySelector('.states a[aria-current]') || {}).textContent,
-        site: [...document.querySelectorAll('a[href^="/"]:not([href^="/calling-hours/"])')].map(a => a.getAttribute('href')),
+        site: [...document.querySelectorAll('a[href^="/"]:not([href^="/calling-hours/"]):not([href^="/power-dialer-for-"])')].map(a => a.getAttribute('href')),
+        floors: document.querySelectorAll('nav.floors a[href^="/power-dialer-for-"]').length,
         small: [...document.querySelectorAll('a, select')].filter(a => a.getBoundingClientRect().height < 44).length, sw: document.documentElement.scrollWidth, vw: innerWidth, url: location.search, txt: document.body.innerText }));
       const rule = SH[st], n = NAMES[st], e = [];
       if (!r.title.startsWith(n + ' telemarketing calling hours')) e.push('title');
@@ -161,6 +164,7 @@ const legal = /Based on published state rules as of [A-Z][a-z]+ \d{4}\. Not lega
       if (!rule && !/follow the federal rule: 8 AM to 9 PM/.test(r.txt)) e.push('federal copy');
       if (r.nav.length !== 51 || r.cur !== n + (rule ? '•' : '')) e.push('state links ' + r.nav.length + ' ' + r.cur);
       if (!r.site.length || !r.site.every(h => h.includes('utm_source=calling-hours&utm_medium=tool&utm_campaign=' + st.toLowerCase()))) e.push('utm');
+      if (r.floors !== 5) e.push('industry links ' + r.floors);
       if (r.small) e.push(r.small + ' small targets');
       if (r.sw > r.vw) e.push('sideways scroll');
       if (/undefined|NaN|\{\{|Dovetail/.test(r.txt)) e.push('leftover words');
