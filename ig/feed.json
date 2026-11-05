@@ -1,6 +1,132 @@
 {
-"built": "2026-10-29T09:21-04:00",
+"built": "2026-11-05T09:16-05:00",
 "tiles": [
+{
+"id": "w7-trial",
+"at": "2026-11-16T19:00:00-05:00",
+"t": "Start tonight. Your floor dials tomorrow.",
+"img": "t/w7-trial.jpg",
+"go": "trial",
+"c": "w7",
+"k": "image"
+},
+{
+"id": "w7-aq",
+"at": "2026-11-16T11:00:00-05:00",
+"t": "Monday 8:30. Last week, before coffee.",
+"img": "t/w7-aq.jpg",
+"go": "home",
+"c": "w7",
+"k": "reel"
+},
+{
+"id": "w7-data",
+"at": "2026-11-15T19:00:00-05:00",
+"t": "Switching dialers? Your call history",
+"img": "t/w7-data.jpg",
+"go": "home",
+"c": "w7",
+"k": "image"
+},
+{
+"id": "w7-ap",
+"at": "2026-11-15T11:00:00-05:00",
+"t": "No answer. Now what?",
+"img": "t/w7-ap.jpg",
+"go": "home",
+"c": "w7",
+"k": "reel"
+},
+{
+"id": "w7-buy",
+"at": "2026-11-14T19:00:00-05:00",
+"t": "Picking a dialer? Ask these 5 first.",
+"img": "t/w7-buy.jpg",
+"go": "home",
+"c": "w7",
+"k": "carousel"
+},
+{
+"id": "w7-ao",
+"at": "2026-11-14T11:00:00-05:00",
+"t": "Myth: you can't manage a remote floor.",
+"img": "t/w7-ao.jpg",
+"go": "home",
+"c": "w7",
+"k": "reel"
+},
+{
+"id": "w7-three",
+"at": "2026-11-13T19:00:00-05:00",
+"t": "3 calls in 24 hours",
+"img": "t/w7-three.jpg",
+"go": "home",
+"c": "w7",
+"k": "carousel"
+},
+{
+"id": "w7-an",
+"at": "2026-11-13T11:00:00-05:00",
+"t": "Rep POV: my first 10 minutes",
+"img": "t/w7-an.jpg",
+"go": "home",
+"c": "w7",
+"k": "reel"
+},
+{
+"id": "w7-aep",
+"at": "2026-11-12T19:00:00-05:00",
+"t": "Medicare AEP, 3 checks before every call",
+"img": "t/w7-aep.jpg",
+"go": "demo:insurance",
+"c": "w7",
+"k": "carousel"
+},
+{
+"id": "w7-am",
+"at": "2026-11-12T11:00:00-05:00",
+"t": "Called him 11 minutes ago?",
+"img": "t/w7-am.jpg",
+"go": "home",
+"c": "w7",
+"k": "reel"
+},
+{
+"id": "w7-math",
+"at": "2026-11-11T19:00:00-05:00",
+"t": "Example math, a 6-rep floor",
+"img": "t/w7-math.jpg",
+"go": "trial",
+"c": "w7",
+"k": "image"
+},
+{
+"id": "w7-al",
+"at": "2026-11-11T11:00:00-05:00",
+"t": "Most calls. Fewest conversations?",
+"img": "t/w7-al.jpg",
+"go": "home",
+"c": "w7",
+"k": "reel"
+},
+{
+"id": "w7-last",
+"at": "2026-11-10T19:00:00-05:00",
+"t": "7:45 PM. Who can you still call?",
+"img": "t/w7-last.jpg",
+"go": "home",
+"c": "w7",
+"k": "carousel"
+},
+{
+"id": "w7-ak",
+"at": "2026-11-10T11:00:00-05:00",
+"t": "Your 9 AM is their 6 AM.",
+"img": "t/w7-ak.jpg",
+"go": "home",
+"c": "w7",
+"k": "reel"
+},
 {
 "id": "w6-vets",
 "at": "2026-11-09T19:00:00-05:00",
