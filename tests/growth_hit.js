@@ -16,6 +16,10 @@ check('extra fields are ignored', !('email' in L.parseHit('{"e":"visit","email":
 check('sign-up needs a real office name', L.parseHit('{"e":"signup"}') === null && L.parseHit('{"e":"signup","o":"../x"}') === null);
 const su = L.parseHit('{"e":"signup","o":"harbor-insurance","s":"instagram","n":"w5-reel-a"}');
 check('sign-up keeps the office', su && su.o === 'harbor-insurance', su);
+const lost = L.parseHit(JSON.stringify({ e: 'lost', s: 'google', m: '404', c: 'calling-hours/guam/x', d: 'm' }));
+check('404 page: a not-found address is counted with the address as its campaign (slashes become dashes)', lost && lost.e === 'lost' && lost.c === 'calling-hours-guam-x' && lost.m === '404' && lost.s === 'google', lost);
+const lostLong = L.parseHit(JSON.stringify({ e: 'lost', s: 'direct', m: 'moved', c: 'a/'.repeat(80) }));
+check('404 page: a long address is cut to 40 characters, no trailing dash', lostLong && lostLong.c.length <= 40 && !/-$/.test(lostLong.c), lostLong);
 check('every step is accepted', L.HIT_EVENTS.every(e => L.parseHit(JSON.stringify({ e, o: 'abc-office' }))), L.HIT_EVENTS);
 const k = L.hitKey(ok), back = L.unHitKey(k);
 check('counter key round-trips', back.e === 'visit' && back.s === 'instagram' && back.m === 'bio' && back.c === 'w5' && back.n === 'w5-reel-a' && back.i === 'solar' && back.d === 'm', { k, back });

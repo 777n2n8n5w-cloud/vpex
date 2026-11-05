@@ -10,7 +10,9 @@ let pass = 0, fail = 0;
 function check(name, ok, info) { if (ok) pass++; else { fail++; console.log('FAIL', name, info === undefined ? '' : JSON.stringify(info)); } }
 
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.jpg': 'image/jpeg', '.json': 'application/json', '.xml': 'application/xml', '.webmanifest': 'application/manifest+json', '.mp4': 'video/mp4' };
+const HITS = [];   // beacons the pages send to the counter (pointed here with localStorage vpex_hit_test)
 const server = http.createServer((req, res) => {
+  if (req.url === '/__hit') { let b = ''; req.on('data', d => b += d); req.on('end', () => { try { HITS.push(JSON.parse(b)); } catch (e) {} res.writeHead(204); res.end(); }); return; }
   let p = decodeURIComponent(req.url.split('?')[0].split('#')[0]);
   let f = path.join(ROOT, p);
   if (!f.startsWith(ROOT)) { res.writeHead(400); return res.end(); }
@@ -30,7 +32,7 @@ const server = http.createServer((req, res) => {
   const pages = siteUrls().filter(u => u !== '/').concat(['/ig/']);
   check('every known page exists', pages.every(u => fs.existsSync(path.join(ROOT, u, 'index.html'))), pages.filter(u => !fs.existsSync(path.join(ROOT, u, 'index.html'))));
   const html = fs.readFileSync(path.join(ROOT, '404.html'), 'utf8');
-  check('noindex, no Dovetail', /<meta name="robots" content="noindex">/.test(html) && !/dovetail/i.test(html));
+  check('noindex, no Dovetail (apart from the counter address)', /<meta name="robots" content="noindex">/.test(html) && !/dovetail/i.test(html.split('https://us-central1-dovetail-f863c.cloudfunctions.net/hit').join('')));
   const hrefs = [...html.matchAll(/href="([^"]+)"/g)].map(m => m[1]).filter(h => h.startsWith('/'));
   check('every link is absolute and points at a real page', hrefs.length >= 15 && hrefs.every(h => { const p = h.split(/[?#]/)[0]; return fs.existsSync(path.join(ROOT, p, p.endsWith('/') ? 'index.html' : '')); }), hrefs.filter(h => { const p = h.split(/[?#]/)[0]; return !fs.existsSync(path.join(ROOT, p, p.endsWith('/') ? 'index.html' : '')); }));
 
@@ -122,6 +124,57 @@ const server = http.createServer((req, res) => {
     }
     await ctx.close();
   }
+  // 4. Counting (functions/ "hit", step "lost") and passing an outside source on to the app pages
+  {
+    const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+    await ctx.addInitScript(() => { try { localStorage.setItem('vpex_hit_test', location.origin + '/__hit'); } catch (e) {} });
+    const page = await ctx.newPage(); const errs = []; page.on('pageerror', e => errs.push(e.message));
+    await page.route(block, r => r.abort());
+    const lostHits = () => HITS.filter(h => h.e === 'lost');
+    const waitHit = async n => { for (let i = 0; i < 40 && lostHits().length < n; i++) await page.waitForTimeout(50); return lostHits()[n - 1]; };
+    HITS.length = 0;
+    await page.goto(BASE + '/some/Old-Link', { referer: 'https://www.google.com/search?q=x' });
+    let h = await waitHit(1);
+    check('count: a not-found address from Google is counted once (lost, google, 404, the address)', h && h.s === 'google' && h.m === '404' && h.c === 'some/old-link' && h.n === '' && /^[md]$/.test(h.d) && lostHits().length === 1, HITS);
+    const links = await page.evaluate(() => [...document.querySelectorAll('a[href^="/"]')].map(a => a.getAttribute('href')));
+    const app = links.filter(x => /^\/(\?|#|$)/.test(x)), other = links.filter(x => !/^\/(\?|#|$)/.test(x));
+    check('source: links to the sales page, demos and trial carry utm_source=google&utm_medium=referral', app.length >= 8 && app.every(x => /utm_source=google&utm_medium=referral/.test(x)), app);
+    check('source: the demo hash stays at the end', links.includes('/?utm_source=google&utm_medium=referral#demo-auto') && links.includes('/?trial=start&utm_source=google&utm_medium=referral'), app);
+    check('source: links to the static pages stay as they are (they tag their own links)', other.length >= 9 && other.every(x => !/utm_/.test(x)), other);
+    await page.click('a[href$="#demo-solar"]'); await page.waitForTimeout(2500);
+    check('source: the demo opened from the 404 page credits Google', await page.evaluate(() => { try { const a = JSON.parse(localStorage.getItem('vpex_attr')); return a.s === 'google' && a.m === 'referral' && location.hash === '#demo-solar' && !/utm_/.test(location.search); } catch (e) { return false; } }));
+    // A shortcut that moves on: counted as "moved", the outside source passed on
+    HITS.length = 0;
+    const navs = []; const onNav = f => { if (f === page.mainFrame()) navs.push(f.url()); }; page.on('framenavigated', onNav);
+    await page.goto(BASE + '/trial', { referer: 'https://www.bing.com/' }); h = await waitHit(1); await page.waitForTimeout(800); page.off('framenavigated', onNav);
+    check('count: /trial from Bing is counted as moved', h && h.s === 'bing' && h.m === 'moved' && h.c === 'trial', HITS);
+    check('source: /trial from Bing lands on the trial form credited to Bing', navs.some(u => { const q = new URL(u); return q.pathname === '/' && q.searchParams.get('trial') === 'start' && q.searchParams.get('utm_source') === 'bing' && q.searchParams.get('utm_medium') === 'referral'; }), navs);
+    // Tags already on the link win; a static target keeps them as they were
+    HITS.length = 0;
+    await page.goto(BASE + '/calling-hours/pa?utm_source=ig&utm_campaign=w6', { referer: 'https://www.google.com/' }); h = await waitHit(1); await page.waitForTimeout(300);
+    const u = new URL(page.url());
+    check('count: a tagged link counts its own source', h && h.s === 'ig' && h.m === 'moved' && h.c === 'calling-hours/pa', HITS);
+    check('source: tags already there are kept, nothing added', u.pathname === '/calling-hours/pennsylvania/' && u.searchParams.get('utm_source') === 'ig' && u.searchParams.get('utm_campaign') === 'w6' && !u.searchParams.get('utm_medium'), u.href);
+    // A broken link on VPEX's own pages: counted as vpexdialer, links not tagged
+    HITS.length = 0;
+    await page.goto(BASE + '/pricing', { referer: BASE + '/calling-hours/' }); h = await waitHit(1);
+    check('count: a broken link on our own site is counted as vpexdialer', h && h.s === 'vpexdialer' && h.m === '404' && h.c === 'pricing', HITS);
+    check('source: own-site visits leave the links untagged', await page.evaluate(() => [...document.querySelectorAll('a[href^="/"]')].every(a => !/utm_/.test(a.getAttribute('href')))));
+    // Typed in: direct, untagged
+    HITS.length = 0;
+    await page.goto(BASE + '/Call/Pat.Smith@Example.com/5551234567/x'); h = await waitHit(1);
+    check('count: typed-in address is direct; anything with @ and long digit runs left out', h && h.s === 'direct' && h.c === 'call/email/n/x' && !/pat|example|555/i.test(JSON.stringify(h)), h);
+    check('source: typed-in visits leave the links untagged', await page.evaluate(() => [...document.querySelectorAll('a[href^="/"]')].every(a => !/utm_/.test(a.getAttribute('href')))));
+    check('count: the server takes it (step lost is known, address tokenized)', (() => { const L = require(path.join(ROOT, 'functions', 'lib.js')); const p = L.parseHit(JSON.stringify(h)); return p && p.e === 'lost' && p.c === 'call-email-n-x'; })());
+    check('no page errors (counting)', !errs.length, errs);
+    await ctx.close();
+    // Counting is off unless the page is on vpexdialer.com (or a test turns it on)
+    const c2 = await br.newContext(); const p2 = await c2.newPage(); await p2.route(block, r => r.abort());
+    HITS.length = 0; await p2.goto(BASE + '/nothing-here'); await p2.waitForTimeout(400);
+    check('count: off on other hosts', !HITS.length, HITS);
+    await c2.close();
+  }
+
   // $49 on the 404 page equals the sales page
   check('$49 matches the sales page', /\$49<\/b><span>per rep<br>per month/.test(fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8')));
 

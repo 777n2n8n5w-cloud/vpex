@@ -281,9 +281,10 @@ function weekMessage(name, w, office) {
 
 // ---------- growth: anonymous funnel counts from vpexdialer.com (no cookies, no names, no numbers, no addresses) ----------
 // The site sends one small beacon per step: the sales page seen, a demo opened, a first call in the demo, the trial form
-// opened, an office created, VPEX opened from the Home Screen, and the Instagram link page seen or a post on it tapped.
+// opened, an office created, VPEX opened from the Home Screen, the Instagram link page seen or a post on it tapped, and an
+// address that does not exist (404.html, "lost": the address tried in c, medium "moved" when it was sent on, "404" when not).
 // Each carries where the visitor came from (utm source, medium, campaign, post id), the industry and phone/computer.
-var HIT_EVENTS = ["visit", "demo", "demo_call", "trial_view", "signup", "home_screen", "bio_view", "bio_tap"];
+var HIT_EVENTS = ["visit", "demo", "demo_call", "trial_view", "signup", "home_screen", "bio_view", "bio_tap", "lost"];
 var HIT_INDS = ["insurance", "realestate", "mca", "auto", "solar", "investments"];
 var HIT_ORIGINS = ["https://vpexdialer.com", "https://www.vpexdialer.com"];
 function hitTok(v, max) { return String(v == null ? "" : v).toLowerCase().replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, max).replace(/-+$/, ""); }

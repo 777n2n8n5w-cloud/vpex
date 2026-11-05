@@ -45,8 +45,46 @@
     return "";
   }
   window.vpex404Target = target;
+  // Where the visitor came from: the link's utm_source, else the site that sent them ("vpexdialer" means a broken link on
+  // VPEX's own pages), else direct. An outside site is passed on as utm tags to the app pages (the sales page, demos, the
+  // trial form), which would otherwise only see this page as the referrer and lose the credit.
+  function source() {
+    var q = new URLSearchParams(location.search), s = q.get("utm_source");
+    if (s) return { s: s, tagged: true };
+    var h = ""; try { h = new URL(document.referrer).hostname.toLowerCase().replace(/^www\./, ""); } catch (e) { return { s: "" }; }
+    if (!h) return { s: "" };
+    if (/(^|\.)vpexdialer\.com$/.test(h) || h === location.hostname) return { s: "vpexdialer", own: true };
+    var known = [[/(^|\.)instagram\.com$/, "instagram"], [/(^|\.)(facebook\.com|fb\.me|fb\.com)$/, "facebook"], [/(^|\.)threads\.(net|com)$/, "threads"],
+      [/(^|\.)google\./, "google"], [/(^|\.)bing\.com$/, "bing"], [/(^|\.)(t\.co|x\.com|twitter\.com)$/, "x"], [/(^|\.)linkedin\.com$|^lnkd\.in$/, "linkedin"],
+      [/(^|\.)(youtube\.com|youtu\.be)$/, "youtube"], [/(^|\.)tiktok\.com$/, "tiktok"]];
+    for (var i = 0; i < known.length; i++) if (known[i][0].test(h)) return { s: known[i][1] };
+    return { s: h.replace(/[^a-z0-9]+/g, "-").slice(0, 24) };
+  }
+  window.vpex404Source = source;
+  var src = source();
+  // Tag a link to an app page with the outside source (never over tags that are already there).
+  function tag(url) {
+    if (!src.s || src.tagged || src.own || !/^\/(\?|#|$)/.test(url) || /[?&]utm_source=/.test(url)) return url;
+    var h = url.indexOf("#") >= 0 ? url.slice(url.indexOf("#")) : "", u = url.split("#")[0];
+    return u + (u.indexOf("?") >= 0 ? "&" : "?") + "utm_source=" + encodeURIComponent(src.s) + "&utm_medium=referral" + h;
+  }
+  window.vpex404Tag = tag;
+  // One anonymous count per visit to the shared counter (functions/ "hit", step "lost"): the address tried (no query, long
+  // digit runs and anything with @ left out), where it came from, and whether it moved ("moved") or wasn't found ("404").
+  function count(moved) {
+    var HIT = "https://us-central1-dovetail-f863c.cloudfunctions.net/hit", on = /(^|\.)vpexdialer\.com$/.test(location.hostname);
+    try { if (!on && /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && localStorage.getItem("vpex_hit_test")) { on = true; HIT = localStorage.getItem("vpex_hit_test"); } } catch (e) {}
+    if (!on) return;
+    var p = location.pathname; try { p = decodeURIComponent(p); } catch (e) {}
+    p = p.toLowerCase().split("/").map(function (x) { return x.indexOf("@") >= 0 ? "email" : x.replace(/\d{5,}/g, "n"); }).join("/").replace(/^\/+|\/+$/g, "").slice(0, 60) || "-";
+    var body = JSON.stringify({ e: "lost", s: src.s || "direct", m: moved ? "moved" : "404", c: p, n: "", i: "", d: /Mobi|iPhone|iPad|Android/i.test(navigator.userAgent || "") ? "m" : "d" });
+    try { if (navigator.sendBeacon && navigator.sendBeacon(HIT, body)) return; } catch (x) {}
+    try { fetch(HIT, { method: "POST", body: body, mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain" } }).catch(function () {}); } catch (x) {}
+  }
   var t = target(location.pathname);
+  count(!!t);
   if (t) {
+    t = tag(t);
     var q = location.search ? location.search.slice(1) : "";
     var url = t.split("#")[0], h = t.indexOf("#") >= 0 ? t.slice(t.indexOf("#")) : location.hash;
     if (q) url += (url.indexOf("?") >= 0 ? "&" : "?") + q;
@@ -127,5 +165,9 @@
 
   <footer><a href="/">vpexdialer.com</a><a href="mailto:support@vpexdialer.com">support@vpexdialer.com</a></footer>
 </main>
+<script>
+  // Links to the app pages keep the outside source this visitor came from (see vpex404Tag above).
+  document.querySelectorAll('a[href^="/"]').forEach(function (a) { a.setAttribute("href", window.vpex404Tag(a.getAttribute("href"))); });
+</script>
 </body>
 </html>

@@ -447,7 +447,8 @@ state = {"posted": {"a": {"status": "posted", "at": t0 - 3600}, "b": {"status": 
          "growth_days": {D(1): {"c": {"bio_view~instagram~bio~-~-~-~m": 120, "bio_tap~instagram~bio~w9~w9-reel~insurance~m": 30, "visit~instagram~bio~w9~w9-reel~-~m": 40,
                                       "demo~instagram~bio~w9~w9-reel~insurance~m": 22, "demo_call~instagram~bio~w9~w9-reel~insurance~m": 9, "trial_view~instagram~bio~w9~w9-reel~-~m": 6,
                                       "signup~instagram~bio~w9~w9-reel~insurance~m": 2, "visit~threads~post~w9~w9-text~-~m": 5, "visit~direct~-~-~-~-~d": 15, "home_screen~direct~-~-~-~-~m": 3,
-                                      "visit~ci-check~-~-~-~-~-": 99}},
+                                      "visit~ci-check~-~-~-~-~-": 99,
+                                      "lost~google~404~calling-hours-guam~-~-~m": 4, "lost~direct~moved~trial~-~-~m": 2, "lost~vpexdialer~404~pricing~-~-~d": 1}},
                          D(9): {"c": {"visit~instagram~bio~w8~w8-x~-~m": 20, "signup~direct~-~-~-~-~d": 1}}},
          "offices_test": {"new-a": {"createdAt": ms(2), "plan": "trial", "days": [D(1)]}, "new-b": {"createdAt": ms(3), "plan": "trial", "days": []},
                           "old-c": {"createdAt": ms(17), "plan": "paid", "days": [D(16), D(8), D(1)]}, "old-d": {"createdAt": ms(16), "plan": "trial", "days": [D(15)]},
@@ -470,6 +471,9 @@ check("New trials this week</td><td class=n>2" in html and "Made a first call</t
 check("Paying offices</td><td class=n>1" in html and "First opened from a Home Screen</td><td class=n>3" in html, "scorecard: paying offices and Home Screen launches")
 check("Make more of: quote, followups." in html and "Hooks to test next: myth, question." in html and "Biggest drop" in html, "scorecard: what to do next")
 check("4,100" not in out.split("NOTIFY:")[0] and "Paying offices" not in out and "New trials" not in out, "scorecard: numbers stay out of the public log")
+check("<td>/calling-hours-guam</td><td>Saw the not-found page</td><td class=n>4" in html and "<td>/trial</td><td>Sent to the right page</td><td class=n>2" in html and "1 of the not-found visits came from a link on vpexdialer.com itself" in html, "scorecard: addresses that don't exist, what happened, broken own links", html[html.find("exist"):html.find("exist") + 500])
+check("calling-hours-guam" not in out and "lost" not in out.split("NOTIFY:")[0].lower().replace("lost~", ""), "scorecard: the not-found addresses stay out of the public log")
+check("60 site visits" in json.dumps(phone), "scorecard: not-found visits are not counted as site visits")
 check("noindex" in html and "stops working in 7 days" in html, "scorecard: private page, not indexed, expires")
 pages = [f for f in os.listdir(os.path.join(MEDIA, "handoff")) if f.startswith("scorecard-")]
 check(pages, "scorecard: page stored for the phone link")

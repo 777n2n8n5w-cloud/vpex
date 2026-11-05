@@ -1082,6 +1082,16 @@ def scorecard(state, note, ig, media):
     if by_src:
         sec.append("<h3>By where they came from</h3><table><tr><th></th><th>Visits</th><th>Demos</th><th>Trial form</th><th>Trials</th></tr>" +
                    "".join("<tr><td>%s</td><td class=n>%d</td><td class=n>%d</td><td class=n>%d</td><td class=n>%d</td></tr>" % (E(s_), a, b, c, d) for s_, a, b, c, d in by_src) + "</table>")
+    lost = {}                                   # 404.html: addresses people tried that don't exist (anonymous counts)
+    for h in cur:
+        if h["e"] == "lost":
+            k = (h["c"] or "-", h["m"] == "moved"); lost[k] = lost.get(k, 0) + h["count"]
+    if lost:
+        own = tot(cur, "lost", s="vpexdialer", m="404")
+        rows = sorted(lost.items(), key=lambda kv: (-kv[1], kv[0]))[:8]
+        sec.append("<h3>Addresses that don't exist</h3><table><tr><th>Tried</th><th>What happened</th><th>Times</th></tr>" +
+                   "".join("<tr><td>/%s</td><td>%s</td><td class=n>%d</td></tr>" % (E(c_), "Sent to the right page" if mv else "Saw the not-found page", n_) for (c_, mv), n_ in rows) + "</table>" +
+                   ("<p class=s>%d of the not-found visits came from a link on vpexdialer.com itself: a broken link to fix.</p>" % own if own else ""))
     if top_site:
         sec.append("<h3>Posts that sent people to the site</h3><table><tr><th></th><th>Taps</th><th>Demos</th><th>Trial form</th><th>Trials</th></tr>" +
                    "".join("<tr><td>%s</td><td class=n>%d</td><td class=n>%d</td><td class=n>%d</td><td class=n>%d</td></tr>" % (E(titles.get(k, k)[:46]), v[0], v[1], v[2], v[3]) for k, v in top_site) + "</table>")
