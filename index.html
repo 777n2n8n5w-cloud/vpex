@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-01-17">
+<meta name="vpex-build" content="2027-01-18">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 /* Signature themes: five themes only the VPEX owner's own login can use (sig/*.css, sig.js).
@@ -6903,22 +6903,63 @@ window.VPEX_SIG = [
   .fu-label { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12.5px; font-weight: 600; color: var(--text-dim); margin: 14px 0 7px; }
   .fu-key { font-weight: 500; font-size: 11.5px; color: var(--text-faint); display: inline-flex; align-items: center; gap: 5px; }
   .fu-key i { width: 6px; height: 6px; border-radius: 50%; background: var(--interested); }
-  .fu-row { display: flex; gap: 7px; overflow-x: auto; scroll-snap-type: x proximity; padding: 2px 2px 6px; margin: 0 -2px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
-  .fu-row::-webkit-scrollbar { display: none; }
-  .fu-stages { flex-wrap: wrap; overflow: visible; gap: 6px; }
-  @media (min-width: 700px) { .fu-days { flex-wrap: wrap; overflow: visible; } }
+  .fu-row { display: flex; flex-wrap: wrap; gap: 7px; }
+  .fu-stages { gap: 6px; }
   .fu-stages .fu-chip { flex: 1 1 auto; padding: 7px 10px; font-size: 13.5px; }
-  .fu-chip { flex: none; scroll-snap-align: start; position: relative; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  .fu-chip { flex: none; position: relative; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
     min-height: 44px; padding: 7px 13px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface-raised); color: var(--text);
     font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
   .fu-chip small { font-size: 10.5px; font-weight: 500; color: var(--text-faint); }
   .fu-chip.on { background: var(--accent-fill, var(--accent)); border-color: var(--accent-fill, var(--accent)); color: var(--accent-text); }
   .fu-chip.on small { color: inherit; opacity: 0.8; }
+  .fu-chip:focus-visible, .fu-part:focus-visible, .fu-cd:focus-visible, .fu-cal-nav:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  @media (hover: hover) { .fu-chip:not(.on):hover, .fu-cd:not(.on):not(:disabled):hover { border-color: var(--accent); } }
+  .fu-quick { margin: 4px 0 2px; }
+  .fu-quick .fu-chip { flex: 1 1 0; min-width: 0; padding: 6px 8px; }
+  .fu-quick .fu-chip b { font-size: 13.5px; }
+  .fu-more { flex-direction: row; gap: 6px; }
+  .fu-more span { font-size: 11px; opacity: 0.8; }
+  /* Later date: a month to page through */
+  .fu-cal { margin-top: 10px; padding: 10px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface-raised); max-width: 340px; }
+  .fu-cal-h { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .fu-cal-h b { font-size: 14px; }
+  .fu-cal-nav { width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 22px; line-height: 1; cursor: pointer; }
+  .fu-cal-nav:disabled { opacity: 0.35; cursor: default; }
+  .fu-cal-g { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .fu-cw { text-align: center; font-size: 11px; font-weight: 600; color: var(--text-faint); padding: 2px 0; }
+  .fu-cal-g > * { min-width: 0; }
+  .fu-cd { aspect-ratio: 1; min-height: 40px; border-radius: 10px; border: 1px solid transparent; background: transparent; color: var(--text); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; font-variant-numeric: tabular-nums; }
+  .fu-cd:disabled { color: var(--text-faint); opacity: 0.45; cursor: default; text-decoration: line-through; }
+  .fu-cd.today { border-color: var(--border); }
+  .fu-cd.on { background: var(--accent-fill, var(--accent)); color: var(--accent-text); }
+  /* Time: morning / afternoon / evening, every slot on screen at once */
+  .fu-parts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; border-radius: 12px; background: var(--surface-raised); border: 1px solid var(--border); margin-bottom: 8px; }
+  .fu-part { min-height: 40px; border: 0; border-radius: 9px; background: transparent; color: var(--text-dim); font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; }
+  .fu-part.on { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.18); }
+  .fu-part:disabled { opacity: 0.45; cursor: default; }
+  .fu-times { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 6px; }
+  .fu-times .fu-chip { padding: 6px 4px; }
   .fu-t.best::after { content: ""; position: absolute; top: 5px; right: 5px; width: 6px; height: 6px; border-radius: 50%; background: var(--interested); }
   .fu-t.on.best::after { background: var(--accent-text); }
-  .fu-pick { color: var(--text-dim); font-weight: 600; overflow: hidden; }
-  .fu-pick input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; border: 0; padding: 0; }
-  .fu-empty { font-size: 13px; color: var(--text-dim); padding: 12px 4px; white-space: nowrap; }
+  .fu-exact { display: flex; align-items: center; justify-content: flex-start; gap: 12px; margin-top: 8px; font-size: 13px; color: var(--text-dim); font-weight: 600; }
+  .modal .fu-exact input { width: auto; min-width: 140px; min-height: 44px; font-size: 16px; padding: 8px 10px; }
+  .fu-empty { font-size: 13px; color: var(--text-dim); padding: 6px 2px; margin: 0; }
+  /* Computer: day on the left, time and details on the right, everything on screen without scrolling */
+  @media (min-width: 900px) {
+    #fuSheet .fu-modal { max-width: 900px; width: calc(100vw - 64px); }
+    .fu-cols { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 32px; align-items: start; }
+    .fu-cols .fu-col:first-child .fu-cal { max-width: none; }
+    .fu-cols .fu-col > :first-child { margin-top: 2px; }
+    .fu-cols .fu-col:last-child > .fu-label:first-child { margin-top: 2px; }
+    .fu-modal .fu-label { margin: 10px 0 6px; }
+    .fu-modal .fu-sum { margin-top: 8px; padding: 8px 12px; }
+    .fu-modal .fu-note { margin-top: 10px; }
+    .fu-modal .modal-sub { margin-bottom: 8px; }
+    .fu-modal .fu-chip { min-height: 40px; padding-top: 5px; padding-bottom: 5px; }
+    .fu-modal .fu-part { min-height: 36px; }
+    .fu-modal .fu-exact { margin-top: 10px; }
+    .modal .fu-modal .fu-exact input, .fu-modal .fu-exact input { min-height: 40px; padding: 6px 10px; }
+  }
   .fu-sum { margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: var(--surface-raised); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--text-dim); }
   .fu-sum b { color: var(--text); font-size: 15px; }
   .fu-sum.bad { border-color: var(--notinterested); }
@@ -7020,12 +7061,36 @@ window.VPEX_SIG = [
     background: none; color: var(--voicemail); font-family: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer;
   }
   .tasks-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 16px; }
+  .fu-banner.fu-wait { cursor: default; border-color: var(--voicemail); }
+  .fu-banner.fu-wait .fu-ico { background: var(--voicemail); }
+  .tk-backlog { display: flex; align-items: center; gap: 12px; margin: 10px 0 0; padding: 12px 14px; border-radius: var(--radius-s); border: 1px dashed var(--voicemail); background: var(--surface); }
+  .tk-backlog > div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
+  .tk-backlog span { font-size: 12px; color: var(--text-dim); }
+  .tk-backlog .btn-secondary { flex: none; min-height: 44px; padding: 0 14px; }
+  .tk-kinds { margin: 12px 0 4px; }
+  .tk-sub { font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--text-faint); margin-left: 4px; }
+  .task-section-head.tk-up { color: var(--text-dim); margin-top: 22px; }
+  .task-section-head.tk-day { margin-top: 10px; }
+  .tk-more { display: block; width: 100%; min-height: 44px; margin: 0 0 10px; border-radius: var(--radius-s); border: 1px dashed var(--border); background: none; color: var(--accent); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .tk-none { color: var(--text-dim); font-size: 13px; padding: 18px 2px; }
+  .task-due .tk-ok { color: var(--interested); font-weight: 600; }
+  .task-due .tk-wait { color: var(--voicemail); font-weight: 600; }
+  .task-item.missed { border-color: var(--notinterested); }
+  .tk-call-t { display: none; }
+  @media (max-width: 480px) { .tk-call-t { display: inline; } }
+  @media (max-width: 480px) {
+    .task-item { flex-wrap: wrap; }
+    .task-actions { width: 100%; padding-left: 40px; gap: 8px; }
+    .task-actions .task-call { flex: 1; width: auto; height: 44px; gap: 6px; font-weight: 700; font-size: 14px; }
+    .task-actions button { width: 44px; height: 44px; }
+    .tk-backlog { flex-wrap: wrap; } .tk-backlog .btn-secondary { width: 100%; }
+  }
   .tasks-head > div { min-width: 0; }
   .tasks-head > button { flex: none !important; width: auto; }
   :root[data-theme]:not([data-theme^="flow"]) .tasks-title { font-size: calc(17px * var(--brand-k, 1)); }
   .tasks-title { font-size: 17px; font-weight: 700; }
   .tasks-sub { font-size: 12px; color: var(--text-faint); margin-top: 2px; }
-  .task-item.overdue { border-color: var(--notinterested); }
+  .task-item.missed { border-color: var(--notinterested); }
   .task-item.overdue .task-due { color: var(--notinterested); }
   .done-toggle { background: none; border: 0; font-family: inherit; cursor: pointer; padding-left: 0; }
   .view-tab[data-badge]:not([data-badge=""])::after {
@@ -10950,8 +11015,15 @@ window.VPEX_SIG = [
     var h = new Date(ts).getHours();
     return h >= 8 && h < 21;
   }
-  // Half-hour slots on one of the rep's days that are ahead of now and inside the lead's calling hours.
+  // Half-hour slots on one of the rep's days that are ahead of now and inside the lead's calling hours (cached while the sheet is open).
   function fuSlots(lead, ymd) {
+    var ck = FU && FU.leadId === lead.id ? (FU.cache || (FU.cache = {})) : null;
+    if (ck && ck[ymd]) return ck[ymd];
+    var r = fuSlotsRaw(lead, ymd);
+    if (ck) ck[ymd] = r;
+    return r;
+  }
+  function fuSlotsRaw(lead, ymd) {
     var p = ymd.split("-"), out = [], now = Date.now() + 10 * 60000, iana = leadZone(lead).iana;
     for (var k = 12; k < 48; k++) {
       var ts = new Date(+p[0], +p[1] - 1, +p[2], Math.floor(k / 2), k % 2 ? 30 : 0).getTime();
@@ -10970,6 +11042,27 @@ window.VPEX_SIG = [
     }
     return out;
   }
+  var FU_PARTS = [["am", "Morning"], ["pm", "Afternoon"], ["eve", "Evening"]];
+  function fuPart(ts) { var h = new Date(ts).getHours(); return h < 12 ? "am" : h < 17 ? "pm" : "eve"; }
+  function fuYmd(y, m, d) { return y + "-" + pad2(m + 1) + "-" + pad2(d); }
+  // A month you can page through; days with no calling hours left (past, Sunday bans, holidays) can't be picked.
+  function fuCalHtml(lead) {
+    var base = new Date(); base.setDate(1); base.setMonth(base.getMonth() + (FU.calOff || 0));
+    var y = base.getFullYear(), m = base.getMonth(), today = localDateStr(new Date());
+    var lead0 = (new Date(y, m, 1).getDay() + 6) % 7, n = new Date(y, m + 1, 0).getDate(), cells = "";
+    for (var i = 0; i < lead0; i++) cells += '<span></span>';
+    for (var d = 1; d <= n; d++) {
+      var ymd = fuYmd(y, m, d), open = ymd >= today && fuSlots(lead, ymd).length > 0;
+      cells += '<button type="button" class="fu-cd' + (ymd === FU.day ? ' on' : '') + (ymd === today ? ' today' : '') + '"' + (open ? ' data-fu-day="' + ymd + '"' : ' disabled') +
+        ' aria-label="' + escapeHtml(new Date(y, m, d).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })) + (open ? '' : ', no calling hours') + '"' + (ymd === FU.day ? ' aria-pressed="true"' : '') + '>' + d + '</button>';
+    }
+    var wk = ["M", "T", "W", "T", "F", "S", "S"].map(function (w) { return '<span class="fu-cw">' + w + '</span>'; }).join("");
+    return '<div class="fu-cal" id="fuCal"><div class="fu-cal-h">' +
+      '<button type="button" class="fu-cal-nav" data-fu-cal="-1" aria-label="Previous month"' + ((FU.calOff || 0) <= 0 ? ' disabled' : '') + '>&lsaquo;</button>' +
+      '<b>' + escapeHtml(base.toLocaleDateString(undefined, { month: "long", year: "numeric" })) + '</b>' +
+      '<button type="button" class="fu-cal-nav" data-fu-cal="1" aria-label="Next month"' + ((FU.calOff || 0) >= 5 ? ' disabled' : '') + '>&rsaquo;</button></div>' +
+      '<div class="fu-cal-g">' + wk + cells + '</div></div>';
+  }
   function fuDayLabel(ymd) {
     var p = ymd.split("-"), d = new Date(+p[0], +p[1] - 1, +p[2]), l = dayLabel(d);
     return l === "Today" || l === "Tomorrow" ? l : d.toLocaleDateString(undefined, { weekday: "short" }) + " " + d.getDate();
@@ -10979,8 +11072,9 @@ window.VPEX_SIG = [
     var lead = findLeadById(o.leadId); if (!lead) return;
     var t = o.taskId ? state.tasks.filter(function (x) { return x.id === o.taskId; })[0] : null;
     var sug = t && t.dueAt && t.dueAt > Date.now() ? t.dueAt : slotAt(lead, 1, 10);
+    var mv = o.kind === "move";
     FU = { leadId: lead.id, taskId: t ? t.id : null, kind: o.kind || "interested", sug: sug, at: sug, day: localDateStr(new Date(sug)),
-      stage: lead.stage && lead.stage !== "New Lead" ? lead.stage : "Qualified", note: "", text: o.text || null, custom: false };
+      stage: lead.stage && lead.stage !== "New Lead" ? lead.stage : "Qualified", note: mv && t && t.note && (t.pinned || !t.auto) && !/^They picked this time/.test(t.note) ? t.note : "", text: o.text || null, custom: false };
     renderFollowSheet();
     document.getElementById("fuSheet").classList.add("show");
     setTimeout(function () {
@@ -10996,45 +11090,65 @@ window.VPEX_SIG = [
   function renderFollowSheet(reveal) {
     var box = document.getElementById("fuBody"), lead = FU && findLeadById(FU.leadId);
     if (!box || !lead) return;
-    var keep = {}; ["fu-days", "fu-times"].forEach(function (k) { var el = box.querySelector("." + k); if (el) keep[k] = el.scrollLeft; });
-    var first = escapeHtml(textFirstName(lead.name)), cb = FU.kind === "callback";
+    var first = escapeHtml(textFirstName(lead.name)), cb = FU.kind === "callback", mv = FU.kind === "move";
     var days = fuDays(lead);
-    if (days.indexOf(FU.day) === -1 && !FU.custom) days = days.concat([FU.day]).sort();
+    var moreOn = days.indexOf(FU.day) === -1;   // picked from the calendar
     var slots = fuSlots(lead, FU.day), clk = leadZone(lead).iana ? leadClock(lead) : null;
     var tt = theirTime(FU.at, lead), chk = slotCheck(lead, FU.at), bad = chk ? !chk.ok : !fuSlotOk(lead, FU.at);
     var past = FU.at < Date.now();
     var dateLong = new Date(FU.at).toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" });
+    // "Call me back in an hour": one tap, rounded to the next 5 minutes, only when it's inside their calling hours.
+    var quick = [[60, "In 1 hour"], [120, "In 2 hours"], [180, "In 3 hours"], [7 * 1440, "In a week"]].map(function (q) {
+      var ts = Math.ceil((Date.now() + q[0] * 60000) / 300000) * 300000;
+      if (q[0] === 7 * 1440) { var s = new Date(FU.sug); ts = new Date(s.getFullYear(), s.getMonth(), s.getDate() + 7, s.getHours(), s.getMinutes()).getTime(); }
+      return { ts: ts, label: q[1] };
+    }).filter(function (q) { return fuSlotOk(lead, q.ts); });
+    var byPart = { am: [], pm: [], eve: [] };
+    slots.forEach(function (s) { byPart[fuPart(s.ts)].push(s); });
+    var part = FU.part && byPart[FU.part].length ? FU.part : byPart[fuPart(FU.at)].length ? fuPart(FU.at) : (byPart.pm.length ? "pm" : byPart.am.length ? "am" : "eve");
+    FU.part = part;
     box.innerHTML =
       '<button class="close-x" type="button" id="fuX" aria-label="Keep the suggested time">&times;</button>' +
-      '<div class="fu-tag fu-' + (cb ? 'cb' : 'int') + '">' + (cb ? 'Callback later' : 'Interested') + ' · logged</div>' +
-      '<h3 id="fuTitle">' + (cb ? 'When should you call ' + first + ' back?' : 'When’s the follow-up with ' + first + '?') + '</h3>' +
-      '<p class="modal-sub">' + (clk && clk.t ? 'It’s ' + escapeHtml(clk.t.label || "") + ' for ' + first + ' right now (' + escapeHtml(clk.st) + '). ' : '') + 'Times are yours; every one offered is inside their calling hours.</p>' +
+      (mv ? '' : '<div class="fu-tag fu-' + (cb ? 'cb' : 'int') + '">' + (cb ? 'Callback later' : 'Interested') + ' \u00b7 logged</div>') +
+      '<h3 id="fuTitle">' + (mv ? 'Move the follow-up with ' + first : cb ? 'When should you call ' + first + ' back?' : 'When\u2019s the follow-up with ' + first + '?') + '</h3>' +
+      '<p class="modal-sub">' + (clk && clk.t ? 'It\u2019s ' + escapeHtml(clk.t.label || "") + ' for ' + first + ' right now (' + escapeHtml(clk.st) + '). ' : '') + 'Times are yours; every one offered is inside their calling hours.</p>' +
+      '<div class="fu-cols"><div class="fu-col">' +
+      (quick.length ? '<div class="fu-row fu-quick" role="group" aria-label="Quick picks">' + quick.map(function (q) {
+        return '<button type="button" class="fu-chip fu-q' + (q.ts === FU.at ? ' on' : '') + '" data-fu-at="' + q.ts + '" data-fu-q="1" aria-pressed="' + (q.ts === FU.at) + '"><b>' + q.label + '</b><small>' + escapeHtml(fuTime(q.ts)) + '</small></button>';
+      }).join("") + '</div>' : '') +
       '<div class="fu-label">Day</div>' +
       '<div class="fu-row fu-days" role="group" aria-label="Day">' + days.map(function (d) {
         return '<button type="button" class="fu-chip' + (d === FU.day ? ' on' : '') + '" data-fu-day="' + d + '" aria-pressed="' + (d === FU.day) + '">' + escapeHtml(fuDayLabel(d)) + '</button>';
       }).join("") +
-        '<label class="fu-chip fu-pick"><span>Other day</span><input type="date" id="fuDate" min="' + localDateStr(new Date()) + '" value="' + FU.day + '" aria-label="Pick another day"></label></div>' +
+        '<button type="button" class="fu-chip fu-more' + (moreOn ? ' on' : '') + '" id="fuMore" aria-expanded="' + !!FU.cal + '" aria-controls="fuCal">' +
+          (moreOn ? escapeHtml(new Date(FU.at).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })) : 'Later date') + ' <span aria-hidden="true">' + (FU.cal ? '\u25b4' : '\u25be') + '</span></button></div>' +
+      (FU.cal ? fuCalHtml(lead) : '') +
+      '</div><div class="fu-col">' +
       '<div class="fu-label">Time <span class="fu-key"><i></i> best time to reach ' + first + '</span></div>' +
-      '<div class="fu-row fu-times" role="group" aria-label="Time">' + (slots.length ? slots.map(function (s) {
+      (slots.length ? '<div class="fu-parts" role="tablist" aria-label="Part of the day">' + FU_PARTS.map(function (x) {
+        var n = byPart[x[0]].length;
+        return '<button type="button" role="tab" class="fu-part' + (x[0] === part ? ' on' : '') + '" data-fu-part="' + x[0] + '" aria-selected="' + (x[0] === part) + '"' + (n ? '' : ' disabled') + '>' + x[1] + (n ? '' : ' \u00b7 none') + '</button>';
+      }).join("") + '</div>' +
+      '<div class="fu-times" role="group" aria-label="' + escapeHtml(FU_PARTS.filter(function (x) { return x[0] === part; })[0][1]) + ' times">' + byPart[part].map(function (s) {
         var their = fuTheir(s.ts, lead);
-        return '<button type="button" class="fu-chip fu-t' + (s.ts === FU.at ? ' on' : '') + (s.best ? ' best' : '') + '" data-fu-at="' + s.ts + '" aria-pressed="' + (s.ts === FU.at) + '">' +
+        return '<button type="button" class="fu-chip fu-t' + (s.ts === FU.at ? ' on' : '') + (s.best ? ' best' : '') + '" data-fu-at="' + s.ts + '" aria-pressed="' + (s.ts === FU.at) + '"' + (s.best ? ' title="Best time to reach ' + first + '"' : '') + '>' +
           '<b>' + escapeHtml(fuTime(s.ts)) + '</b>' + (their ? '<small>' + escapeHtml(their) + '</small>' : '') + '</button>';
-      }).join("") : '<span class="fu-empty">No calling hours left that day. Pick another day.</span>') +
-        '<label class="fu-chip fu-pick"><span>Exact time</span><input type="time" id="fuTimeIn" step="300" value="' + pad2(new Date(FU.at).getHours()) + ':' + pad2(new Date(FU.at).getMinutes()) + '" aria-label="Exact time"></label></div>' +
+      }).join("") + '</div>' : '<p class="fu-empty">No calling hours left that day. Pick another day.</p>') +
+      '<label class="fu-exact"><span>Or type a time</span><input type="time" id="fuTimeIn" step="300" value="' + pad2(new Date(FU.at).getHours()) + ':' + pad2(new Date(FU.at).getMinutes()) + '"></label>' +
       '<div class="fu-sum' + (bad || past ? ' bad' : '') + '" aria-live="polite"><b>' + escapeHtml(dateLong) + ' at ' + escapeHtml(fuTime(FU.at)) + '</b>' +
         (tt ? '<span>' + escapeHtml(tt) + ' for ' + first + '</span>' : '') +
         (past ? '<span>That time has passed. Pick a later one.</span>' : bad ? '<span>Outside their calling hours (' + escapeHtml(chk && chk.why || "8 AM–9 PM") + ').' +
           (chk && chk.fix ? ' <button type="button" class="link-btn" id="fuFix" data-at="' + chk.fix + '">Move to ' + escapeHtml(fmtWhen(chk.fix)) + '</button>' : '') + '</span>' : '') + '</div>' +
-      (cb ? '' : '<div class="fu-label">Where are they?</div><div class="fu-row fu-stages" role="group" aria-label="Deal stage">' + FU_STAGES.map(function (s) {
+      (cb || mv ? '' : '<div class="fu-label">Where are they?</div><div class="fu-row fu-stages" role="group" aria-label="Deal stage">' + FU_STAGES.map(function (s) {
         return '<button type="button" class="fu-chip' + (s === FU.stage ? ' on' : '') + '" data-fu-stage="' + s + '" aria-pressed="' + (s === FU.stage) + '">' + s + '</button>';
       }).join("") + '</div>') +
       '<input type="text" id="fuNote" class="fu-note" maxlength="200" autocomplete="off" placeholder="What to open with next time (optional)" value="' + escapeHtml(FU.note) + '" aria-label="Note for the next call">' +
-      '<div class="modal-actions fu-acts"><button type="button" class="btn-secondary" id="fuKeep" aria-label="Skip, keep ' + escapeHtml(fmtWhen(FU.sug)) + '">Skip</button>' +
-        '<button type="button" class="btn-primary" id="fuBook"' + (past ? ' disabled' : '') + '>Book ' + escapeHtml(fuDayLabel(localDateStr(new Date(FU.at)))) + ' ' + escapeHtml(fuTime(FU.at)) + '</button></div>';
-    Object.keys(keep).forEach(function (k) { var el = box.querySelector("." + k); if (el) el.scrollLeft = keep[k]; });
-    var on = box.querySelector(".fu-times .on"), row = box.querySelector(".fu-times");   // the chosen time always in view
-    if (on && row) { var r = on.getBoundingClientRect(), rr = row.getBoundingClientRect(); if (reveal || r.left < rr.left || r.right > rr.right) row.scrollLeft += (r.left + r.width / 2) - (rr.left + rr.width / 2); }
+      '</div></div>' +
+      '<div class="modal-actions fu-acts"><button type="button" class="btn-secondary" id="fuKeep" aria-label="' + (mv ? 'Cancel, keep ' : 'Skip, keep ') + escapeHtml(fmtWhen(FU.sug)) + '">' + (mv ? 'Cancel' : 'Skip') + '</button>' +
+        '<button type="button" class="btn-primary" id="fuBook"' + (past || bad ? ' disabled' : '') + '>' + (mv ? 'Move to ' : 'Book ') + escapeHtml(fuDayLabel(localDateStr(new Date(FU.at)))) + ' ' + escapeHtml(fuTime(FU.at)) + '</button></div>';
+    if (reveal && FU.cal) { var c = document.getElementById("fuCal"); if (c && c.scrollIntoView) c.scrollIntoView({ block: "nearest" }); }
   }
+  function focusFu(sel) { var el = document.querySelector("#fuBody " + sel.split(", ").join(", #fuBody ")); if (el && el.focus) el.focus({ preventScroll: true }); }
   function closeFollowSheet() {
     var m = document.getElementById("fuSheet"); if (m) m.classList.remove("show");
     var f = FU; FU = null;
@@ -11055,6 +11169,13 @@ window.VPEX_SIG = [
       lead.stalled = null; lead.stallWhy = null; lead.touches = Math.min(lead.touches || 0, 1); lead.touchAt = Date.now();
       t = addAutoTask(lead, FU.kind === "callback" ? "Call" : "Follow-up", "High", FU.at, "");
     }
+    if (FU.kind === "move") {   // a rep moving a follow-up: the time changes; whether the lead picked it doesn't
+      t.dueAt = FU.at; t.due = localDateStr(new Date(FU.at));
+      if (FU.note.trim()) t.note = FU.note.trim();
+      var tm = theirTime(FU.at, lead);
+      showToast("Moved to " + fmtWhen(FU.at) + (tm ? " \u00b7 " + tm + " for " + firstName(lead.name) : ""));
+      closeFollowSheet(); return;
+    }
     t.dueAt = FU.at; t.due = localDateStr(new Date(FU.at)); t.pinned = true;
     if (FU.note.trim()) t.note = FU.note.trim();
     else if (FU.kind === "callback") t.note = "They picked this time";
@@ -11070,19 +11191,29 @@ window.VPEX_SIG = [
     if (e.target === m) { closeFollowSheet(); return; }
     var lead = findLeadById(FU.leadId); if (!lead) return;
     var d = e.target.closest("[data-fu-day]"), a = e.target.closest("[data-fu-at]"), s = e.target.closest("[data-fu-stage]"), fx = e.target.closest("#fuFix");
+    var pt = e.target.closest("[data-fu-part]"), mo = e.target.closest("#fuMore"), cn = e.target.closest("[data-fu-cal]");
+    if (pt) { FU.part = pt.getAttribute("data-fu-part"); renderFollowSheet(); focusFu('[data-fu-part="' + FU.part + '"]'); return; }
+    if (mo) { FU.cal = !FU.cal; renderFollowSheet(true); focusFu(FU.cal ? "#fuCal .fu-cd.on, #fuCal [data-fu-day]" : "#fuMore"); return; }
+    if (cn) { FU.calOff = Math.max(0, Math.min(5, (FU.calOff || 0) + +cn.getAttribute("data-fu-cal"))); renderFollowSheet(); focusFu('[data-fu-cal="' + cn.getAttribute("data-fu-cal") + '"]'); return; }
     if (d) {   // same time of day on the new day when it's open, else the first good slot (their best hour if there is one)
-      FU.day = d.getAttribute("data-fu-day"); FU.custom = false;
+      var fromCal = !!d.closest("#fuCal");
+      FU.day = d.getAttribute("data-fu-day"); FU.custom = false; FU.part = null;
+      if (fromCal) FU.cal = false;
       var sl = fuSlots(lead, FU.day), cur = new Date(FU.at), p = FU.day.split("-");
       var same = new Date(+p[0], +p[1] - 1, +p[2], cur.getHours(), cur.getMinutes()).getTime();
       FU.at = sl.some(function (x) { return x.ts === same; }) ? same : sl.length ? (sl.filter(function (x) { return x.best; })[0] || sl[0]).ts : same;
-      renderFollowSheet(true); return;
+      renderFollowSheet(); focusFu(fromCal ? "#fuMore" : '[data-fu-day="' + FU.day + '"]'); return;
     }
-    if (a) { FU.at = +a.getAttribute("data-fu-at"); renderFollowSheet(); return; }
-    if (s) { FU.stage = s.getAttribute("data-fu-stage"); renderFollowSheet(); return; }
-    if (fx) { FU.at = +fx.getAttribute("data-at"); FU.day = localDateStr(new Date(FU.at)); renderFollowSheet(true); return; }
+    if (a) {
+      FU.at = +a.getAttribute("data-fu-at");
+      if (a.hasAttribute("data-fu-q")) { FU.day = localDateStr(new Date(FU.at)); FU.part = null; }
+      renderFollowSheet(); focusFu((a.hasAttribute("data-fu-q") ? '[data-fu-q]' : '') + '[data-fu-at="' + FU.at + '"]'); return;
+    }
+    if (s) { FU.stage = s.getAttribute("data-fu-stage"); renderFollowSheet(); focusFu('[data-fu-stage="' + FU.stage + '"]'); return; }
+    if (fx) { FU.at = +fx.getAttribute("data-at"); FU.day = localDateStr(new Date(FU.at)); FU.part = null; renderFollowSheet(); focusFu("#fuBook"); return; }
     if (e.target.closest("#fuBook")) { bookFollowSheet(); return; }
     if (e.target.closest("#fuKeep") || e.target.closest("#fuX")) {
-      if (FU.taskId) { var kt = state.tasks.filter(function (x) { return x.id === FU.taskId; })[0]; if (kt && FU.note.trim()) kt.note = FU.note.trim(); }
+      if (FU.taskId && FU.kind !== "move") { var kt = state.tasks.filter(function (x) { return x.id === FU.taskId; })[0]; if (kt && FU.note.trim()) kt.note = FU.note.trim(); }
       closeFollowSheet();
     }
   });
@@ -11093,17 +11224,10 @@ window.VPEX_SIG = [
   document.addEventListener("change", function (e) {
     if (!FU) return;
     var p, q;
-    if (e.target.id === "fuDate" && e.target.value) {
-      p = e.target.value.split("-"); var cur = new Date(FU.at);
-      FU.day = e.target.value; FU.custom = true;
-      FU.at = new Date(+p[0], +p[1] - 1, +p[2], cur.getHours(), cur.getMinutes()).getTime();
-      var sl = fuSlots(findLeadById(FU.leadId), FU.day);
-      if (sl.length && !sl.some(function (x) { return x.ts === FU.at; })) FU.at = (sl.filter(function (x) { return x.best; })[0] || sl[0]).ts;
-      renderFollowSheet(true);
-    } else if (e.target.id === "fuTimeIn" && e.target.value) {
+    if (e.target.id === "fuTimeIn" && e.target.value) {
       p = FU.day.split("-"); q = e.target.value.split(":");
-      FU.at = new Date(+p[0], +p[1] - 1, +p[2], +q[0], +q[1]).getTime();
-      renderFollowSheet(true);
+      FU.at = new Date(+p[0], +p[1] - 1, +p[2], +q[0], +q[1]).getTime(); FU.part = null;
+      renderFollowSheet(); focusFu("#fuTimeIn");
     }
   });
   document.addEventListener("keydown", function (e) {
@@ -13863,37 +13987,120 @@ window.VPEX_SIG = [
   }
 
   /** ---------- Tasks ---------- **/
+  // ---- Follow-ups (Tasks tab): what to call now, what's waiting on calling hours, what's coming, and a backlog you can clear ----
+  // Times the lead picked come first (a missed one is flagged), then due follow-ups you can call right now, then due
+  // ones whose calling hours haven't opened (with when they open), then later today and the next days. Kinds filter
+  // the list (booked, interested, callbacks, retries). Long sections show 25 at a time so 700 follow-ups stay fast.
+  var TK = { kind: "all", more: {} };
+  function taskKind(t, lead) {
+    if (t.pinned) return "booked";
+    if (lead && saidYes(lead)) return "int";
+    if (lead && lead.outcome === "callback" || t.type === "Call" && !t.auto) return "cb";
+    if (t.auto) return "retry";
+    return "other";
+  }
+  var TK_KINDS = [["all", "All"], ["booked", "Booked"], ["int", "Interested"], ["cb", "Callbacks"], ["retry", "Retries"]];
+  function taskOpensTxt(lead) {   // "opens 9 AM CT" / "opens tomorrow 9 AM CT" for a lead outside calling hours
+    var c = slotCheck(lead, Date.now());
+    if (!c || c.ok || !c.fix) return "";
+    var d = new Date(c.fix), th = d.toLocaleTimeString("en-US", { timeZone: c.iana, hour: "numeric", minute: "2-digit" }).replace(":00", "");
+    var tday = new Date().toDateString() === d.toDateString() ? "" : dayLabel(d).replace("Tomorrow", "tomorrow") + " ";
+    return "opens " + tday + th + " " + c.st;
+  }
+  function tasksBacklog(open, now) {   // automatic no-answer retries 2+ days late: spread them out instead of facing a wall (warm leads stay put)
+    var m = leadMap();
+    return open.filter(function (t) { return t.auto && !t.pinned && t.leadId && taskDueTs(t) < now - 2 * 86400000 && taskKind(t, m[t.leadId]) === "retry"; });
+  }
+  function spreadBacklog() {
+    var now = Date.now(), m = leadMap();
+    var list = tasksBacklog(state.tasks.filter(function (t) { return !t.done && taskScope(t) && myTask(t); }), now);
+    if (!list.length) return;
+    list.sort(function (a, b) {
+      var la = m[a.leadId], lb = m[b.leadId];
+      return (stageRank(lb && lb.stage) - stageRank(la && la.stage)) || (taskDueTs(a) - taskDueTs(b));
+    });
+    var days = 5, per = Math.ceil(list.length / days), undo = list.map(function (t) { return [t.id, t.dueAt, t.due]; });
+    list.forEach(function (t, i) {
+      var l = m[t.leadId]; if (!l) return;
+      var ts = slotAt(l, 1 + Math.floor(i / per), 9 + (i % 9));
+      t.dueAt = ts; t.due = localDateStr(new Date(ts));
+    });
+    saveState(); render();
+    showToast("Spread " + list.length + " late retries over the next " + days + " business days · about " + per + " a day",
+      { action: { label: "Undo", fn: function () {
+        var byId = {}; state.tasks.forEach(function (t) { byId[t.id] = t; });
+        undo.forEach(function (u) { var t = byId[u[0]]; if (t && !t.done) { t.dueAt = u[1]; t.due = u[2]; } });
+        saveState(); render(); showToast("Put back");
+      } } });
+  }
   function renderTasksTab() {
     var main = document.getElementById("mainArea");
-    var now = Date.now(), today = localDateStr(new Date());
+    var now = Date.now(), today = localDateStr(new Date()), m = leadMap();
     var open = state.tasks.filter(function (t) { return !t.done && taskScope(t); }).sort(function (a, b) { return taskDueTs(a) - taskDueTs(b); });
-    var dueNow = open.filter(function (t) { return taskDueTs(t) <= now; });
+    var kinds = { all: open.length, booked: 0, int: 0, cb: 0, retry: 0, other: 0 };
+    var info = {};
+    open.forEach(function (t) {
+      var l = t.leadId ? m[t.leadId] : null, k = taskKind(t, l), due = taskDueTs(t) <= now;
+      var ok = !l || !leadZone(l).iana || leadClock(l).ok;
+      info[t.id] = { lead: l, kind: k, due: due, ok: ok };
+      kinds[k]++;
+    });
+    if (TK.kind !== "all" && !kinds[TK.kind]) TK.kind = "all";
+    var shown = open.filter(function (t) { return TK.kind === "all" || info[t.id].kind === TK.kind; });
+    var dueAll = open.filter(function (t) { return info[t.id].due; });
+    var callNow = dueAll.filter(function (t) { return info[t.id].ok && t.leadId; }).length;
+    var backlog = tasksBacklog(open.filter(function (t) { return myTask(t); }), now);
     var header = '<div class="tasks-head"><div><div class="tasks-title">Follow-ups</div>' +
-      '<div class="tasks-sub">' + open.length + ' open \u00b7 ' + dueNow.length + ' due now</div></div>' +
-      '<button class="btn-primary" id="addTaskBtn" style="flex:none;padding:9px 16px;border-radius:8px;font-size:13px;">+ Add</button></div>' +
-      (dueNow.filter(function (t) { return t.leadId; }).length ? '<button class="fu-banner" id="startFollowupsBtn"><span class="fu-ico">' + callIconSvg() + '</span>' +
-        '<span class="fu-txt"><b>Start calling \u2014 ' + dueNow.length + ' due</b><span>Walks you through each one in order</span></span><span class="fu-go">Go \u2192</span></button>' : '');
+      '<div class="tasks-sub">' + open.length + ' open · ' + dueAll.length + ' due now' + (dueAll.length && callNow < dueAll.length ? ' · ' + callNow + ' callable now' : '') + '</div></div>' +
+      '<button class="btn-primary" id="addTaskBtn" style="flex:none;padding:9px 16px;border-radius:8px;font-size:13px;">+ Add</button></div>';
+    var waitOpen = dueAll.filter(function (t) { return !info[t.id].ok && info[t.id].lead; });
+    var firstOpen = waitOpen.length ? taskOpensTxt(info[waitOpen[0].id].lead) : "";
+    var banner = callNow ? '<button class="fu-banner" id="startFollowupsBtn"><span class="fu-ico">' + callIconSvg() + '</span>' +
+        '<span class="fu-txt"><b>Call ' + callNow + ' due now</b><span>Times they picked first, then closest to closing' + (waitOpen.length ? ' · ' + waitOpen.length + ' more wait on calling hours' : '') + '</span></span><span class="fu-go">Start →</span></button>'
+      : dueAll.length ? '<div class="fu-banner fu-wait" role="status"><span class="fu-ico">' + clockIconSvgSafe() + '</span><span class="fu-txt"><b>' + dueAll.length + ' due, none callable right now</b><span>Their calling hours are closed' + (firstOpen ? '; the first ' + escapeHtml(firstOpen) : '') + '.</span></span></div>' : '';
     if (!state.tasks.length) {
-      main.innerHTML = header + '<div class="empty" style="padding:40px 8px"><div class="glyph">\u2705</div><h2>No follow-ups yet</h2>' +
+      main.innerHTML = header + '<div class="empty" style="padding:40px 8px"><div class="glyph">✅</div><h2>No follow-ups yet</h2>' +
         '<p>Log calls from the Dial tab and follow-ups are scheduled for you automatically: retries for voicemails and no-answers, next steps for interested leads.</p></div>';
       document.getElementById("addTaskBtn").addEventListener("click", function () { openTaskModal(null); });
       return;
     }
-    var sections = [
-      { title: "Due now", cls: "notinterested", items: dueNow },
-      { title: "Later today", cls: "voicemail", items: open.filter(function (t) { return taskDueTs(t) > now && t.due === today; }) },
-      { title: "Upcoming", cls: "callback", items: open.filter(function (t) { return taskDueTs(t) > now && t.due && t.due > today; }) },
-      { title: "No date", cls: "noanswer", items: open.filter(function (t) { return !t.due && !t.dueAt; }) }
-    ];
-    var doneList = state.tasks.filter(function (t) { return t.done && taskScope(t); }).sort(function (a, b) { return (b.doneAt || 0) - (a.doneAt || 0); });
-    var html = header + (TEAM.on && canSeeTeam() ? '<div class="filter-row tscope"><button class="filter-chip' + (TEAM.taskScope === "mine" ? " active" : "") + '" data-tscope="mine">Mine</button><button class="filter-chip' + (TEAM.taskScope === "all" ? " active" : "") + '" data-tscope="all">Everyone\u2019s</button></div>' : '');
-    sections.forEach(function (sec) {
-      if (!sec.items.length) return;
-      html += '<div class="task-section-head" style="color:var(--' + sec.cls + ')">' + sec.title + ' (' + sec.items.length + ')</div>';
-      sec.items.forEach(function (t) { html += taskRowHtml(t, now); });
+    var bl = backlog.length >= 10 ? '<div class="tk-backlog"><div><b>' + backlog.length + ' automatic retries are 2+ days late.</b><span>Spread them over the next 5 business days, about ' + Math.ceil(backlog.length / 5) + ' a day. Booked times and interested leads stay where they are.</span></div>' +
+      '<button type="button" class="btn-secondary" id="tkSpread">Spread them out</button></div>' : '';
+    var chips = '<div class="filter-row tk-kinds" role="group" aria-label="Show">' + TK_KINDS.filter(function (k) { return k[0] === "all" || kinds[k[0]]; }).map(function (k) {
+      return '<button type="button" class="filter-chip' + (TK.kind === k[0] ? ' active' : '') + '" data-tk-kind="' + k[0] + '" aria-pressed="' + (TK.kind === k[0]) + '">' + k[1] + ' <span class="chip-n">' + kinds[k[0]] + '</span></button>';
+    }).join("") + '</div>';
+    // sections
+    var dayKey = function (t) { return t.due || (t.dueAt ? localDateStr(new Date(t.dueAt)) : ""); };
+    var sec = [];
+    var booked = shown.filter(function (t) { return t.pinned && (info[t.id].due || dayKey(t) === today); });
+    var bookedIds = {}; booked.forEach(function (t) { bookedIds[t.id] = 1; });
+    sec.push({ id: "booked", title: "Booked for today", sub: "times they picked", cls: "interested", items: booked });
+    sec.push({ id: "now", title: "Due now", sub: "callable now", cls: "notinterested", items: shown.filter(function (t) { return !bookedIds[t.id] && info[t.id].due && info[t.id].ok; }) });
+    sec.push({ id: "wait", title: "Due, waiting on calling hours", sub: "", cls: "voicemail", items: shown.filter(function (t) { return !bookedIds[t.id] && info[t.id].due && !info[t.id].ok; }) });
+    sec.push({ id: "today", title: "Later today", sub: "", cls: "callback", items: shown.filter(function (t) { return !bookedIds[t.id] && !info[t.id].due && dayKey(t) === today; }) });
+    var up = shown.filter(function (t) { return !info[t.id].due && dayKey(t) > today; }), days = {};
+    up.forEach(function (t) { var k = dayKey(t); (days[k] = days[k] || []).push(t); });
+    Object.keys(days).sort().slice(0, 14).forEach(function (k) {
+      var p2 = k.split("-"); sec.push({ id: "d" + k, title: dayLabel(new Date(+p2[0], +p2[1] - 1, +p2[2])), sub: "", cls: "noanswer", items: days[k], up: true });
     });
+    var later = Object.keys(days).sort().slice(14).reduce(function (a, k) { return a.concat(days[k]); }, []);
+    if (later.length) sec.push({ id: "later", title: "Later", sub: "", cls: "noanswer", items: later, up: true });
+    sec.push({ id: "nodate", title: "No date", sub: "", cls: "noanswer", items: shown.filter(function (t) { return !t.due && !t.dueAt; }) });
+    var doneList = state.tasks.filter(function (t) { return t.done && taskScope(t); }).sort(function (a, b) { return (b.doneAt || 0) - (a.doneAt || 0); });
+    var html = header + (TEAM.on && canSeeTeam() ? '<div class="filter-row tscope"><button class="filter-chip' + (TEAM.taskScope === "mine" ? " active" : "") + '" data-tscope="mine">Mine</button><button class="filter-chip' + (TEAM.taskScope === "all" ? " active" : "") + '" data-tscope="all">Everyone’s</button></div>' : '') + banner + bl + chips;
+    var upHead = false, any = false;
+    sec.forEach(function (s) {
+      if (!s.items.length) return;
+      any = true;
+      if (s.up && !upHead) { html += '<div class="task-section-head tk-up">Coming up</div>'; upHead = true; }
+      var lim = TK.more[s.id] ? s.items.length : 25;
+      html += '<div class="task-section-head' + (s.up ? ' tk-day' : '') + '" style="color:var(--' + s.cls + ')">' + escapeHtml(s.title) + ' (' + s.items.length + ')' + (s.sub ? ' <span class="tk-sub">' + s.sub + '</span>' : '') + '</div>';
+      s.items.slice(0, lim).forEach(function (t) { html += taskRowHtml(t, now, info[t.id]); });
+      if (s.items.length > lim) html += '<button type="button" class="tk-more" data-tk-more="' + s.id + '">Show all ' + s.items.length + '</button>';
+    });
+    if (!any) html += '<p class="tk-none">' + (open.length ? 'Nothing here for this filter.' : 'All caught up. New follow-ups appear as you log calls.') + '</p>';
     if (doneList.length) {
-      html += '<button class="task-section-head done-toggle" id="toggleDoneTasks" style="color:var(--interested)">Completed (' + doneList.length + ') ' + (showDoneTasks ? '\u25B4' : '\u25BE') + '</button>';
+      html += '<button class="task-section-head done-toggle" id="toggleDoneTasks" style="color:var(--interested)">Completed (' + doneList.length + ') ' + (showDoneTasks ? '▴' : '▾') + '</button>';
       if (showDoneTasks) doneList.slice(0, 60).forEach(function (t) { html += taskRowHtml(t, now); });
     }
     main.innerHTML = html;
@@ -13901,6 +14108,14 @@ window.VPEX_SIG = [
     main.querySelectorAll("[data-tscope]").forEach(function (b) {
       b.addEventListener("click", function () { TEAM.taskScope = b.getAttribute("data-tscope"); render(); });
     });
+    main.querySelectorAll("[data-tk-kind]").forEach(function (b) {
+      b.addEventListener("click", function () { TK.kind = b.getAttribute("data-tk-kind"); TK.more = {}; render(); });
+    });
+    main.querySelectorAll("[data-tk-more]").forEach(function (b) {
+      b.addEventListener("click", function () { TK.more[b.getAttribute("data-tk-more")] = 1; render(); });
+    });
+    var sp = document.getElementById("tkSpread");
+    if (sp) sp.addEventListener("click", spreadBacklog);
     var tog = document.getElementById("toggleDoneTasks");
     if (tog) tog.addEventListener("click", function () { showDoneTasks = !showDoneTasks; render(); });
     main.querySelectorAll("[data-toggle-task]").forEach(function (btn) {
@@ -13909,27 +14124,35 @@ window.VPEX_SIG = [
     main.querySelectorAll("[data-edit-task]").forEach(function (btn) {
       btn.addEventListener("click", function () { openTaskModal(btn.getAttribute("data-edit-task")); });
     });
+    main.querySelectorAll("[data-move-task]").forEach(function (btn) {
+      btn.addEventListener("click", function () { var t = state.tasks.filter(function (x) { return x.id === btn.getAttribute("data-move-task"); })[0]; if (t) openFollowSheet({ leadId: t.leadId, taskId: t.id, kind: "move" }); });
+    });
     main.querySelectorAll("[data-delete-task]").forEach(function (btn) {
       btn.addEventListener("click", function () { deleteTask(btn.getAttribute("data-delete-task")); });
     });
   }
-  function taskRowHtml(t, now) {
+  function clockIconSvgSafe() { return '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'; }
+  function taskRowHtml(t, now, inf) {
     var lead = t.leadId ? findLeadById(t.leadId) : null;
     var overdue = !t.done && taskDueTs(t) < now - 3600000;
-    return '<div class="task-item' + (overdue ? ' overdue' : '') + '">' +
+    var k = inf ? inf.kind : taskKind(t, lead), missed = !t.done && t.pinned && taskDueTs(t) < now - 900000;
+    var status = !t.done && lead && inf && inf.due ? (inf.ok ? '<span class="tk-ok">Callable now</span>' : '<span class="tk-wait">' + escapeHtml(taskOpensTxt(lead) || "outside calling hours") + '</span>') : '';
+    var label = k === "retry" && t.type === "Call" ? "Retry" : (t.type || "Task");
+    return '<div class="task-item' + (overdue ? ' overdue' : '') + (missed ? ' missed' : '') + '">' +
       '<button class="task-check' + (t.done ? " done" : "") + '" data-toggle-task="' + t.id + '" aria-label="Mark done">' + (t.done ? checkIconSvg() : "") + '</button>' +
       '<div class="task-body' + (t.done ? " done" : "") + '">' +
         '<div class="task-top-row">' + (lead ? '<button class="task-lead-name linkish" data-open-lead="' + lead.id + '">' + escapeHtml(lead.name) + '</button>'
           : '<span class="task-lead-name">' + escapeHtml(t.leadName || "Unlinked") + '</span>') +
-        '<span class="qi-status noanswer">' + escapeHtml(t.type || "Task") + '</span>' +
-        (t.priority === "High" ? '<span class="qi-status notinterested">High</span>' : '') +
-        (t.pinned ? '<span class="qi-status interested">Booked</span>' : t.auto ? '<span class="qi-status callback">Auto</span>' : '') +
+        (t.pinned ? '<span class="qi-status interested">' + (missed ? 'Missed their time' : 'Booked') + '</span>' : '<span class="qi-status noanswer">' + escapeHtml(k === "int" && t.type !== "Call" ? "Follow-up" : label) + '</span>') +
+        (t.priority === "High" && !t.pinned && !t.auto ? '<span class="qi-status notinterested">High</span>' : '') +
+        (k === "int" && !t.pinned ? '<span class="qi-status interested">Interested</span>' : '') +
         (TEAM.on && isAdmin() && !myTask(t) && assigneeOf(t) ? '<span class="qi-status voicemail">' + escapeHtml(firstName(assigneeOf(t).name)) + '</span>' : '') + '</div>' +
         (t.note ? '<div class="task-note">' + escapeHtml(t.note) + '</div>' : '') +
-        '<div class="task-due">' + (overdue ? 'Overdue \u00b7 ' : '') + escapeHtml(taskWhen(t, lead)) + '</div>' +
+        '<div class="task-due">' + (missed ? 'Missed · ' : overdue ? 'Overdue · ' : '') + escapeHtml(taskWhen(t, lead)) + (status ? ' · ' + status : '') + '</div>' +
       '</div>' +
       '<div class="task-actions">' +
-        (lead && !t.done ? callLinkHtml(lead, "tasks", t.id, "task-call", callIconSvg()) : '') +
+        (lead && !t.done ? callLinkHtml(lead, "tasks", t.id, "task-call", callIconSvg() + '<span class="tk-call-t">Call</span>') : '') +
+        (lead && !t.done ? '<button data-move-task="' + t.id + '" aria-label="Move to another time" title="Move to another time">' + clockIconSvgSafe() + '</button>' : '') +
         '<button data-edit-task="' + t.id + '" aria-label="Edit">' + editIconSvg() + '</button>' +
         '<button class="danger" data-delete-task="' + t.id + '" aria-label="Delete">' + trashIconSvg() + '</button>' +
       '</div>' +
@@ -13943,6 +14166,9 @@ window.VPEX_SIG = [
     t.doneAt = t.done ? Date.now() : null;
     saveState();
     render();
+    if (t.done) showToast("Done \u00b7 " + (t.leadName || "follow-up"), { action: { label: "Undo", fn: function () {
+      var x = state.tasks.find(function (y) { return y.id === id; }); if (x) { x.done = false; x.doneAt = null; saveState(); render(); }
+    } } });
   }
 
   function deleteTask(id) {

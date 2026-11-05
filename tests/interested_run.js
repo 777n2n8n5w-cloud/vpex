@@ -103,18 +103,19 @@ const runLeft = page => ev(page, () => { const t = (document.querySelector('.que
       const b = document.getElementById('fuBody'), r = b.getBoundingClientRect();
       const chips = [...b.querySelectorAll('.fu-chip')].map(x => x.getBoundingClientRect().height);
       return { open: document.getElementById('fuSheet').classList.contains('show'), title: b.querySelector('h3').textContent, focus: document.activeElement && document.activeElement.id,
-        theirs: [...b.querySelectorAll('[data-fu-at] small')].map(x => x.textContent), n: b.querySelectorAll('[data-fu-at]').length,
+        theirs: [...b.querySelectorAll('.fu-times [data-fu-at] small')].map(x => x.textContent), n: b.querySelectorAll('.fu-times [data-fu-at]').length,
         minChip: Math.min(...chips), fits: r.left >= 0 && r.right <= innerWidth + 1 && r.bottom <= innerHeight + 1, sw: document.documentElement.scrollWidth, vw: innerWidth,
         book: document.getElementById('fuBook').getBoundingClientRect() };
     });
     check(c.n + ' Interested opens the follow-up sheet, Book focused', st.open && /follow-up with/.test(st.title) && st.focus === 'fuBook', st);
     // TX allows 8 AM-9 PM their time: every time offered is inside it
     const hrs = st.theirs.map(t => { const m = /(\d+)(?::(\d+))? (AM|PM)/.exec(t); let h = +m[1] % 12 + (m[3] === 'PM' ? 12 : 0); return h + (+(m[2] || 0)) / 60; });
-    check(c.n + ' every time offered is inside Texas calling hours, shown in their time', st.n > 5 && hrs.length === st.n && hrs.every(h => h >= 8 && h < 21), { n: st.n, theirs: st.theirs });
-    check(c.n + ' chips are easy to tap (44 px) and the sheet fits the screen', st.minChip >= 43 && st.sw <= st.vw && st.book.bottom <= (c.h || 844), st);
+    check(c.n + ' every time offered is inside Texas calling hours, shown in their time', st.n >= 4 && hrs.length === st.n && hrs.every(h => h >= 8 && h < 21), { n: st.n, theirs: st.theirs });
+    check(c.n + ' chips are easy to tap (44 px on phones, 40 px with a mouse) and the sheet fits the screen', st.minChip >= (c.w < 900 ? 43 : 39) && st.sw <= st.vw && st.book.bottom <= (c.h || 844), st);
     // pick the 3rd day, 2:30 PM, a stage and a note, then Enter
-    await ev(page, () => document.querySelectorAll('[data-fu-day]')[2].click()); await page.waitForTimeout(120);
-    const picked = await ev(page, () => { const b = [...document.querySelectorAll('[data-fu-at]')].find(x => /^2:30 PM/.test(x.querySelector('b').textContent)); b.click(); return b.querySelector('small').textContent; });
+    await ev(page, () => document.querySelectorAll('.fu-days [data-fu-day]')[2].click()); await page.waitForTimeout(120);
+    await ev(page, () => document.querySelector('[data-fu-part="pm"]').click()); await page.waitForTimeout(120);
+    const picked = await ev(page, () => { const b = [...document.querySelectorAll('.fu-times [data-fu-at]')].find(x => /^2:30 PM/.test(x.querySelector('b').textContent)); b.click(); return b.querySelector('small').textContent; });
     await page.waitForTimeout(120);
     const vis = await ev(page, () => { const on = document.querySelector('.fu-times .on').getBoundingClientRect(), row = document.querySelector('.fu-times').getBoundingClientRect(); return on.left >= row.left - 1 && on.right <= row.right + 1; });
     check(c.n + ' the chosen time stays in view', vis, vis);
