@@ -1,5 +1,5 @@
 // VPEX regression check (signature_themes). Run like tests/smoke.js: python3 -m http.server 8765 in the repo root, then node tests/signature_themes.js
-// The five Signature themes (sig/*.css -> sig.css, sig.js) are the VPEX owner's own: only his login can see, try or use them.
+// The six Signature themes (sig/*.css -> sig.css, sig.js) are the VPEX owner's own: only his login can see, try or use them.
 // Checks: sig.css is built and scoped; contrast; owner-only gating (UI, saved choice, other logins); try-on never saves until Keep;
 // switching keeps data; no sideways scroll on every main screen at 320/390/1280; motion off stops every decorative animation;
 // the per-theme pieces (seams, letterbox timecode, seconds hand) work; nothing loads for anyone else.
@@ -7,7 +7,7 @@ const { chromium } = require('playwright');
 const fs = require('fs'), path = require('path'), cp = require('child_process');
 const ROOT = path.join(__dirname, '..');
 const BASE = (process.env.BASE || 'http://127.0.0.1:8765/index.html');
-const IDS = ['sig-horologe', 'sig-urushi', 'sig-premiere', 'sig-blueprint', 'sig-prism'];
+const IDS = ['sig-horologe', 'sig-urushi', 'sig-premiere', 'sig-blueprint', 'sig-prism', 'sig-amalfi'];
 let pass = 0, fail = 0;
 const check = (n, ok, info) => { if (ok) pass++; else { fail++; console.log('FAIL', n, info === undefined ? '' : JSON.stringify(info)); } };
 
@@ -19,7 +19,7 @@ function splitTop(s) { const out = []; let d = 0, cur = ''; for (const ch of s) 
   try { cp.execFileSync('python3', [path.join(ROOT, 'sig/build.py'), '--check'], { stdio: 'pipe' }); } catch (e) { built = false; }
   check('sig.css is up to date with sig/*.css (python3 sig/build.py)', built);
   const css = fs.readFileSync(path.join(ROOT, 'sig.css'), 'utf8');
-  check('sig.css stays small', css.length < 90000, css.length);
+  check('sig.css stays small (only the owner ever downloads it)', css.length < 120000, css.length);
   check('no unexpanded placeholders', !/@[VTM][\s\[.:#,{]/.test(css));
   // every rule in a theme file is scoped to that theme (or its preview tiles), so the 86 public themes can't be touched
   for (const id of IDS) {
@@ -112,7 +112,7 @@ const overflow = page => page.evaluate(() => Math.max(document.documentElement.s
       const ovm = await overflow(page); check(id + ' ' + w + ' settings: no sideways scroll', ovm <= 1, ovm);
       await click(page, '#openSigBtn', 900);
       const sm = await ev(page, () => { const m = document.getElementById('sigModal'), b = m.querySelector('.modal'); return { show: m.classList.contains('show'), tiles: m.querySelectorAll('.sig-tile').length, wide: b.scrollWidth - b.clientWidth, active: (m.querySelector('.sig-tile.active') || {}).dataset }; });
-      check(id + ' ' + w + ': Signature screen opens with five tiles', sm.show && sm.tiles === 5, sm);
+      check(id + ' ' + w + ': Signature screen opens with a tile for each theme', sm.show && sm.tiles === IDS.length, sm);
       check(id + ' ' + w + ': Signature screen fits', sm.wide <= 1, sm.wide);
       check(id + ' ' + w + ': current theme marked in use', sm.active && sm.active.sig === id, sm.active);
       await page.keyboard.press('Escape'); await page.waitForTimeout(250);
@@ -186,7 +186,7 @@ const overflow = page => page.evaluate(() => Math.max(document.documentElement.s
     check('try: applies live without saving', s.t === 'sig-urushi' && s.saved === 'midnight' && s.bar && s.name === 'Urushi', s);
     await click(page, '#sigNext', 500); await click(page, '#sigNext', 500); await click(page, '#sigPrev', 500);
     s = await ev(page, () => ({ t: document.documentElement.getAttribute('data-theme'), saved: localStorage.getItem('dovetail_dialer_theme_v1') }));
-    check('try: cycles through the five', s.t === 'sig-premiere' && s.saved === 'midnight', s);
+    check('try: cycles through them', s.t === 'sig-premiere' && s.saved === 'midnight', s);
     for (const v of ['History', 'Tasks', 'Dial']) await click(page, '#viewTab' + v, 350);
     check('try: the bar stays while using the app', await ev(page, () => !document.getElementById('sigTry').hidden && document.documentElement.getAttribute('data-theme') === 'sig-premiere'));
     await click(page, '#sigBack', 900);

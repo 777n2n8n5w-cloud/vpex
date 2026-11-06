@@ -6,7 +6,7 @@
 <meta name="vpex-build" content="2027-01-20">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
-/* Signature themes: five themes only the VPEX owner's own login can use (sig/*.css, sig.js).
+/* Signature themes: six themes only the VPEX owner's own login can use (sig/*.css, sig.js).
    On the owner's phone the saved one is applied here, before first paint, so no other theme flashes first.
    It sits above every stylesheet on purpose: an inline script after a stylesheet would hold up the page until that sheet loads. */
 window.VPEX_SIG = [
@@ -24,7 +24,10 @@ window.VPEX_SIG = [
     gf: "family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700" },
   { id: "sig-prism", name: "Prism", mode: "light", kind: "Light",
     desc: "Pearl white and frosted glass. Holographic edges shift color as you scroll, and reaching today’s goal turns the foil gold.",
-    gf: "family=Syne:wght@600..800&family=Manrope:wght@400..700" }
+    gf: "family=Syne:wght@600..800&family=Manrope:wght@400..700" },
+  { id: "sig-amalfi", name: "Amalfi", mode: "light", kind: "Light",
+    desc: "The Italian coast in summer: sun-warmed stucco, hand-painted majolica in cobalt and lemon, and a glazed lemon Call button. A yes is signed Perfetto!",
+    gf: "family=Italiana&family=Figtree:wght@400..700" }
 ];
 (function () {
   try {
@@ -9035,7 +9038,7 @@ window.VPEX_SIG = [
     border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border)); background: color-mix(in srgb, var(--accent) 10%, var(--surface-raised)); color: var(--text); }
   .hub-floor .hub-ic { color: var(--accent); }
   .hub-cmd { border-color: color-mix(in srgb, var(--text) 25%, var(--border)); background: linear-gradient(135deg, #0D1322, #16203A); color: #E7ECF7; }
-  .hub-cmd .hub-ic { color: #6FC8FF; } .hub-cmd span span { color: #93A0BF; }
+  .hub-cmd .hub-ic { color: #6FC8FF; background: rgba(111,200,255,0.12); } .hub-floor.hub-cmd b { color: #E7ECF7; } .hub-floor.hub-cmd span span { color: #A9B4CF !important; }
   .hub-floor b { display: block; font-size: 15px; }
   .hub-floor span span { font-size: 12.5px; color: var(--text-dim); }
   .hub-floor > span:nth-child(2) { flex: 1; min-width: 0; }
@@ -9846,7 +9849,7 @@ window.VPEX_SIG = [
   <div class="modal sig-modal" role="dialog" aria-modal="true" aria-labelledby="sigTitle">
     <button class="close-x" id="sigClose" aria-label="Close">&times;</button>
     <h3 id="sigTitle">Signature themes</h3>
-    <p class="sig-intro">Five themes made for your login only. No one else’s VPEX can see or use them. Try one on your real screens, then keep it or go back.</p>
+    <p class="sig-intro">Six themes made for your login only. No one else’s VPEX can see or use them. Try one on your real screens, then keep it or go back.</p>
     <div class="sig-list" id="sigList"></div>
     <button class="sig-std" id="sigStd" type="button">Back to the standard themes</button>
   </div>

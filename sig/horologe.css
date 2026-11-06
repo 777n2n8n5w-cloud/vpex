@@ -12,7 +12,8 @@
   --gold: #8A6510; --horizon-c: #A9BCEB; --horizon-k: 0.32;
   --bg-image:
     radial-gradient(85% 55% at 50% -6%, rgba(255,255,255,0.92), rgba(255,255,255,0) 68%),
-    repeating-conic-gradient(from 0deg at 50% -18%, rgba(255,255,255,0.34) 0deg 0.45deg, rgba(120,130,145,0.05) 0.45deg 0.9deg),
+    repeating-radial-gradient(circle at 50% 34%, rgba(255,255,255,0) 0 5px, rgba(110,120,136,0.045) 5px 5.6px, rgba(255,255,255,0.18) 5.6px 6.4px),
+    repeating-conic-gradient(from 0deg at 50% 34%, rgba(255,255,255,0.24) 0deg 0.55deg, rgba(110,120,136,0.035) 0.55deg 1.1deg),
     radial-gradient(140% 100% at 50% 120%, rgba(18,21,27,0.10), transparent 60%),
     linear-gradient(180deg, #EEF0F3 0%, #DCE0E5 100%);
   --bg-size: auto;
@@ -53,7 +54,8 @@
    face (::after, which is the shine on other themes), so only a 2.5px rim of it shows: a compositor-only rotation. */
 @T .call-btn { border-radius: 999px; font-weight: 700; letter-spacing: 0.02em; position: relative; isolation: isolate; }
 @T .call-btn::before { content: ""; position: absolute; left: 50%; top: 50%; width: 150%; aspect-ratio: 1; pointer-events: none; z-index: -1; display: none;
-  background: conic-gradient(rgba(255,255,255,0) 0deg 290deg, rgba(255,255,255,0.22) 320deg, rgba(255,255,255,0.95) 352deg, #FF3B2F 353deg 359deg, rgba(255,255,255,0) 360deg);
+  background: conic-gradient(rgba(255,255,255,0) 0deg 300deg, rgba(255,255,255,0.16) 330deg, rgba(255,255,255,0.7) 354deg, #FF3B2F 354.5deg 359.5deg, rgba(255,255,255,0) 360deg),
+    repeating-conic-gradient(rgba(255,255,255,0.62) 0deg 1.1deg, rgba(255,255,255,0.10) 1.1deg 6deg);
   transform: translate(-50%, -50%) rotate(calc(var(--sig-s0, 0) * 6deg)); }
 @T .call-btn::after { left: 2.5px; right: 2.5px; top: 2.5px; bottom: 2.5px; width: auto; border-radius: inherit; z-index: -1; opacity: 1; animation: none;
   background: var(--call-bg); transform: none; }
@@ -110,3 +112,41 @@
 .sig-scope[data-sig="sig-horologe"] .sp-motif::after { content: ""; position: absolute; left: 50%; top: 3px; width: 1.2px; height: 8px; margin-left: -0.6px; background: #FF3B2F; transform-origin: 50% 8px; }
 @media (prefers-reduced-motion: no-preference) { html[data-motion="on"] .sig-scope[data-sig="sig-horologe"] .sp-motif::after { animation: sigSpin 60s linear infinite; } }
 @keyframes sigSpin { to { transform: rotate(360deg); } }
+
+/* ============ round two: the complications ============ */
+/* a chronograph subdial for today's calls: the blued hand points to how far the day is toward the goal */
+@T .rhythm .rh-top { align-items: center; }
+@T .hz-sub { flex: none; width: 50px; height: 50px; margin-right: 12px; border-radius: 50%; position: relative;
+  background: radial-gradient(circle at 50% 38%, #FFFFFF 0%, #F1F3F5 46%, #DDE1E7 100%);
+  box-shadow: 0 0 0 1px #A9B1BC, 0 0 0 3px #F4F5F7, 0 0 0 4px #8E97A4, inset 0 2px 4px rgba(18,21,27,0.22), 0 4px 10px -4px rgba(18,21,27,0.35); }
+@T .hz-sub svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+@T .hz-sub .hz-ring { fill: none; stroke: #9AA3AF; stroke-width: 0.6; }
+@T .hz-sub .hz-snail { fill: none; stroke: rgba(18,21,27,0.07); stroke-width: 11; stroke-dasharray: 0.5 1.1; }
+@T .hz-sub .hz-t { stroke: #6B7380; stroke-width: 0.55; }
+@T .hz-sub .hz-T { stroke: #12151B; stroke-width: 1.4; }
+@T .hz-sub .hz-n { font: 600 7.4px/1 var(--font-display); fill: #3D4552; text-anchor: middle; }
+@T .hz-sub .hz-n12 { fill: #12151B; font-size: 8.4px; }
+@T .hz-sub .hz-hand { fill: #1E3D96; transform-origin: 32px 32px; transform: rotate(calc(var(--goal-p, 0) * 360deg)); filter: drop-shadow(0 0.8px 0.6px rgba(0,0,0,0.35)); }
+@T .hz-sub .hz-pin { fill: #FF3B2F; }
+@T[data-goal] .hz-sub .hz-hand { fill: #8A6510; }
+@T[data-goal] .hz-sub { box-shadow: 0 0 0 1px #B8923A, 0 0 0 3px #F6EFD9, 0 0 0 4px #8A6510, inset 0 2px 4px rgba(18,21,27,0.22), 0 4px 12px -4px rgba(138,101,16,0.55); }
+@M .hz-sub .hz-hand { transition: transform 1.4s cubic-bezier(.3,1.4,.4,1); }
+/* the date window beside the name, and a power reserve that fills with your pace */
+@T .brand .name { display: inline-flex; align-items: center; gap: 0; }
+@T .hz-date { display: inline-flex; align-items: center; gap: 6px; margin-left: 11px; letter-spacing: 0; vertical-align: middle; }
+@T .hz-date .hz-dw, @T .hz-date .hz-dd { font: 600 9.5px/1 var(--font-body); letter-spacing: 0.12em; color: #3D4552; }
+@T .hz-date .hz-dd { display: inline-flex; align-items: center; justify-content: center; min-width: 19px; height: 17px; padding: 0 3px; border-radius: 2px;
+  font: 700 11.5px/1 var(--font-display); letter-spacing: 0; color: #12151B; background: linear-gradient(180deg, #FFFFFF, #F1F2F4);
+  box-shadow: inset 0 1px 2px rgba(18,21,27,0.35), 0 0 0 1px #9AA3AF, 0 1px 0 #fff; }
+@T .hz-date .hz-pr { position: relative; width: 22px; height: 11px; margin-left: 2px; border-radius: 22px 22px 0 0; overflow: hidden;
+  background: conic-gradient(from 270deg at 50% 100%, #1E3D96 0deg calc(var(--heat, 0.1) * 180deg), #C9CED6 calc(var(--heat, 0.1) * 180deg) 180deg, transparent 180deg);
+  -webkit-mask: radial-gradient(circle at 50% 100%, transparent 0 6.5px, #000 7px); mask: radial-gradient(circle at 50% 100%, transparent 0 6.5px, #000 7px); }
+@T[data-flow="zone"] .hz-date .hz-pr { background: conic-gradient(from 270deg at 50% 100%, #FF3B2F 0deg calc(var(--heat, 0.1) * 180deg), #C9CED6 calc(var(--heat, 0.1) * 180deg) 180deg, transparent 180deg); }
+/* the lead's name is engraved; the phone number is set like a chapter ring */
+@T #mainArea .card .lead-name { text-shadow: 0 1px 0 #fff; }
+@T #mainArea .card .lead-phone { letter-spacing: 0.04em; font-variant-numeric: tabular-nums lining-nums; }
+/* the floor message banner and toasts are enamel plaques */
+@T #floorBanner, @T .toast { background: linear-gradient(180deg, #FFFFFF, #EFF1F4); border-color: #A9B1BC; box-shadow: inset 0 1px 0 #fff, 0 14px 30px -14px rgba(18,21,27,0.45); }
+@T #floorBanner .fb-ic { background: var(--call-bg); }
+/* on a phone the header is tight: just the date window, like a three-hand watch */
+@media (max-width: 440px) { @T .hz-date .hz-dw, @T .hz-date .hz-pr { display: none; } @T .hz-date { margin-left: 8px; } }

@@ -11,7 +11,7 @@ import re, sys, pathlib
 
 HERE = pathlib.Path(__file__).resolve().parent
 ROOT = HERE.parent
-ORDER = ["horologe", "urushi", "premiere", "blueprint", "prism"]
+ORDER = ["horologe", "urushi", "premiere", "blueprint", "prism", "amalfi"]
 PH = re.compile(r"@([VTM])(?=[\s\[.:#,{(])")
 
 

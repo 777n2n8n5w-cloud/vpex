@@ -140,3 +140,39 @@
 .sig-scope[data-sig="sig-premiere"] .sp-motif { position: absolute; top: 0; bottom: 0; right: 0; width: 9px; z-index: 2;
   background: radial-gradient(circle, #0A0B0D 0 1.5px, transparent 2px) 50% 0 / 9px 7px repeat-y, #2A2E34; }
 .sig-scope[data-sig="sig-premiere"] .sp-call { font-family: var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; font-weight: 800; }
+
+/* ============ round two: tickets, the marquee sign, the slate, the leader ============ */
+/* every lead is a ticket: a perforated stub at the foot of the card, notched at both edges */
+@T #mainArea .card .pm-stub { position: relative; display: flex; align-items: center; gap: 14px; margin: 18px -20px -22px; padding: 11px 20px 12px;
+  border-top: 1.5px dashed rgba(242,184,102,0.45); border-radius: 0 0 var(--radius-l) var(--radius-l);
+  background: linear-gradient(180deg, rgba(242,184,102,0.07), rgba(242,184,102,0.02));
+  font: 700 12px/1 var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: #CFC6B6; }
+@T #mainArea .card .pm-stub::before, @T #mainArea .card .pm-stub::after { content: ""; position: absolute; top: -9px; width: 16px; height: 16px; border-radius: 50%; background: var(--bg); box-shadow: inset 0 0 0 1px var(--border); }
+@T #mainArea .card .pm-stub::before { left: -9px; } @T #mainArea .card .pm-stub::after { right: -9px; }
+@T #mainArea .card .pm-stub b { color: #F2B866; font-weight: 800; letter-spacing: 0.2em; }
+@T #mainArea .card .pm-stub .pm-seat { margin-left: auto; }
+@T body.st-live #mainArea .card .pm-stub { display: none; }
+/* the name in lights: a marquee sign */
+@T .brand .name { padding: 1px 8px 0; margin: 0 0 4px -8px; border-radius: 5px; color: #FFF4DA; line-height: 1.15;
+  text-shadow: 0 0 6px rgba(255,214,140,0.9), 0 0 18px rgba(242,184,102,0.5);
+  outline: 2.5px dotted rgba(255,226,160,0.9); outline-offset: 2px; box-shadow: 0 0 14px -2px rgba(242,184,102,0.55), inset 0 0 10px rgba(242,184,102,0.18); }
+/* the slate: scene, who's on, rolling, in the letterbox while you're on a call */
+@T #sigOver .pm-slate { position: absolute; left: 14px; bottom: calc(env(safe-area-inset-bottom, 0px) + 8px); max-width: calc(50% - 56px); display: flex; align-items: center; gap: 7px; opacity: 0; white-space: nowrap; overflow: hidden;
+  font: 700 11px/1 var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: #C3BDB2; transition: opacity 0.4s ease 0.3s; }
+@T #sigOver .pm-rec { width: 7px; height: 7px; border-radius: 50%; background: #FF4A3D; box-shadow: 0 0 8px #FF4A3D; }
+@T body.st-live #sigOver .pm-slate { opacity: 1; }
+@T #sigOver .pm-scene { overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 340px) { @T #sigOver .pm-slate { display: none; } }
+@keyframes pmRec { 50% { opacity: 0.2; } }
+@media (prefers-reduced-motion: no-preference) { @M body.st-live #sigOver .pm-rec { animation: pmRec 1.2s steps(1) infinite; } }
+/* "Next call in 4s" is a film leader counting down: cross hairs, rings and a sweep */
+@T .call-btn.paced { overflow: hidden; background: radial-gradient(circle at 50% 50%, transparent 0 15px, rgba(255,240,200,0.22) 15.5px 16.5px, transparent 17px 27px, rgba(255,240,200,0.16) 27.5px 28.5px, transparent 29px),
+  linear-gradient(90deg, transparent calc(50% - 0.5px), rgba(255,240,200,0.18) calc(50% - 0.5px) calc(50% + 0.5px), transparent calc(50% + 0.5px)),
+  linear-gradient(180deg, transparent calc(50% - 0.5px), rgba(255,240,200,0.18) calc(50% - 0.5px) calc(50% + 0.5px), transparent calc(50% + 0.5px)), #2A2620 !important; color: #F3EFE8 !important; box-shadow: inset 0 0 0 1.5px rgba(242,184,102,0.35) !important; }
+@T .call-btn.paced::before { left: 50%; right: auto; top: 50%; bottom: auto; width: 240%; aspect-ratio: 1; transform: translate(-50%, -50%); opacity: 1;
+  background: conic-gradient(rgba(255,240,200,0.24) 0deg 46deg, transparent 46deg 360deg); }
+@keyframes pmSweep { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
+@media (prefers-reduced-motion: no-preference) { @M .call-btn.paced::before { animation: pmSweep 1s linear infinite; } }
+/* house lights on the floor message banner and the toasts */
+@T #floorBanner, @T .toast { background: linear-gradient(180deg, #1A1D21, #121417); border-color: #6B5230; box-shadow: 0 0 0 1px rgba(242,184,102,0.2) inset, 0 18px 40px rgba(0,0,0,0.6); }
+@T #floorBanner p { font-family: var(--font-display); font-size: 19px; letter-spacing: 0.03em; text-transform: uppercase; }

@@ -74,7 +74,7 @@
 @T .toast { background: rgba(26,18,15,0.94); border-color: rgba(217,178,90,0.45); color: #F3EADB; }
 @T :is(input, textarea, select):focus-visible { outline: 2px solid #D9B25A; outline-offset: 2px; }
 /* the kintsugi seams (sig.js): a dark crack always there, gold filling it as the day builds */
-@T #sigArt .sg-crack { fill: none; stroke: rgba(255,232,200,0.075); stroke-width: 1.2px; stroke-linecap: round; stroke-linejoin: round; }
+@T #sigArt .sg-crack { fill: none; stroke: rgba(255,232,200,0.13); stroke-width: 1.3px; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 1px 0 rgba(0,0,0,0.9)); }
 @T #sigArt :is(.sg-gold, .sg-glow) { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1 2;
   stroke-dashoffset: calc(1 - clamp(0, var(--goal-p, 0) * 6 - var(--i, 0), 1)); }
 @T #sigArt .sg-gold { stroke: url(#sgGold); stroke-width: 1.7px; }
@@ -100,3 +100,30 @@
 /* preview motif: a gold seam across the lacquer */
 .sig-scope[data-sig="sig-urushi"] .sp-motif { position: absolute; inset: 0; pointer-events: none; z-index: 2;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 132 172'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' x2='1'%3E%3Cstop offset='0' stop-color='%23A57A26'/%3E%3Cstop offset='.5' stop-color='%23FBE6A8'/%3E%3Cstop offset='1' stop-color='%23C99D41'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M-4 128 L22 116 L30 124 L58 104 L66 110 L96 86 L104 92 L136 70' stroke='url(%23g)' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3Cpath d='M58 104 L62 132 L74 146' stroke='url(%23g)' stroke-width='1.1' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat; }
+
+/* ============ round two: seal, waves, crest ============ */
+/* seigaiha: gold waves rise from the foot of the screen, fading into the lacquer */
+@T #sigArt .ur-waves { position: fixed; left: 0; right: 0; bottom: 0; height: 30vh; pointer-events: none; opacity: 0.24;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='28' viewBox='0 0 56 28'%3E%3Cg fill='%230C0908' stroke='%23D9B25A' stroke-width='1'%3E%3Cpath d='M0 28a28 28 0 0 1 56 0Z'/%3E%3Cpath d='M7 28a21 21 0 0 1 42 0' fill='none'/%3E%3Cpath d='M14 28a14 14 0 0 1 28 0' fill='none'/%3E%3Cpath d='M21 28a7 7 0 0 1 14 0' fill='none'/%3E%3C/g%3E%3C/svg%3E") 0 100% / 56px 28px, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='28' viewBox='0 0 56 28'%3E%3Cg fill='%230C0908' stroke='%23D9B25A' stroke-width='1'%3E%3Cpath d='M0 28a28 28 0 0 1 56 0Z'/%3E%3Cpath d='M7 28a21 21 0 0 1 42 0' fill='none'/%3E%3Cpath d='M14 28a14 14 0 0 1 28 0' fill='none'/%3E%3Cpath d='M21 28a7 7 0 0 1 14 0' fill='none'/%3E%3C/g%3E%3C/svg%3E") 28px calc(100% - 14px) / 56px 28px;
+  -webkit-mask: linear-gradient(to top, #000 0%, rgba(0,0,0,0.6) 35%, transparent 100%); mask: linear-gradient(to top, #000 0%, rgba(0,0,0,0.6) 35%, transparent 100%); }
+@T[data-goal] #sigArt .ur-waves { opacity: 0.3; }
+/* the family crest (mon), in gold leaf, watching over the day's count */
+@T #sigArt .ur-mon { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 92px); right: -34px; width: 168px; height: 168px; pointer-events: none; opacity: 0.11;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='%23D9B25A'%3E%3Ccircle cx='60' cy='60' r='56' stroke-width='3'/%3E%3Ccircle cx='60' cy='60' r='49' stroke-width='1'/%3E%3Cpath stroke-width='2.4' d='M60 22 L93 41 V79 L60 98 L27 79 V41 Z'/%3E%3Cpath stroke-width='1.4' d='M60 38 C70 48 70 52 60 60 C50 52 50 48 60 38 Z M60 60 C70 68 70 72 60 82 C50 72 50 68 60 60 Z M38 60 C48 50 52 50 60 60 C52 70 48 70 38 60 Z M82 60 C72 50 68 50 60 60 C68 70 72 70 82 60 Z'/%3E%3C/g%3E%3C/svg%3E") center / contain no-repeat; transform: rotate(-8deg); }
+@T[data-goal] #sigArt .ur-mon { opacity: 0.2; filter: drop-shadow(0 0 12px rgba(217,178,90,0.6)); }
+@media (min-width: 900px) { @T #sigArt .ur-mon { width: 280px; height: 280px; right: 3vw; top: auto; bottom: 8vh; opacity: 0.06; } }
+/* the seal (hanko): pressed onto the screen when a lead says yes. 縁 is "en": a bond, a connection made */
+@T #sigStamp { position: fixed; inset: 0; z-index: 106; pointer-events: none; overflow: hidden; }
+@T #sigStamp .ur-seal { position: absolute; left: 50%; top: 40%; width: 112px; height: 112px; margin: -56px 0 0 -56px; border-radius: 14px; opacity: 0;
+  display: flex; align-items: center; justify-content: center; color: #FCEFE4;
+  background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.12), transparent 45%), radial-gradient(circle at 70% 80%, rgba(0,0,0,0.18), transparent 50%), #B4261C;
+  box-shadow: inset 0 0 0 4px #B4261C, inset 0 0 0 6.5px #FCEFE4, inset 0 0 0 9px #B4261C, 0 10px 30px rgba(0,0,0,0.55);
+  -webkit-mask: radial-gradient(circle at 12% 88%, transparent 0 3px, #000 3.5px), radial-gradient(circle at 90% 14%, transparent 0 2px, #000 2.5px); -webkit-mask-composite: source-in;
+  mask: radial-gradient(circle at 12% 88%, transparent 0 3px, #000 3.5px), radial-gradient(circle at 90% 14%, transparent 0 2px, #000 2.5px); mask-composite: intersect; }
+@T #sigStamp .ur-seal span { font: 800 62px/1 'Shippori Mincho B1', serif; transform: translateY(-2px); }
+@keyframes urStamp { 0% { opacity: 0; transform: scale(1.75) rotate(-14deg); } 13% { opacity: 1; transform: scale(0.94) rotate(-7deg); } 20% { transform: scale(1) rotate(-7deg); }
+  72% { opacity: 0.96; transform: scale(1) rotate(-7deg); } 100% { opacity: 0; transform: scale(1.02) rotate(-7deg); } }
+@media (prefers-reduced-motion: no-preference) { @M[data-flash="interested"] #sigStamp .ur-seal { animation: urStamp 1.9s cubic-bezier(.2,.8,.2,1) both; } }
+/* gold leaf edges on the Call button, and the lead's name brushed in gold when they're interested */
+@T .call-btn { box-shadow: var(--call-shadow), 0 0 0 1px rgba(255,226,160,0.4), 0 0 24px -8px rgba(217,178,90,0.55); }
+@T #floorBanner, @T .toast { background: linear-gradient(180deg, #1F1714, #16100E); border-color: #6E5728; box-shadow: 0 0 0 1px rgba(217,178,90,0.25) inset, 0 18px 40px rgba(0,0,0,0.6); }
