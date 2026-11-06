@@ -85,6 +85,15 @@ service cloud.firestore {
     match /floor/{id} {
       allow read: if isActive();
     }
+    // Command Center: VPEX's owner can read the site's funnel counts and what the posting bot did and learned.
+    // Read-only; the bot's keys (meta/token and anything else not listed) stay server-only.
+    match /growth/{doc=**} {
+      allow read: if isOwner();
+    }
+    match /igBot/{coll}/items/{key} {
+      allow read: if isOwner() && (coll in ['posted', 'fb', 'th']
+        || (coll == 'meta' && key in ['learnings', 'site_learnings', 'insights', 'last_post', 'comments', 'block_instagram', 'block_facebook', 'block_threads']));
+    }
     // ---- Every other office: offices/{office}/... Only logins made for that office (name@office.vpex.app) can see it ----
     function inOffice(office) {
       return signedIn() && office.matches('^[a-z0-9-]{3,32}$') && request.auth.token.email is string

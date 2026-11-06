@@ -76,7 +76,20 @@ def floor_req(uid="adm1", **kw):
 
 FL = "offices/acme/floor/adm1_abc"
 MSG = {"by": "adm1", "byName": "Dana Cruz", "body": "Back on the phones!", "to": [], "at": NOW_MS}
+OWNER = who("own1", "vincent@dovetail-f863c.firebaseapp.com")
 CASES = [
+    # ---- Command Center: the owner reads the funnel and the bot's results, never its keys ----
+    case("command: owner reads a day of funnel counts", "ALLOW", "get", "growth/days/items/2026-11-05", OWNER, old={"day": "2026-11-05", "t": 3}),
+    case("command: owner reads where a signup came from", "ALLOW", "get", "growth/offices/items/acme", OWNER, old={"at": NOW_MS, "s": "ig"}),
+    case("command: an admin can't read the funnel", "DENY", "get", "growth/days/items/2026-11-05", ADM1, old={"t": 3}),
+    case("command: original-team admin can't either", "DENY", "get", "growth/days/items/2026-11-05", who("tadm", "lee@dovetail-f863c.firebaseapp.com"), old={"t": 3}),
+    case("command: nobody writes funnel counts", "DENY", "create", "growth/days/items/2026-11-06", OWNER, new={"t": 1}),
+    case("command: owner reads what posted", "ALLOW", "get", "igBot/posted/items/w7-trial", OWNER, old={"status": "posted"}),
+    case("command: owner reads the bot's learnings", "ALLOW", "get", "igBot/meta/items/learnings", OWNER, old={"recs": {}}),
+    case("command: the Instagram key stays server-only, even for the owner", "DENY", "get", "igBot/meta/items/token", OWNER, old={"token": "x"}),
+    case("command: anything not listed stays server-only", "DENY", "get", "igBot/meta/items/secret", OWNER, old={"x": 1}),
+    case("command: owner can't change the bot's records", "DENY", "update", "igBot/posted/items/w7-trial", OWNER, new={"status": "x"}, old={"status": "posted"}),
+    case("command: a rep can't read the bot", "DENY", "get", "igBot/posted/items/w7-trial", REP1, old={"status": "posted"}),
     # ---- known-good controls (rules already live) ----
     case("control: a phone saves its own notification token", "ALLOW", "create", "pushTokens/t1", REP1,
          new={"uid": "rep1", "office": "acme", "token": "tok", "ua": "iPhone", "tz": "America/New_York", "at": NOW_MS}),
