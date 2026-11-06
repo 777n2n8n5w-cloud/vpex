@@ -9537,7 +9537,7 @@ html[data-motion="off"] .modal-overlay { transition: none; }
 .stage-section:has(.stage-closedlost) { --vx-oc: #8890A8; }
 
 /* ---- Ledger: private-bank money themes ---- */
-:where(:root[data-vx-kit="ledger"]) .call-btn { letter-spacing: .07em; text-transform: uppercase; font-size: 15px;
+:where(:root[data-vx-kit="ledger"]) .call-btn { letter-spacing: .06em; text-transform: uppercase; font-size: 14.5px;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.42), inset 0 0 0 1px rgba(255,255,255,.14), inset 0 0 0 4px transparent, inset 0 -2px 0 rgba(0,0,0,.2), var(--call-shadow, 0 0 0 transparent); }
 :root[data-vx-kit="ledger"] .hist-list { gap: 0; padding: 2px 8px; border: 1px solid transparent; border-radius: var(--radius-l);
   background: var(--card-bg, linear-gradient(var(--surface), var(--surface))) padding-box, var(--card-frame, linear-gradient(var(--border), var(--border))) border-box; box-shadow: var(--card-shadow, none); }
@@ -9559,7 +9559,7 @@ html[data-motion="off"] .modal-overlay { transition: none; }
 :root[data-vx-kit="neon"] .stage-head { padding-bottom: 7px; box-shadow: 0 1px 0 color-mix(in srgb, var(--accent) 50%, transparent), 0 10px 14px -12px var(--accent); }
 
 /* ---- HUD: terminals and control rooms ---- */
-:where(:root[data-vx-kit="hud"]) .call-btn { clip-path: polygon(13px 0, 100% 0, 100% calc(100% - 13px), calc(100% - 13px) 100%, 0 100%, 0 13px); border-radius: 2px; text-transform: uppercase; letter-spacing: .14em; font-size: 15px; }
+:where(:root[data-vx-kit="hud"]) .call-btn { clip-path: polygon(13px 0, 100% 0, 100% calc(100% - 13px), calc(100% - 13px) 100%, 0 100%, 0 13px); border-radius: 2px; text-transform: uppercase; letter-spacing: .07em; font-size: 14.5px; }
 :where(:root[data-vx-kit="hud"]) .call-btn:focus-visible { clip-path: none; }
 :root[data-vx-kit="hud"] .hist-list { counter-reset: vxrow; }
 :root[data-vx-kit="hud"] .hist-item.hx-item { counter-increment: vxrow; clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%); }
@@ -9596,6 +9596,9 @@ html[data-motion="off"] .modal-overlay { transition: none; }
 :where(:root[data-vx-kit="studio"]) .call-btn { background: linear-gradient(180deg, rgba(255,255,255,.2), rgba(255,255,255,0) 52%), var(--call-bg, var(--accent));
   box-shadow: inset 0 1px 0 rgba(255,255,255,.34), var(--call-shadow, 0 0 0 transparent); }
 :root[data-vx-kit="studio"] .hx-day > span:last-child, :root[data-vx-kit="studio"] .stage-count { padding: 2px 9px; border-radius: 999px; background: color-mix(in srgb, var(--text) 8%, transparent); }
+
+/* Caps kits keep the Call label on one line, whatever the name. */
+:where(:root[data-vx-kit="ledger"], :root[data-vx-kit="hud"], :root[data-vx-kit="arena"]) .call-btn > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 
 :root { --vx-gl: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 2.2 0 0 0 -0.9'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23n)'/%3E%3C/svg%3E"); --vx-gd: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2.2 0 0 0 -0.9'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23n)'/%3E%3C/svg%3E"); }
 :root:not([data-theme]), :root:is([data-theme="flow"], [data-theme="midnight"], [data-theme="slate"], [data-theme="forest"], [data-theme="sunset"], [data-theme="contrast"], [data-theme="emerald"], [data-theme="ocean"], [data-theme="graphite"], [data-theme="wallstreet"], [data-theme="royal"], [data-theme="terminal"], [data-theme="oxblood"], [data-theme="tickertape"], [data-theme="blackcard"], [data-theme="privatejet"], [data-theme="bullion"], [data-theme="chairman"], [data-theme="oceandrive"], [data-theme="kingpin"], [data-theme="neonnoir"], [data-theme="synthwave"], [data-theme="highroller"], [data-theme="velvet"], [data-theme="afterparty"], [data-theme="aurora"], [data-theme="deepsea"], [data-theme="desertdusk"], [data-theme="rainforest"], [data-theme="cybergrid"], [data-theme="chrome"], [data-theme="missioncontrol"], [data-theme="christmas"], [data-theme="newyears"], [data-theme="july4"], [data-theme="halloween"], [data-theme="stpatricks"], [data-theme="hd_mlk"], [data-theme="hd_lunar"], [data-theme="hd_pres"], [data-theme="hd_mardi"], [data-theme="hd_eid"], [data-theme="hd_memorial"], [data-theme="hd_dad"], [data-theme="hd_june"], [data-theme="hd_labor"], [data-theme="hd_diwali"], [data-theme="hd_veterans"], [data-theme="hd_hanukkah"], [data-theme="hd_kwanzaa"], [data-theme="gameday"], [data-theme="thepitch"], [data-theme="poleposition"], [data-theme="ringside"], [data-theme="trackfield"], [data-theme="arcade"], [data-theme="bossfight"], [data-theme="starfighter"], [data-theme="loadout"], [data-theme="victorian"], [data-theme="cyberpunk"], [data-theme="cybercore"], [data-theme="pixelart"], [data-theme="glassmorphism"], [data-theme="maximalism"], [data-theme="luxurytype"]) { --vx-grain: .05; --vx-grain-img: var(--vx-gl); --vx-vig: .34; --vx-vig-c: 0,0,0; --vx-spec: rgba(255,255,255,.07); --vx-bounce: color-mix(in srgb, var(--accent) 11%, transparent); }

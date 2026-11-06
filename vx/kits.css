@@ -27,7 +27,7 @@
 .stage-section:has(.stage-closedlost) { --vx-oc: #8890A8; }
 
 /* ---- Ledger: private-bank money themes ---- */
-@KITW(ledger) .call-btn { letter-spacing: .07em; text-transform: uppercase; font-size: 15px;
+@KITW(ledger) .call-btn { letter-spacing: .06em; text-transform: uppercase; font-size: 14.5px;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.42), inset 0 0 0 1px rgba(255,255,255,.14), inset 0 0 0 4px transparent, inset 0 -2px 0 rgba(0,0,0,.2), var(--call-shadow, 0 0 0 transparent); }
 @KIT(ledger) .hist-list { gap: 0; padding: 2px 8px; border: 1px solid transparent; border-radius: var(--radius-l);
   background: var(--card-bg, linear-gradient(var(--surface), var(--surface))) padding-box, var(--card-frame, linear-gradient(var(--border), var(--border))) border-box; box-shadow: var(--card-shadow, none); }
@@ -49,7 +49,7 @@
 @KIT(neon) .stage-head { padding-bottom: 7px; box-shadow: 0 1px 0 color-mix(in srgb, var(--accent) 50%, transparent), 0 10px 14px -12px var(--accent); }
 
 /* ---- HUD: terminals and control rooms ---- */
-@KITW(hud) .call-btn { clip-path: polygon(13px 0, 100% 0, 100% calc(100% - 13px), calc(100% - 13px) 100%, 0 100%, 0 13px); border-radius: 2px; text-transform: uppercase; letter-spacing: .14em; font-size: 15px; }
+@KITW(hud) .call-btn { clip-path: polygon(13px 0, 100% 0, 100% calc(100% - 13px), calc(100% - 13px) 100%, 0 100%, 0 13px); border-radius: 2px; text-transform: uppercase; letter-spacing: .07em; font-size: 14.5px; }
 @KITW(hud) .call-btn:focus-visible { clip-path: none; }
 @KIT(hud) .hist-list { counter-reset: vxrow; }
 @KIT(hud) .hist-item.hx-item { counter-increment: vxrow; clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%); }
@@ -86,3 +86,6 @@
 @KITW(studio) .call-btn { background: linear-gradient(180deg, rgba(255,255,255,.2), rgba(255,255,255,0) 52%), var(--call-bg, var(--accent));
   box-shadow: inset 0 1px 0 rgba(255,255,255,.34), var(--call-shadow, 0 0 0 transparent); }
 @KIT(studio) .hx-day > span:last-child, @KIT(studio) .stage-count { padding: 2px 9px; border-radius: 999px; background: color-mix(in srgb, var(--text) 8%, transparent); }
+
+/* Caps kits keep the Call label on one line, whatever the name. */
+:where(:root[data-vx-kit="ledger"], :root[data-vx-kit="hud"], :root[data-vx-kit="arena"]) .call-btn > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
