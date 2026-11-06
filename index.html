@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-01-21">
+<meta name="vpex-build" content="2027-01-22">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 /* Signature themes: six themes only the VPEX owner's own login can use (sig/*.css, sig.js).
@@ -9713,7 +9713,7 @@ window.VPEX_SIG = [
         <button class="hub-row" id="openFuRulesBtn" type="button"><span class="hub-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.3-5.6"/><path d="M4 4v4h4"/><path d="M12 8v4l3 2"/></svg></span><span class="hub-t"><b>Follow-up rules</b><span id="fuRulesSummary"></span></span><span class="hub-go" aria-hidden="true">›</span></button>
         <button class="hub-row" id="openScriptBtn" type="button"><span class="hub-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 12h7"/><path d="M9 16h7"/></svg></span><span class="hub-t"><b>Call script &amp; rebuttals</b><span id="scriptSummary"></span></span><span class="hub-go" aria-hidden="true">›</span></button>
       </div>
-      <p class="set-note">Every lead shows their local time. Anyone outside their state’s calling hours is flagged in red, and tapping Call asks before it dials: 8 AM–9 PM under federal rules, and stricter in 20 states, such as Florida (8 AM–8 PM), Texas (from noon on Sundays) and Pennsylvania (9 AM–7 PM, never on Sundays). Florida, Maryland, Oklahoma and Oregon also allow only 3 sales calls to one person in 24 hours. Based on published state rules as of October 2026. Not legal advice.</p>
+      <p class="set-note">Every lead shows their local time. Anyone outside their state’s calling hours is flagged in red, and tapping Call asks before it dials: 8 AM–9 PM under federal rules, and stricter in 20 states, such as Florida (8 AM–8 PM), Texas (from noon on Sundays) and Pennsylvania (9 AM–7 PM, never on Sundays). Florida, Maryland, Oklahoma and Oregon also allow only 3 sales calls to one person in 24 hours. Based on published state rules as of November 2026. Not legal advice.</p>
     </div>
     <div class="hub-view set-view" data-set-view="texts" hidden style="--hc:var(--callback)">
       <button class="hub-back" type="button" data-set-back>‹ Settings</button>
@@ -12683,7 +12683,7 @@ window.VPEX_SIG = [
     var day = addBusinessDays(p.y, p.m, p.d, bizDays);
     var ts = zonedToUtc(day.y, day.m, day.d, hour, 0, iana);
     if (ts < Date.now()) { day = addBusinessDays(day.y, day.m, day.d, 1); ts = zonedToUtc(day.y, day.m, day.d, hour, 0, iana); }
-    // Never on a day the lead's state bans sales calls (AL, LA, RI legal holidays): the next business day instead.
+    // Never on a day the lead's state bans sales calls (AL, LA, PA, RI legal holidays): the next business day instead.
     var st = leadZone(lead).st;
     for (var g = 0; g < 5 && STATE_HOURS[st]; g++) {
       var dp = zonedParts(ts, iana), ymd = dp.y + "-" + pad2(dp.m + 1) + "-" + pad2(dp.d);
@@ -15978,6 +15978,7 @@ window.VPEX_SIG = [
   // Federal rule: 8 AM–9 PM the lead's time. These states are stricter for sales calls (and texts). Reviewed Oct 2026
   // against several published state-law summaries and law-firm notes; where they differed, VPEX uses the stricter reading.
   // Rules that only cover autodialers or recorded messages are left out, since VPEX reps dial by hand. Not legal advice.
+  // Nov 2026: PA's legal-holiday ban added (73 P.S. § 2245(a)(10), in force since Dec 3, 2019; unchanged by SB 992).
   // h: [open, close) hours; sat / sunH: other hours that day; sun:false: no calls on Sunday; hol: no calls on legal holidays;
   // max3: at most 3 sales calls to one person in 24 hours; from: the date a new law starts (before: the rule until then).
   var STATE_HOURS = {
@@ -15995,7 +15996,7 @@ window.VPEX_SIG = [
     NV: { h: [9, 20] },
     OK: { h: [8, 20], max3: true },
     OR: { h: [8, 20], max3: true },
-    PA: { h: [9, 19], sun: false, from: "2026-10-18", before: { h: [8, 21] } },
+    PA: { h: [9, 19], sun: false, hol: true, from: "2026-10-18", before: { h: [8, 21], hol: true } },
     RI: { h: [9, 18], sat: [10, 17], sun: false, hol: true },
     SD: { h: [9, 21], sun: false },
     TX: { h: [9, 21], sunH: [12, 21] },

@@ -61,6 +61,7 @@ const legal = /Based on published state rules as of [A-Z][a-z]+ \d{4}\. Not lega
     check('table lists every stricter state', tb.length === Object.keys(SH).length, tb.length);
     const row = n => tb.find(r => r[0] === n) || [];
     check('table: Pennsylvania 9 AM–7 PM from Oct 18, no Sunday calls', row('Pennsylvania')[1] === '9 AM–7 PM (from Oct 18, 2026)' && row('Pennsylvania')[3] === 'No calls', row('Pennsylvania'));
+    check('table: Pennsylvania no sales calls on holidays', row('Pennsylvania')[4] === 'No calls', row('Pennsylvania'));
     check('table: Texas Sunday noon', row('Texas')[3] === '12 PM–9 PM', row('Texas'));
     check('table: Rhode Island Saturday 10–5, holidays', row('Rhode Island')[2] === '10 AM–5 PM' && row('Rhode Island')[4] === 'No calls', row('Rhode Island'));
     check('table: Florida 3 per 24 hours', row('Florida')[5] === '3 per 24 hours' && row('Florida')[1] === '8 AM–8 PM', row('Florida'));
@@ -77,6 +78,7 @@ const legal = /Based on published state rules as of [A-Z][a-z]+ \d{4}\. Not lega
     { st: 'NY', t: '2026-10-21T14:00:00Z', open: true, re: /allowed until 9:00 PM/ },
     { st: 'FL', t: '2026-10-21T14:00:00Z', open: true, re: /until 8:00 PM/, extra: /only 3 sales calls/ },
     { st: 'AL', t: '2026-12-25T18:00:00Z', open: false, re: /Holiday, no sales calls in AL today/ },
+    { st: 'PA', t: '2026-11-11T15:00:00Z', open: false, re: /Holiday, no sales calls in PA today/, next: /Calls open again tomorrow at 9:00 AM/ },
     { st: 'CA', t: '2026-10-21T13:00:00Z', open: false, re: /Too early: California allows 8 AM to 9 PM today/, next: /today at 8:00 AM/ }];
   for (const c of [{ n: '390-dark', w: 390, s: 'dark' }, { n: '390-light', w: 390, s: 'light' }, { n: '320-light', w: 320, s: 'light' }, { n: '1280-dark', w: 1280, s: 'dark' }]) {
     for (const k of CASES) {
@@ -174,7 +176,7 @@ const legal = /Based on published state rules as of [A-Z][a-z]+ \d{4}\. Not lega
     // PA: the Oct 18 change and Sunday ban spelled out; Texas Sunday noon; changing the state on a state page answers in place
     await page.goto(BASE + 'calling-hours/pennsylvania/');
     const pa = await page.evaluate(() => document.querySelector('.lede').textContent);
-    check('PA lede: 9 AM–7 PM, no Sundays, from Oct 18, 2026', /9 AM–7 PM/.test(pa) && /No sales calls on Sundays/.test(pa) && /from Oct 18, 2026 \(8 AM–9 PM before that\)/.test(pa), pa);
+    check('PA lede: 9 AM–7 PM, no Sundays or holidays, from Oct 18, 2026', /9 AM–7 PM/.test(pa) && /No sales calls on Sundays or federal legal holidays/.test(pa) && /from Oct 18, 2026 \(8 AM–9 PM before that\)/.test(pa), pa);
     check('PA on a Sunday: No, opens Monday at 9 AM', await page.evaluate(() => /No, not right now[\s\S]*tomorrow at 9:00 AM/.test(document.getElementById('verdict').innerText)));
     await page.selectOption('#st', 'TX');
     const tx = await page.evaluate(() => ({ v: document.getElementById('verdict').innerText, p: location.pathname + location.search }));
