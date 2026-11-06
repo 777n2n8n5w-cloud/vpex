@@ -12,6 +12,14 @@
   function vxVar(n, fb) { var v = getComputedStyle(document.documentElement).getPropertyValue(n).trim(); return v || fb; }
   function vxMs(n, fb) { var v = vxVar(n, ""); var x = parseFloat(v); if (isNaN(x)) return fb; return /ms$/.test(v) ? x : x * 1000; }
 
+  // Kits (round two): mirror data-theme into data-vx-kit synchronously-enough (a microtask, before paint), whoever changes it.
+  function vxKitSync() {
+    var r = document.documentElement, t = r.getAttribute("data-theme"), k = t ? (VX_KIT[t] || (/^sig-/.test(t) ? "none" : "none")) : VX_KIT.flow;
+    if (r.getAttribute("data-vx-kit") !== k) r.setAttribute("data-vx-kit", k);
+  }
+  vxKitSync();
+  if (window.MutationObserver) new MutationObserver(vxKitSync).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
   // The touch light, and the Call button's light that follows your finger or cursor.
   function vxTouch(x, y) {
     var el = document.getElementById("vxTouch"); if (!el || !el.animate) return;

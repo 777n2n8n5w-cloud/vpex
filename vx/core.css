@@ -48,8 +48,8 @@ html.vx-idle #vxAtmo::before, html.vx-idle #vxAtmo::after, html.vx-idle #fxLayer
 
 /* ---------- Material: cards ---------- */
 :root[data-theme]:not([data-theme^="flow"]) :is(.card, .deal-bar-card, .pipe-item, .task-item, .hist-item) {
-  background: var(--vx-card-light) padding-box, var(--vx-card-orn), var(--card-tex, linear-gradient(transparent, transparent)) padding-box, var(--card-bg, linear-gradient(var(--surface), var(--surface))) padding-box, var(--card-frame, linear-gradient(var(--border), var(--border))) border-box !important; }
-:root:not([data-theme]) :is(#mainArea .card, .deal-bar-card), :root[data-theme^="flow"] :is(#mainArea .card, .deal-bar-card) { background: var(--vx-card-light), var(--vx-card-orn), var(--surface); }
+  background: var(--vx-card-light) padding-box, var(--vx-card-orn), var(--vx-art-layer, linear-gradient(transparent, transparent)), var(--card-tex, linear-gradient(transparent, transparent)) padding-box, var(--card-bg, linear-gradient(var(--surface), var(--surface))) padding-box, var(--card-frame, linear-gradient(var(--border), var(--border))) border-box !important; }
+:root:not([data-theme]) :is(#mainArea .card, .deal-bar-card), :root[data-theme^="flow"] :is(#mainArea .card, .deal-bar-card) { background: var(--vx-card-light), var(--vx-card-orn), var(--vx-art-layer, linear-gradient(transparent, transparent)), var(--surface); }
 :is(.card, .deal-bar-card, .pipe-item, .task-item, .hist-item) { --vx-card-light: radial-gradient(140% 70% at var(--vx-lx) -12%, var(--vx-spec), transparent 62%), radial-gradient(90% 46% at 50% 118%, var(--vx-bounce), transparent 70%); --vx-card-orn: linear-gradient(transparent, transparent); }
 #mainArea .card { transition: box-shadow .35s ease, transform .35s ease, --vx-lx .5s ease; }
 @property --vx-lx { syntax: "<percentage>"; inherits: true; initial-value: 28%; }
@@ -63,7 +63,7 @@ html.vx-idle #vxAtmo::before, html.vx-idle #vxAtmo::after, html.vx-idle #fxLayer
   linear-gradient(var(--vx-det), var(--vx-det)) right 9px bottom 9px / 16px 1.5px no-repeat, linear-gradient(var(--vx-det), var(--vx-det)) right 9px bottom 9px / 1.5px 16px no-repeat; }
 @property --vx-fp { syntax: "<percentage>"; inherits: false; initial-value: 100%; }
 @DET(foil) #mainArea .card { --vx-card-orn: linear-gradient(105deg, transparent 42%, color-mix(in srgb, var(--vx-f1, #fff) 20%, transparent) 48%, color-mix(in srgb, var(--vx-f2, #fff) 16%, transparent) 52%, transparent 58%) var(--vx-fp) 0 / 300% 100% no-repeat; }
-@DET(foil)[data-motion="on"] #mainArea .card.card-enter { animation: vxDeal var(--vx-dur) var(--vx-ease) both, vxFoil 1.5s cubic-bezier(.45,0,.2,1) .12s both; }
+@DET(foil)[data-motion="on"] #mainArea .card.card-enter { animation: vxDeal var(--vx-dur) var(--vx-ease) both, vxFoil 1.5s cubic-bezier(.45,0,.2,1) .12s both, vxArtIn calc(var(--vx-dur) * 2) var(--vx-ease) both; }
 @keyframes vxFoil { from { --vx-fp: 0%; } to { --vx-fp: 100%; } }
 
 /* ---------- Motion: arrivals ---------- */
@@ -73,7 +73,7 @@ html.vx-idle #vxAtmo::before, html.vx-idle #vxAtmo::after, html.vx-idle #fxLayer
 @keyframes vxRise { from { opacity: 0; transform: translate3d(0, calc(var(--vx-dist) * .8), 0); } to { opacity: 1; transform: none; } }
 @keyframes vxGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @keyframes vxFade { from { opacity: 0; } to { opacity: 1; } }
-html[data-motion="on"] .card-enter { animation: vxDeal var(--vx-dur) var(--vx-ease) both; }
+html[data-motion="on"] .card-enter { animation: vxDeal var(--vx-dur) var(--vx-ease) both, vxArtIn calc(var(--vx-dur) * 2) var(--vx-ease) both; }
 html[data-motion="on"] .vx-in-r { animation: vxInR var(--vx-dur) var(--vx-ease) both; }
 html[data-motion="on"] .vx-in-l { animation: vxInL var(--vx-dur) var(--vx-ease) both; }
 html[data-motion="on"] .vx-rise { animation: vxRise var(--vx-dur) var(--vx-ease) both; animation-delay: calc(var(--vx-i, 0) * var(--vx-stag)); }

@@ -1,0 +1,88 @@
+/* ===================== Round two: theme kits =====================
+   Each public theme belongs to a kit that shapes its Call button, its History and Pipeline rows,
+   and draws its own line-art motif behind the lead card (vx/art.py). @KIT(name) is the themes in a kit
+   (specificity of a theme rule); @KITW(name) is the same set at the lowest specificity, so any
+   theme that already styles that part by hand keeps its own design. */
+
+/* ---- Card artwork: the theme's motif in the lead card's top-right corner ---- */
+@property --vx-art-dy { syntax: "<length>"; inherits: false; initial-value: 0px; }
+#mainArea .card { --vx-art-layer: var(--vx-art, linear-gradient(transparent, transparent)) right -46px top calc(-40px + var(--vx-art-dy)) / 224px 224px no-repeat; }
+#mainArea .card.done-panel { --vx-art-layer: linear-gradient(transparent, transparent); }
+@keyframes vxArtIn { from { --vx-art-dy: 26px; } to { --vx-art-dy: 0px; } }
+
+/* ---- Every kit: an outcome rail on History rows and a stage rail on Pipeline rows ---- */
+@KITW(rails) .hist-item.hx-item, @KITW(rails) .pipe-item { position: relative; }
+@KITW(rails) .hist-item.hx-item::before, @KITW(rails) .pipe-item::before { content: ""; position: absolute; left: 0; top: 11px; bottom: 11px; width: 3px; border-radius: 0 3px 3px 0;
+  background: var(--vx-oc, transparent); pointer-events: none; }
+.hist-item:has(.qi-status.interested) { --vx-oc: var(--interested); }
+.hist-item:has(.qi-status.callback) { --vx-oc: var(--callback); }
+.hist-item:has(.qi-status.voicemail) { --vx-oc: var(--voicemail); }
+.hist-item:has(.qi-status.noanswer) { --vx-oc: var(--noanswer); }
+.hist-item:has(.qi-status.notinterested) { --vx-oc: var(--notinterested); }
+.hist-item:has(.qi-status.badnum) { --vx-oc: var(--badnum); }
+.stage-section:has(.stage-qualified) { --vx-oc: #4A9B8E; }
+.stage-section:has(.stage-pitched) { --vx-oc: #C9A84C; }
+.stage-section:has(.stage-objection) { --vx-oc: #D46A6A; }
+.stage-section:has(.stage-committed) { --vx-oc: #5DBD6A; }
+.stage-section:has(.stage-closedlost) { --vx-oc: #8890A8; }
+
+/* ---- Ledger: private-bank money themes ---- */
+@KITW(ledger) .call-btn { letter-spacing: .07em; text-transform: uppercase; font-size: 15px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.42), inset 0 0 0 1px rgba(255,255,255,.14), inset 0 0 0 4px transparent, inset 0 -2px 0 rgba(0,0,0,.2), var(--call-shadow, 0 0 0 transparent); }
+@KIT(ledger) .hist-list { gap: 0; padding: 2px 8px; border: 1px solid transparent; border-radius: var(--radius-l);
+  background: var(--card-bg, linear-gradient(var(--surface), var(--surface))) padding-box, var(--card-frame, linear-gradient(var(--border), var(--border))) border-box; box-shadow: var(--card-shadow, none); }
+@KIT(ledger) .hist-list > .hist-item.hx-item { background: transparent !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important;
+  -webkit-backdrop-filter: none !important; backdrop-filter: none !important; padding: 13px 0 13px 10px; border-bottom: 1px solid color-mix(in srgb, var(--text) 9%, transparent) !important; }
+@KIT(ledger) .hist-list > .hist-item.hx-item:last-child { border-bottom: 0 !important; }
+@KIT(ledger) .hist-list > .hist-item.hx-item::before { top: 16px; bottom: 16px; left: -1px; }
+@KIT(ledger) :is(.hx-day, .stage-head) { letter-spacing: .16em; font-size: 11px; }
+@KIT(ledger) .hx-day span:first-child, @KIT(ledger) .stage-head-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+@KIT(ledger) .hx-day span:first-child::after, @KIT(ledger) .stage-head-left::after { content: ""; flex: 1; height: 1px; min-width: 18px; margin-right: 10px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 45%, transparent), transparent); }
+@KIT(ledger) .pipe-item { outline: 1px solid color-mix(in srgb, var(--accent) 22%, transparent); outline-offset: -5px; }
+
+/* ---- Neon: Miami nights ---- */
+@KITW(neon) .call-btn { text-shadow: 0 0 10px rgba(255,255,255,.55);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 75%, #fff), 0 0 18px color-mix(in srgb, var(--accent) 65%, transparent), 0 0 46px color-mix(in srgb, var(--accent) 32%, transparent), inset 0 0 16px rgba(255,255,255,.2); }
+@KIT(neon) :is(.hist-item.hx-item, .pipe-item)::before { box-shadow: 0 0 10px var(--vx-oc, transparent), 0 0 3px var(--vx-oc, transparent); width: 2px; }
+@KIT(neon) :is(.hx-day > span:first-child, .stage-name) { color: var(--accent); text-shadow: 0 0 12px color-mix(in srgb, var(--accent) 70%, transparent); }
+@KIT(neon) .stage-head { padding-bottom: 7px; box-shadow: 0 1px 0 color-mix(in srgb, var(--accent) 50%, transparent), 0 10px 14px -12px var(--accent); }
+
+/* ---- HUD: terminals and control rooms ---- */
+@KITW(hud) .call-btn { clip-path: polygon(13px 0, 100% 0, 100% calc(100% - 13px), calc(100% - 13px) 100%, 0 100%, 0 13px); border-radius: 2px; text-transform: uppercase; letter-spacing: .14em; font-size: 15px; }
+@KITW(hud) .call-btn:focus-visible { clip-path: none; }
+@KIT(hud) .hist-list { counter-reset: vxrow; }
+@KIT(hud) .hist-item.hx-item { counter-increment: vxrow; clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%); }
+@KIT(hud) .hist-item.hx-item .hist-name::before { content: counter(vxrow, decimal-leading-zero); margin-right: 9px; font-family: var(--font-num, 'IBM Plex Mono', ui-monospace, monospace);
+  font-size: 11px; font-weight: 600; letter-spacing: .06em; color: var(--accent); opacity: .85; }
+@KIT(hud) .hist-item.hx-item::before { width: 2px; border-radius: 0; }
+@KIT(hud) :is(.hx-day, .stage-name) { font-family: var(--font-num, 'IBM Plex Mono', ui-monospace, monospace); letter-spacing: .1em; }
+@KIT(hud) .hx-day > span:first-child::before { content: "// "; color: var(--accent); }
+@KIT(hud) .stage-name::before { content: "\25B8 "; color: var(--accent); }
+
+/* ---- Arena: sports ---- */
+@KITW(arena) .call-btn { font-style: italic; text-transform: uppercase; letter-spacing: .05em; font-weight: 800;
+  background: linear-gradient(115deg, transparent 63%, rgba(255,255,255,.17) 63% 68%, transparent 68% 72%, rgba(255,255,255,.1) 72% 76%, transparent 76%), var(--call-bg, var(--accent)); }
+@KIT(arena) .hist-item.hx-item .hist-name, @KIT(arena) .pipe-item-name { text-transform: uppercase; letter-spacing: .03em; font-weight: 800; font-size: 14px; }
+@KIT(arena) .hist-item.hx-item::before, @KIT(arena) .pipe-item::before { width: 4px; top: 0; bottom: 0; border-radius: var(--radius-m) 0 0 var(--radius-m); }
+@KIT(arena) :is(.hx-day, .stage-head) { padding: 7px 10px; border-radius: 8px; background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--text); }
+@KIT(arena) .hx-day > span:first-child, @KIT(arena) .stage-name { color: var(--text); font-weight: 800; letter-spacing: .08em; }
+
+/* ---- Festive: holidays ---- */
+@KITW(festive) .call-btn { outline: 1.5px dashed rgba(255,255,255,.42); outline-offset: -6px; }
+@KITW(festive) .call-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@KIT(festive) .hx-day > span:first-child::before, @KIT(festive) .stage-name::before { content: "\2726  "; color: var(--accent); }
+@KIT(festive) .hist-item.hx-item::before { width: 6px; height: 6px; top: 19px; bottom: auto; left: 7px; border-radius: 50%; }
+@KIT(festive) .hist-item.hx-item { padding-left: 22px; }
+
+/* ---- Botanic: nature ---- */
+@KITW(botanic) .call-btn { border-radius: 999px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.16), inset 0 12px 22px -12px rgba(255,255,255,.4), var(--call-shadow, 0 0 0 transparent); }
+@KIT(botanic) :is(.hist-item.hx-item, .pipe-item) { border-radius: calc(var(--radius-l) + 2px) !important; }
+@KIT(botanic) :is(.hist-item.hx-item, .pipe-item)::before { width: 7px; height: 7px; top: 19px; bottom: auto; left: 9px; border-radius: 50%; }
+@KIT(botanic) :is(.hist-item.hx-item, .pipe-item) { padding-left: 24px; }
+@KIT(botanic) :is(.hx-day, .stage-name) { text-transform: none; letter-spacing: .01em; font-family: var(--font-display, inherit); font-size: 13.5px; }
+
+/* ---- Studio: everyday and design styles ---- */
+@KITW(studio) .call-btn { background: linear-gradient(180deg, rgba(255,255,255,.2), rgba(255,255,255,0) 52%), var(--call-bg, var(--accent));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.34), var(--call-shadow, 0 0 0 transparent); }
+@KIT(studio) .hx-day > span:last-child, @KIT(studio) .stage-count { padding: 2px 9px; border-radius: 999px; background: color-mix(in srgb, var(--text) 8%, transparent); }

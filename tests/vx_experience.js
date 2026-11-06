@@ -70,6 +70,30 @@ const rootVar = (page, n) => page.evaluate(n => getComputedStyle(document.docume
     check('corner brackets on tech themes', corners > 8, corners);
     const sig = await page.evaluate(() => { document.documentElement.setAttribute('data-theme', 'sig-horologe'); return getComputedStyle(document.getElementById('vxAtmo')).display; });
     check('signature themes keep their own world (no shared lights)', sig === 'none', sig);
+    // Round two: kits. data-vx-kit follows data-theme whoever changes it; each kit shapes the Call button and rows.
+    const kits = await page.evaluate(async () => { const o = {}; for (const t of ['royal', 'synthwave', 'missioncontrol', 'gameday', 'christmas', 'aurora', 'flow', 'arcade', 'sig-horologe']) {
+      document.documentElement.setAttribute('data-theme', t); await new Promise(r => setTimeout(r, 0)); o[t] = document.documentElement.getAttribute('data-vx-kit'); } return o; });
+    check('kits follow the theme', JSON.stringify(kits) === JSON.stringify({ royal: 'ledger', synthwave: 'neon', missioncontrol: 'hud', gameday: 'arena', christmas: 'festive', aurora: 'botanic', flow: 'studio', arcade: 'none', 'sig-horologe': 'none' }), kits);
+    const artN = await page.evaluate(() => [...document.querySelectorAll('style')].map(s => s.textContent).join('').match(/--vx-art: url\(/g).length);
+    check('card artwork for the themes that get it (90+)', artN >= 90, artN);
+    const artOn = await page.evaluate(async () => { const o = {}; for (const t of ['christmas', 'arcade']) { document.documentElement.setAttribute('data-theme', t); await new Promise(r => setTimeout(r, 0));
+      const c = document.querySelector('#mainArea .card'); o[t] = getComputedStyle(c).backgroundImage.indexOf('data:image/svg+xml') !== -1; } return o; });
+    check('lead card shows the theme motif; bespoke themes keep their own card', artOn.christmas && !artOn.arcade, artOn);
+    const calls = await page.evaluate(async () => { const o = {}; for (const t of ['missioncontrol', 'aurora', 'gameday', 'arcade']) { document.documentElement.setAttribute('data-theme', t); await new Promise(r => setTimeout(r, 0));
+      const b = getComputedStyle(document.getElementById('callBtn')); o[t] = { clip: b.clipPath, r: b.borderTopLeftRadius, it: b.fontStyle }; } return o; });
+    check('HUD Call button is notched', /polygon/.test(calls.missioncontrol.clip), calls.missioncontrol);
+    check('Botanic Call button is a pill', parseFloat(calls.aurora.r) > 100, calls.aurora);
+    check('Arena Call button is set in italic caps', calls.gameday.it === 'italic', calls.gameday);
+    check('a bespoke theme keeps its own Call button', calls.arcade.clip === 'none' && calls.arcade.it !== 'italic', calls.arcade);
+    await page.tap('#viewTabHistory'); await page.waitForTimeout(150);
+    const rows = await page.evaluate(async () => { const o = {}; for (const t of ['royal', 'missioncontrol', 'aurora']) { document.documentElement.setAttribute('data-theme', t); await new Promise(r => setTimeout(r, 0));
+      const it = document.querySelector('.hist-item.hx-item'), b = getComputedStyle(it, '::before'), n = getComputedStyle(it.querySelector('.hist-name'), '::before');
+      o[t] = { rail: b.backgroundColor, w: b.width, gap: getComputedStyle(it.parentElement).rowGap, num: n.content }; } return o; });
+    check('History rows carry an outcome rail', rows.royal.rail !== 'rgba(0, 0, 0, 0)' && rows.royal.rail !== '', rows.royal);
+    check('Ledger History reads as one ledger page', rows.royal.gap === '0px', rows.royal);
+    check('HUD History rows are numbered', /counter|\d/.test(rows.missioncontrol.num) && rows.missioncontrol.num !== 'none', rows.missioncontrol);
+    check('Botanic rows mark outcomes with a seed dot', rows.aurora.w === '7px', rows.aurora);
+    await page.tap('#viewTabDial'); await page.waitForTimeout(150);
     await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'flow'));
     check('picker previews carry each theme’s light', await page.evaluate(() => [...document.querySelectorAll('style')].some(s => /theme-card\[data-theme-choice="aurora"\] \.tc-prev \{ --tcl/.test(s.textContent))));
     // Under automation the number count-ups stay off: the Pipeline numbers read true at once.

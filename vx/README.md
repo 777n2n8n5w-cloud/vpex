@@ -6,6 +6,8 @@ One system on top of all 107 public themes: **light**, **material** and **motion
 | --- | --- |
 | `core.css` | The system. `@MO(name)` and `@DET(name)` expand to the themes that use that motion personality or card detail. |
 | `themes.py` | One identity recipe per public theme: ambient lights, texture, grain, vignette, motion personality, card detail, foil colors. The build fails if a theme is missing. |
+| `kits.css` | Round two: the kit styles (Call button, History and Pipeline rows, card artwork). `@KIT(name)` / `@KITW(name)` (lowest specificity, so hand-built themes keep theirs). |
+| `art.py` | Round two: the line-art motif behind each theme's lead card (92 themes). |
 | `vx.js` | The interaction engine. Runs inside the app's main script, so it can wrap `setTheme`, `openCommand` and `featOpen`. |
 
 ## Light
@@ -25,3 +27,20 @@ Tab ink glides between tabs; views arrive from the side you moved toward; rows r
 - Reduce Motion (system) and the in-app Motion switch stop every vx animation; nothing waits on one.
 - Under automation (`navigator.webdriver`) vx motion is off (`html.vx-auto`) so the functional tests see settled layout; `window.__vxForce` turns it on for `tests/vx_experience.js`.
 - Signature themes keep their own world (no shared lights or grain) and move with `silk`.
+
+## Kits (round two)
+Each theme belongs to a family that gives it its own Call button, History and Pipeline rows, and a line-art motif behind the lead card's top-right corner (its own: a crown for Royal, a tree for Christmas, a football for Game Day, a reticle for Mission Control). The family is mirrored onto `<html data-vx-kit>` by vx.js the moment `data-theme` changes; the map is generated into the script from `build.py`.
+
+| Kit | Themes | Call button | Rows |
+| --- | --- | --- | --- |
+| ledger | money and luxury | engraved plate, caps | History as one ledger page with ruled lines; certificate frame on Pipeline cards |
+| neon | Miami nights | neon tube glow | glowing outcome rails, neon headings |
+| hud | terminals, tech | notched corners, spaced caps | numbered rows (01, 02...), clipped corner, mono headings |
+| arena | sports | italic caps with jersey stripes | caps names, full-height rail, scoreboard headings |
+| festive | holidays | stitched ribbon | star headings, outcome dot |
+| botanic | nature | full pill | rounder rows, seed dot |
+| studio | everyday, design styles | glossed | count pills on headings |
+| plain | Swiss, Editorial | theirs | outcome rail only |
+| none | bespoke and deliberately plain themes | theirs | theirs |
+
+Every kit adds an outcome rail to History rows (color = how the call ended) and a stage rail to Pipeline rows.
