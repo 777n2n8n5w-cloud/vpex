@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-01-24">
+<meta name="vpex-build" content="2027-01-25">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 /* Signature themes: six themes only the VPEX owner's own login can use (sig/*.css, sig.js).
@@ -51,6 +51,7 @@ window.VPEX_SIG = [
 <meta property="og:title" content="VPEX: the power dialer for sales floors">
 <meta property="og:description" content="Reps call from their own phones. VPEX handles the shared list, the follow-ups and a live scoreboard. 7 days free, no card.">
 <meta property="og:url" content="https://vpexdialer.com/">
+<link rel="canonical" href="https://vpexdialer.com/">
 <meta property="og:image" content="https://vpexdialer.com/vpex-og.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -7149,8 +7150,9 @@ window.VPEX_SIG = [
   .up-check { display: flex !important; align-items: center; gap: 10px; font-weight: 500 !important; }
   .up-check input { width: 20px; height: 20px; flex: none; }
   .lead-prog { margin: 10px 0 4px; }
+  .modal[tabindex="-1"]:focus { outline: none; }
   .lead-prog .lead-notes-label { display: flex; align-items: baseline; gap: 8px; }
-  .lead-prog-n { font-weight: 600; letter-spacing: 0; text-transform: none; opacity: 0.85; }
+  .lead-prog-n { font-weight: 600; letter-spacing: 0; text-transform: none; }
   .lead-prog-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 138px), 1fr)); gap: 0 12px; }
   .lead-prog-step { min-height: 44px; margin: 0 !important; font-size: 14px; color: var(--text-dim); cursor: pointer; min-width: 0; }
   .lead-prog-step span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
@@ -7847,6 +7849,18 @@ window.VPEX_SIG = [
   .demo-pill.with-trial span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .demo-pill.with-trial button { flex: none; white-space: nowrap; }
   .demo-pill button.demo-exit { background: transparent; color: #F9FAFB; box-shadow: inset 0 0 0 1px rgba(249, 250, 251, 0.45); margin-left: -4px; }
+  /* Touch screens: the small everyday buttons keep their look but answer a 44 px tap (an invisible frame around them,
+     kept inside the gap to the next button): top bar icons, list and history chips, Goal, + Add, the demo bar. */
+  @media (pointer: coarse) {
+    .icon-btn, .filter-chip, .goal-btn, #addTaskBtn, #vaultAddBtn, .demo-pill button { position: relative; }
+    .icon-btn::before, .filter-chip::before, .goal-btn::before, #addTaskBtn::before, #vaultAddBtn::before, .demo-pill button::before {
+      content: ""; position: absolute; inset: -5px -4px; border-radius: inherit; }
+    .filter-chip::before { inset: -5px -3px; }
+    .goal-btn::before { inset: -7px -3px; }
+    .filter-row { padding-bottom: 6px; }
+    .demo-pill button::before { inset: -4px -2px; }
+    @media (max-width: 360px) { .header-right .icon-btn::before { inset: -7px -2px; } }
+  }
   .cu-steps { margin: 0; padding-left: 20px; font-size: 13.5px; color: var(--text-dim); display: flex; flex-direction: column; gap: 6px; }
   .cu-steps b { color: var(--text); }
   .push-list { margin: 14px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
@@ -20610,6 +20624,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
           .replace(/<meta (?:property="og:|name="twitter:|name="description")[^>]*>\n?/g, "")
           .replace(/<link rel="(?:icon|apple-touch-icon)"[^>]*vpex-icon[^>]*>\n?/g, "")
           .replace(/<link rel="manifest"[^>]*>\n?/g, "")
+          .replace(/<link rel="canonical"[^>]*>\n?/g, "")
           .replace(/(<meta name="robots" content=")[^"]*/, function (m0, a) { return a + "noindex, nofollow"; }) + src.slice(hi);
         if (out.indexOf("var CUSTOMER = ") < 0 || out.length < src.length * 0.99) throw new Error("copy check");
         var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([out], { type: "text/html" })); a.download = "index.html";
@@ -23030,6 +23045,53 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       }
     });
 
+    // Sheets as dialogs: each one says it's a dialog (named by its heading), takes keyboard focus when it opens so
+    // keyboard and screen-reader users land inside it, keeps Tab inside the top one, and gives focus back to the
+    // button that opened it when it closes. Nothing changes for taps.
+    (function dialogs() {
+      var stack = [], seq = 0;
+      var FOC = 'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+      function box(ov) { return ov.querySelector(":scope > .modal") || ov.querySelector(":scope > [role=dialog]") || ov.firstElementChild || ov; }
+      function shown(el) { return !!(el && el.isConnected && el.getClientRects().length && getComputedStyle(el).visibility !== "hidden"); }
+      function opened(ov) {
+        var m = box(ov), back = document.activeElement;
+        if (!m.hasAttribute("role")) m.setAttribute("role", "dialog");
+        if (!m.hasAttribute("aria-modal")) m.setAttribute("aria-modal", "true");
+        if (!m.hasAttribute("aria-label") && (!m.getAttribute("aria-labelledby") || !document.getElementById(m.getAttribute("aria-labelledby")) || m.hasAttribute("data-dlg-lbl"))) {
+          var h = m.querySelector("h2, h3"); if (h) { if (!h.id) h.id = "dlgH" + (++seq); m.setAttribute("aria-labelledby", h.id); m.setAttribute("data-dlg-lbl", "1"); }
+        }
+        stack = stack.filter(function (x) { return x.ov !== ov; }); stack.push({ ov: ov, back: back });
+        setTimeout(function () {   // after the sheet has drawn and focused its own first field, if it does
+          if (!ov.classList.contains("show") || m.contains(document.activeElement)) return;
+          if (!m.hasAttribute("tabindex")) m.setAttribute("tabindex", "-1");
+          try { m.focus({ preventScroll: true }); } catch (e) {}
+        }, 90);
+      }
+      function closed(ov) {
+        var i = -1; stack.forEach(function (x, k) { if (x.ov === ov) i = k; }); if (i < 0) return;
+        var x = stack.splice(i, 1)[0], a = document.activeElement;
+        if ((!a || a === document.body || ov.contains(a)) && shown(x.back) && !(stack.length && !stack[stack.length - 1].ov.contains(x.back))) {
+          try { x.back.focus({ preventScroll: true }); } catch (e) {}
+        }
+      }
+      var mo = new MutationObserver(function (list) {
+        list.forEach(function (r) {
+          var ov = r.target, on = ov.classList.contains("show"), was = /(^|\s)show(\s|$)/.test(r.oldValue || "");
+          if (on && !was) opened(ov); else if (!on && was) closed(ov);
+        });
+      });
+      function watch() { document.querySelectorAll(".modal-overlay").forEach(function (ov) { if (ov.__dlg) return; ov.__dlg = 1; mo.observe(ov, { attributes: true, attributeFilter: ["class"], attributeOldValue: true }); }); }
+      watch(); setTimeout(watch, 3000);
+      document.addEventListener("keydown", function (e) {
+        if (e.key !== "Tab" || !stack.length) return;
+        var top = stack[stack.length - 1].ov; if (!top.classList.contains("show")) return;
+        var m = box(top), f = [].filter.call(m.querySelectorAll(FOC), shown); if (!f.length) return;
+        var a = document.activeElement, first = f[0], last = f[f.length - 1];
+        if (!m.contains(a)) { e.preventDefault(); first.focus(); }
+        else if (e.shiftKey && (a === first || a === m)) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && a === last) { e.preventDefault(); first.focus(); }
+      });
+    })();
     deskSetup();
     if (teamAvailable()) teamBoot();
     else if (fbShouldRetry()) fbRetryBoot(0);
