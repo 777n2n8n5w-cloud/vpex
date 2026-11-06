@@ -227,6 +227,9 @@ exports.sendFloor = onDocumentCreated({ document: "pushFloor/{id}", retry: false
   // keep two days of messages
   const old = await db.collection((office ? "offices/" + office + "/" : "") + "floor").where("at", "<", now - 2 * 86400000).limit(50).get().catch(function () { return null; });
   if (old) await Promise.all(old.docs.map(function (d) { return d.ref.delete().catch(function () {}); }));
+  // and a day of receipts
+  const oldR = await db.collection("pushFloorDone").where("at", "<", now - 86400000).limit(50).get().catch(function () { return null; });
+  if (oldR) await Promise.all(oldR.docs.map(function (d) { return d.ref.delete().catch(function () {}); }));
 });
 
 // ---------- morning summary ----------

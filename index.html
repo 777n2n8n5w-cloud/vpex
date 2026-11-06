@@ -8743,6 +8743,7 @@ window.VPEX_SIG = [
   .fl-note-b:empty::before { content: "Your message"; color: #888; }
   #floorSheet .fl-foot { position: sticky; bottom: -26px; z-index: 2; margin: 16px -20px -26px; padding: 12px 20px calc(16px + env(safe-area-inset-bottom, 0px));
     background: var(--surface); border-top: 1px solid var(--border); box-shadow: 0 -10px 24px -14px rgba(0,0,0,0.45); }
+  body.desk #floorSheet .fl-foot { bottom: -28px; margin: 18px -28px -28px; padding: 12px 28px 20px; }
   .fl-send { width: 100%; min-height: 50px; font-size: 16px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
   .fl-send svg { width: 19px; height: 19px; }
   .fl-send:disabled { opacity: 0.55; cursor: default; }
@@ -8753,6 +8754,18 @@ window.VPEX_SIG = [
   .fl-res.warn { border-color: color-mix(in srgb, var(--callback) 45%, var(--border)); }
   .fl-res .fl-off { margin-top: 6px; color: var(--text-dim); font-size: 13.5px; }
   .fl-res .fl-wait { color: var(--text-dim); }
+  .fl-track { margin: 0 0 14px; padding: 12px 14px; border-radius: var(--radius-m, 14px); border: 1px solid var(--border); background: var(--surface-raised); }
+  .fl-track.all { border-color: color-mix(in srgb, var(--interested) 45%, var(--border)); }
+  .fl-track-h { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; font-size: 13.5px; color: var(--text-dim); }
+  .fl-track-h b { font-size: 20px; color: var(--text); font-variant-numeric: tabular-nums; }
+  .fl-track.all .fl-track-h b { color: var(--interested); }
+  .fl-bar { height: 6px; margin: 8px 0 0; border-radius: 3px; background: color-mix(in srgb, var(--text) 10%, transparent); overflow: hidden; }
+  .fl-bar i { display: block; height: 100%; border-radius: 3px; background: var(--interested); transition: width 0.4s ease; }
+  .fl-track-on { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 9px 0 0; font-size: 13.5px; font-weight: 600; }
+  .fl-track-on small { font-weight: 500; color: var(--text-faint); }
+  .fl-track-off { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 9px; font-size: 13.5px; color: var(--text-dim); }
+  .fl-nudge { flex: none; min-height: 36px; padding: 6px 14px; border-radius: var(--pill-r, 999px); border: 1px solid var(--accent); background: none; color: var(--accent);
+    font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; }
   .fl-recent { margin-top: 18px; }
   .fl-recent-h { font-size: 13px; font-weight: 650; color: var(--text-dim); margin: 0 0 6px; }
   .fl-rec { display: flex; gap: 10px; width: 100%; align-items: baseline; padding: 9px 2px; border: 0; border-top: 1px solid var(--border); background: none; color: var(--text);
@@ -17113,6 +17126,7 @@ window.VPEX_SIG = [
       if (ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) { TEAM.renderPending = true; if (DESK && DESK.on) deskRenderLive(); return; }
       render();
       if (teamModalOpen()) renderTeamPanel();
+      if (document.getElementById("flTrack")) floorRenderTrack();
       var sm = document.getElementById("scoreModal");
       if (sm && sm.classList.contains("show")) renderScoreboard();
       var cm = document.getElementById("coachModal");
@@ -20283,6 +20297,11 @@ window.VPEX_SIG = [
     return a.slice(0, 3).join(", ") + " and " + (a.length - 3) + " others";
   }
 
+  function floorHubSub() {
+    var m = floorLatestMine(), tr = m && floorTrack(m);
+    if (tr && tr.people.length) return tr.on.length + " of " + tr.people.length + " dialing since your " + escapeHtml(floorTime(m.at)) + " message";
+    return floorPresets()[0] ? "“" + escapeHtml(floorPresets()[0]) + "” and more, straight to their phones" : "Straight to your reps’ phones";
+  }
   function openFloor(text) {
     if (!floorCan()) { showToast("Only admins and managers can message the floor", { kind: "warn" }); return; }
     FLOOR.editing = false; FLOOR.done = null; FLOOR.sending = false;
@@ -20296,6 +20315,7 @@ window.VPEX_SIG = [
     var presets = floorPresets(), people = floorPeople(), pick = FLOOR.to === "pick";
     el.innerHTML =
       '<h3>Message your floor</h3><p class="modal-sub">Goes straight to your reps’ phones, even when VPEX is closed.</p>' +
+      '<div id="flTrack" aria-live="polite"></div>' +
       (presets.length ? '<div class="fl-qh"><span class="fl-lab" id="flQLab">Quick messages</span><button type="button" class="fl-edit" id="flEdit">' + (FLOOR.editing ? 'Done editing' : 'Edit') + '</button></div>' : '') +
       '<div class="fl-presets' + (FLOOR.editing ? ' editing' : '') + '" role="group" aria-labelledby="flQLab">' +
         presets.map(function (p, i) {
@@ -20358,28 +20378,32 @@ window.VPEX_SIG = [
     document.querySelectorAll("#floorSheet [data-fl-p]").forEach(function (b) { b.classList.toggle("on", presets[Number(b.getAttribute("data-fl-p"))] === t); });
     document.getElementById("flSave").hidden = !t || n > FLOOR_MAX || presets.indexOf(t) >= 0 || presets.length >= 12;
     var label, ok = false;
-    var sentOk = FLOOR.done && FLOOR.done.status === "sent";
+    var sentOk = FLOOR.done && (FLOOR.done.status === "sent" || FLOOR.done.status === "pending");
     if (FLOOR.sending) label = "Sending…";
     else if (sentOk) { ok = true; label = "Done"; }
     else if (!t) label = "Write a message";
     else if (n > FLOOR_MAX) label = "Too long by " + (n - FLOOR_MAX);
-    else if (!targets.length) label = FLOOR.to === "pick" ? "Pick at least one rep" : "No reps to send to yet";
+    else if (!targets.length && FLOOR.to === "pick") label = "Pick at least one rep";
+    else if (!targets.length && isAdmin()) label = "No reps to send to yet";
+    else if (!targets.length) { ok = true; label = "Send to everyone"; }   // a manager before the team list has synced: the server knows who's on the floor
     else { ok = true; label = targets.length === 1 ? "Send to " + (firstName(targets[0].name) || "1 rep") : FLOOR.to === "pick" ? "Send to " + targets.length + " reps" : "Send to everyone (" + targets.length + ")"; }
     var sb = document.getElementById("flSend"); sb.disabled = !ok; sb.classList.toggle("fl-done", !!sentOk);
     document.getElementById("flSendL").textContent = label;
   }
 
   function floorSend() {
-    if (FLOOR.done && FLOOR.done.status === "sent" && !FLOOR.sending) { featClose(); return; }
+    if (FLOOR.done && (FLOOR.done.status === "sent" || FLOOR.done.status === "pending") && !FLOOR.sending) { featClose(); return; }
     var t = floorClean(FLOOR.text), targets = floorTargets();
-    if (!t || t.length > FLOOR_MAX || !targets.length || FLOOR.sending || !floorCan()) return;
+    if (!t || t.length > FLOOR_MAX || (!targets.length && (FLOOR.to === "pick" || isAdmin())) || FLOOR.sending || !floorCan()) return;
     FLOOR.sending = true; FLOOR.done = { status: "sending" }; floorSync(); floorShowResult();
     var id = TEAM.me.uid + "_" + Date.now().toString(36);
     var to = FLOOR.to === "pick" ? targets.map(function (m) { return m.uid; }) : [];
     if (DEMO) {   // the demo office has no real phones: show what would happen
       setTimeout(function () {
         var off = targets.length > 1 ? [targets[targets.length - 1].name] : [];
+        FLOOR.msgs.unshift({ id: id, by: TEAM.me.uid, byName: TEAM.me.name, body: t, to: to, at: Date.now() });
         floorFinish({ status: "sent", people: targets.length, reached: targets.length - off.length, off: off, demo: true });
+        floorRenderRecent();
         floorShowBanner({ byName: TEAM.me.name, body: t, at: Date.now() }, 0, true);
       }, 900);
       return;
@@ -20391,7 +20415,7 @@ window.VPEX_SIG = [
       floorFinish(d);
     }
     TEAM.db.collection("pushFloor").doc(id).set({ uid: TEAM.me.uid, office: TEAM.office || "", at: Date.now(), body: t, to: to }).then(function () {
-      timer = setTimeout(function () { end({ status: "pending" }); }, 25000);
+      timer = setTimeout(function () { if (!fin) { FLOOR.sending = false; FLOOR.done = { status: "pending" }; floorSync(); floorShowResult(); } timer = setTimeout(function () { end({ status: "pending" }); }, 105000); }, 15000);
       stop = TEAM.db.collection("pushFloorDone").doc(id).onSnapshot(function (snap) { if (snap && snap.exists) end(snap.data() || {}); }, function () { end({ status: "pending" }); });
       if (fin) setTimeout(function () { try { stop(); } catch (e) {} }, 0);
     }).catch(function (e) { pushLogErr(e); end({ status: "error" }); });
@@ -20433,7 +20457,51 @@ window.VPEX_SIG = [
     var h = floorResultText(d), tone = d.status === "sent" && d.reached ? "ok" : d.status === "pending" ? "" : "warn";
     r.innerHTML = '<div class="fl-res ' + tone + '"><b>' + escapeHtml(h[0]) + '</b>' + (h[1] ? '<span class="fl-off">' + escapeHtml(h[1]) + '</span>' : '') + '</div>';
   }
+  // Who's back on the phones since a message: calls each person logged after it went out.
+  var FLOOR_TRACK_MS = 3 * 3600000;
+  function floorAudience(m) {
+    var r = roster(), byUid = {}; r.forEach(function (p) { byUid[p.uid] = p; });
+    if (m.to && m.to.length) return m.to.map(function (u) { return byUid[u] || { uid: u, name: "" }; });
+    var others = r.filter(function (p) { return p.uid !== m.by; }), reps = others.filter(function (p) { return (p.role || "rep") === "rep"; });
+    return reps.length ? reps : others;
+  }
+  function floorTrack(m) {
+    var ppl = floorAudience(m), want = {}, n = {};
+    ppl.forEach(function (p) { want[p.uid] = true; n[p.uid] = 0; });
+    var log = state.callLog || [];
+    for (var i = log.length - 1; i >= 0; i--) {
+      var c = log[i], t = Date.parse(c.timestamp);
+      if (!(t >= m.at)) { if (t < m.at - 3600000) break; continue; }   // the log is in time order (a little slack for late saves)
+      var u = c.by && c.by.uid; if (u && want[u]) n[u]++;
+    }
+    var on = ppl.filter(function (p) { return n[p.uid] > 0; }).sort(function (a, b) { return n[b.uid] - n[a.uid]; }), off = ppl.filter(function (p) { return !n[p.uid]; });
+    return { people: ppl, on: on, off: off, n: n };
+  }
+  function floorLatestMine() {
+    var me = TEAM.me ? TEAM.me.uid : "", now = Date.now();
+    return FLOOR.msgs.filter(function (m) { return m.by === me && now - m.at < FLOOR_TRACK_MS; })[0] || null;
+  }
+  function floorRenderTrack() {
+    var el = document.getElementById("flTrack"); if (!el) return;
+    var m = floorLatestMine(); if (!m) { el.innerHTML = ""; return; }
+    var tr = floorTrack(m); if (!tr.people.length) { el.innerHTML = ""; return; }
+    var all = !tr.off.length, nm = function (p) { return escapeHtml(firstName(p.name) || "A rep"); };
+    el.innerHTML = '<div class="fl-track' + (all ? ' all' : '') + '"><div class="fl-track-h"><b>' + tr.on.length + ' of ' + tr.people.length + '</b><span>' +
+      (all ? 'back on the phones since your ' : 'dialing since your ') + escapeHtml(floorTime(m.at)) + ' message</span></div>' +
+      '<div class="fl-bar" aria-hidden="true"><i style="width:' + Math.round(100 * tr.on.length / tr.people.length) + '%"></i></div>' +
+      (tr.on.length ? '<p class="fl-track-on">' + tr.on.slice(0, 8).map(function (p) { return '<span>' + nm(p) + ' <small>' + tr.n[p.uid] + (tr.n[p.uid] === 1 ? ' call' : ' calls') + '</small></span>'; }).join("") + '</p>' : '') +
+      (tr.off.length ? '<div class="fl-track-off"><span>Not yet: ' + escapeHtml(floorNames(tr.off.map(function (p) { return p.name || "A rep"; }))) + '</span>' +
+        '<button type="button" class="fl-nudge" id="flNudge">Nudge ' + (tr.off.length === 1 ? nm(tr.off[0]) : 'them') + '</button></div>' : '') + '</div>';
+    var nb = document.getElementById("flNudge");
+    if (nb) nb.addEventListener("click", function () {
+      FLOOR.to = "pick"; FLOOR.pick = {}; tr.off.forEach(function (p) { FLOOR.pick[p.uid] = true; });
+      FLOOR.text = "Quick nudge: back on the phones! \uD83D\uDCDE"; FLOOR.done = null; FLOOR.editing = false;
+      renderFloor();
+      var ta = document.getElementById("flText"); if (ta) { ta.focus(); try { ta.setSelectionRange(ta.value.length, ta.value.length); } catch (e) {} }
+    });
+  }
   function floorRenderRecent() {
+    floorRenderTrack();
     var el = document.getElementById("flRecent"); if (!el) return;
     var me = TEAM.me ? TEAM.me.uid : "", now = Date.now();
     var list = FLOOR.msgs.filter(function (m) { return now - m.at < FLOOR_KEEP_MS; }).slice(0, 5);
@@ -20483,6 +20551,11 @@ window.VPEX_SIG = [
       if (!preview) { try { window.localStorage.setItem(floorKey("seen"), String(m.at)); } catch (e) {} }
       b.classList.remove("show");
     });
+    clearInterval(floorShowBanner.t);
+    if (!preview) floorShowBanner.t = setInterval(function () {
+      var sp = b.querySelector(".fb-h span"); if (!b.classList.contains("show") || !sp) { clearInterval(floorShowBanner.t); return; }
+      sp.textContent = floorAgo(m.at);
+    }, 30000);
     if (was) return;
     b.classList.remove("show"); void b.offsetWidth; b.classList.add("show");
     if (!preview && document.visibilityState === "visible") { try { if (navigator.vibrate) navigator.vibrate([70, 50, 70]); } catch (e) {} }
@@ -20580,7 +20653,7 @@ window.VPEX_SIG = [
       '<div class="hub-home" data-hub-view="home"><h3>Admin controls</h3>' +
       '<p class="modal-sub hub-who">Signed in as ' + escapeHtml(TEAM.me ? TEAM.me.name : "") + (admin ? ' (admin)' : '') + '. Only you see this.</p>' +
       (floorCan() ? '<button class="hub-floor" type="button" id="hubFloor"><span class="hub-ic">' + I('<path d="M3 10.5v3a1 1 0 0 0 1 1h2.5L15 19V5L6.5 9.5H4a1 1 0 0 0-1 1z"/><path d="M7 14.5l1.4 4.5h2.8l-1.1-3.6"/><path d="M18.5 9a4 4 0 0 1 0 6"/>') + '</span>' +
-        '<span><b>Message your floor</b><span>' + (floorPresets()[0] ? "“" + escapeHtml(floorPresets()[0]) + "” and more, straight to their phones" : "Straight to your reps’ phones") + '</span></span><span class="hub-go" aria-hidden="true">›</span></button>' : '') +
+        '<span><b>Message your floor</b><span>' + floorHubSub() + '</span></span><span class="hub-go" aria-hidden="true">›</span></button>' : '') +
       (needs.length ? '<div class="hub-needs"><div class="hub-needs-h">Needs you</div>' +
         needs.map(function (n) { return '<button class="hub-need" type="button" data-hub-go="' + n[0] + '"><span>' + n[1] + '</span><span class="hub-go" aria-hidden="true">›</span></button>'; }).join("") + '</div>' : '') +
       grid +

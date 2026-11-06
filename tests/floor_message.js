@@ -191,6 +191,24 @@ check('message: as a phone notification', fm.webpush.notification.title === 'Fro
     check('admin: no banner for my own message' + tag, await ev(page, () => !document.getElementById('floorBanner').classList.contains('show')));
     await ev(page, () => document.getElementById('flSend').click()); await page.waitForTimeout(300);
     check('admin: Done closes the sheet' + tag, await ev(page, () => !document.getElementById('featModal').classList.contains('show')));
+    // who's back on the phones since the message
+    await ev(page, () => document.getElementById('adminBtn').click()); await page.waitForTimeout(300);
+    check('admin: hub card shows progress' + tag, /0 of 1 dialing since your/.test(await ev(page, () => document.getElementById('hubFloor').innerText)), await ev(page, () => document.getElementById('hubFloor').innerText));
+    await ev(page, () => document.getElementById('hubFloor').click()); await page.waitForTimeout(300);
+    let tk = await ev(page, () => (document.querySelector('.fl-track') || {}).innerText || '');
+    check('admin: tracker: 0 of 1, Sam not yet, Nudge Sam' + tag, /0 of 1/.test(tk) && /Not yet: Sam/.test(tk) && /Nudge Sam/.test(tk), tk);
+    await ev(page, () => document.getElementById('flNudge').click()); await page.waitForTimeout(200);
+    check('admin: Nudge picks the ones not dialing, with a nudge message' + tag, (await label(page)).t === 'Send to Sam' && await ev(page, () => /^Quick nudge/.test(document.getElementById('flText').value) && document.querySelectorAll('#floorSheet [data-fl-u]:checked').length === 1));
+    const ts = Date.now() + 2000, dk = new Date(ts).toISOString().slice(0, 10) + '_r1_' + String(new Date(ts).getUTCHours()).padStart(2, '0');
+    await ev(page, () => document.activeElement && document.activeElement.blur());
+    await serverWrite(page, { ['offices/acme/callDays/' + dk]: { calls: {
+      k1: { leadId: 'L1', name: 'Ann Lee', outcomeKey: 'noanswer', outcome: 'No answer', timestamp: new Date(ts).toISOString(), by: { uid: 'r1', name: 'Sam Rep' } },
+      k2: { leadId: 'L2', name: 'Bo Diaz', outcomeKey: 'interested', outcome: 'Interested', timestamp: new Date(ts + 1000).toISOString(), by: { uid: 'r1', name: 'Sam Rep' } } } } });
+    await page.waitForTimeout(900);
+    tk = await ev(page, () => (document.querySelector('.fl-track') || {}).innerText || '');
+    check('admin: tracker updates live: 1 of 1 back on the phones, Sam 2 calls' + tag, /1 of 1/.test(tk) && /back on the phones/.test(tk) && /Sam\s*2 calls/.test(tk) && !/Not yet/.test(tk), tk);
+    if (process.env.SHOTS) await page.screenshot({ path: process.env.SHOTS + '/floor_track2_' + c.w + '.png' });
+    await ev(page, () => document.getElementById('featClose').click()); await page.waitForTimeout(200);
     // a receipt for a busy office
     await ev(page, () => { document.getElementById('adminBtn').click(); document.getElementById('hubFloor').click(); }); await page.waitForTimeout(300); await typeMsg(page, 'Again');
     await ev(page, () => document.getElementById('flSend').click()); await page.waitForTimeout(300);
@@ -253,6 +271,13 @@ check('message: as a phone notification', fm.webpush.notification.title === 'Fro
     const mr = Object.keys(d).filter(k => k.startsWith('pushFloor/m1_'));
     check('manager: request goes out to everyone (empty list)' + tag, mr.length === 1 && JSON.stringify(d[mr[0]].to) === '[]');
     check('manager: no page errors' + tag, !errs.length, errs);
+    await ctx.close();
+    // a manager before the admin's team list has synced: can still send to everyone
+    const dbn = db0(); delete dbn['offices/acme/leadChunks/_team'];
+    ({ ctx, page, errs } = await signIn(c, 'm1', 'lee@acme.vpex.app', dbn));
+    await ev(page, () => { document.getElementById('adminBtn').click(); document.getElementById('hubFloor').click(); }); await page.waitForTimeout(300);
+    check('manager without the team list: Send to everyone still works' + tag, JSON.stringify(await label(page)) === '{"t":"Send to everyone","off":false}', await label(page));
+    check('manager without the team list: no page errors' + tag, !errs.length, errs);
     await ctx.close();
   }
 
