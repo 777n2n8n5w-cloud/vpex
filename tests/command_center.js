@@ -112,6 +112,9 @@ const GH = { workflow_runs: [
     check('needs: late interested follow-up' + tag, has(/1 interested follow-up is over a day late/, 'warn'));
     check('needs: a planned post missed' + tag, has(/1 planned post didn't go out this week/, 'warn'));
     check('needs: Instagram brings signups' + tag, has(/Instagram brings your signups/, 'opp'));
+    check('needs: list running dry (2 fresh leads, ~17 calls an hour)' + tag, has(/^Only 2 fresh leads left$/, 'alert'), items.map(i => i.t));
+    check('needs: a deal with no follow-up booked (Amelia, Qualified)' + tag, has(/^1 deal has no follow-up booked$/, 'warn'));
+    check('needs: that card opens the lead' + tag, await ev(page, () => { const li = [...document.querySelectorAll('#cx-needs .cx-in')].find(x => /no follow-up booked/.test(x.innerText)); const b = li && li.querySelector('[data-open-lead]'); return !!b && /Open Amelia/.test(b.innerText); }));
     check('needs: ranked alert, warn, opportunity, info' + tag, items.map(i => ({ alert: 0, warn: 1, opp: 2, info: 3 })[i.sev]).every((v, i, a) => !i || a[i - 1] <= v));
     check('needs: the declined card has a ready text to the office owner' + tag, await ev(page, () => { const li = [...document.querySelectorAll('#cx-needs .cx-in')].find(x => /card declined/.test(x.innerText)); const a = li && li.querySelector('a.cx-b'); return !!a && /^sms:\(?/.test(a.getAttribute('href')) && /didn't%20go%20through|didn%27t%20go%20through/.test(a.getAttribute('href')); }));
     await ev(page, () => document.querySelector('[data-cx-f="money"]').click()); await page.waitForTimeout(200);
@@ -120,7 +123,7 @@ const GH = { workflow_runs: [
     const before = items.length;
     await ev(page, () => { const li = [...document.querySelectorAll('#cx-needs .cx-in')].find(x => /Quiet Co/.test(x.innerText)); li.querySelector('[data-cx-snooze]').click(); }); await page.waitForTimeout(300);
     check('needs: Later hides it until tomorrow' + tag, await ev(page, () => ![...document.querySelectorAll('#cx-needs .cx-in')].some(x => /Quiet Co/.test(x.innerText))) && await ev(page, () => document.querySelectorAll('#cx-needs .cx-in').length) === before - 1);
-    check('status line: urgent, needs you, ideas' + tag, /^2 urgent · 7 need you · 3 ideas$/.test(await txt(page, '#cxStatus')), await txt(page, '#cxStatus'));
+    check('status line: urgent, needs you, ideas' + tag, /^3 urgent · 9 need you · 3 ideas$/.test(await txt(page, '#cxStatus')), await txt(page, '#cxStatus'));
     // a one-tap fix: +7 trial days for Acme, from the trial-ending card
     await ev(page, () => { const li = [...document.querySelectorAll('#cx-needs .cx-in')].find(x => /Acme Auto Sales: trial ends/.test(x.innerText)); [...li.querySelectorAll('button')].find(b => /\+7 trial days/.test(b.innerText)).click(); }); await page.waitForTimeout(700);
     let d = await fs(page);
@@ -129,15 +132,40 @@ const GH = { workflow_runs: [
     // ---- your floor ----
     const reps = await ev(page, () => [...document.querySelectorAll('#cx-floor .cx-reps .cx-tr:not(.cx-th)')].map(r => r.innerText.replace(/\s+/g, ' ').trim()));
     check('floor: Mia dialing (30 calls, 8 talked, 4 interested), Sam idle, Jordan not started' + tag, /^Mia Chen Dialing 30 8 4/.test(reps[0] || '') && /^Sam Ortiz Idle 8 1 0/.test(reps[1] || '') && /^Jordan Lee Not started 0 0 0/.test(reps[2] || ''), reps);
+    check('floor: hour-by-hour chart, 8a to 8p, with yesterday' + tag, await ev(page, () => document.querySelectorAll('#cx-floor .cx-hr').length === 13 && !!document.querySelector('#cx-floor .cx-hr.now')));
+    check('floor: pace projection for the day' + tag, /ends around\s*\d+ calls\s*by 6 PM/.test(await txt(page, '#cx-floor .cx-pace')), await txt(page, '#cx-floor .cx-pace'));
+    await ev(page, () => document.querySelector('[data-cx-range="week"]').click()); await page.waitForTimeout(200);
+    check('floor: This week shows the week (no hourly chart), status stays live' + tag, await ev(page, () => !document.querySelector('#cx-floor .cx-hours') && /this week/.test(document.querySelector('#cx-floor .cx-mini').innerText) && /Dialing/.test(document.querySelector('#cx-floor .cx-reps').innerText)));
+    await ev(page, () => document.querySelector('[data-cx-range="today"]').click()); await page.waitForTimeout(200);
+    await ev(page, () => document.querySelector('#cx-floor [data-cx-rep="r1"]').click()); await page.waitForTimeout(300);
+    if (process.env.SHOTS) await page.screenshot({ path: process.env.SHOTS + '/cmd_' + c.n + '_rep.png' });
+    const rd = await txt(page, '#featModalBody');
+    check('rep: drill-down (30 calls today, outcomes, latest calls, message button)' + tag, /Mia Chen/.test(rd) && /30\s*calls today/.test(rd) && /Latest calls/.test(rd) && /Message Mia/.test(rd), rd.slice(0, 400));
+    await ev(page, () => document.getElementById('featClose').click()); await page.waitForTimeout(150);
     check('floor: pipeline $50,000 committed' + tag, /\$50,000\s*committed/.test(await txt(page, '#cx-floor .cx-pipe')), await txt(page, '#cx-floor .cx-pipe'));
     await ev(page, () => { const r = [...document.querySelectorAll('#cx-floor .cx-reps .cx-tr')].find(x => /Sam Ortiz/.test(x.innerText)); r.querySelector('button').click(); }); await page.waitForTimeout(500);
     check('floor: Nudge opens Message your floor for Sam, on top of Command' + tag, await ev(page, () => { const m = document.getElementById('featModal'); const lab = document.getElementById('flSendL'); const r = document.getElementById('flText').getBoundingClientRect(); const top = document.elementFromPoint(r.left + 10, r.top + 10); return m.classList.contains('show') && lab && lab.textContent === 'Send to Sam' && !!top && !!top.closest('#featModal'); }));
     await ev(page, () => document.getElementById('featClose').click()); await page.waitForTimeout(200);
     // ---- offices ----
     await ev(page, () => { const i = document.getElementById('cxOffQ'); i.focus(); i.value = 'harb'; i.dispatchEvent(new Event('input', { bubbles: true })); }); await page.waitForTimeout(200);
-    check('offices: search narrows to Harbor and keeps typing focus' + tag, await ev(page, () => { const n = [...document.querySelectorAll('#cx-offices .cx-off')].map(x => x.querySelector('b').innerText); return n.length === 1 && n[0] === 'Harbor Insurance' && document.activeElement && document.activeElement.id === 'cxOffQ'; }));
+    check('offices: search narrows to Harbor and keeps typing focus' + tag, await ev(page, () => { const n = [...document.querySelectorAll('#cx-offices .cx-off')].map(x => x.querySelector('.cx-off-name').innerText); return n.length === 1 && n[0] === 'Harbor Insurance' && document.activeElement && document.activeElement.id === 'cxOffQ'; }));
     await ev(page, () => { const i = document.getElementById('cxOffQ'); i.value = ''; i.dispatchEvent(new Event('input', { bubbles: true })); i.blur(); }); await page.waitForTimeout(200);
     check('offices: 4 offices with money row' + tag, await ev(page, () => document.querySelectorAll('#cx-offices .cx-off').length === 4) && /At risk\s*\$245/.test(await txt(page, '#cx-offices .cx-money')));
+    // ---- office drill-down, and money changes ask first ----
+    await ev(page, () => document.querySelector('[data-cx-open-office="quietco"]').click()); await page.waitForTimeout(300);
+    if (process.env.SHOTS) await page.screenshot({ path: process.env.SHOTS + '/cmd_' + c.n + '_office.png' });
+    const od = await txt(page, '#featModalBody');
+    check('office: drill-down with money, people, billing and ready texts' + tag, /Quiet Co Realty/.test(od) && /\$98\s*a month at \$49 a rep/.test(od) && /People/.test(od) && /Pat Moss/.test(od) && /Billing/.test(od) && /Check-in/.test(od), od.slice(0, 500));
+    const pt0 = (await fs(page))['offices/quietco'].paidThrough;
+    await ev(page, () => document.querySelector('[data-cxd="paid"]').click()); await page.waitForTimeout(300);
+    check('office: +1 month paid asks first' + tag, await ev(page, () => document.getElementById('confirmModal').classList.contains('show')) && (await fs(page))['offices/quietco'].paidThrough === pt0);
+    await ev(page, () => document.getElementById('confirmOkBtn').click()); await page.waitForTimeout(900);
+    check('office: confirmed, a month added' + tag, (await fs(page))['offices/quietco'].paidThrough > pt0 + 25 * DAY);
+    await ev(page, () => document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'))); await page.waitForTimeout(200);
+    // ---- pulse ----
+    const pu = await txt(page, '#cx-pulse');
+    check('pulse: interested calls, who started dialing, the new signup' + tag, /Mia: interested/.test(pu) && /Mia started dialing/.test(pu) && /Sam started dialing/.test(pu) && /New signup: Newco Solar/.test(pu), pu.slice(0, 600));
+    check('pulse: office changes made while open show up (trial extended, paid)' + tag, /Acme Auto Sales: trial extended/.test(pu) && /Quiet Co Realty paid/.test(pu), pu.slice(0, 600));
     // ---- growth ----
     const g = await txt(page, '#cx-growth');
     check('growth: funnel 200 visits, 35 demos, 12 trial forms, 4 signups' + tag, /Visits\s*200/.test(g) && /Opened the demo\s*35/.test(g) && /Opened the trial form\s*12/.test(g) && /Signed up\s*4/.test(g), g.slice(0, 300));
@@ -188,18 +216,29 @@ const GH = { workflow_runs: [
     check('rules: owner can read learnings, not the Instagram key, and can\'t write the funnel' + tag, sec.token === 'permission-denied' && sec.learn === 'ok' && sec.writeGrowth === 'permission-denied', sec);
     check('nothing in the page shows the key' + tag, !(await ev(page, () => document.body.innerText.includes('NEVER-SHOW-THIS'))));
     // ---- layout ----
-    const lay = await ev(page, () => { const r = document.getElementById('cmd'); return { over: r.scrollWidth - r.clientWidth, wide: [...r.querySelectorAll('.cx-p')].filter(p => !p.hidden).every(p => p.getBoundingClientRect().right <= innerWidth + 1) }; });
-    check('layout: no sideways scroll, every panel on screen' + tag, lay.over <= 0 && lay.wide, lay);
+    const lay = await ev(page, () => { const r = document.getElementById('cmd'); return { over: r.scrollWidth - r.clientWidth, wide: [...r.querySelectorAll('.cx-p')].filter(p => !p.hidden).every(p => p.getBoundingClientRect().right <= innerWidth + 1), full: [...r.querySelectorAll('.cx-p')].filter(p => !p.hidden).every(p => p.getBoundingClientRect().width > 300 && p.getBoundingClientRect().height > 80) }; });
+    check('layout: no sideways scroll, every panel on screen at full size' + tag, lay.over <= 0 && lay.wide && lay.full, lay);
     await ev(page, () => { document.getElementById('cmd').scrollTop = 0; }); await page.waitForTimeout(150);
     if (c.n === 'desktop') check('layout: Needs you sits beside the panels on a computer' + tag, await ev(page, () => { const n = document.getElementById('cx-needs').getBoundingClientRect(), m = document.querySelector('.cx-main').getBoundingClientRect(); return n.left > m.right - 1 && Math.abs(n.top - m.top) < 4; }));
     if (process.env.SHOTS) {
       await ev(page, () => { document.getElementById('cmd').scrollTop = 0; }); await page.waitForTimeout(200);
       await page.screenshot({ path: process.env.SHOTS + '/cmd_' + c.n + '_top.png' });
-      for (const k of ['floor', 'offices', 'growth', 'content', 'controls']) {
+      for (const k of ['floor', 'offices', 'pulse', 'growth', 'content', 'controls']) {
         await ev(page, (k) => { const r = document.getElementById('cmd'), el = document.getElementById('cx-' + k); r.scrollTop = el.offsetTop - (innerWidth < 1100 ? 112 : 76); }, k); await page.waitForTimeout(150);
         await page.screenshot({ path: process.env.SHOTS + '/cmd_' + c.n + '_' + k + '.png' });
       }
     }
+    // ---- revenue goal, share, offline ----
+    await ev(page, () => document.getElementById('cxCustom').click()); await page.waitForTimeout(200);
+    await ev(page, () => { document.getElementById('cxGoal').value = '1000'; document.getElementById('cxCustSave').click(); }); await page.waitForTimeout(300);
+    const bg = await txt(page, '#cx-brief');
+    check('goal: brief and revenue tile track it' + tag, /\$343 a month/.test(bg) && /34% of your \$1,000 monthly goal/.test(bg) && /34% of \$1,000 goal/.test(bg) && await ev(page, () => !!document.querySelector('#cx-brief .cx-goal i')), bg.slice(0, 300));
+    await ev(page, () => document.querySelector('[data-cx-share]').click()); await page.waitForTimeout(300);
+    check('share: the brief is copied (or shared)' + tag, /Brief copied/.test(await txt(page, '#toast')) || await ev(page, () => !!navigator.share));
+    await ctx.setOffline(true); await ev(page, () => window.dispatchEvent(new Event('offline'))); await page.waitForTimeout(400);
+    check('offline: says so and keeps what was loaded' + tag, /Offline · showing what was loaded/.test(await txt(page, '#cxStatus')) && /\$343/.test(await txt(page, '#cx-brief')));
+    await ctx.setOffline(false); await ev(page, () => window.dispatchEvent(new Event('online'))); await page.waitForTimeout(600);
+    check('back online: status returns' + tag, !/Offline/.test(await txt(page, '#cxStatus')));
     // ---- customize ----
     await ev(page, () => document.getElementById('cxCustom').click()); await page.waitForTimeout(200);
     await ev(page, () => { document.querySelector('[data-cx-show="growth"]').click(); document.getElementById('cxCustSave').click(); }); await page.waitForTimeout(300);
@@ -225,6 +264,65 @@ const GH = { workflow_runs: [
     check('office admin: no Command Center in Admin controls' + tag, await ev(page, () => !document.getElementById('hubCmd')));
     check('office admin: no page errors' + tag, !errs.length, errs);
     await ctx.close();
+  }
+  // ---- stress and edge cases (phone) ----
+  {
+    const c = { w: 390, n: 'phone' };
+    // 150 offices, a 25-rep floor with 2,500 calls today, and names that try to inject code
+    const big = seed(), XSS = '<img src=x onerror="window.__xss=1">';
+    for (let i = 0; i < 150; i++) {
+      const id = 'o' + String(i).padStart(3, '0');
+      big['offices/' + id] = { name: i === 7 ? XSS : 'Office ' + i, industry: 'insurance', ownerUid: id + 'a', createdAt: NOW - (30 + i) * DAY, plan: i % 3 ? 'paid' : 'trial', paidThrough: NOW + 10 * DAY, trialEnds: NOW + (i % 9) * DAY, invite: 'abc123xyz', locked: false };
+      big['offices/' + id + '/members/' + id + 'a'] = { username: 'boss', name: i === 7 ? XSS : 'Boss ' + i, role: 'admin', active: true, lastSeen: NOW - i * 60000 };
+      for (let k = 0; k < 4; k++) big['offices/' + id + '/members/' + id + 'r' + k] = { name: 'R', role: 'rep', active: true };
+    }
+    const calls = {};
+    for (let r = 0; r < 25; r++) { big['members/b' + r] = { username: 'u' + r, name: r === 3 ? XSS : 'Rep ' + r, role: 'rep', active: true };
+      for (let i = 0; i < 100; i++) { const ts = NOW - (r + i * 3) * 60000; calls['b' + r + '_' + i] = { leadId: 'L' + i, name: 'Lead ' + i, outcomeKey: i % 10 ? 'noanswer' : 'interested', timestamp: iso(ts), by: { uid: 'b' + r, name: r === 3 ? XSS : 'Rep ' + r } }; } }
+    const byDoc = {}; Object.keys(calls).forEach(k => { const x = calls[k], d = new Date(x.timestamp); const key = d.toISOString().slice(0, 10) + '_' + x.by.uid + '_' + String(d.getUTCHours()).padStart(2, '0'); (byDoc[key] = byDoc[key] || {})[k] = x; });
+    Object.keys(byDoc).forEach(k => { big['callDays/' + k] = { calls: byDoc[k] }; });
+    let { ctx, page, errs } = await open(c, OWNER, big);
+    const t0 = Date.now();
+    await ev(page, () => document.getElementById('cmdBtn').click());
+    await page.waitForFunction(() => document.querySelectorAll('#cx-offices .cx-off').length > 0, null, { timeout: 30000 }).catch(() => {});
+    const loadMs = Date.now() - t0;
+    check('big: 154 offices load (' + loadMs + ' ms)' + ' (big)', /Offices\s*154/.test(await txt(page, '#cx-offices')), (await txt(page, '#cx-offices')).slice(0, 80));
+    const renderMs = await ev(page, () => { const t = performance.now(); document.querySelector('[data-cx-range="week"]').click(); document.querySelector('[data-cx-range="today"]').click(); return Math.round((performance.now() - t) / 2); });
+    check('big: a full redraw stays quick (' + renderMs + ' ms)', renderMs < 400, renderMs);
+    check('big: 2,538 calls on the floor today' + ' (big)', /2,538 calls today/.test(await txt(page, '#cx-brief')), (await txt(page, '#cx-brief')).slice(0, 200));
+    check('big: floor list shows 10, then all' + ' (big)', await ev(page, () => document.querySelectorAll('#cx-floor .cx-reps .cx-tr:not(.cx-th)').length === 10));
+    await ev(page, () => document.querySelector('[data-cx-allreps]').click()); await page.waitForTimeout(150);
+    check('big: Show all reps' + ' (big)', await ev(page, () => document.querySelectorAll('#cx-floor .cx-reps .cx-tr:not(.cx-th)').length === 28));
+    await ev(page, () => document.getElementById('cxSearch').click()); await page.waitForTimeout(100); await page.keyboard.type('img'); await page.waitForTimeout(200);
+    await ev(page, () => { [...document.querySelectorAll('#cx-offices .cx-off-name')].forEach(b => { if (/img/.test(b.textContent)) b.click(); }); }); await page.waitForTimeout(300);
+    check('big: names with code in them show as plain text, never run' + ' (big)', await ev(page, () => window.__xss === undefined && /<img src=x/.test(document.body.innerText)));
+    await page.keyboard.press('Escape');
+    check('big: no page errors' + ' (big)', !errs.length, errs.slice(0, 3));
+    await ctx.close();
+
+    // before the rules change is approved, and with GitHub unreachable
+    const ctx2 = await br.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, timezoneId: 'America/New_York' });
+    await ctx2.addInitScript(() => { window.__mockDeny = '^(growth|igBot)'; });
+    const p2 = await ctx2.newPage(); const e2 = []; p2.on('pageerror', e => e2.push(e.message));
+    await p2.clock.install({ time: new Date(NOW) });
+    await p2.route(/gstatic\.com\/firebasejs|fonts\.googleapis/, r => r.abort());
+    await p2.route(/api\.github\.com/, r => r.fulfill({ status: 503, body: '' }));
+    await p2.goto(BASE + '#mockbench'); await p2.waitForTimeout(500);
+    await p2.evaluate(([db]) => { localStorage.clear(); localStorage.setItem('vpex_mockbench', '1'); localStorage.setItem('__mockfs', JSON.stringify(db));
+      localStorage.setItem('__mockauth', JSON.stringify({ 'vincent@dovetail-f863c.firebaseapp.com': { uid: 'vOwn', pw: 'testpass1' } }));
+      sessionStorage.setItem('__mocksess', JSON.stringify({ uid: 'vOwn', email: 'vincent@dovetail-f863c.firebaseapp.com' })); }, [seed()]);
+    await p2.goto(BASE + '?go=1#command'); await p2.waitForTimeout(4200);
+    check('not approved yet: Growth explains the one switch' + ' (locked)', /Needs one switch from you/.test(await txt(p2, '#cx-growth')), await txt(p2, '#cx-growth'));
+    check('not approved yet: Content still shows the plan, results explained' + ' (locked)', /Up next/.test(await txt(p2, '#cx-content')) && /Needs one switch from you/.test(await txt(p2, '#cx-content')));
+    check('not approved yet: everything else works (offices, floor)' + ' (locked)', /\$343/.test(await txt(p2, '#cx-brief')) && /Mia Chen/.test(await txt(p2, '#cx-floor')));
+    check('GitHub down: Systems says so, rest fine' + ' (locked)', /Couldn’t reach GitHub/.test(await txt(p2, '#cx-systems')), await txt(p2, '#cx-systems'));
+    // sign out with Command open: nothing of it stays
+    await p2.evaluate(() => { document.getElementById('menuBtn').click(); }); await p2.waitForTimeout(200);
+    await p2.evaluate(() => { document.getElementById('signOutBtn').click(); }); await p2.waitForTimeout(200);
+    await p2.evaluate(() => document.getElementById('confirmOkBtn').click()); await p2.waitForTimeout(1500);
+    check('sign out: Command is gone from the page' + ' (locked)', await p2.evaluate(() => { const r = document.getElementById('cmd'); return !r || (r.hidden && !r.innerHTML); }));
+    check('no page errors' + ' (locked)', !e2.length, e2.slice(0, 3));
+    await ctx2.close();
   }
   await br.close();
   console.log(`command_center: ${pass} passed, ${fail} failed`);

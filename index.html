@@ -8718,10 +8718,10 @@ window.VPEX_SIG = [
   .cx-id > div { min-width: 0; }
   .cx-id b { display: block; font-family: 'Archivo', 'IBM Plex Sans', sans-serif; font-stretch: 112%; font-weight: 750; font-size: 18px; letter-spacing: 0.01em; line-height: 1.1; }
   .cx-id span#cxStatus { display: block; font-size: 12.5px; color: var(--x-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .cx-pulse { position: relative; width: 12px; height: 12px; border-radius: 50%; background: var(--x-good); flex: none; box-shadow: 0 0 0 4px rgba(65, 214, 155, 0.16); }
-  .cx-pulse::after { content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid currentColor; color: var(--x-good); opacity: 0; animation: cxPing 2.4s ease-out infinite; }
-  .cx-pulse[data-state="warn"] { background: var(--x-warn); box-shadow: 0 0 0 4px rgba(255, 181, 71, 0.16); } .cx-pulse[data-state="warn"]::after { color: var(--x-warn); }
-  .cx-pulse[data-state="alert"] { background: var(--x-bad); box-shadow: 0 0 0 4px rgba(255, 94, 112, 0.18); } .cx-pulse[data-state="alert"]::after { color: var(--x-bad); animation-duration: 1.4s; }
+  .cx-dot { position: relative; width: 12px; height: 12px; border-radius: 50%; background: var(--x-good); flex: none; box-shadow: 0 0 0 4px rgba(65, 214, 155, 0.16); }
+  .cx-dot::after { content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid currentColor; color: var(--x-good); opacity: 0; animation: cxPing 2.4s ease-out infinite; }
+  .cx-dot[data-state="warn"] { background: var(--x-warn); box-shadow: 0 0 0 4px rgba(255, 181, 71, 0.16); } .cx-dot[data-state="warn"]::after { color: var(--x-warn); }
+  .cx-dot[data-state="alert"] { background: var(--x-bad); box-shadow: 0 0 0 4px rgba(255, 94, 112, 0.18); } .cx-dot[data-state="alert"]::after { color: var(--x-bad); animation-duration: 1.4s; }
   @keyframes cxPing { 0% { transform: scale(0.6); opacity: 0.7; } 100% { transform: scale(1.6); opacity: 0; } }
   .cx-search { flex: 1; min-width: 0; max-width: 520px; margin: 0 auto; display: flex; align-items: center; gap: 9px; min-height: 40px; padding: 0 12px; border-radius: 11px;
     border: 1px solid var(--x-line2); background: var(--x-panel); color: var(--x-dim); cursor: pointer; text-align: left; }
@@ -8886,6 +8886,49 @@ window.VPEX_SIG = [
   .cx-pal .cx-pal-none { color: var(--x-dim); cursor: default; }
   .cx-pal-hint { margin: 0; padding: 8px 14px; border-top: 1px solid var(--x-line); font-size: 12px; color: var(--x-faint); }
   .cx-cust .up-check { display: flex; margin: 8px 0; }
+  .cx-dot[data-state="off"] { background: var(--x-faint); box-shadow: none; } .cx-dot[data-state="off"]::after { animation: none; }
+  .cx-brief-a { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .cx-goal { display: block; width: 100%; height: 5px; margin: 6px 0 2px; border-radius: 3px; background: rgba(255, 255, 255, 0.07); overflow: hidden; }
+  .cx-goal i { display: block; height: 100%; border-radius: 3px; background: var(--x-good); }
+  .cx-seg { display: inline-flex; margin-left: auto; border: 1px solid var(--x-line2); border-radius: 999px; padding: 2px; }
+  .cx-seg button { min-height: 28px; padding: 3px 11px; border: 0; border-radius: 999px; background: none; cursor: pointer; font-size: 12.5px; font-weight: 650; color: var(--x-dim); }
+  .cx-seg button.on { background: var(--x-text); color: var(--x-bg); }
+  .cx-hours { display: grid; grid-template-columns: repeat(13, minmax(0, 1fr)); gap: 4px; align-items: end; height: 92px; margin: 0 0 4px; }
+  .cx-hr { display: flex; flex-direction: column; align-items: stretch; height: 100%; min-width: 0; }
+  .cx-hb { position: relative; flex: 1; border-radius: 4px; background: rgba(255, 255, 255, 0.03); display: flex; align-items: flex-end; }
+  .cx-hb i { display: block; width: 100%; border-radius: 4px; background: var(--x-sig); min-height: 0; }
+  .cx-hr.now .cx-hb i { background: var(--x-good); }
+  .cx-hb em { position: absolute; left: 12%; right: 12%; height: 2px; border-radius: 1px; background: var(--x-warn); opacity: 0.9; }
+  .cx-hr span { margin-top: 3px; text-align: center; font-size: 10.5px; color: var(--x-faint); font-variant-numeric: tabular-nums; }
+  .cx-hr.now span { color: var(--x-text); font-weight: 700; }
+  .cx-legend { display: flex; align-items: center; gap: 6px; margin: 2px 0 10px; font-size: 11.5px; color: var(--x-faint); }
+  .cx-legend i { width: 10px; height: 10px; border-radius: 2px; background: var(--x-sig); } .cx-legend em { width: 12px; height: 2px; margin-left: 8px; background: var(--x-warn); }
+  .cx-pace { margin: 0 0 12px; font-size: 13px; color: var(--x-dim); } .cx-pace b { color: var(--x-text); }
+  .cx-tr-go { cursor: pointer; } .cx-tr-go:hover { background: rgba(255, 255, 255, 0.025); }
+  .cx-off-name { display: block; max-width: 100%; padding: 0; border: 0; background: none; cursor: pointer; font-weight: 700; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cx-off-name:hover { color: var(--x-sig); }
+  .cx-pulse-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; max-height: 420px; overflow-y: auto; }
+  .cx-pulse-list li { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 8px 0; border-top: 1px solid var(--x-line); }
+  .cx-pulse-list li:first-child { border-top: 0; }
+  .cx-pulse-list i { width: 26px; height: 26px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-style: normal; font-size: 12.5px; font-weight: 800; background: var(--x-panel2); color: var(--x-dim); }
+  .cx-pulse-list .pk-win i { color: var(--x-good); } .cx-pulse-list .pk-money i { color: var(--x-sig); } .cx-pulse-list .pk-alert i { color: var(--x-bad); } .cx-pulse-list .pk-msg i { color: var(--x-opp); }
+  .cx-pulse-list b { display: block; font-size: 13.5px; font-weight: 600; overflow-wrap: anywhere; } .cx-pulse-list span { display: block; font-size: 12.5px; color: var(--x-dim); overflow-wrap: anywhere; }
+  .cx-pulse-list time { font-size: 12px; color: var(--x-faint); white-space: nowrap; }
+  /* drill-downs open in the app's own sheet */
+  .cxd-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 4px 0 6px; }
+  .cxd-stats > div { padding: 10px; border-radius: var(--radius-s); background: var(--surface-raised); border: 1px solid var(--border); min-width: 0; }
+  .cxd-stats b { display: block; font-size: 20px; font-variant-numeric: tabular-nums; } .cxd-stats span { font-size: 12.5px; color: var(--text-dim); }
+  .cxd-h { margin: 16px 0 6px; font-size: 13px; font-weight: 650; color: var(--text-dim); }
+  .cxd-line { margin: 2px 0; font-size: 14px; }
+  .cxd-mix { display: flex; flex-wrap: wrap; gap: 6px; } .cxd-mix span { padding: 4px 10px; border-radius: 999px; background: var(--surface-raised); border: 1px solid var(--border); font-size: 13px; }
+  .cxd-calls { list-style: none; margin: 0; padding: 0; } .cxd-calls li { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-top: 1px solid var(--border); font-size: 14px; }
+  .cxd-calls li:first-child { border-top: 0; } .cxd-calls li[data-open-lead] { cursor: pointer; } .cxd-calls span { color: var(--text-dim); font-size: 13px; text-align: right; }
+  .cxd-chip { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px; } .cxd-next { font-size: 13px; color: var(--callback); font-weight: 600; }
+  .cxd-texts { display: flex; flex-wrap: wrap; gap: 6px; } .cxd-t { flex: 0 0 auto !important; padding: 9px 12px !important; font-size: 13.5px !important; text-decoration: none; }
+  .cxd-t.sug { border-color: var(--accent) !important; }
+  .cxd-acts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 18px; }
+  .cxd-acts > button { width: 100%; min-height: 46px; padding: 10px 12px; }
+  @media (min-width: 640px) { .cxd-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
   /* wider screens */
   @media (min-width: 640px) {
     .cx-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -8913,8 +8956,8 @@ window.VPEX_SIG = [
     .cx-ctls { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .cx-p { padding: 18px 20px; }
   }
-  html[data-motion="off"] .cx-pulse::after, html[data-motion="off"] .cx-si.run { animation: none; }
-  @media (prefers-reduced-motion: reduce) { .cx-pulse::after, .cx-si.run { animation: none; } }
+  html[data-motion="off"] .cx-dot::after, html[data-motion="off"] .cx-si.run { animation: none; }
+  @media (prefers-reduced-motion: reduce) { .cx-dot::after, .cx-si.run { animation: none; } }
 
   /* ---- Message your floor: the composer (admins, managers) and the banner reps see ---- */
   .fl-qh { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 6px; }
@@ -10228,6 +10271,7 @@ window.VPEX_SIG = [
         if (/^push(Tokens|Tests)\//.test(path)) return op !== "read";                  // notifications: anyone signed in writes their own (write() checks); only the server reads
         if (/^pushFloor\//.test(path)) return op === "write";                             // floor message requests: write only (write() checks); the server sends them
         if (/^pushFloorDone\//.test(path)) return op === "read" && path.indexOf("pushFloorDone/" + u.uid + "_") === 0;   // the sender's own receipt
+        if (window.__mockDeny && new RegExp(window.__mockDeny).test(path)) return false;   // test hook: pretend a rule isn't live yet
         if (/^(growth|igBot)(\/|$)/.test(path)) {                                        // owner-only, read-only (as in the real rules); the bot's keys never
           if (op !== "read" || !isOwnerEmail(u.email)) return false;
           var ig = /^igBot\/([^/]+)\/items(?:\/([^/]+))?$/.exec(path);
@@ -16315,6 +16359,7 @@ window.VPEX_SIG = [
     teamWatchDays();
   }
   function teamDetachData() {
+    if (typeof cmdClose === "function" && CMD.on) cmdClose(true);   // signing out: nothing of Command stays on screen or in the page
     vaultStop();
     TEAM.unsub.forEach(function (f) { try { f(); } catch (e) {} });
     TEAM.unsub = [];
@@ -20796,8 +20841,8 @@ window.VPEX_SIG = [
   var CMD = { on: false, unsub: [], tick: null, clock: null, ocAt: 0, ocBusy: false, ocErr: "", gh: null, ghAt: 0, ghErr: "",
     growth: null, growthAt: 0, ig: null, igAt: 0, feed: null, feedAt: 0, acts: [], filter: "all", q: "", soonT: 0, palSel: 0, palItems: [] };
   var CMD_REPO = "777n2n8n5w-cloud/vpex";
-  var CMD_SECTIONS = [["brief", "Brief"], ["needs", "Needs you"], ["floor", "Your floor"], ["offices", "Offices"], ["growth", "Growth"], ["content", "Content"], ["systems", "Systems"], ["controls", "Controls"]];
-  var CMD_HIDEABLE = ["floor", "offices", "growth", "content", "systems", "controls"];
+  var CMD_SECTIONS = [["brief", "Brief"], ["needs", "Needs you"], ["floor", "Your floor"], ["offices", "Offices"], ["pulse", "Pulse"], ["growth", "Growth"], ["content", "Content"], ["systems", "Systems"], ["controls", "Controls"]];
+  var CMD_HIDEABLE = ["floor", "offices", "pulse", "growth", "content", "systems", "controls"];
   var CMD_IC = {
     cmd: '<path d="M12 3a9 9 0 1 0 9 9"/><path d="M12 12l5-5"/><path d="M21 3l-4 4"/><circle cx="12" cy="12" r="1.6"/>',
     search: '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>',
@@ -20847,7 +20892,11 @@ window.VPEX_SIG = [
         OC.list.forEach(function (o) { known[o.id] = o; });
         qs.docs.forEach(function (d) {
           var o = known[d.id];
-          if (o) { o.d = d.data() || {}; o.st = officeState(o.d, Date.now()); } else if (!first || !OC.list.length) fresh = true;
+          var nd = d.data() || {}, prev = CMD.shadow[d.id];   // compare with what the database last sent (the app updates its own copy right away)
+          if (prev && JSON.stringify(prev) !== JSON.stringify(nd)) cmdOfficeChange(prev, nd, nd.name || d.id).forEach(function (c) { cmdEvent(c[0], c[1], c[2]); });
+          CMD.shadow[d.id] = JSON.parse(JSON.stringify(nd));
+          if (o) { o.d = nd; o.st = officeState(o.d, Date.now()); }
+          else if (!first || !OC.list.length) { fresh = true; if (!first) { var x = d.data() || {}; cmdEvent("money", "New signup: " + (x.name || d.id), "", Number(x.createdAt) || Date.now()); } }
         });
         first = false;
         if (fresh) cmdLoadOffices(true); else cmdSoon();
@@ -20898,16 +20947,24 @@ window.VPEX_SIG = [
 
   /* ----- your floor (the original team), from the data the app already keeps live ----- */
   function cmdFloorData() {
-    var now = Date.now(), from = dayStart(0), to = dayStart(1), y0 = dayStart(-1);
+    if (CMD.Fc) return CMD.Fc;
+    var now = Date.now(), from = dayStart(0), to = dayStart(1), y0 = dayStart(-1), week = CMD.fRange === "week";
     // everyone who dialed today, plus every active rep and manager (you and other admins only once you dial)
     var me = TEAM.me ? TEAM.me.uid : "";
     var rows = repStats(from, to, localDateStr(new Date(now + DAY))).filter(function (r) { return r.uid !== "_none" && (r.calls || (r.member && r.member.active && r.member.role !== "admin" && r.uid !== me)); });
-    var t = sumRows(rows), yCalls = 0, log = state.callLog || [], cut = y0 + (now - from);
-    for (var i = log.length - 1; i >= 0; i--) { var ts = Date.parse(log[i].timestamp); if (ts < y0) break; if (ts < from && ts <= cut) yCalls++; }
+    var yCalls = 0, yDay = 0, log = state.callLog || [], cut = y0 + (now - from);
+    for (var i = log.length - 1; i >= 0; i--) { var ts = Date.parse(log[i].timestamp); if (ts < y0) break; if (ts < from) { yDay++; if (ts <= cut) yCalls++; } }
     var due = 0, late = overdueWarm().length;
     state.tasks.forEach(function (x) { if (!x.done && x.leadId && taskDueTs(x) <= now) due++; });
     var hr = new Date().getHours(), wd = new Date().getDay(), workHours = wd >= 1 && wd <= 5 && hr >= 9 && hr < 18;
     rows.forEach(function (r) { r.state = !r.calls ? "off" : now - r.last < 10 * 60000 ? "live" : "idle"; r.idleMin = r.calls ? Math.round((now - r.last) / 60000) : 0; });
+    var todayRows = rows;
+    if (week) {   // this week's numbers, with today's live status
+      var st = {}; todayRows.forEach(function (r) { st[r.uid] = r; });
+      rows = repStats(weekStart(), to, localDateStr(new Date(now + DAY))).filter(function (r) { return r.uid !== "_none" && (r.calls || (r.member && r.member.active && r.member.role !== "admin" && r.uid !== me)); });
+      rows.forEach(function (r) { var x = st[r.uid]; r.state = x ? x.state : "off"; r.idleMin = x ? x.idleMin : 0; r.lastToday = x ? x.last : 0; });
+    }
+    var t = sumRows(rows), tToday = week ? sumRows(todayRows) : t;
     var order = { live: 0, idle: 1, off: 2 };
     rows.sort(function (a, b) { return (order[a.state] - order[b.state]) || (b.calls - a.calls) || String(a.name).localeCompare(String(b.name)); });
     var stages = {}, committed = 0, fr = forecastRates(), likely = 0;
@@ -20917,21 +20974,23 @@ window.VPEX_SIG = [
       var amt = Number(l.amount) || 0;
       if (l.stage === "Committed") committed += amt; else if (fr.rates[l.stage] !== undefined) likely += amt * fr.rates[l.stage];
     });
-    return { rows: rows, t: t, yCalls: yCalls, due: due, late: late, workHours: workHours, stages: stages, committed: committed, likely: likely, live: rows.filter(function (r) { return r.state === "live"; }).length };
+    return (CMD.Fc = { rows: rows, todayRows: todayRows, week: week, t: t, tToday: tToday, yCalls: yCalls, yDay: yDay, due: due, late: late, workHours: workHours, stages: stages, committed: committed, likely: likely, live: todayRows.filter(function (r) { return r.state === "live"; }).length });
   }
 
   /* ----- the business (every customer office) ----- */
   function cmdBiz() {
-    var L = OC.list, now = Date.now(), r = { loaded: CMD.ocAt > 0 || L.length > 0, n: L.length, mrr: 0, paying: 0, trials: 0, seats: 0, risk: 0, upside: 0, calls: 0, new7: 0, new14: 0 };
+    var L = OC.list, now = Date.now(), r = { loaded: CMD.ocAt > 0 || L.length > 0, n: L.length, mrr: 0, paying: 0, trials: 0, seats: 0, risk: 0, upside: 0, calls: 0, new7: 0, new14: 0, won: 0, lost: 0, conv: null };
     L.forEach(function (o) {
       var k = o.st.kind, price = officePrice(o.d), val = o.reps * price;
       r.seats += o.reps; r.calls += o.calls || 0;
       if (k === "paid" || k === "pastdue") { r.paying++; r.mrr += val; }
       if (k === "pastdue" || (o.d.stripeSub && !o.d.cancelled && (o.d.payFailed || o.d.cancelAtEnd))) r.risk += val;
       if (k === "trial" || k === "grace") { r.trials++; r.upside += Math.max(1, o.reps) * price; }
+      if (o.d.plan === "paid" || o.d.stripeSub) r.won++; else if (k === "locked" || k === "grace") r.lost++;
       var c = Number(o.d.createdAt) || 0;
       if (c > now - 7 * DAY) r.new7++; else if (c > now - 14 * DAY) r.new14++;
     });
+    if (r.won + r.lost) r.conv = Math.round(100 * r.won / (r.won + r.lost));
     return r;
   }
 
@@ -20950,9 +21009,9 @@ window.VPEX_SIG = [
     // ---- money: every customer office ----
     OC.list.forEach(function (o) {
       var d = o.d, st = o.st, name = d.name || o.id, nx = ocNext(o), val = o.reps * officePrice(d);
-      var text = function (kind, l) { return { l: l || "Text them", href: cmdSmsHref(o, kind) }; };
+      var text = function (kind, l) { var h = cmdSmsHref(o, kind); return h ? { l: l || "Text them", href: h } : { l: "Open office", run: function () { cmdOpenOffice(o.id); } }; };
       if (d.stripeSub && !d.cancelled && d.payFailed) add({ id: "pf_" + o.id, sev: "alert", a: "money", t: name + ": card declined", d: cmdMoney(val) + " a month at risk. Stripe is retrying.", acts: [text("declined")] });
-      else if (st.kind === "pastdue") add({ id: "pd_" + o.id, sev: "alert", a: "money", t: name + ": payment due", d: st.days + " day" + (st.days === 1 ? "" : "s") + " before it locks. " + cmdMoney(val) + " a month.", acts: [text("declined"), { l: "+1 month paid", run: function () { ocAction(o.id, "paid"); } }] });
+      else if (st.kind === "pastdue") add({ id: "pd_" + o.id, sev: "alert", a: "money", t: name + ": payment due", d: st.days + " day" + (st.days === 1 ? "" : "s") + " before it locks. " + cmdMoney(val) + " a month.", acts: [text("declined"), { l: "+1 month paid", run: function () { cmdOfficeAct(o.id, "paid"); } }] });
       if (d.stripeSubPrev) add({ id: "pt_" + o.id, sev: "alert", a: "money", t: name + " is paying twice", d: "Cancel the older subscription in Stripe (" + d.stripeSubPrev + ").", acts: [{ l: "Open Stripe", href: "https://dashboard.stripe.com/subscriptions/" + encodeURIComponent(d.stripeSubPrev) }] });
       if (d.stripeSub && !d.cancelled && d.cancelAtEnd) add({ id: "ce_" + o.id, sev: "warn", a: "money", t: name + " is set to cancel", d: (d.cancelAt ? "On " + new Date(d.cancelAt).toLocaleDateString([], { month: "short", day: "numeric" }) + ". " : "") + cmdMoney(val) + " a month.", acts: [text("checkin", "Check in")] });
       if (st.kind === "grace") add({ id: "gr_" + o.id, sev: "alert", a: "money", t: name + ": trial ended", d: st.days + " grace day" + (st.days === 1 ? "" : "s") + " left before it pauses.", acts: [text("ending", "Ask for the sale"), { l: "+7 trial days", run: function () { ocAction(o.id, "trial"); } }] });
@@ -20973,14 +21032,25 @@ window.VPEX_SIG = [
       var F = cmdFloorData();
       if (F.late) add({ id: "late", sev: "warn", a: "floor", t: F.late + " interested follow-up" + (F.late === 1 ? " is" : "s are") + " over a day late", d: "Warm leads going cold. Reassign with one tap.", acts: [{ l: "See who", run: openOverdue }] });
       if (F.workHours) {
-        var idle = F.rows.filter(function (r) { return r.state === "idle" && r.idleMin >= 30; }), off = F.rows.filter(function (r) { return r.state === "off"; });
+        var idle = F.todayRows.filter(function (r) { return r.state === "idle" && r.idleMin >= 30; }), off = F.todayRows.filter(function (r) { return r.state === "off"; });
         if (idle.length) add({ id: "idle", sev: "warn", a: "floor", t: floorNames(idle.map(function (r) { return r.name; })) + (idle.length === 1 ? " hasn't" : " haven't") + " dialed in " + (idle.length === 1 ? idle[0].idleMin + " min" : "30+ min"), d: "Last call " + cmdAgo(idle[0].last) + ".", acts: [{ l: idle.length === 1 ? "Nudge " + (firstName(idle[0].name) || "them") : "Nudge them", run: function () { floorOpenFor(idle.map(function (r) { return r.uid; }), "Quick nudge: back on the phones! 📞"); } }] });
         if (off.length && new Date().getHours() >= 10) add({ id: "off", sev: "warn", a: "floor", t: floorNames(off.map(function (r) { return r.name; })) + (off.length === 1 ? " hasn't" : " haven't") + " made a call today", d: "It's " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + ".", acts: [{ l: "Nudge", run: function () { floorOpenFor(off.map(function (r) { return r.uid; }), "Morning! Let's get the first calls in. 📞"); } }] });
       }
-      var top = F.rows.slice().sort(function (a, b) { return b.calls - a.calls; })[0];
+      var top = F.todayRows.slice().sort(function (a, b) { return b.calls - a.calls; })[0];
       if (top && top.calls >= 25) add({ id: "top_" + localDateStr(new Date()), sev: "opp", a: "floor", t: (firstName(top.name) || top.name) + " is leading: " + top.calls + " calls, " + top.interested + " interested", d: "Recognition in front of the floor raises everyone's numbers.", acts: [{ l: "Shout out", run: function () { floorOpenFor([], "Shoutout to " + (firstName(top.name) || top.name) + ": " + top.calls + " calls today! Who's catching up? 🔥"); } }] });
-      if (F.t.calls >= 40 && F.t.reached && F.t.interested / F.t.reached < 0.08) add({ id: "conv", sev: "info", a: "floor", t: "Few conversations are turning interested today", d: F.t.interested + " interested from " + F.t.reached + " conversations (" + cmdPct(F.t.interested, F.t.reached) + "). The script and rebuttals may need a refresh.", acts: [{ l: "Sales coach", run: function () { openCoach("team"); } }, { l: "Edit script", run: openScriptEditor }] });
+      var T = F.tToday;
+      if (T.calls >= 40 && T.reached && T.interested / T.reached < 0.08) add({ id: "conv", sev: "info", a: "floor", t: "Few conversations are turning interested today", d: T.interested + " interested from " + T.reached + " conversations (" + cmdPct(T.interested, T.reached) + "). The script and rebuttals may need a refresh.", acts: [{ l: "Sales coach", run: function () { openCoach("team"); } }, { l: "Edit script", run: openScriptEditor }] });
       var vp = vaultPending().length;
+      // the list running dry: fresh leads left vs the floor's pace
+      var fresh = 0; state.leads.forEach(function (l) { if (l.status !== "done" && !l.calledAt && !l.dnc && l.stage !== "Closed Lost" && l.stage !== "Committed") fresh++; });
+      var lastHr = 0, lg = state.callLog || [];
+      for (var q = lg.length - 1; q >= 0; q--) { if (Date.parse(lg[q].timestamp) < now - 3600000) break; lastHr++; }
+      if (state.leads.length && lastHr >= 10 && fresh < lastHr * 3) add({ id: "dry", sev: fresh < lastHr ? "alert" : "warn", a: "floor", t: fresh ? "Only " + cmdNum(fresh) + " fresh lead" + (fresh === 1 ? "" : "s") + " left" : "Your floor is out of fresh leads", d: fresh ? "About " + Math.max(1, Math.round(60 * fresh / lastHr)) + " minutes of dialing at the last hour’s pace (" + lastHr + " calls)." : "Reps are only working follow-ups now.", acts: [{ l: "Add leads", run: function () { openLoadModal(); switchTab("upload"); } }] });
+      // deals with nothing booked next
+      var open = {}; state.tasks.forEach(function (x) { if (!x.done && x.leadId) open[x.leadId] = 1; });
+      var orphan = state.leads.filter(function (l) { return ["Qualified", "Pitched", "Objection"].indexOf(l.stage) >= 0 && !open[l.id] && !l.dnc; });
+      if (orphan.length) add({ id: "orph_" + orphan.length, sev: "warn", a: "floor", t: orphan.length + " deal" + (orphan.length === 1 ? " has" : "s have") + " no follow-up booked", d: cmdMoney(orphan.reduce(function (s2, l) { return s2 + (Number(l.amount) || 0); }, 0)) + " in the pipeline with no next step: " + orphan.slice(0, 3).map(function (l) { return l.name; }).join(", ") + (orphan.length > 3 ? " and more" : "") + ".", acts: [{ l: "Open " + (firstName(orphan[0].name) || "the first"), lead: orphan[0].id }, { l: "Pipeline", run: function () { cmdClose(); var v = document.querySelector('#viewTabs [data-view="pipeline"]'); if (v) v.click(); } }] });
+      if (F.due >= 5) add({ id: "due_" + localDateStr(new Date()), sev: "info", a: "floor", t: F.due + " follow-ups are due right now", d: "Callbacks people asked for come first in every rep’s list.", acts: [{ l: "Follow-ups", run: function () { cmdClose(); var v = document.querySelector('#viewTabs [data-view="tasks"]'); if (v) v.click(); } }] });
       if (vp) add({ id: "vault", sev: "warn", a: "floor", t: vp + " Vault removal request" + (vp === 1 ? "" : "s") + " waiting", d: "A rep asked to remove an investor record.", acts: [{ l: "Review", run: function () { cmdClose(); state.activeView = "vault"; saveState(); render(); } }] });
     } catch (e) {}
     // ---- growth ----
@@ -21082,6 +21152,148 @@ window.VPEX_SIG = [
     openFloor(text);
   }
 
+  /* ----- Pulse: what just happened, across the floor and the business ----- */
+  CMD.events = []; CMD.shadow = {};
+  function cmdEvent(kind, t, d, at) { CMD.events.unshift({ kind: kind, t: t, d: d || "", at: at || Date.now() }); if (CMD.events.length > 60) CMD.events.length = 60; }
+  // A change on an office record, in words (payments, trials, pauses), for Pulse.
+  function cmdOfficeChange(before, after, name) {
+    var out = [], b = before || {}, a = after || {};
+    if (a.plan !== b.plan) out.push(a.plan === "paid" ? ["money", name + " is now paying", ""] : a.plan === "comp" ? ["money", name + " is on a free plan", ""] : ["money", name + " moved to " + (a.plan || "no plan"), ""]);
+    else if (a.plan === "paid" && (a.paidThrough || 0) > (b.paidThrough || 0) + 86400000) out.push(["money", name + " paid", "Through " + new Date(a.paidThrough).toLocaleDateString([], { month: "short", day: "numeric" })]);
+    if (a.plan === "trial" && (a.trialEnds || 0) > (b.trialEnds || 0) + 3600000 && a.plan === b.plan) out.push(["money", name + ": trial extended", "Ends " + new Date(a.trialEnds).toLocaleDateString([], { month: "short", day: "numeric" })]);
+    if (a.payFailed && !b.payFailed) out.push(["alert", name + ": card declined", ""]);
+    if (!a.payFailed && b.payFailed) out.push(["money", name + ": card fixed", "Payment went through"]);
+    if (a.locked && !b.locked) out.push(["alert", name + " paused", ""]);
+    if (!a.locked && b.locked) out.push(["money", name + " unpaused", ""]);
+    if (a.cancelAtEnd && !b.cancelAtEnd) out.push(["alert", name + " set to cancel", ""]);
+    if (a.founding !== b.founding && b.founding !== undefined) out.push(["money", name + ": founding price " + (a.founding ? "on" : "off"), ""]);
+    return out;
+  }
+  function cmdPulseItems() {
+    var now = Date.now(), out = CMD.events.map(function (e) { return e; }), from = now - 3 * 3600000, log = state.callLog || [], first = {}, seen = {};
+    for (var i = log.length - 1; i >= 0; i--) {
+      var c = log[i], ts = Date.parse(c.timestamp); if (ts < dayStart(0) && ts < from) break;
+      var who = c.by && c.by.name ? firstName(c.by.name) || c.by.name : "Someone", u = c.by && c.by.uid;
+      if (u && ts >= dayStart(0)) first[u] = { at: ts, who: who };
+      if (ts < from) continue;
+      if (c.outcomeKey === "interested") out.push({ kind: "win", t: who + ": interested", d: c.name || "", at: ts });
+      else if (c.outcomeKey === "callback") out.push({ kind: "floor", t: who + " booked a callback", d: c.name || "", at: ts });
+    }
+    Object.keys(first).forEach(function (u) { if (first[u].at >= from) out.push({ kind: "floor", t: first[u].who + " started dialing", d: "First call today", at: first[u].at }); });
+    state.leads.forEach(function (l) { var h = l.handoff; if (h && h.at >= from && h.from) out.push({ kind: "win", t: (firstName(h.from.name) || "A rep") + " handed off " + (l.name || "a lead"), d: h.to && h.to.name ? "To " + firstName(h.to.name) : "", at: h.at }); });
+    (FLOOR.msgs || []).forEach(function (m) { if (m.at >= from) out.push({ kind: "msg", t: (firstName(m.byName) || "You") + " messaged the floor", d: m.body, at: m.at }); });
+    OC.list.forEach(function (o) { var c = Number(o.d.createdAt) || 0; if (c >= now - 2 * DAY && !seen[o.id]) { seen[o.id] = 1; out.push({ kind: "money", t: "New signup: " + (o.d.name || o.id), d: (o.d.industry && INDUSTRIES[o.d.industry] ? INDUSTRIES[o.d.industry].name : "") , at: c }); } });
+    out.sort(function (a, b) { return b.at - a.at; });
+    var dedupe = {}; return out.filter(function (e) { var k = e.t + "|" + Math.round(e.at / 60000); if (dedupe[k]) return false; dedupe[k] = 1; return true; }).slice(0, 30);
+  }
+  function cmdPulseHtml() {
+    var list = cmdPulseItems(), icon = { win: "★", floor: "☎", money: "$", alert: "!", msg: "❝" };
+    return cmdPh("Pulse", '<span class="cx-live on">Live</span>') +
+      (list.length ? '<ol class="cx-pulse-list">' + list.map(function (e) {
+        return '<li class="pk-' + e.kind + '"><i aria-hidden="true">' + icon[e.kind] + '</i><div><b>' + escapeHtml(e.t) + '</b>' + (e.d ? '<span>' + escapeHtml(e.d) + '</span>' : '') + '</div><time>' + escapeHtml(cmdAgo(e.at)) + '</time></li>';
+      }).join("") + '</ol>' : '<p class="cx-empty">Quiet so far. Interested calls, callbacks, handoffs, payments and signups show up here as they happen.</p>');
+  }
+
+  /* ----- your floor, hour by hour ----- */
+  function cmdHours() {
+    var log = state.callLog || [], t0 = dayStart(0), y0 = dayStart(-1), today = {}, yest = {};
+    for (var i = log.length - 1; i >= 0; i--) {
+      var ts = Date.parse(log[i].timestamp); if (ts < y0) break;
+      var h = new Date(ts).getHours(); if (ts >= t0) today[h] = (today[h] || 0) + 1; else yest[h] = (yest[h] || 0) + 1;
+    }
+    var hours = []; for (var x = 8; x <= 20; x++) hours.push(x);
+    var max = 1; hours.forEach(function (h) { max = Math.max(max, today[h] || 0, yest[h] || 0); });
+    return { hours: hours, today: today, yest: yest, max: max };
+  }
+  function cmdHoursHtml() {
+    var H = cmdHours(), nowH = new Date().getHours(), lab = function (h) { return h === 12 ? "12p" : h > 12 ? (h - 12) + "p" : h + "a"; };
+    return '<div class="cx-hours" role="img" aria-label="Calls by hour today, with yesterday as a line">' + H.hours.map(function (h) {
+      var t = H.today[h] || 0, y = H.yest[h] || 0;
+      return '<div class="cx-hr' + (h === nowH ? ' now' : '') + (h > nowH ? ' later' : '') + '" title="' + lab(h) + ': ' + t + ' today, ' + y + ' yesterday"><div class="cx-hb"><i style="height:' + Math.round(100 * t / H.max) + '%"></i>' + (y ? '<em style="bottom:' + Math.round(100 * y / H.max) + '%"></em>' : '') + '</div><span>' + lab(h) + '</span></div>';
+    }).join("") + '</div><p class="cx-legend"><i></i>Today <em></em>Yesterday</p>';
+  }
+  function cmdPace(F) {
+    var now = Date.now(), d = new Date(), h = d.getHours() + d.getMinutes() / 60;
+    if (!F.workHours || h >= 18 || !F.t.calls) return "";
+    var log = state.callLog || [], lastHr = 0;
+    for (var i = log.length - 1; i >= 0; i--) { var ts = Date.parse(log[i].timestamp); if (ts < now - 3600000) break; lastHr++; }
+    var proj = Math.round(F.t.calls + lastHr * (18 - h));
+    return '<p class="cx-pace">At the last hour’s pace (' + lastHr + ' calls), the floor ends around <b>' + cmdNum(proj) + ' calls</b> by 6 PM' + (F.yDay ? ' (yesterday: ' + cmdNum(F.yDay) + ')' : '') + '.</p>';
+  }
+
+  /* ----- drill-downs ----- */
+  function cmdOpenRep(uid) {
+    if (!cmdCan()) return;
+    var m = (TEAM.members || {})[uid] || {}, name = m.name || m.username || "Rep", now = Date.now(), t0 = dayStart(0), wk = weekStart();
+    var log = (state.callLog || []).filter(function (c) { return c.by && c.by.uid === uid && Date.parse(c.timestamp) >= wk; });
+    var today = log.filter(function (c) { return Date.parse(c.timestamp) >= t0; }), mix = {}, wmix = { calls: log.length, reached: 0, interested: 0 };
+    today.forEach(function (c) { var k = outcomeLabel(c.outcomeKey, c.outcome || c.outcomeKey); mix[k] = (mix[k] || 0) + 1; });
+    log.forEach(function (c) { if (CONTACT_OUTCOMES[c.outcomeKey]) wmix.reached++; if (c.outcomeKey === "interested") wmix.interested++; });
+    var open = state.tasks.filter(function (t) { var a = assigneeOf(t); return !t.done && a && a.uid === uid; });
+    var late = open.filter(function (t) { return taskDueTs(t) < now - 3600000; }).length, pipe = state.leads.filter(function (l) { return l.owner && l.owner.uid === uid && l.stage && l.stage !== "New Lead" && l.stage !== "Closed Lost"; });
+    var last = today.slice(-12).reverse();
+    var b = featOpen('<h3>' + escapeHtml(name) + '</h3><p class="modal-sub">' + escapeHtml(({ admin: "Admin", manager: "Manager" })[m.role] || "Rep") + (m.closer ? " · Closer" : "") + (m.active === false ? " · access off" : "") + (today.length ? " · last call " + cmdAgo(Date.parse(today[today.length - 1].timestamp)) : " · no calls yet today") + '</p>' +
+      '<div class="cxd-stats"><div><b>' + today.length + '</b><span>calls today</span></div><div><b>' + wmix.calls + '</b><span>this week</span></div><div><b>' + cmdPct(wmix.interested, wmix.reached) + '</b><span>interested, of conversations this week</span></div><div><b>' + open.length + '</b><span>open follow-ups' + (late ? ', ' + late + ' late' : '') + '</span></div></div>' +
+      (Object.keys(mix).length ? '<p class="cxd-h">Today</p><div class="cxd-mix">' + Object.keys(mix).sort(function (a, b) { return mix[b] - mix[a]; }).map(function (k) { return '<span>' + escapeHtml(k) + ' <b>' + mix[k] + '</b></span>'; }).join("") + '</div>' : '') +
+      (pipe.length ? '<p class="cxd-h">Pipeline</p><p class="cxd-line">' + pipe.length + ' deal' + (pipe.length === 1 ? '' : 's') + ' · ' + cmdMoney(pipe.reduce(function (s, l) { return s + (Number(l.amount) || 0); }, 0)) + '</p>' : '') +
+      (last.length ? '<p class="cxd-h">Latest calls</p><ul class="cxd-calls">' + last.map(function (c) { return '<li data-open-lead="' + escapeHtml(c.leadId || "") + '"><b>' + escapeHtml(c.name || "Lead") + '</b><span>' + escapeHtml(outcomeLabel(c.outcomeKey, c.outcome || c.outcomeKey)) + ' · ' + escapeHtml(new Date(c.timestamp).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })) + '</span></li>'; }).join("") + '</ul>' : '') +
+      '<div class="cxd-acts">' + (floorCan() && TEAM.me && uid !== TEAM.me.uid && m.active !== false ? '<button type="button" class="btn-primary" id="cxdNudge">Message ' + escapeHtml(firstName(name) || name) + '</button>' : '') +
+      '<button type="button" class="btn-secondary" id="cxdScore">Scoreboard</button></div>');
+    var n = b.querySelector("#cxdNudge"); if (n) n.addEventListener("click", function () { floorOpenFor([uid]); });
+    b.querySelector("#cxdScore").addEventListener("click", function () { featClose(); openScoreboard(); });
+  }
+  function cmdOpenOffice(id) {
+    if (!cmdCan()) return;
+    var o = OC.list.filter(function (x) { return x.id === id; })[0]; if (!o) return;
+    var d = o.d, st = o.st, price = officePrice(d), nx = ocNext(o), dt = function (ms) { return ms ? new Date(ms).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }) : "—"; };
+    var w = o.owner || {}, dig = String(w.phone || "").replace(/[^0-9+]/g, ""), ios = /iP(hone|ad|od)/.test(navigator.userAgent);
+    var b = featOpen('<h3>' + escapeHtml(d.name || id) + '</h3><p class="modal-sub">' + escapeHtml(id) + (d.industry && INDUSTRIES[d.industry] ? ' · ' + escapeHtml(INDUSTRIES[d.industry].name) : '') + ' · joined ' + escapeHtml(dt(d.createdAt)) + '</p>' +
+      '<div class="cxd-chip">' + ocStatusChip(st, d) + (nx ? '<span class="cxd-next">Next: ' + escapeHtml(nx.t) + '</span>' : '') + '</div>' +
+      '<div class="cxd-stats"><div><b>' + cmdMoney(o.reps * price) + '</b><span>a month at $' + price + ' a rep' + (d.founding ? ' (founding)' : '') + '</span></div><div><b>' + o.reps + '</b><span>active reps</span></div><div><b>' + cmdNum(o.calls) + '</b><span>calls, 7 days</span></div><div><b>' + (o.leads === null ? '—' : cmdNum(o.leads) + (o.leadsMore ? '+' : '')) + '</b><span>leads</span></div></div>' +
+      '<p class="cxd-h">Billing</p><p class="cxd-line">' + (d.stripeSub ? 'Card on file' + (d.cancelled ? ' · cancelled' : d.payFailed ? ' · card declined' : d.cancelAtEnd ? ' · set to cancel' : ' · renews automatically') : 'No card on file') +
+        (d.plan === "paid" ? ' · paid through ' + escapeHtml(dt(d.paidThrough)) : d.plan === "trial" ? ' · trial ends ' + escapeHtml(dt(d.trialEnds)) : '') + '</p>' +
+        (d.stripeSub ? '<p class="cxd-line"><a href="https://dashboard.stripe.com/subscriptions/' + encodeURIComponent(d.stripeSub) + '" target="_blank" rel="noopener">Open in Stripe</a></p>' : '') +
+      '<p class="cxd-h">People</p><ul class="cxd-calls">' + (o.members || []).slice(0, 30).map(function (m) {
+        return '<li><b>' + escapeHtml(m.name || m.username || "") + '</b><span>' + escapeHtml(({ admin: "Admin", manager: "Manager" })[m.role] || "Rep") + (m.active ? '' : ' · access off') + ' · ' + (m.lastSeen ? 'seen ' + escapeHtml(cmdAgo(m.lastSeen)) : 'not seen yet') + '</span></li>'; }).join("") + '</ul>' +
+      '<p class="cxd-h">Text ' + escapeHtml(firstName(w.name || w.username || "") || "the owner") + '</p><div class="cxd-texts">' + ocTexts(o).filter(function (x) {   // only the texts that fit where this office is
+        var paying = d.plan === "paid" || st.kind === "pastdue", failing = d.payFailed || st.kind === "pastdue", ended = st.kind === "locked" && d.plan !== "paid";
+        if (x.k === "declined") return failing;
+        if (paying) return x.k === "checkin" || (x.k === "founding" && !d.founding);
+        if (ended) return x.k === "ended" || x.k === "checkin";
+        return x.k !== "ended" && (x.k !== "founding" || !d.founding);
+      }).map(function (x) {
+        var href = dig ? "sms:" + dig + (ios ? "&" : "?") + "body=" + encodeURIComponent(x.b) : w.email ? "mailto:" + w.email + "?subject=" + encodeURIComponent("VPEX") + "&body=" + encodeURIComponent(x.b) : "";
+        return href ? '<a class="btn-secondary cxd-t' + (nx && nx.k === x.k ? ' sug' : '') + '" href="' + escapeHtml(href) + '">' + escapeHtml(x.t) + (nx && nx.k === x.k ? ' · suggested' : '') + '</a>' : '';
+      }).join("") + (dig || w.email ? '' : '<p class="cxd-line">No phone or email on file yet. They’re asked for it next time they open VPEX.</p>') + '</div>' +
+      '<div class="cxd-acts">' +
+        '<button type="button" class="btn-primary" data-cxd="paid">' + (d.plan === "paid" ? "+1 month paid" : "Mark paid") + '</button>' +
+        '<button type="button" class="btn-secondary" data-cxd="trial">+7 trial days</button>' +
+        '<button type="button" class="btn-secondary" data-cxd="founding">' + (d.founding ? "Standard price" : "Founding price") + '</button>' +
+        '<button type="button" class="btn-secondary" data-cxd="console">Passwords, pause, delete</button></div>');
+    b.querySelectorAll("[data-cxd]").forEach(function (x) {
+      x.addEventListener("click", function () {
+        var act = x.getAttribute("data-cxd");
+        if (act === "console") { featClose(); openOwnerConsole(); return; }
+        cmdOfficeAct(id, act, function () { cmdOpenOffice(id); });
+      });
+    });
+  }
+  // Money changes ask first: one stray tap shouldn't mark an office paid.
+  function cmdOfficeAct(id, act, after) {
+    var o = OC.list.filter(function (x) { return x.id === id; })[0]; if (!o) return;
+    var name = o.d.name || id, go = function () { ocAction(id, act); setTimeout(function () { cmdSoon(); if (after) after(); }, 700); };
+    if (act === "paid") showConfirm((o.d.plan === "paid" ? "Add a month paid for " : "Mark ") + name + (o.d.plan === "paid" ? "?" : " as paid for a month?") + " Do this after their payment arrives.", go, o.d.plan === "paid" ? "+1 month paid" : "Mark paid");
+    else go();
+  }
+
+  /* ----- share the brief ----- */
+  function cmdShareBrief() {
+    var el = document.querySelector("#cx-brief .cx-sum"); if (!el) return;
+    var text = "VPEX, " + new Date().toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" }) + ": " + el.textContent;
+    if (navigator.share) { navigator.share({ text: text }).catch(function () {}); return; }
+    var ok = copyText(text); showToast(ok ? "Brief copied · paste it anywhere" : "Couldn’t copy", { kind: ok ? "ok" : "err" });
+  }
+
   /* ----- rendering ----- */
   function cmdSoon() {
     if (!CMD.on) return;
@@ -21090,10 +21302,11 @@ window.VPEX_SIG = [
   }
   function cmdRenderAll() {
     if (!CMD.on) return;
-    CMD.acts = [];
+    if (!cmdCan()) { cmdClose(true); return; }   // signed out or lost owner access while it was open
+    CMD.acts = []; CMD.Fc = null;
     var prefs = cmdPrefs(), hide = prefs.hide || {}, ins = [];
     try { ins = cmdInsights(); } catch (e) { ins = []; }
-    var panels = { brief: function () { return cmdBriefHtml(ins); }, needs: function () { return cmdNeedsHtml(ins); }, floor: cmdFloorHtml, offices: cmdOfficesHtml,
+    var panels = { brief: function () { return cmdBriefHtml(ins); }, needs: function () { return cmdNeedsHtml(ins); }, floor: cmdFloorHtml, offices: cmdOfficesHtml, pulse: cmdPulseHtml,
       growth: cmdGrowthHtml, content: cmdContentHtml, systems: cmdSystemsHtml, controls: cmdControlsHtml };
     Object.keys(panels).forEach(function (k) {
       var el = document.getElementById("cx-" + k); if (!el) return;
@@ -21108,9 +21321,10 @@ window.VPEX_SIG = [
     });
     var alerts = ins.filter(function (x) { return x.sev === "alert"; }).length, warns = ins.filter(function (x) { return x.sev === "warn"; }).length;
     var pulse = document.getElementById("cxPulse"), st = document.getElementById("cxStatus");
-    if (pulse) pulse.setAttribute("data-state", alerts ? "alert" : warns ? "warn" : "ok");
-    var act = alerts + warns, ideas = ins.length - act;
+    if (pulse) pulse.setAttribute("data-state", offline ? "off" : alerts ? "alert" : warns ? "warn" : "ok");
+    var act = alerts + warns, ideas = ins.length - act, offline = navigator.onLine === false;
     if (st) st.textContent = act ? (alerts ? alerts + " urgent · " : "") + act + " need" + (act === 1 ? "s" : "") + " you" + (ideas ? " · " + ideas + " idea" + (ideas === 1 ? "" : "s") : "") : ideas ? "All clear · " + ideas + " idea" + (ideas === 1 ? "" : "s") : "All clear";
+    if (st && offline) st.textContent = "Offline · showing what was loaded";
     var nb = document.querySelector('#cmd [data-cx-go="needs"] em'); if (nb) nb.textContent = act ? String(act) : "";
   }
   function cmdPh(title, extra) { return '<div class="cx-ph"><h2>' + title + '</h2>' + (extra || '') + '</div>'; }
@@ -21121,20 +21335,23 @@ window.VPEX_SIG = [
     if (B.loaded) parts.push(B.paying ? cmdMoney(B.mrr) + " a month from " + B.paying + " paying office" + (B.paying === 1 ? "" : "s") + (B.trials ? ", " + B.trials + " on trial" : "") + "." : B.trials ? "No paying offices yet; " + B.trials + " on trial." : "No customer offices yet.");
     var urgent = ins.filter(function (x) { return x.sev === "alert" || x.sev === "warn"; });
     parts.push(urgent.length ? urgent.length + " thing" + (urgent.length === 1 ? " needs" : "s need") + " you, starting with " + urgent[0].t + "." : "Nothing urgent needs you.");
-    var top = F.rows.slice().sort(function (a, b) { return b.calls - a.calls; })[0];
-    parts.push(F.t.calls ? "Your floor: " + cmdNum(F.t.calls) + " call" + (F.t.calls === 1 ? "" : "s") + " today" + (top && top.calls ? ", " + escapeHtml(firstName(top.name) || top.name) + " leads with " + top.calls : "") + (F.live ? ", " + F.live + " dialing right now" : "") + "." : "Your floor hasn't dialed yet today.");
+    var top = F.todayRows.slice().sort(function (a, b) { return b.calls - a.calls; })[0], T = F.tToday, goal = Number(cmdPrefs().goal) || 0;
+    if (B.loaded && goal) parts.splice(1, 0, cmdPct(B.mrr, goal) + " of your " + cmdMoney(goal) + " monthly goal.");
+    parts.push(T.calls ? "Your floor: " + cmdNum(T.calls) + " call" + (T.calls === 1 ? "" : "s") + " today" + (top && top.calls ? ", " + escapeHtml(firstName(top.name) || top.name) + " leads with " + top.calls : "") + (F.live ? ", " + F.live + " dialing right now" : "") + "." : "Your floor hasn't dialed yet today.");
     var dash = '<span class="cx-skel">—</span>';
     var tiles = [
-      ["Monthly revenue", B.loaded ? cmdMoney(B.mrr) : dash, B.loaded && B.risk ? '<span class="cx-d down">' + cmdMoney(B.risk) + ' at risk</span>' : B.loaded ? '<span class="cx-d flat">' + cmdMoney(B.mrr * 12) + ' a year</span>' : '', "offices"],
+      ["Monthly revenue", B.loaded ? cmdMoney(B.mrr) : dash, (B.loaded && B.risk ? '<span class="cx-d down">' + cmdMoney(B.risk) + ' at risk</span>' : B.loaded ? '<span class="cx-d flat">' + cmdMoney(B.mrr * 12) + ' a year</span>' : '') +
+        (B.loaded && goal ? '<span class="cx-goal" title="' + cmdPct(B.mrr, goal) + ' of ' + cmdMoney(goal) + '"><i style="width:' + Math.min(100, Math.round(100 * B.mrr / goal)) + '%"></i></span><span class="cx-d flat">' + cmdPct(B.mrr, goal) + ' of ' + cmdMoney(goal) + ' goal</span>' : ''), "offices"],
       ["Paying offices", B.loaded ? cmdNum(B.paying) : dash, B.loaded ? '<span class="cx-d flat">' + cmdNum(B.seats) + ' reps on VPEX</span>' : '', "offices"],
       ["On trial", B.loaded ? cmdNum(B.trials) : dash, B.loaded && B.upside ? '<span class="cx-d up">' + cmdMoney(B.upside) + ' a month if they convert</span>' : '', "offices"],
       ["New signups, 7 days", B.loaded ? cmdNum(B.new7) : dash, B.loaded ? cmdDelta(B.new7, B.new14, "vs the week before") : '', "growth"],
-      ["Calls today, your floor", cmdNum(F.t.calls), cmdDelta(F.t.calls, F.yCalls, "vs this time yesterday"), "floor"],
-      ["Interested today", cmdNum(F.t.interested), '<span class="cx-d flat">' + cmdPct(F.t.interested, F.t.reached) + ' of conversations</span>', "floor"]
+      ["Calls today, your floor", cmdNum(T.calls), cmdDelta(T.calls, F.yCalls, "vs this time yesterday"), "floor"],
+      ["Interested today", cmdNum(T.interested), '<span class="cx-d flat">' + cmdPct(T.interested, T.reached) + ' of conversations</span>', "floor"]
     ];
     var pins = (cmdPrefs().pins || ["floor", "offices", "script"]), ctl = cmdControls(), quick = pins.map(function (id) { return ctl.filter(function (c) { return c.id === id; })[0]; }).filter(Boolean);
     return '<div class="cx-brief-top"><div><p class="cx-greet">' + greet + '</p><p class="cx-sum">' + parts.join(" ") + '</p></div>' +
-      (floorCan() ? '<button type="button" class="cx-cta" data-cx-ctl="floor">' + cmdSvg("horn") + '<span>Message your floor</span></button>' : '') + '</div>' +
+      '<div class="cx-brief-a">' + (floorCan() ? '<button type="button" class="cx-cta" data-cx-ctl="floor">' + cmdSvg("horn") + '<span>Message your floor</span></button>' : '') +
+        '<button type="button" class="cx-b" data-cx-share>Share the brief</button></div></div>' +
       '<div class="cx-kpis">' + tiles.map(function (t) { return '<button type="button" class="cx-kpi" data-cx-go="' + t[3] + '"><span class="cx-kl">' + t[0] + '</span><b class="cx-kv">' + t[1] + '</b>' + (t[2] || '') + '</button>'; }).join("") + '</div>' +
       (quick.length ? '<div class="cx-quick"><span class="cx-ql">Pinned</span>' + quick.map(function (c) { return '<button type="button" class="cx-chip" data-cx-ctl="' + c.id + '">' + escapeHtml(c.t) + '</button>'; }).join("") + '</div>' : '');
   }
@@ -21152,24 +21369,28 @@ window.VPEX_SIG = [
           '<div class="cx-in-a">' + (x.acts || []).map(function (a) {
             if (a.href) return '<a class="cx-b" href="' + escapeHtml(a.href) + '"' + (/^https:/.test(a.href) ? ' target="_blank" rel="noopener"' : '') + '>' + escapeHtml(a.l) + '</a>';
             if (a.run) return cmdBtn(escapeHtml(a.l), a.run);
+            if (a.lead) return '<button type="button" class="cx-b" data-open-lead="' + escapeHtml(a.lead) + '">' + escapeHtml(a.l) + '</button>';
             return '';
           }).join("") + '<button type="button" class="cx-b ghost" data-cx-snooze="' + escapeHtml(x.id) + '" title="Hide until tomorrow">Later</button></div></li>';
       }).join("") + '</ol>' : '<div class="cx-clear"><b>All clear.</b><p>Nothing needs you right now. New problems and opportunities show up here the moment they happen.</p></div>');
   }
   function cmdFloorHtml() {
-    var F = cmdFloorData(), t = F.t, can = floorCan();
+    var F = cmdFloorData(), t = F.t, can = floorCan(), wk = F.week;
     var dot = { live: "Dialing", idle: "Idle", off: "Not started" };
-    var k = [["Calls", cmdNum(t.calls), cmdDelta(t.calls, F.yCalls, "vs yesterday")], ["Conversations", cmdNum(t.reached), '<span class="cx-d flat">' + cmdPct(t.reached, t.calls) + ' of calls</span>'],
+    var k = [["Calls", cmdNum(t.calls), wk ? '<span class="cx-d flat">this week</span>' : cmdDelta(t.calls, F.yCalls, "vs yesterday")], ["Conversations", cmdNum(t.reached), '<span class="cx-d flat">' + cmdPct(t.reached, t.calls) + ' of calls</span>'],
       ["Interested", cmdNum(t.interested), '<span class="cx-d flat">' + cmdPct(t.interested, t.reached) + ' of conversations</span>'], ["Handoffs", cmdNum(t.appts), ''],
       ["Due now", cmdNum(F.due), '<span class="cx-d flat">follow-ups</span>'], ["Late", cmdNum(F.late), F.late ? '<span class="cx-d down">over a day</span>' : '<span class="cx-d up">none</span>']];
     var rows = F.rows, shown = CMD.allReps ? rows : rows.slice(0, 10);
     var stg = ["Qualified", "Pitched", "Objection", "Committed"].filter(function (s) { return F.stages[s]; });
-    return cmdPh("Your floor", '<span class="cx-live' + (F.live ? ' on' : '') + '">' + (F.live ? F.live + ' dialing now' : 'Nobody dialing') + '</span>') +
+    return cmdPh("Your floor", '<span class="cx-live' + (F.live ? ' on' : '') + '">' + (F.live ? F.live + ' dialing now' : 'Nobody dialing') + '</span>' +
+        '<span class="cx-seg" role="group" aria-label="Range"><button type="button" data-cx-range="today" aria-pressed="' + !wk + '" class="' + (wk ? '' : 'on') + '">Today</button><button type="button" data-cx-range="week" aria-pressed="' + wk + '" class="' + (wk ? 'on' : '') + '">This week</button></span>') +
       '<div class="cx-mini">' + k.map(function (x) { return '<div><span>' + x[0] + '</span><b>' + x[1] + '</b>' + x[2] + '</div>'; }).join("") + '</div>' +
-      (rows.length ? '<div class="cx-table cx-reps" role="table" aria-label="Reps today"><div class="cx-tr cx-th" role="row"><span role="columnheader">Rep</span><span role="columnheader">Calls</span><span role="columnheader">Talked</span><span role="columnheader">Interested</span><span role="columnheader">Last call</span><span></span></div>' +
+      (wk ? '' : cmdHoursHtml() + cmdPace(F)) +
+      (rows.length ? '<div class="cx-table cx-reps" role="table" aria-label="' + (wk ? 'Reps this week' : 'Reps today') + '"><div class="cx-tr cx-th" role="row"><span role="columnheader">Rep</span><span role="columnheader">Calls</span><span role="columnheader">Talked</span><span role="columnheader">Interested</span><span role="columnheader">Last call</span><span></span></div>' +
         shown.map(function (r) {
-          return '<div class="cx-tr" role="row"><span class="cx-rep"><i class="cx-st st-' + r.state + '" title="' + dot[r.state] + '"></i><b>' + escapeHtml(r.name) + '</b><small>' + dot[r.state] + '</small></span>' +
-            '<span>' + r.calls + '</span><span>' + r.reached + '</span><span>' + r.interested + '</span><span>' + (r.last ? cmdAgo(r.last) : '—') + '</span>' +
+          var lastAt = wk ? r.lastToday : r.last;
+          return '<div class="cx-tr cx-tr-go" role="row" data-cx-rep="' + escapeHtml(r.uid) + '" tabindex="0" title="Open ' + escapeHtml(r.name) + '"><span class="cx-rep"><i class="cx-st st-' + r.state + '" title="' + dot[r.state] + '"></i><b>' + escapeHtml(r.name) + '</b><small>' + dot[r.state] + '</small></span>' +
+            '<span>' + cmdNum(r.calls) + '</span><span>' + cmdNum(r.reached) + '</span><span>' + cmdNum(r.interested) + '</span><span>' + (lastAt ? cmdAgo(lastAt) : '—') + '</span>' +
             '<span>' + (can && r.state !== "live" && TEAM.me && r.uid !== TEAM.me.uid ? cmdBtn("Nudge", function () { floorOpenFor([r.uid], "Quick nudge: back on the phones! 📞"); }, "sm") : '') + '</span></div>';
         }).join("") + '</div>' + (rows.length > 10 ? '<button type="button" class="cx-link" data-cx-allreps>' + (CMD.allReps ? 'Show fewer' : 'Show all ' + rows.length + ' reps') + '</button>' : '')
         : '<p class="cx-empty">No reps on your floor yet. Add them in Team &amp; logins.</p>') +
@@ -21185,16 +21406,16 @@ window.VPEX_SIG = [
     var L = OC.list.filter(function (o) { return !q || String(o.d.name || "").toLowerCase().indexOf(q) >= 0 || o.id.indexOf(q) >= 0 || (o.owner && String(o.owner.name || "").toLowerCase().indexOf(q) >= 0); });
     var shown = CMD.allOffices || q ? L : L.slice(0, 8);
     return head +
-      '<div class="cx-money"><div><span>Monthly revenue</span><b>' + cmdMoney(B.mrr) + '</b></div><div><span>At risk</span><b class="' + (B.risk ? 'bad' : '') + '">' + cmdMoney(B.risk) + '</b></div><div><span>Trial upside</span><b class="good">' + cmdMoney(B.upside) + '</b></div><div><span>Calls, 7 days</span><b>' + cmdNum(B.calls) + '</b></div></div>' +
+      '<div class="cx-money"><div><span>Monthly revenue</span><b>' + cmdMoney(B.mrr) + '</b></div><div><span>At risk</span><b class="' + (B.risk ? 'bad' : '') + '">' + cmdMoney(B.risk) + '</b></div><div><span>Trial upside</span><b class="good">' + cmdMoney(B.upside) + '</b></div><div><span>Trial to paid</span><b>' + (B.conv === null ? '—' : B.conv + '%') + '</b></div></div>' +
       '<label class="cx-find"><span class="sr-only">Find an office</span>' + cmdSvg("search") + '<input id="cxOffQ" type="search" placeholder="Find an office, code or owner" value="' + escapeHtml(CMD.q) + '" autocomplete="off"></label>' +
       (shown.length ? '<div class="cx-offs">' + shown.map(function (o) {
         var d = o.d, nx = ocNext(o), sms = cmdSmsHref(o, nx ? nx.k : "checkin");
-        return '<div class="cx-off" data-cx-office="' + escapeHtml(o.id) + '"><div class="cx-off-t"><b>' + escapeHtml(d.name || o.id) + '</b><span>' + escapeHtml(o.id) + (o.owner ? ' · ' + escapeHtml(o.owner.name || o.owner.username || "") : '') + '</span></div>' +
+        return '<div class="cx-off" data-cx-office="' + escapeHtml(o.id) + '"><div class="cx-off-t"><button type="button" class="cx-off-name" data-cx-open-office="' + escapeHtml(o.id) + '">' + escapeHtml(d.name || o.id) + '</button><span>' + escapeHtml(o.id) + (o.owner ? ' · ' + escapeHtml(o.owner.name || o.owner.username || "") : '') + '</span></div>' +
           ocStatusChip(o.st, d) +
           '<div class="cx-off-n"><span><b>' + o.reps + '</b> rep' + (o.reps === 1 ? '' : 's') + '</span><span><b>' + cmdNum(o.calls) + '</b> calls/7d</span><span><b>' + (o.leads === null ? '—' : cmdNum(o.leads) + (o.leadsMore ? '+' : '')) + '</b> leads</span><span>' + (o.last ? 'seen ' + cmdAgo(o.last) : 'not seen yet') + '</span></div>' +
           (nx ? '<p class="cx-off-next">Next: ' + escapeHtml(nx.t) + '</p>' : '') +
           '<div class="cx-off-a">' + (sms ? '<a class="cx-b sm" href="' + escapeHtml(sms) + '">Text</a>' : '') +
-            cmdBtn(d.plan === "paid" ? "+1 month" : "Mark paid", function () { ocAction(o.id, "paid"); }, "sm") +
+            cmdBtn(d.plan === "paid" ? "+1 month" : "Mark paid", function () { cmdOfficeAct(o.id, "paid"); }, "sm") +
             cmdBtn("+7 trial days", function () { ocAction(o.id, "trial"); }, "sm") + '</div></div>';
       }).join("") + '</div>' : '<p class="cx-empty">' + (q ? 'No office matches “' + escapeHtml(CMD.q) + '”.' : 'No offices yet. Share ' + escapeHtml(TEAM_LINK) + '.') + '</p>') +
       '<div class="cx-acts">' + (!q && L.length > 8 ? '<button type="button" class="cx-link" data-cx-alloffices>' + (CMD.allOffices ? 'Show fewer' : 'Show all ' + L.length) + '</button>' : '') +
@@ -21287,10 +21508,10 @@ window.VPEX_SIG = [
     CMD_SECTIONS.forEach(function (s) { if (!q || has(s[1])) out.push({ k: "Go to", t: s[1], run: function () { cmdGo(s[0]); } }); });
     cmdControls().forEach(function (c) { if (!q || has(c.t) || has(c.k) || has(c.g)) out.push({ k: c.g, t: c.t, run: function () { cmdRunControl(c.id); } }); });
     if (q) {
-      OC.list.forEach(function (o) { if (has(o.d.name) || has(o.id) || (o.owner && has(o.owner.name))) out.push({ k: "Office", t: (o.d.name || o.id) + " · " + o.id, run: function () { CMD.q = o.d.name || o.id; cmdRenderAll(); cmdGo("offices"); } }); });
+      OC.list.forEach(function (o) { if (has(o.d.name) || has(o.id) || (o.owner && has(o.owner.name))) out.push({ k: "Office", t: (o.d.name || o.id) + " · " + o.id, run: function () { cmdOpenOffice(o.id); } }); });
       Object.keys(TEAM.members || {}).forEach(function (u) {
         var m = TEAM.members[u]; if (!m || !(has(m.name) || has(m.username))) return;
-        out.push({ k: "Rep", t: (m.name || m.username) + (m.active ? "" : " (access off)"), run: function () { cmdGo("floor"); } });
+        out.push({ k: "Rep", t: (m.name || m.username) + (m.active ? "" : " (access off)"), run: function () { cmdOpenRep(u); } });
         if (floorCan() && m.active && TEAM.me && u !== TEAM.me.uid) out.push({ k: "Nudge", t: "Message " + (firstName(m.name) || m.username), run: function () { floorOpenFor([u]); } });
       });
       var digits = q.replace(/\D/g, ""), n = 0;
@@ -21327,12 +21548,14 @@ window.VPEX_SIG = [
     var b = featOpen('<h3>Customize Command</h3><p class="modal-sub">Choose what shows. Saved on this device.</p>' +
       '<div class="cx-cust">' + CMD_HIDEABLE.map(function (k) { var n = CMD_SECTIONS.filter(function (s) { return s[0] === k; })[0][1];
         return '<label class="up-check"><input type="checkbox" data-cx-show="' + k + '"' + (hide[k] ? '' : ' checked') + '> ' + n + '</label>'; }).join("") +
-      '<label class="up-check"><input type="checkbox" id="cxBoot"' + (p.boot ? ' checked' : '') + '> Open Command whenever VPEX starts</label></div>' +
+      '<label class="up-check"><input type="checkbox" id="cxBoot"' + (p.boot ? ' checked' : '') + '> Open Command whenever VPEX starts</label>' +
+      '<label for="cxGoal">Monthly revenue goal ($)</label><input id="cxGoal" type="number" inputmode="numeric" min="0" step="100" placeholder="10000" value="' + escapeHtml(p.goal ? String(p.goal) : "") + '"></div>' +
       '<div class="modal-actions"><button type="button" class="btn-primary" id="cxCustSave" style="width:100%">Save</button></div>');
     document.getElementById("cxCustSave").addEventListener("click", function () {
       var np = cmdPrefs(); np.hide = {};
       b.querySelectorAll("[data-cx-show]").forEach(function (c) { if (!c.checked) np.hide[c.getAttribute("data-cx-show")] = true; });
       np.boot = document.getElementById("cxBoot").checked;
+      var gv = Math.round(Number(document.getElementById("cxGoal").value) || 0); if (gv > 0) np.goal = Math.min(gv, 1e9); else delete np.goal;
       cmdSavePrefs(np); featClose(); cmdRenderAll(); showToast("Command updated", { kind: "ok" });
     });
   }
@@ -21354,14 +21577,14 @@ window.VPEX_SIG = [
     }
     var mac = /Mac|iP(hone|ad|od)/.test(navigator.platform || navigator.userAgent);
     root.innerHTML =
-      '<header class="cx-top"><div class="cx-id"><span class="cx-pulse" id="cxPulse" data-state="ok"></span><div><b>Command</b><span id="cxStatus">Loading…</span></div></div>' +
+      '<header class="cx-top"><div class="cx-id"><span class="cx-dot" id="cxPulse" data-state="ok"></span><div><b>Command</b><span id="cxStatus">Loading…</span></div></div>' +
         '<button type="button" class="cx-search" id="cxSearch">' + cmdSvg("search") + '<span>Search or jump to anything</span><kbd>' + (mac ? '⌘K' : 'Ctrl K') + '</kbd></button>' +
         '<div class="cx-tools"><span class="cx-clock" id="cxClock"></span><button type="button" class="cx-ib" id="cxRefresh" aria-label="Refresh everything" title="Refresh everything">' + cmdSvg("refresh") + '</button>' +
         '<button type="button" class="cx-ib" id="cxCustom" aria-label="Customize" title="Customize">' + cmdSvg("sliders") + '</button>' +
         '<button type="button" class="cx-ib" id="cxClose" aria-label="Close Command" title="Close (Esc)">' + cmdSvg("close") + '</button></div></header>' +
       '<nav class="cx-nav" aria-label="Sections">' + CMD_SECTIONS.map(function (s) { return '<button type="button" data-cx-go="' + s[0] + '">' + s[1] + (s[0] === "needs" ? ' <em></em>' : '') + '</button>'; }).join("") + '</nav>' +
       '<div class="cx-grid"><section class="cx-p cx-brief" id="cx-brief"></section><section class="cx-p cx-needs" id="cx-needs"></section>' +
-        '<div class="cx-main">' + ["floor", "offices", "growth", "content", "systems", "controls"].map(function (k) { return '<section class="cx-p cx-' + k + '" id="cx-' + k + '"></section>'; }).join("") + '</div></div>' +
+        '<div class="cx-main">' + ["floor", "offices", "pulse", "growth", "content", "systems", "controls"].map(function (k) { return '<section class="cx-p cx-' + k + '" id="cx-' + k + '"></section>'; }).join("") + '</div></div>' +
       '<div class="cx-pal" id="cxPal" hidden><div class="cx-pal-box" role="combobox" aria-expanded="true"><label class="cx-pal-in">' + cmdSvg("search") + '<input id="cxPalQ" type="search" placeholder="Settings, offices, reps, leads…" autocomplete="off" aria-controls="cxPalList"></label><ul id="cxPalList" role="listbox"></ul>' +
         '<p class="cx-pal-hint">↑↓ to move · Enter to open · Esc to close</p></div></div>';
     root.hidden = false; root.scrollTop = 0;
@@ -21380,8 +21603,9 @@ window.VPEX_SIG = [
     cmdRenderAll();
     try { history.replaceState(null, "", location.pathname + location.search + "#command"); } catch (e) {}
   }
-  function cmdClose() {
-    var root = document.getElementById("cmd"); if (root) root.hidden = true;
+  function cmdClose(wipe) {
+    var root = document.getElementById("cmd"); if (root) { root.hidden = true; if (wipe === true) root.innerHTML = ""; }
+    if (wipe === true) { OC.list = []; CMD.ocAt = 0; CMD.growth = null; CMD.ig = null; CMD.events = []; CMD.shadow = {}; }
     document.body.classList.remove("cmd-open");
     CMD.on = false; clearInterval(CMD.tick); clearInterval(CMD.clock);
     CMD.unsub.forEach(function (f) { try { f(); } catch (e) {} }); CMD.unsub = [];
@@ -21396,6 +21620,10 @@ window.VPEX_SIG = [
     var s = t.closest("[data-cx-snooze]"); if (s) { var sn = cmdSnoozed(), today = localDateStr(new Date()); Object.keys(sn).forEach(function (k) { if (sn[k] !== today) delete sn[k]; }); sn[s.getAttribute("data-cx-snooze")] = today; lsSet("vpex_cmd_snooze", JSON.stringify(sn)); cmdRenderAll(); showToast("Hidden until tomorrow"); return; }
     var p = t.closest("[data-cx-pin]"); if (p) { var pr = cmdPrefs(), pins = pr.pins || ["floor", "offices", "script"], id = p.getAttribute("data-cx-pin"), ix = pins.indexOf(id); if (ix >= 0) pins.splice(ix, 1); else pins.push(id); pr.pins = pins.slice(0, 8); cmdSavePrefs(pr); cmdRenderAll(); return; }
     if (t.closest("[data-cx-refresh]")) { cmdLoadAll(true); return; }
+    var rr = t.closest("[data-cx-range]"); if (rr) { CMD.fRange = rr.getAttribute("data-cx-range"); cmdRenderAll(); return; }
+    if (t.closest("[data-cx-share]")) { cmdShareBrief(); return; }
+    var oo = t.closest("[data-cx-open-office]"); if (oo) { cmdOpenOffice(oo.getAttribute("data-cx-open-office")); return; }
+    var rp = t.closest("[data-cx-rep]"); if (rp && !t.closest("button")) { cmdOpenRep(rp.getAttribute("data-cx-rep")); return; }
     if (t.closest("[data-cx-allreps]")) { CMD.allReps = !CMD.allReps; cmdRenderAll(); return; }
     if (t.closest("[data-cx-alloffices]")) { CMD.allOffices = !CMD.allOffices; cmdRenderAll(); return; }
     var pi = t.closest("[data-cx-pal]"); if (pi) { e.preventDefault(); e.stopPropagation(); cmdPalPick(Number(pi.getAttribute("data-cx-pal"))); return; }
@@ -21407,6 +21635,7 @@ window.VPEX_SIG = [
   }
   function cmdOfficesHtmlSafe() { CMD.acts = CMD.acts || []; try { return cmdOfficesHtml(); } catch (e) { return ""; } }
   function cmdKeys(e) {
+    if ((e.key === "Enter" || e.key === " ") && e.target && e.target.getAttribute && e.target.getAttribute("data-cx-rep") && e.target === document.activeElement) { e.preventDefault(); cmdOpenRep(e.target.getAttribute("data-cx-rep")); return; }
     var pal = document.getElementById("cxPal");
     if (pal && !pal.hidden) {
       if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); var n = CMD.palItems.length; if (n) { CMD.palSel = (CMD.palSel + (e.key === "ArrowDown" ? 1 : n - 1)) % n; cmdPalRender(); } return; }
@@ -21422,6 +21651,8 @@ window.VPEX_SIG = [
     if ((e.metaKey || e.ctrlKey) && (e.key === "k" || e.key === "K")) { e.preventDefault(); e.stopImmediatePropagation(); if (pal && !pal.hidden) cmdPalClose(); else cmdPalOpen(); return; }
     if (e.key === "Escape") { e.preventDefault(); e.stopImmediatePropagation(); if (pal && !pal.hidden) cmdPalClose(); else cmdClose(); }
   }, true);
+  window.addEventListener("online", function () { if (CMD.on) { cmdLoadAll(true); cmdSoon(); } });
+  window.addEventListener("offline", function () { if (CMD.on) cmdSoon(); });
   // Open on #command, or on start when the owner chose that
   function cmdBoot() {
     var tries = 0;
