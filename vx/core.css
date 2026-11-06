@@ -1,0 +1,209 @@
+/* ===================== VPEX Experience layer (vx) =====================
+   One system on top of every theme: light, material, and motion.
+   - Light: each theme has its own ambient lights (vx/themes.py) that drift slowly and
+     brighten as calling momentum (--heat) builds.
+   - Material: grain, vignette, a texture from a small library, and a lit top edge on cards.
+   - Motion: each theme has a motion personality (silk, glide, snap, bounce, float, step,
+     hard, still) that sets how views arrive, cards deal in, sheets rise and buttons press.
+   Everything animates transform/opacity only, pauses when idle, and switches off for
+   Reduce Motion (system setting or the in-app Motion toggle). Built into index.html by vx/build.py. */
+
+:root {
+  --vx-dur: 380ms; --vx-ease: cubic-bezier(.2,.8,.2,1); --vx-dist: 14px; --vx-press: .965; --vx-stag: 28ms;
+  --vx-rel: 420ms; --vx-spring: cubic-bezier(.34,1.56,.64,1); --vx-sheet: 460ms; --vx-sheet-ease: cubic-bezier(.16,1,.3,1);
+  --vx-drift: 46s; --vx-amb: 1; --vx-heat-k: .3;
+  --vx-l1: transparent; --vx-l2: transparent; --vx-l3: transparent;
+  --vx-p1: 4% 94%; --vx-p2: 96% 48%; --vx-p3: 58% 116%;
+  --vx-s1: 62vmax; --vx-s2: 54vmax; --vx-s3: 70vmax;
+  --vx-grain: .045; --vx-grain-img: none; --vx-vig: .30; --vx-vig-c: 0,0,0;
+  --vx-tex: none; --vx-tex-size: auto; --vx-tex-op: .6; --vx-tex-mask: none;
+  --vx-spec: rgba(255,255,255,.065); --vx-bounce: transparent; --vx-lx: 28%;
+  --vx-touch: color-mix(in srgb, var(--accent) 42%, transparent);
+  --vx-ink: color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+/* ---------- Light: the ambient layer ---------- */
+#vxAtmo { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; contain: strict; }
+/* The vignette deepens the edges so the middle of the screen, where you work, holds the light. */
+#vxVig { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(130% 95% at 50% 38%, transparent 52%, rgba(var(--vx-vig-c), var(--vx-vig)) 100%); }
+#vxAtmo::before, #vxAtmo::after { content: ""; position: absolute; inset: -14%;
+  opacity: calc(var(--vx-amb) * (1 - var(--vx-heat-k) + var(--heat, 0.08) * var(--vx-heat-k) * 1.6)); transition: opacity 1.6s ease; }
+#vxAtmo::before { background:
+    radial-gradient(var(--vx-s1) var(--vx-s1) at var(--vx-p1), var(--vx-l1), transparent 70%),
+    radial-gradient(var(--vx-s3) calc(var(--vx-s3) * .62) at var(--vx-p3), var(--vx-l3), transparent 70%); }
+#vxAtmo::after { background: radial-gradient(var(--vx-s2) var(--vx-s2) at var(--vx-p2), var(--vx-l2), transparent 70%); }
+#vxAtmo > b { position: absolute; inset: 0; background-image: var(--vx-tex); background-size: var(--vx-tex-size); opacity: var(--vx-tex-op);
+  -webkit-mask-image: var(--vx-tex-mask); mask-image: var(--vx-tex-mask); }
+/* Grain sits over the whole app (below sheets) so every surface has the same tooth. */
+#vxGrain { position: fixed; inset: 0; z-index: 99; pointer-events: none; background-image: var(--vx-grain-img); background-size: 180px 180px; opacity: var(--vx-grain); }
+html[data-motion="on"] #vxAtmo::before { animation: vxDriftA var(--vx-drift) ease-in-out infinite alternate; }
+html[data-motion="on"] #vxAtmo::after { animation: vxDriftB calc(var(--vx-drift) * 1.31) ease-in-out infinite alternate; }
+@keyframes vxDriftA { 0% { transform: translate3d(-2.5%, 1.5%, 0) scale(1); } 50% { transform: translate3d(2%, -2%, 0) scale(1.06); } 100% { transform: translate3d(3%, 2.5%, 0) scale(1.02); } }
+@keyframes vxDriftB { 0% { transform: translate3d(2%, -1%, 0) scale(1.04); } 100% { transform: translate3d(-3%, 3%, 0) scale(.97); } }
+/* A logged call flares the room in its outcome color, then settles. */
+html[data-motion="on"][data-flash] #vxAtmo::after { animation: vxFlare 1.3s ease-out, vxDriftB calc(var(--vx-drift) * 1.31) ease-in-out infinite alternate; }
+@keyframes vxFlare { 0% { opacity: 1; } }
+/* Battery: everything ambient holds still after 90 seconds without a touch. */
+html.vx-idle #vxAtmo::before, html.vx-idle #vxAtmo::after, html.vx-idle #fxLayer::before, html.vx-idle #fxLayer::after { animation-play-state: paused !important; }
+
+/* ---------- Material: cards ---------- */
+:root[data-theme]:not([data-theme^="flow"]) :is(.card, .deal-bar-card, .pipe-item, .task-item, .hist-item) {
+  background: var(--vx-card-light) padding-box, var(--vx-card-orn), var(--card-tex, linear-gradient(transparent, transparent)) padding-box, var(--card-bg, linear-gradient(var(--surface), var(--surface))) padding-box, var(--card-frame, linear-gradient(var(--border), var(--border))) border-box !important; }
+:root:not([data-theme]) :is(#mainArea .card, .deal-bar-card), :root[data-theme^="flow"] :is(#mainArea .card, .deal-bar-card) { background: var(--vx-card-light), var(--vx-card-orn), var(--surface); }
+:is(.card, .deal-bar-card, .pipe-item, .task-item, .hist-item) { --vx-card-light: radial-gradient(140% 70% at var(--vx-lx) -12%, var(--vx-spec), transparent 62%), radial-gradient(90% 46% at 50% 118%, var(--vx-bounce), transparent 70%); --vx-card-orn: linear-gradient(transparent, transparent); }
+#mainArea .card { transition: box-shadow .35s ease, transform .35s ease, --vx-lx .5s ease; }
+@property --vx-lx { syntax: "<percentage>"; inherits: true; initial-value: 28%; }
+/* Card details (set per theme): a hairline inner frame, a stitched seam, or corner brackets. */
+@DET(hair) #mainArea .card { outline: 1px solid var(--vx-det, color-mix(in srgb, var(--accent) 30%, transparent)); outline-offset: -7px; }
+@DET(stitch) #mainArea .card { outline: 1.5px dashed var(--vx-det, color-mix(in srgb, var(--text) 18%, transparent)); outline-offset: -8px; }
+@DET(corners) #mainArea .card { --vx-det: color-mix(in srgb, var(--accent) 70%, transparent); --vx-card-orn:
+  linear-gradient(var(--vx-det), var(--vx-det)) left 9px top 9px / 16px 1.5px no-repeat, linear-gradient(var(--vx-det), var(--vx-det)) left 9px top 9px / 1.5px 16px no-repeat,
+  linear-gradient(var(--vx-det), var(--vx-det)) right 9px top 9px / 16px 1.5px no-repeat, linear-gradient(var(--vx-det), var(--vx-det)) right 9px top 9px / 1.5px 16px no-repeat,
+  linear-gradient(var(--vx-det), var(--vx-det)) left 9px bottom 9px / 16px 1.5px no-repeat, linear-gradient(var(--vx-det), var(--vx-det)) left 9px bottom 9px / 1.5px 16px no-repeat,
+  linear-gradient(var(--vx-det), var(--vx-det)) right 9px bottom 9px / 16px 1.5px no-repeat, linear-gradient(var(--vx-det), var(--vx-det)) right 9px bottom 9px / 1.5px 16px no-repeat; }
+@property --vx-fp { syntax: "<percentage>"; inherits: false; initial-value: 100%; }
+@DET(foil) #mainArea .card { --vx-card-orn: linear-gradient(105deg, transparent 42%, color-mix(in srgb, var(--vx-f1, #fff) 20%, transparent) 48%, color-mix(in srgb, var(--vx-f2, #fff) 16%, transparent) 52%, transparent 58%) var(--vx-fp) 0 / 300% 100% no-repeat; }
+@DET(foil)[data-motion="on"] #mainArea .card.card-enter { animation: vxDeal var(--vx-dur) var(--vx-ease) both, vxFoil 1.5s cubic-bezier(.45,0,.2,1) .12s both; }
+@keyframes vxFoil { from { --vx-fp: 0%; } to { --vx-fp: 100%; } }
+
+/* ---------- Motion: arrivals ---------- */
+@keyframes vxDeal { from { opacity: 0; transform: translate3d(0, var(--vx-dist), 0) scale(.985); } to { opacity: 1; transform: none; } }
+@keyframes vxInR { from { opacity: 0; transform: translate3d(var(--vx-dist), 0, 0); } to { opacity: 1; transform: none; } }
+@keyframes vxInL { from { opacity: 0; transform: translate3d(calc(var(--vx-dist) * -1), 0, 0); } to { opacity: 1; transform: none; } }
+@keyframes vxRise { from { opacity: 0; transform: translate3d(0, calc(var(--vx-dist) * .8), 0); } to { opacity: 1; transform: none; } }
+@keyframes vxGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes vxFade { from { opacity: 0; } to { opacity: 1; } }
+html[data-motion="on"] .card-enter { animation: vxDeal var(--vx-dur) var(--vx-ease) both; }
+html[data-motion="on"] .vx-in-r { animation: vxInR var(--vx-dur) var(--vx-ease) both; }
+html[data-motion="on"] .vx-in-l { animation: vxInL var(--vx-dur) var(--vx-ease) both; }
+html[data-motion="on"] .vx-rise { animation: vxRise var(--vx-dur) var(--vx-ease) both; animation-delay: calc(var(--vx-i, 0) * var(--vx-stag)); }
+html[data-motion="on"] .vx-grow { transform-origin: 0 50%; animation: vxGrow calc(var(--vx-dur) * 2.2) var(--vx-ease) .08s both; }
+
+/* First arrival: the room lights, then the count, then the lead. */
+html.vx-boot[data-motion="on"] #vxAtmo { animation: vxFade 1.4s ease-out both; }
+html.vx-boot[data-motion="on"] header.top { animation: vxFade .6s ease-out both; }
+html.vx-boot[data-motion="on"] :is(#progressWrap, #queueControls, #deskLeft) { animation: vxRise var(--vx-dur) var(--vx-ease) .08s both; }
+html.vx-boot[data-motion="on"] #mainArea { animation: vxRise calc(var(--vx-dur) * 1.25) var(--vx-ease) .18s both; }
+html.vx-boot[data-motion="on"] :is(#statsBlock, #queueBlock, #deskLive) { animation: vxRise var(--vx-dur) var(--vx-ease) .3s both; }
+
+/* Sheets and dialogs rise in (phone) or settle in (wide), and fade out. */
+.modal-overlay { -webkit-backdrop-filter: blur(5px) saturate(115%); backdrop-filter: blur(5px) saturate(115%); }
+.modal-overlay:not(.show) { pointer-events: none; }
+html[data-motion="on"] .modal-overlay.show { animation: vxFade .22s ease-out both; }
+html[data-motion="on"] .modal-overlay.show > .modal { animation: vxSheetUp var(--vx-sheet) var(--vx-sheet-ease) both; }
+@media (min-width: 540px) { html[data-motion="on"] .modal-overlay.show > .modal { animation-name: vxSheetIn; } }
+@keyframes vxSheetUp { from { transform: translate3d(0, 46px, 0); opacity: .4; } to { transform: none; opacity: 1; } }
+@keyframes vxSheetIn { from { transform: translate3d(0, 12px, 0) scale(.965); opacity: 0; } to { transform: none; opacity: 1; } }
+.modal { box-shadow: 0 -18px 50px -18px rgba(0,0,0,.45), inset 0 1px 0 color-mix(in srgb, #fff 9%, transparent); }
+
+/* ---------- Motion: response ---------- */
+:is(.view-tab, .filter-chip, .out-btn, .btn-primary, .btn-secondary, .call-btn, .prev-pill, .icon-btn, .copy-btn, .goal-btn, .theme-card, .hub-tile, .fu-chip) {
+  transition: background-color .18s ease, color .18s ease, border-color .18s ease, box-shadow .25s ease, opacity .18s ease, transform var(--vx-rel) var(--vx-spring); }
+html[data-motion="on"]:not(.vx-auto) :is(.view-tab, .filter-chip, .btn-primary, .btn-secondary, .prev-pill, .theme-card, .hub-tile, .fu-chip):active:not(:disabled) { transform: scale(var(--vx-press)); transition-duration: .08s; }
+html[data-motion="on"]:not(.vx-auto) .call-btn:active:not(:disabled) { transform: scale(calc(1 - (1 - var(--vx-press)) * .55)); transition-duration: .08s; }
+/* The Call button carries a light that follows your finger or cursor. */
+:root:not([data-theme^="sig-"]) .call-btn { position: relative; overflow: hidden; isolation: isolate; }
+:root:not([data-theme^="sig-"]) .call-btn::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1;
+  background: radial-gradient(150px circle at var(--vx-px, 50%) var(--vx-py, 50%), rgba(255,255,255,.34), transparent 62%); opacity: 0; transition: opacity .35s ease; }
+:root:not([data-theme^="sig-"]) .call-btn:is(:hover, .vx-lit)::before { opacity: .55; }
+:root:not([data-theme^="sig-"]) .call-btn:active::before { opacity: .95; transition-duration: .05s; }
+@media (hover: none) { :root:not([data-theme^="sig-"]) .call-btn:hover:not(.vx-lit)::before { opacity: 0; } }
+
+/* The touch light: a soft bloom wherever you tap. */
+#vxTouch { position: fixed; left: 0; top: 0; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%; pointer-events: none; z-index: 400; opacity: 0;
+  background: radial-gradient(closest-side, var(--vx-touch), transparent); will-change: transform, opacity; }
+
+/* Tab ink: the selection glides to the tab you chose. */
+.view-tabs { position: relative; }
+.vx-ink { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 0; will-change: transform, width; }
+.view-tabs.vx-gliding .view-tab.active { background: transparent !important; box-shadow: none !important; border-color: transparent !important; }
+.view-tabs .view-tab { position: relative; z-index: 1; }
+
+/* Count today rolls when it climbs. */
+html[data-motion="on"] #todayNum.vx-roll { animation: vxRoll .5s var(--vx-spring); display: inline-block; }
+@keyframes vxRoll { 0% { transform: translateY(42%); opacity: .2; } 60% { opacity: 1; } 100% { transform: none; } }
+
+/* The header gains a shadow once content scrolls under it. */
+header.top { transition: box-shadow .3s ease; }
+html.vx-scrolled body:not(.desk) header.top { box-shadow: 0 14px 22px -18px rgba(var(--vx-vig-c), .55); }
+
+/* Loading: a light passes over the words while your list comes in. */
+html[data-motion="on"] .sync-banner { background-image: linear-gradient(100deg, transparent 30%, color-mix(in srgb, var(--accent) 22%, transparent) 50%, transparent 70%); background-size: 220% 100%; animation: vxShimmer 1.6s linear infinite; }
+@keyframes vxShimmer { from { background-position: 120% 0; } to { background-position: -120% 0; } }
+
+/* Keyboard focus is always visible and always in the theme's own color. */
+:is(button, a, select, [tabindex]):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Theme switching: the new theme opens out from where you tapped. */
+::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+::view-transition-new(root) { animation: vxReveal .72s cubic-bezier(.65,0,.35,1); }
+@keyframes vxReveal { from { clip-path: circle(0 at var(--vx-rx, 50%) var(--vx-ry, 50%)); } to { clip-path: circle(var(--vx-rr, 150vmax) at var(--vx-rx, 50%) var(--vx-ry, 50%)); } }
+
+/* Command: the headquarters powers up panel by panel. */
+html[data-motion="on"] #cmd:not([hidden]) { animation: vxFade .35s ease-out both; }
+html[data-motion="on"] #cmd:not([hidden]) :is(.cx-brief, .cx-needs, .cx-main > .cx-p) { animation: vxCmdP .62s cubic-bezier(.16,1,.3,1) both; }
+html[data-motion="on"] #cmd:not([hidden]) .cx-needs { animation-delay: 70ms; }
+html[data-motion="on"] #cmd:not([hidden]) .cx-main > .cx-p:nth-child(1) { animation-delay: 130ms; }
+html[data-motion="on"] #cmd:not([hidden]) .cx-main > .cx-p:nth-child(2) { animation-delay: 180ms; }
+html[data-motion="on"] #cmd:not([hidden]) .cx-main > .cx-p:nth-child(3) { animation-delay: 230ms; }
+html[data-motion="on"] #cmd:not([hidden]) .cx-main > .cx-p:nth-child(n+4) { animation-delay: 280ms; }
+@keyframes vxCmdP { from { opacity: 0; transform: translate3d(0, 14px, 0); } to { opacity: 1; transform: none; } }
+#cmd .cx-p { transition: border-color .25s ease, box-shadow .35s ease; box-shadow: inset 0 1px 0 rgba(255,255,255,.035); }
+#cmd .cx-p:hover { box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 18px 40px -24px rgba(111,200,255,.25); }
+@media (prefers-reduced-motion: reduce) { #cmd, #cmd .cx-p { animation: none !important; } }
+
+/* Charts draw themselves when a report or Command opens (not on every refresh). */
+@keyframes vxGrowY { from { transform: scaleY(0); } }
+html[data-motion="on"] .vx-fresh :is(.cx-fbar > i, .gb-track > span, .fl-bar > i, .sc-fill) { transform-origin: 0 50%; animation: vxGrow .9s var(--vx-ease) .15s both; }
+html[data-motion="on"] .vx-fresh .rp-bars rect { transform-box: fill-box; transform-origin: 50% 100%; animation: vxGrowY .7s var(--vx-ease) both; animation-delay: 420ms; }
+html[data-motion="on"] .vx-fresh .rp-bars rect:nth-child(1) { animation-delay: 82ms; }
+html[data-motion="on"] .vx-fresh .rp-bars rect:nth-child(2) { animation-delay: 104ms; }
+html[data-motion="on"] .vx-fresh .rp-bars rect:nth-child(3) { animation-delay: 126ms; }
+html[data-motion="on"] .vx-fresh .rp-bars rect:nth-child(4) { animation-delay: 148ms; }
+html[data-motion="on"] .vx-fresh .rp-bars rect:nth-child(5) { animation-delay: 170ms; }
+html[data-motion="on"] .vx-fresh .rp-bars rect:nth-child(6) { animation-delay: 192ms; }
+html[data-motion="on"] .vx-fresh .rp-bars rect:nth-child(7) { animation-delay: 214ms; }
+html[data-motion="on"] .vx-fresh .rp-bars rect:nth-child(8) { animation-delay: 236ms; }
+html[data-motion="on"] .vx-fresh .rp-bars rect:nth-child(9) { animation-delay: 258ms; }
+html[data-motion="on"] .vx-fresh .rp-bars rect:nth-child(10) { animation-delay: 280ms; }
+html[data-motion="on"] .vx-fresh .rp-bars rect:nth-child(11) { animation-delay: 302ms; }
+html[data-motion="on"] .vx-fresh .rp-bars rect:nth-child(12) { animation-delay: 324ms; }
+html[data-motion="on"] .vx-fresh .rp-bars rect:nth-child(13) { animation-delay: 346ms; }
+html[data-motion="on"] .vx-fresh .rp-bars rect:nth-child(14) { animation-delay: 368ms; }
+html[data-motion="on"] .vx-fresh .rp-bars rect:nth-child(15) { animation-delay: 390ms; }
+html[data-motion="on"] .vx-fresh .rp-bars rect:nth-child(16) { animation-delay: 412ms; }
+@media (prefers-reduced-motion: reduce) { .vx-fresh :is(.cx-fbar > i, .gb-track > span, .fl-bar > i, .sc-fill, .rp-bars rect) { animation: none !important; } }
+
+/* ---------- Motion personalities ---------- */
+@MO(silk)   { --vx-dur: 560ms; --vx-ease: cubic-bezier(.22,1,.36,1); --vx-dist: 10px; --vx-press: .982; --vx-stag: 42ms; --vx-rel: 620ms; --vx-spring: cubic-bezier(.22,1,.36,1); --vx-sheet: 600ms; --vx-drift: 64s; }
+@MO(glide)  { --vx-dur: 380ms; --vx-ease: cubic-bezier(.2,.8,.2,1); --vx-dist: 14px; --vx-press: .965; --vx-stag: 28ms; --vx-rel: 420ms; --vx-spring: cubic-bezier(.34,1.4,.64,1); --vx-drift: 46s; }
+@MO(snap)   { --vx-dur: 240ms; --vx-ease: cubic-bezier(.3,1.35,.5,1); --vx-dist: 18px; --vx-press: .94; --vx-stag: 18ms; --vx-rel: 300ms; --vx-spring: cubic-bezier(.3,1.9,.5,1); --vx-sheet: 340ms; --vx-sheet-ease: cubic-bezier(.3,1.25,.5,1); --vx-drift: 30s; }
+@MO(bounce) { --vx-dur: 520ms; --vx-ease: cubic-bezier(.34,1.7,.5,1); --vx-dist: 16px; --vx-press: .93; --vx-stag: 36ms; --vx-rel: 560ms; --vx-spring: cubic-bezier(.3,2.2,.5,1); --vx-sheet: 520ms; --vx-sheet-ease: cubic-bezier(.34,1.45,.5,1); --vx-drift: 40s; }
+@MO(float)  { --vx-dur: 720ms; --vx-ease: cubic-bezier(.16,1,.3,1); --vx-dist: 9px; --vx-press: .975; --vx-stag: 55ms; --vx-rel: 700ms; --vx-spring: cubic-bezier(.16,1,.3,1); --vx-sheet: 680ms; --vx-drift: 80s; }
+@MO(step)   { --vx-dur: 260ms; --vx-ease: steps(4, end); --vx-dist: 16px; --vx-press: .95; --vx-stag: 0ms; --vx-rel: 140ms; --vx-spring: steps(2, end); --vx-sheet: 260ms; --vx-sheet-ease: steps(5, end); --vx-drift: 0s; }
+@MO(hard)   { --vx-dur: 170ms; --vx-ease: cubic-bezier(.4,0,.2,1); --vx-dist: 10px; --vx-press: .96; --vx-stag: 10ms; --vx-rel: 160ms; --vx-spring: cubic-bezier(.4,0,.2,1); --vx-sheet: 220ms; --vx-sheet-ease: cubic-bezier(.4,0,.2,1); --vx-drift: 0s; }
+@MO(still)  { --vx-dur: 240ms; --vx-ease: cubic-bezier(.25,.1,.25,1); --vx-dist: 0px; --vx-press: .98; --vx-stag: 0ms; --vx-rel: 220ms; --vx-spring: ease-out; --vx-sheet: 300ms; --vx-drift: 0s; }
+@MO(step)[data-motion="on"] #vxAtmo::before, @MO(step)[data-motion="on"] #vxAtmo::after,
+@MO(hard)[data-motion="on"] #vxAtmo::before, @MO(hard)[data-motion="on"] #vxAtmo::after,
+@MO(still)[data-motion="on"] #vxAtmo::before, @MO(still)[data-motion="on"] #vxAtmo::after { animation: none; }
+
+/* Signature themes keep their own world: no shared lights or texture, but they move with silk. */
+:root[data-theme^="sig-"] :is(#vxAtmo, #vxGrain, #vxVig) { display: none; }
+
+/* ---------- Automation (see vx.js): tests see the app as it was before vx motion; the light and material stay. ---------- */
+html.vx-auto #vxAtmo::before, html.vx-auto #vxAtmo::after, html.vx-auto .modal-overlay.show, html.vx-auto .modal-overlay.show > .modal,
+html.vx-auto #cmd, html.vx-auto #cmd .cx-p, html.vx-auto .sync-banner { animation: none !important; }
+html.vx-auto .card-enter { animation: cardIn .28s cubic-bezier(.2, .8, .2, 1) !important; }
+html.vx-auto :is(.view-tab, .filter-chip, .out-btn, .btn-primary, .btn-secondary, .call-btn, .prev-pill, .icon-btn, .copy-btn, .goal-btn, .theme-card, .hub-tile, .fu-chip) { transition: background-color .15s ease, color .15s ease, border-color .15s ease, transform .08s ease; }
+
+/* ---------- Reduce Motion: every vx animation stops; nothing is hidden waiting for one. ---------- */
+html[data-motion="off"] #vxAtmo::before, html[data-motion="off"] #vxAtmo::after { animation: none !important; }
+html[data-motion="off"] #vxTouch, html[data-motion="off"] .vx-ink { display: none !important; }
+html[data-motion="off"] .modal-overlay { transition: none; }
+@media (prefers-reduced-motion: reduce) {
+  #vxAtmo::before, #vxAtmo::after, .card-enter, .vx-in-r, .vx-in-l, .vx-rise, .vx-grow, #todayNum.vx-roll, .sync-banner,
+  .modal-overlay.show, .modal-overlay.show > .modal { animation: none !important; }
+  #vxTouch, .vx-ink { display: none !important; }
+  ::view-transition-new(root) { animation: none !important; }
+  :is(.view-tab, .filter-chip, .out-btn, .btn-primary, .btn-secondary, .call-btn, .prev-pill, .icon-btn, .copy-btn, .goal-btn, .theme-card, .hub-tile, .fu-chip) { transition-duration: .01ms !important; }
+}
