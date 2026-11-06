@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-01-18">
+<meta name="vpex-build" content="2027-01-19">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 /* Signature themes: five themes only the VPEX owner's own login can use (sig/*.css, sig.js).
@@ -8701,6 +8701,93 @@ window.VPEX_SIG = [
   .srch-empty span { font-size: 13px; color: var(--text-dim); }
   html[data-motion="off"] .srch { transition: none; }
 
+  /* ---- Message your floor: the composer (admins, managers) and the banner reps see ---- */
+  .fl-qh { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 6px; }
+  #floorSheet .fl-qh .fl-lab { margin: 0 !important; line-height: 1.3; }
+  .fl-send.fl-done svg { display: none; }
+  .fl-presets { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 148px), 1fr)); gap: 7px; }
+  .fl-chip { position: relative; display: inline-flex; align-items: center; gap: 6px; min-height: 38px; max-width: 100%; padding: 6px 11px; border-radius: 11px;
+    border: 1px solid var(--border); background: var(--surface-raised); color: var(--text); font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; text-align: left; }
+  .fl-chip { justify-content: space-between; line-height: 1.25; }
+  .fl-chip span { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+  .fl-chip.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--surface-raised)); }
+  .fl-chip .fl-x { display: none; width: 22px; height: 22px; margin: -4px -6px -4px 0; border-radius: 50%; align-items: center; justify-content: center; flex: none;
+    background: color-mix(in srgb, var(--notinterested) 18%, transparent); color: var(--notinterested); font-size: 15px; line-height: 1; }
+  .fl-presets.editing .fl-chip .fl-x { display: inline-flex; }
+  .fl-presets.editing .fl-chip { cursor: default; }
+  .fl-edit { min-height: 36px; padding: 6px 2px 6px 10px; border: 0; background: none; color: var(--accent); font: inherit; font-size: 13.5px; font-weight: 650; cursor: pointer; }
+  #floorSheet .fl-lab, #floorSheet .fl-lab:first-of-type { display: block; margin: 18px 0 6px; font-size: 13px; font-weight: 650; color: var(--text-dim); }
+  #floorSheet .fl-ta { display: block; width: 100%; box-sizing: border-box; min-height: 84px; resize: vertical; padding: 11px 12px; border-radius: var(--radius-s); border: 1px solid var(--border);
+    background: var(--surface); color: var(--text); font: inherit; font-size: 16px; line-height: 1.4; }
+  .fl-ta:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+  .fl-under { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 30px; margin-top: 4px; font-size: 12.5px; color: var(--text-faint); }
+  .fl-under .fl-n.over { color: var(--notinterested); font-weight: 700; }
+  .fl-save { padding: 4px 0; border: 0; background: none; color: var(--accent); font: inherit; font-size: 13px; font-weight: 650; cursor: pointer; }
+  .fl-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; margin-top: 8px; }
+  #floorSheet .fl-pick label { margin: 0; color: var(--text); font-weight: 500; display: flex; align-items: center; gap: 9px; min-height: 42px; padding: 6px 10px; border-radius: var(--radius-s); border: 1px solid var(--border); background: var(--surface);
+    font-size: 14px; cursor: pointer; overflow: hidden; }
+  .fl-pick label span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fl-pick input { width: 18px; height: 18px; margin: 0; flex: none; accent-color: var(--accent-fill, var(--accent)); }
+  .fl-pick label:has(input:checked) { border-color: var(--accent); }
+  .fl-prev { margin-top: 16px; padding: 12px 14px 13px; border-radius: 18px; color: #fff;
+    background: linear-gradient(160deg, #39406a 0%, #1d2240 55%, #12152b 100%); }
+  .fl-prev-cap { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.7); margin: 0 0 8px; }
+  .fl-note { display: flex; gap: 10px; padding: 10px 12px; border-radius: 14px; background: rgba(245,245,250,0.82); color: #111;
+    -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); }
+  .fl-note img { width: 34px; height: 34px; border-radius: 8px; flex: none; }
+  .fl-note-t { flex: 1; min-width: 0; }
+  .fl-note-h { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: #555; }
+  .fl-note-h b { color: #111; font-weight: 600; letter-spacing: 0.01em; }
+  .fl-note-ti { font-size: 14.5px; font-weight: 650; line-height: 1.3; margin-top: 1px; }
+  .fl-note-b { font-size: 14.5px; line-height: 1.32; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+  .fl-note-b:empty::before { content: "Your message"; color: #888; }
+  #floorSheet .fl-foot { position: sticky; bottom: -26px; z-index: 2; margin: 16px -20px -26px; padding: 12px 20px calc(16px + env(safe-area-inset-bottom, 0px));
+    background: var(--surface); border-top: 1px solid var(--border); box-shadow: 0 -10px 24px -14px rgba(0,0,0,0.45); }
+  .fl-send { width: 100%; min-height: 50px; font-size: 16px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+  .fl-send svg { width: 19px; height: 19px; }
+  .fl-send:disabled { opacity: 0.55; cursor: default; }
+  .fl-res { margin-bottom: 10px; padding: 11px 13px; border-radius: var(--radius-m, 14px); border: 1px solid var(--border); background: var(--surface-raised); font-size: 14px; line-height: 1.45; }
+  .fl-res b { display: block; font-size: 15.5px; margin-bottom: 2px; }
+  .fl-res.ok { border-color: color-mix(in srgb, var(--interested) 45%, var(--border)); }
+  .fl-res.ok b { color: var(--interested); }
+  .fl-res.warn { border-color: color-mix(in srgb, var(--callback) 45%, var(--border)); }
+  .fl-res .fl-off { margin-top: 6px; color: var(--text-dim); font-size: 13.5px; }
+  .fl-res .fl-wait { color: var(--text-dim); }
+  .fl-recent { margin-top: 18px; }
+  .fl-recent-h { font-size: 13px; font-weight: 650; color: var(--text-dim); margin: 0 0 6px; }
+  .fl-rec { display: flex; gap: 10px; width: 100%; align-items: baseline; padding: 9px 2px; border: 0; border-top: 1px solid var(--border); background: none; color: var(--text);
+    font: inherit; font-size: 14px; text-align: left; cursor: pointer; }
+  .fl-rec time { flex: none; width: 66px; font-size: 12.5px; color: var(--text-faint); font-variant-numeric: tabular-nums; }
+  .fl-rec span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .fl-rec small { flex: none; font-size: 12px; color: var(--text-faint); }
+  .hub-floor { display: flex; align-items: center; gap: 12px; width: 100%; margin: 14px 0 0; padding: 12px 14px; border-radius: var(--radius-m, 14px); cursor: pointer; font: inherit; text-align: left;
+    border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border)); background: color-mix(in srgb, var(--accent) 10%, var(--surface-raised)); color: var(--text); }
+  .hub-floor .hub-ic { color: var(--accent); }
+  .hub-floor b { display: block; font-size: 15px; }
+  .hub-floor span span { font-size: 12.5px; color: var(--text-dim); }
+  .hub-floor > span:nth-child(2) { flex: 1; min-width: 0; }
+  #floorBanner { position: fixed; z-index: 180; left: 50%; top: calc(10px + env(safe-area-inset-top, 0px)); width: min(460px, calc(100% - 20px)); box-sizing: border-box;
+    display: flex; align-items: flex-start; gap: 12px; padding: 13px 12px 13px 14px; border-radius: min(20px, calc(var(--radius-m, 14px) + 4px));
+    background: var(--surface-raised); border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border)); color: var(--text);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.32), 0 2px 8px rgba(0,0,0,0.14);
+    transform: translate(-50%, calc(-100% - 30px)); opacity: 0; pointer-events: none; transition: transform 0.38s cubic-bezier(.2, .9, .25, 1.1), opacity 0.2s ease; }
+  #floorBanner.show { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
+  #floorBanner .fb-ic { flex: none; width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    background: var(--accent-fill, var(--accent)); color: var(--accent-text); }
+  #floorBanner .fb-ic svg { width: 21px; height: 21px; }
+  #floorBanner.show .fb-ic svg { animation: fbHorn 0.9s ease-in-out 0.35s 2; transform-origin: 30% 60%; }
+  @keyframes fbHorn { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-12deg); } 50% { transform: rotate(9deg); } 75% { transform: rotate(-5deg); } }
+  #floorBanner .fb-t { flex: 1; min-width: 0; }
+  #floorBanner .fb-h { display: flex; gap: 6px; align-items: baseline; font-size: 13px; color: var(--text-dim); }
+  #floorBanner .fb-h b { color: var(--text); font-size: 14px; }
+  #floorBanner p { margin: 2px 0 0; font-size: 16px; font-weight: 650; line-height: 1.32; overflow-wrap: anywhere; }
+  #floorBanner .fb-more { font-size: 12.5px; color: var(--text-faint); margin-top: 3px; }
+  #floorBanner .fb-ok { flex: none; align-self: center; min-height: 40px; padding: 8px 16px; border: 0; border-radius: var(--pill-r, 999px); cursor: pointer; font: inherit; font-size: 14px; font-weight: 700;
+    background: var(--call-bg, var(--accent)); color: var(--call-text, var(--accent-text)); }
+  html[data-motion="off"] #floorBanner { transition: none; }
+  html[data-motion="off"] #floorBanner .fb-ic svg { animation: none; }
+  @media (prefers-reduced-motion: reduce) { #floorBanner { transition: opacity 0.2s ease; } #floorBanner .fb-ic svg { animation: none !important; } }
+
   /* ---- Notifications: top banner like iOS, one at a time ---- */
   .toast { top: calc(8px + env(safe-area-inset-top, 0px)); bottom: auto; left: 50%; z-index: 250; width: min(440px, calc(100% - 20px)); box-sizing: border-box;
     display: flex; align-items: center; gap: 11px; min-height: 52px; padding: 9px 10px 9px 11px; border-radius: min(18px, calc(var(--radius-m, 14px) + 2px));
@@ -9567,6 +9654,7 @@ window.VPEX_SIG = [
   <div class="srch-out" id="gsOut"></div>
 </div>
 <div class="toast" id="toast"></div>
+<div id="floorBanner" role="alert" aria-live="assertive"></div>
 
 <script>
   /** ---------- Customer copies (white-label) and demo office ---------- **/
@@ -9907,6 +9995,8 @@ window.VPEX_SIG = [
         if (app._authBroken) return false;
         var r = relOf(path), uo = emailOffice(u.email), full = path;
         if (/^push(Tokens|Tests)\//.test(path)) return op !== "read";                  // notifications: anyone signed in writes their own (write() checks); only the server reads
+        if (/^pushFloor\//.test(path)) return op === "write";                             // floor message requests: write only (write() checks); the server sends them
+        if (/^pushFloorDone\//.test(path)) return op === "read" && path.indexOf("pushFloorDone/" + u.uid + "_") === 0;   // the sender's own receipt
         if (path === "config" || path.indexOf("config/") === 0) return op === "read" || isOwnerEmail(u.email);
         if (path === "offices") return isOwnerEmail(u.email);
         if (isOwnerEmail(u.email)) { if (op === "read") return r.office ? true : (path.indexOf("vault") === 0 ? !window.__noVaultRules : true); if (!r.office) return true; return r.rel === "" || op === "delete"; }
@@ -9930,6 +10020,7 @@ window.VPEX_SIG = [
         var admin = m && m.active && m.role === "admin";
         if (path === "members") return !!admin;
         if (path.indexOf("members/") === 0) return admin || path === "members/" + u.uid;
+        if (path === "floor" || path.indexOf("floor/") === 0) return op === "read" && !!(m && m.active);   // floor messages: only the server writes them
         return !!(m && m.active);
       }
       function snapDoc(path, d) { return { id: path.split("/").pop(), exists: d !== undefined, data: function () { return clone(d); }, metadata: { fromCache: false, hasPendingWrites: false } }; }
@@ -9972,6 +10063,8 @@ window.VPEX_SIG = [
           window.__mockWrites = (window.__mockWrites || 0) + 1;
           if (/^pushTokens\//.test(path) && (after ? (after.uid !== app._user.uid || !sameKeys(after, { uid: 1, office: 1, token: 1, ua: 1, tz: 1, at: 1 })) : (!before || before.uid !== app._user.uid))) throw err("permission-denied");
           if (/^pushTests\//.test(path) && (before || !after || after.uid !== app._user.uid || !sameKeys(after, { uid: 1, office: 1, at: 1 }))) throw err("permission-denied");
+          if (/^pushFloor\//.test(path) && (before || !after || after.uid !== app._user.uid || !sameKeys(after, { uid: 1, office: 1, at: 1, body: 1, to: 1 })
+            || typeof after.body !== "string" || !after.body.length || after.body.length > 180 || !Array.isArray(after.to) || after.to.length > 200)) throw err("permission-denied");
           var r = relOf(path), me0 = app._user.uid, owner = isOwnerEmail(app._user.email);
           if (r.office && !owner) {
             var od = db["offices/" + r.office];
@@ -11510,6 +11603,7 @@ window.VPEX_SIG = [
       '<li>' + PUSH_BELL + '<span><b>Appointments</b> 10 minutes before they start</span></li>' +
       '<li>' + PUSH_BELL + '<span><b>New handoffs</b> the moment a lead is handed to you</span></li>' +
       '<li>' + PUSH_BELL + '<span><b>A morning summary</b> at 8:30 on weekdays with what’s waiting</span></li>' +
+      (TEAM.on && TEAM.me ? '<li>' + PUSH_BELL + '<span><b>Messages from your manager</b> to the whole floor, like “Back on the phones!”</span></li>' : '') +
       (TEAM.on && TEAM.me && (isAdmin() || isManager()) ? '<li>' + PUSH_BELL + '<span><b>Your floor’s week</b> on Monday mornings: calls, conversations, interested and the top caller</span></li>' : '') + '</ul>';
     var share = '<svg class="push-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Share"><path d="M12 15V3"/><path d="M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>';
     var h = "";
@@ -15967,6 +16061,7 @@ window.VPEX_SIG = [
     if (TEAM.office || isOwnerMaster()) teamWatchBilling();
     teamWatchMe();
     teamWatchMembers();
+    floorWatch();
     // includeMetadataChanges: Firestore only tells us the server has confirmed cached data when we ask.
     // Without it, opening the app showed "Offline \u00b7 will sync" until someone's data changed.
     TEAM.chunkCache = null; TEAM.chunkBytesDirty = {};
@@ -20149,6 +20244,250 @@ window.VPEX_SIG = [
   document.getElementById("searchBtn").addEventListener("click", openSearch);
 
 
+  /** ---------- Message your floor: one tap to every rep's phone ---------- **/
+  // Admins and managers send a short message ("Back on the phones!"). VPEX's server checks who sent it, sends it to each
+  // rep's phone as a notification and keeps it for two days in floor/{id}, so reps with VPEX open see it as a banner too
+  // (also the ones who haven't turned notifications on). The sender gets a receipt: who it reached, who isn't on yet.
+  var FLOOR_DEFAULTS = ["Back on the phones! 📞", "Power hour starts now. Let’s go! 🔥", "Lunch is over. Let’s dial.", "10 more calls before you head out.", "Huddle in 5 minutes.", "Great work today, team! 🙌"];
+  var FLOOR_MAX = 180, FLOOR_KEEP_MS = 12 * 3600000;
+  var FLOOR = { msgs: [], unsub: null, editing: false, to: "all", pick: {}, text: "", sending: false, done: null };
+  var FLOOR_IC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5v3a1 1 0 0 0 1 1h2.5L15 19V5L6.5 9.5H4a1 1 0 0 0-1 1z"/><path d="M7 14.5l1.4 4.5h2.8l-1.1-3.6"/><path d="M18.5 9a4 4 0 0 1 0 6"/></svg>';
+  var FLOOR_SEND_IC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3L10 14"/><path d="M21 3l-7 18-4-7-7-4 18-7z"/></svg>';
+  function floorCan() { return !!(TEAM.on && TEAM.me && TEAM.db && !CUSTOMER.firebase && (isAdmin() || isManager())); }
+  function floorKey(k) { return "vpex_floor_" + k + "_" + (TEAM.me ? TEAM.me.uid : ""); }
+  function floorClean(t) { return String(t || "").replace(/\s+/g, " ").trim(); }
+  function floorPresets() {
+    var mine = null;
+    if (!isAdmin()) { try { mine = JSON.parse(window.localStorage.getItem(floorKey("presets")) || "null"); } catch (e) {} }
+    var team = (TEAM.infoCfg || {}).floorPresets;
+    var list = Array.isArray(mine) ? mine : Array.isArray(team) ? team : FLOOR_DEFAULTS;
+    return list.filter(function (x) { return typeof x === "string" && floorClean(x); }).slice(0, 12);
+  }
+  // An admin's quick messages are the team's; a manager keeps their own on this device.
+  function floorSavePresets(list) {
+    list = list.slice(0, 12);
+    if (isAdmin()) {
+      TEAM.infoCfg = Object.assign({}, TEAM.infoCfg || {}, { floorPresets: list });
+      tcol("leadChunks").doc("_team").set({ floorPresets: list }, { merge: true }).catch(function () { showToast("Couldn’t save quick messages · Check your connection", { kind: "err" }); });
+    } else { try { window.localStorage.setItem(floorKey("presets"), JSON.stringify(list)); } catch (e) {} }
+  }
+  function floorPeople() { var me = TEAM.me ? TEAM.me.uid : ""; return roster().filter(function (m) { return m.uid && m.uid !== me; }); }
+  function floorTargets() { var p = floorPeople(); return FLOOR.to === "pick" ? p.filter(function (m) { return FLOOR.pick[m.uid]; }) : p; }
+  function floorWho(name) { var f = firstName(name); return f && f !== "You" ? f : "your manager"; }
+  function floorTime(ts) { return new Date(ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); }
+  function floorAgo(ts) { var m = Math.floor((Date.now() - ts) / 60000); return m < 1 ? "now" : m < 60 ? m + " min ago" : floorTime(ts); }
+  function floorNames(a) {
+    a = a.map(function (n) { return firstName(n) || n; });
+    if (a.length <= 2) return a.join(" and ");
+    if (a.length <= 4) return a.slice(0, -1).join(", ") + " and " + a[a.length - 1];
+    return a.slice(0, 3).join(", ") + " and " + (a.length - 3) + " others";
+  }
+
+  function openFloor(text) {
+    if (!floorCan()) { showToast("Only admins and managers can message the floor", { kind: "warn" }); return; }
+    FLOOR.editing = false; FLOOR.done = null; FLOOR.sending = false;
+    if (typeof text === "string") FLOOR.text = text;
+    if (!floorClean(FLOOR.text)) FLOOR.text = floorPresets()[0] || "";
+    featOpen('<div id="floorSheet"></div>');
+    renderFloor();
+  }
+  function renderFloor() {
+    var el = document.getElementById("floorSheet"); if (!el) return;
+    var presets = floorPresets(), people = floorPeople(), pick = FLOOR.to === "pick";
+    el.innerHTML =
+      '<h3>Message your floor</h3><p class="modal-sub">Goes straight to your reps’ phones, even when VPEX is closed.</p>' +
+      (presets.length ? '<div class="fl-qh"><span class="fl-lab" id="flQLab">Quick messages</span><button type="button" class="fl-edit" id="flEdit">' + (FLOOR.editing ? 'Done editing' : 'Edit') + '</button></div>' : '') +
+      '<div class="fl-presets' + (FLOOR.editing ? ' editing' : '') + '" role="group" aria-labelledby="flQLab">' +
+        presets.map(function (p, i) {
+          return '<button type="button" class="fl-chip" data-fl-p="' + i + '"><span>' + escapeHtml(p) + '</span><i class="fl-x" data-fl-del="' + i + '" role="button" aria-label="Remove ' + escapeHtml(p) + '">×</i></button>';
+        }).join("") +
+      '</div>' +
+      '<label class="fl-lab" for="flText">Message</label>' +
+      '<textarea class="fl-ta" id="flText" rows="3" maxlength="' + (FLOOR_MAX + 60) + '" placeholder="Back on the phones!">' + escapeHtml(FLOOR.text) + '</textarea>' +
+      '<div class="fl-under"><button type="button" class="fl-save" id="flSave" hidden>Save as a quick message</button><span></span><span class="fl-n" id="flN"></span></div>' +
+      '<span class="fl-lab" id="flToLab">Send to</span>' +
+      '<div class="seg" role="radiogroup" aria-labelledby="flToLab">' +
+        '<button type="button" class="seg-b' + (pick ? '' : ' on') + '" role="radio" aria-checked="' + !pick + '" data-fl-to="all">Everyone · ' + people.length + '</button>' +
+        '<button type="button" class="seg-b' + (pick ? ' on' : '') + '" role="radio" aria-checked="' + pick + '" data-fl-to="pick">Pick reps</button></div>' +
+      (pick ? '<div class="fl-pick">' + (people.length ? people.map(function (m) {
+          return '<label><input type="checkbox" data-fl-u="' + escapeHtml(m.uid) + '"' + (FLOOR.pick[m.uid] ? ' checked' : '') + '><span>' + escapeHtml(m.name || "Rep") + '</span></label>';
+        }).join("") : '<p class="modal-sub">No reps yet.</p>') + '</div>' : '') +
+      '<div class="fl-prev" aria-hidden="true"><p class="fl-prev-cap">On their lock screen</p><div class="fl-note"><img src="vpex-icon-96.png" alt=""><div class="fl-note-t">' +
+        '<div class="fl-note-h"><b>' + escapeHtml(SHORT_NAME) + '</b><span>now</span></div><div class="fl-note-ti">From ' + escapeHtml(floorWho(TEAM.me && TEAM.me.name)) + '</div><div class="fl-note-b" id="flPrevB"></div></div></div></div>' +
+      '<div id="flRecent"></div>' +
+      '<div class="fl-foot"><div id="flRes" aria-live="polite"></div>' +
+      '<button type="button" class="btn-primary fl-send" id="flSend">' + FLOOR_SEND_IC + '<span id="flSendL"></span></button></div>';
+    var ta = document.getElementById("flText");
+    ta.addEventListener("input", function () { FLOOR.text = ta.value; if (FLOOR.done && FLOOR.done.status !== "sending") { FLOOR.done = null; floorShowResult(); } floorSync(); });
+    ta.addEventListener("keydown", function (e) { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); floorSend(); } });
+    el.querySelectorAll("[data-fl-p]").forEach(function (b) {
+      b.addEventListener("click", function (e) {
+        var del = e.target.closest("[data-fl-del]"), list = floorPresets(), i = Number(b.getAttribute("data-fl-p"));
+        if (FLOOR.editing) {
+          if (!del) return;
+          list.splice(i, 1); floorSavePresets(list); if (!list.length) FLOOR.editing = false; renderFloor(); return;
+        }
+        FLOOR.text = list[i] || ""; FLOOR.done = null; ta.value = FLOOR.text; floorSync(); floorShowResult();
+      });
+    });
+    var ed = document.getElementById("flEdit");
+    if (ed) ed.addEventListener("click", function () { FLOOR.editing = !FLOOR.editing; renderFloor(); });
+    document.getElementById("flSave").addEventListener("click", function () {
+      var t = floorClean(FLOOR.text), list = floorPresets();
+      if (!t || t.length > FLOOR_MAX || list.indexOf(t) >= 0 || list.length >= 12) return;
+      list.push(t); floorSavePresets(list); renderFloor();
+      showToast("Saved · It’s one tap away next time", { kind: "ok" });
+    });
+    el.querySelectorAll("[data-fl-to]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        FLOOR.to = b.getAttribute("data-fl-to"); FLOOR.done = null;
+        if (FLOOR.to === "pick" && !Object.keys(FLOOR.pick).some(function (k) { return FLOOR.pick[k]; })) floorPeople().forEach(function (m) { FLOOR.pick[m.uid] = true; });
+        renderFloor();
+      });
+    });
+    el.querySelectorAll("[data-fl-u]").forEach(function (c) { c.addEventListener("change", function () { FLOOR.pick[c.getAttribute("data-fl-u")] = c.checked; if (FLOOR.done && !FLOOR.sending) { FLOOR.done = null; floorShowResult(); } floorSync(); }); });
+    document.getElementById("flSend").addEventListener("click", floorSend);
+    floorSync(); floorShowResult(); floorRenderRecent();
+  }
+  // Everything that changes as you type, without rebuilding the sheet (so the keyboard stays up)
+  function floorSync() {
+    var t = floorClean(FLOOR.text), n = t.length, targets = floorTargets(), presets = floorPresets();
+    var nEl = document.getElementById("flN"); if (!nEl) return;
+    nEl.textContent = n + " / " + FLOOR_MAX; nEl.classList.toggle("over", n > FLOOR_MAX);
+    document.getElementById("flPrevB").textContent = t;
+    document.querySelectorAll("#floorSheet [data-fl-p]").forEach(function (b) { b.classList.toggle("on", presets[Number(b.getAttribute("data-fl-p"))] === t); });
+    document.getElementById("flSave").hidden = !t || n > FLOOR_MAX || presets.indexOf(t) >= 0 || presets.length >= 12;
+    var label, ok = false;
+    var sentOk = FLOOR.done && FLOOR.done.status === "sent";
+    if (FLOOR.sending) label = "Sending…";
+    else if (sentOk) { ok = true; label = "Done"; }
+    else if (!t) label = "Write a message";
+    else if (n > FLOOR_MAX) label = "Too long by " + (n - FLOOR_MAX);
+    else if (!targets.length) label = FLOOR.to === "pick" ? "Pick at least one rep" : "No reps to send to yet";
+    else { ok = true; label = targets.length === 1 ? "Send to " + (firstName(targets[0].name) || "1 rep") : FLOOR.to === "pick" ? "Send to " + targets.length + " reps" : "Send to everyone (" + targets.length + ")"; }
+    var sb = document.getElementById("flSend"); sb.disabled = !ok; sb.classList.toggle("fl-done", !!sentOk);
+    document.getElementById("flSendL").textContent = label;
+  }
+
+  function floorSend() {
+    if (FLOOR.done && FLOOR.done.status === "sent" && !FLOOR.sending) { featClose(); return; }
+    var t = floorClean(FLOOR.text), targets = floorTargets();
+    if (!t || t.length > FLOOR_MAX || !targets.length || FLOOR.sending || !floorCan()) return;
+    FLOOR.sending = true; FLOOR.done = { status: "sending" }; floorSync(); floorShowResult();
+    var id = TEAM.me.uid + "_" + Date.now().toString(36);
+    var to = FLOOR.to === "pick" ? targets.map(function (m) { return m.uid; }) : [];
+    if (DEMO) {   // the demo office has no real phones: show what would happen
+      setTimeout(function () {
+        var off = targets.length > 1 ? [targets[targets.length - 1].name] : [];
+        floorFinish({ status: "sent", people: targets.length, reached: targets.length - off.length, off: off, demo: true });
+        floorShowBanner({ byName: TEAM.me.name, body: t, at: Date.now() }, 0, true);
+      }, 900);
+      return;
+    }
+    var fin = false, stop = null, timer = null;
+    function end(d) {
+      if (fin) return; fin = true; clearTimeout(timer);
+      setTimeout(function () { if (stop) try { stop(); } catch (e) {} }, 0);
+      floorFinish(d);
+    }
+    TEAM.db.collection("pushFloor").doc(id).set({ uid: TEAM.me.uid, office: TEAM.office || "", at: Date.now(), body: t, to: to }).then(function () {
+      timer = setTimeout(function () { end({ status: "pending" }); }, 25000);
+      stop = TEAM.db.collection("pushFloorDone").doc(id).onSnapshot(function (snap) { if (snap && snap.exists) end(snap.data() || {}); }, function () { end({ status: "pending" }); });
+      if (fin) setTimeout(function () { try { stop(); } catch (e) {} }, 0);
+    }).catch(function (e) { pushLogErr(e); end({ status: "error" }); });
+  }
+  function floorFinish(d) {
+    FLOOR.sending = false; FLOOR.done = d;
+    if (!document.getElementById("floorSheet") || !document.getElementById("featModal").classList.contains("show")) {
+      var h = floorResultText(d); showToast(h[0] + (h[1] ? " · " + h[1] : ""), { kind: d.status === "sent" && d.reached ? "ok" : "warn" });
+      return;
+    }
+    floorSync(); floorShowResult();
+  }
+  // [headline, detail] for a receipt
+  function floorResultText(d) {
+    if (!d) return ["", ""];
+    switch (d.status) {
+      case "sending": return ["Sending…", ""];
+      case "sent":
+        if (!d.people) return ["No reps to send to yet", "Add reps in Team & logins and they’ll get your messages."];
+        var off = d.off || [], head = !d.reached ? "Sent, but no phones have notifications on"
+          : d.reached === d.people ? (d.people === 1 ? "Sent to 1 rep’s phone" : "Sent to all " + d.people + " reps’ phones")
+          : "Sent to " + d.reached + " of " + d.people + " reps’ phones";
+        var det = (d.demo ? "Demo: nothing went to real phones. " : "") +
+          (off.length ? (d.reached ? floorNames(off) + (off.length === 1 ? " doesn’t" : " don’t") + " have notifications on yet, so they’ll see it when they open VPEX."
+            : "Your reps will see it when they open VPEX. They turn notifications on in Settings, Account.") : "");
+        return [head, det.trim()];
+      case "pending": return ["On its way", "Your reps will have it in a moment."];
+      case "wait": return ["One message every 20 seconds", "Give it a moment, then send again."];
+      case "daily": return ["That’s today’s limit of 60 messages", "You can send more tomorrow."];
+      case "closed": return ["Your office is paused", "Messages can’t go out until it’s open again."];
+      case "not-allowed": return ["Only admins and managers can message the floor", ""];
+      default: return ["Couldn’t send", "Check your connection and try again."];
+    }
+  }
+  function floorShowResult() {
+    var r = document.getElementById("flRes"); if (!r) return;
+    var d = FLOOR.done;
+    if (!d || d.status === "sending") { r.innerHTML = ""; return; }
+    var h = floorResultText(d), tone = d.status === "sent" && d.reached ? "ok" : d.status === "pending" ? "" : "warn";
+    r.innerHTML = '<div class="fl-res ' + tone + '"><b>' + escapeHtml(h[0]) + '</b>' + (h[1] ? '<span class="fl-off">' + escapeHtml(h[1]) + '</span>' : '') + '</div>';
+  }
+  function floorRenderRecent() {
+    var el = document.getElementById("flRecent"); if (!el) return;
+    var me = TEAM.me ? TEAM.me.uid : "", now = Date.now();
+    var list = FLOOR.msgs.filter(function (m) { return now - m.at < FLOOR_KEEP_MS; }).slice(0, 5);
+    el.innerHTML = list.length ? '<div class="fl-recent"><p class="fl-recent-h">Sent recently</p>' + list.map(function (m, i) {
+      var who = m.by === me ? (m.to && m.to.length ? m.to.length + (m.to.length === 1 ? " rep" : " reps") : "Everyone") : floorWho(m.byName);
+      return '<button type="button" class="fl-rec" data-fl-r="' + i + '" title="Use this message again"><time>' + escapeHtml(floorTime(m.at)) + '</time><span>' + escapeHtml(m.body) + '</span><small>' + escapeHtml(who) + '</small></button>';
+    }).join("") + '</div>' : "";
+    el.querySelectorAll("[data-fl-r]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        FLOOR.text = list[Number(b.getAttribute("data-fl-r"))].body; FLOOR.done = null;
+        var ta = document.getElementById("flText"); ta.value = FLOOR.text; floorSync(); floorShowResult(); ta.focus();
+        var sc = document.getElementById("featModalBody"); if (sc) sc.scrollTop = 0;
+      });
+    });
+  }
+
+  // Everyone on a team listens for the floor's messages from the last 12 hours.
+  function floorWatch() {
+    if (FLOOR.unsub || !TEAM.on || !TEAM.db || !TEAM.me || CUSTOMER.firebase) return;
+    try {
+      FLOOR.unsub = tcol("floor").where("at", ">=", Date.now() - FLOOR_KEEP_MS).onSnapshot(function (qs) {
+        FLOOR.msgs = qs.docs.map(function (d) { var x = d.data() || {}; x.id = d.id; return x; })
+          .filter(function (m) { return typeof m.at === "number" && typeof m.body === "string" && m.body; })
+          .sort(function (a, b) { return b.at - a.at; });
+        floorBannerCheck();
+        floorRenderRecent();
+      }, function () {});
+    } catch (e) { FLOOR.unsub = null; return; }
+    TEAM.unsub.push(function () { if (FLOOR.unsub) try { FLOOR.unsub(); } catch (e) {} FLOOR.unsub = null; FLOOR.msgs = []; });
+  }
+  function floorSeen() { try { return Number(window.localStorage.getItem(floorKey("seen")) || 0); } catch (e) { return 0; } }
+  function floorBannerCheck() {
+    if (!TEAM.me) return;
+    var me = TEAM.me.uid, seen = floorSeen(), now = Date.now();
+    var mine = FLOOR.msgs.filter(function (m) { return m.by !== me && m.at > seen && now - m.at < FLOOR_KEEP_MS && (!m.to || !m.to.length || m.to.indexOf(me) >= 0); });
+    if (mine.length) floorShowBanner(mine[0], mine.length - 1, false);
+  }
+  function floorShowBanner(m, more, preview) {
+    var b = document.getElementById("floorBanner"); if (!b) return;
+    var was = b.classList.contains("show") && b.getAttribute("data-at") === String(m.at);
+    b.setAttribute("data-at", String(m.at));
+    b.innerHTML = '<span class="fb-ic" aria-hidden="true">' + FLOOR_IC + '</span><div class="fb-t"><div class="fb-h"><b>From ' + escapeHtml(floorWho(m.byName)) + '</b><span>' +
+      escapeHtml(floorAgo(m.at)) + '</span></div><p>' + escapeHtml(m.body) + '</p>' +
+      (preview ? '<div class="fb-more">Preview: this is what your reps see</div>' : more ? '<div class="fb-more">and ' + more + ' earlier message' + (more === 1 ? '' : 's') + '</div>' : '') +
+      '</div><button type="button" class="fb-ok">Got it</button>';
+    b.querySelector(".fb-ok").addEventListener("click", function () {
+      if (!preview) { try { window.localStorage.setItem(floorKey("seen"), String(m.at)); } catch (e) {} }
+      b.classList.remove("show");
+    });
+    if (was) return;
+    b.classList.remove("show"); void b.offsetWidth; b.classList.add("show");
+    if (!preview && document.visibilityState === "visible") { try { if (navigator.vibrate) navigator.vibrate([70, 50, 70]); } catch (e) {} }
+  }
+
   /** ---------- Admin controls ---------- **/
   function closeAdminHub() { document.getElementById("adminModal").classList.remove("show"); }
   function openAdminHub() {
@@ -20173,6 +20512,7 @@ window.VPEX_SIG = [
         recapReady ? "Ready" : live ? "Live" : "", (admin ? active + " active · " : "") + "scoreboard, coach" + (admin ? ", goals" : ""), [
         admin && row("hubTeam", '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7"/><path d="M18 14.8c2 .7 3.2 2.4 3.6 5.2"/>',
           "Team &amp; logins", "Logins and who has access", active + " active"),
+        floorCan() && row("hubFloorRow", '<path d="M3 10.5v3a1 1 0 0 0 1 1h2.5L15 19V5L6.5 9.5H4a1 1 0 0 0-1 1z"/><path d="M7 14.5l1.4 4.5h2.8l-1.1-3.6"/><path d="M18.5 9a4 4 0 0 1 0 6"/>', "Message your floor", "A quick note to every rep’s phone"),
         row("hubScore", '<path d="M5 20V10M12 20V4M19 20v-7"/>', "Scoreboard &amp; daily recap", recapReady ? "Today’s recap is ready" : "Calls and results by rep", recapReady ? "Ready" : "", recapReady),
         row("hubCoach", '<path d="M4 19l5-5 4 4 7-8"/><path d="M15 10h5v5"/>', "Sales coach", "What’s working, who needs help"),
         admin && row("hubGoals", '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>', "Monthly goals", "Targets and pace per rep"),
@@ -20239,6 +20579,8 @@ window.VPEX_SIG = [
       '<button class="close-x" id="adminClose" aria-label="Close">&times;</button>' +
       '<div class="hub-home" data-hub-view="home"><h3>Admin controls</h3>' +
       '<p class="modal-sub hub-who">Signed in as ' + escapeHtml(TEAM.me ? TEAM.me.name : "") + (admin ? ' (admin)' : '') + '. Only you see this.</p>' +
+      (floorCan() ? '<button class="hub-floor" type="button" id="hubFloor"><span class="hub-ic">' + I('<path d="M3 10.5v3a1 1 0 0 0 1 1h2.5L15 19V5L6.5 9.5H4a1 1 0 0 0-1 1z"/><path d="M7 14.5l1.4 4.5h2.8l-1.1-3.6"/><path d="M18.5 9a4 4 0 0 1 0 6"/>') + '</span>' +
+        '<span><b>Message your floor</b><span>' + (floorPresets()[0] ? "“" + escapeHtml(floorPresets()[0]) + "” and more, straight to their phones" : "Straight to your reps’ phones") + '</span></span><span class="hub-go" aria-hidden="true">›</span></button>' : '') +
       (needs.length ? '<div class="hub-needs"><div class="hub-needs-h">Needs you</div>' +
         needs.map(function (n) { return '<button class="hub-need" type="button" data-hub-go="' + n[0] + '"><span>' + n[1] + '</span><span class="hub-go" aria-hidden="true">›</span></button>'; }).join("") + '</div>' : '') +
       grid +
@@ -20257,6 +20599,7 @@ window.VPEX_SIG = [
     body.querySelectorAll("[data-hub-go]").forEach(function (b) {
       b.addEventListener("click", function () { var t = document.getElementById(b.getAttribute("data-hub-go")); if (t) t.click(); });
     });
+    ["hubFloor", "hubFloorRow"].forEach(function (k) { var e = document.getElementById(k); if (e) e.addEventListener("click", function () { closeAdminHub(); openFloor(); }); });
     (document.getElementById("hubTeam") || document.createElement("i")).addEventListener("click", function () { closeAdminHub(); openTeamPanel(); });
     (document.getElementById("hubScore") || document.createElement("i")).addEventListener("click", function () { closeAdminHub(); openScoreboard(); });
     (document.getElementById("hubCoach") || document.createElement("i")).addEventListener("click", function () { closeAdminHub(); openCoach("team"); });

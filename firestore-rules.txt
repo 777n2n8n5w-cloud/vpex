@@ -67,6 +67,24 @@ service cloud.firestore {
         && request.resource.data.office is string && request.resource.data.office.size() <= 40
         && request.resource.data.at is int;
     }
+    // "Message your floor": a request the server checks (active admin or manager, open office), sends and removes
+    match /pushFloor/{id} {
+      allow create: if signedIn() && id.size() <= 64
+        && request.resource.data.keys().hasOnly(['uid', 'office', 'at', 'body', 'to'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.office is string && request.resource.data.office.size() <= 40
+        && request.resource.data.at is int
+        && request.resource.data.body is string && request.resource.data.body.size() > 0 && request.resource.data.body.size() <= 180
+        && request.resource.data.to is list && request.resource.data.to.size() <= 200;
+    }
+    // The sender's receipt (how many reps it reached); only the sender can read it, only the server writes it
+    match /pushFloorDone/{id} {
+      allow get: if signedIn() && id.matches(request.auth.uid + '_[a-z0-9]{1,16}');
+    }
+    // Floor messages from the last two days, so reps with VPEX open see them; only the server writes them
+    match /floor/{id} {
+      allow read: if isActive();
+    }
     // ---- Every other office: offices/{office}/... Only logins made for that office (name@office.vpex.app) can see it ----
     function inOffice(office) {
       return signedIn() && office.matches('^[a-z0-9-]{3,32}$') && request.auth.token.email is string
@@ -135,6 +153,9 @@ service cloud.firestore {
         allow update: if oOpen(office) && (oAdmin(office)
           || (oActive(office) && request.resource.data.calls.keys().hasAll(resource.data.calls.keys())));
         allow delete: if isOwner() || oAdmin(office);
+      }
+      match /floor/{id} {
+        allow read: if isOwner() || oActive(office);
       }
       match /vault/{id} {
         allow read: if isOwner() || oAdmin(office) || (oActive(office) && resource.data.ownerUid == request.auth.uid);

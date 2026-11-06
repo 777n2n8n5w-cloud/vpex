@@ -317,8 +317,38 @@ function nyDate(ms) { return new Intl.DateTimeFormat("en-CA", { timeZone: "Ameri
 // A sign-up is credited to where the visitor came from only if that office was really just created.
 function freshOffice(d, now) { return !!(d && typeof d.createdAt === "number" && now - d.createdAt >= -60000 && now - d.createdAt < 3 * 3600000); }
 
+// ---------- "Message your floor": an admin or manager sends one short message to the reps' phones ----------
+var FLOOR_MAX = 180, FLOOR_GAP_MS = 20000, FLOOR_DAY_MAX = 60;
+// The request the app writes (pushFloor/{uid_time}); null when anything is off.
+function floorRequest(d, id, now) {
+  if (!d || typeof d.uid !== "string" || !d.uid || typeof d.at !== "number" || Math.abs(now - d.at) > 5 * 60000) return null;
+  if (typeof id !== "string" || id.indexOf(d.uid + "_") !== 0) return null;
+  var body = typeof d.body === "string" ? d.body.replace(/\s+/g, " ").trim() : "";
+  if (!body || body.length > FLOOR_MAX) return null;
+  var to = Array.isArray(d.to) ? d.to.filter(function (u) { return typeof u === "string" && u && u.length <= 128; }).slice(0, 200) : [];
+  return { uid: d.uid, office: typeof d.office === "string" ? d.office : "", body: body, to: to };
+}
+// One message every 20 seconds per office, 60 a day, so a slip of the thumb never floods anyone's phone.
+function floorGate(g, now) {
+  g = g || {};
+  var day = utcDate(now), n = g.day === day ? (g.n || 0) : 0;
+  if (typeof g.last === "number" && now - g.last < FLOOR_GAP_MS) return { ok: false, why: "wait" };
+  if (n >= FLOOR_DAY_MAX) return { ok: false, why: "daily" };
+  return { ok: true, next: { last: now, day: day, n: n + 1 } };
+}
+// Everyone active on the floor except the sender; a picked list narrows it.
+function floorRecipients(members, sender, to) {
+  var pick = to && to.length ? new Set(to) : null;
+  return members.filter(function (m) { return m && m.uid && m.uid !== sender && (!pick || pick.has(m.uid)); });
+}
+function floorMessage(office, senderName, body) {
+  var who = firstName(senderName);
+  return { kind: "floor", title: who ? "From " + who : "From your manager", body: str(body, FLOOR_MAX), link: leadLink(office, ""), tag: "vpex-floor", leadId: "", office: office || "" };
+}
+
 module.exports = { APP_URL, STALE_MS, DROP_MS, APPT_LEAD_MS, queueId, notifyAt, assigneeOf, taskEntries, diffQueue, handoffEvents, officeOpen,
   fmtWhen, leadLink, dueMessages, handoffMessage, testMessage, fcmMessage, deadToken, officeFromEmail, safeTz, firstName,
   localParts, digestDue, localDayBounds, digestCounts, digestMessage,
   weekDue, weekLead, lastWeekBounds, weekDates, weekAdd, weekNew, weekMessage, utcDate,
+  FLOOR_MAX, floorRequest, floorGate, floorRecipients, floorMessage,
   HIT_EVENTS, HIT_INDS, HIT_ORIGINS, HIT_DAY_KEYS, hitOriginOk, capHit, hitTok, parseHit, hitKey, unHitKey, nyDate, freshOffice };

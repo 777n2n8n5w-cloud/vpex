@@ -3,6 +3,7 @@
 //    and send handoff alerts to the closer right away.
 //  - sendDue: every minute, send the follow-ups that just came due.
 //  - sendTest: the "Send a test" button in the app.
+//  - sendFloor: "Message your floor", an admin or manager sends one short message to every rep's phone (or the reps they pick).
 //  - morningDigest: weekdays at 8:30 in each rep's time zone, what's waiting today; Mondays, admins and managers also get
 //    last week on the floor (calls, conversations, interested, change from the week before, top caller).
 //  - igDone: the "Done" button on an Instagram hand-off page (marks that post as posted by hand; needs the page's own key).
@@ -181,6 +182,51 @@ exports.sendTest = onDocumentCreated({ document: "pushTests/{id}", retry: false 
   await new Promise(function (res) { setTimeout(res, TEST_DELAY_MS); });   // time to lock the phone and see it on the lock screen
   const r = await sendTo(d.uid, [L.testMessage(typeof d.office === "string" ? d.office : "")], 600);
   logger.info("test alert", { uid: d.uid, sent: r.sent, phones: r.phones });
+});
+
+// ---------- "Message your floor" ----------
+// The app writes pushFloor/{uid_time} {uid, office, at, body, to}. Only an active admin or manager of an open office can send.
+// The message goes to the reps' phones, is kept in floor/{id} so reps with VPEX open (or without notifications on) see it
+// as a banner, and the sender gets a receipt in pushFloorDone/{id}: how many reps it reached and who doesn't have notifications on.
+exports.sendFloor = onDocumentCreated({ document: "pushFloor/{id}", retry: false }, async function (event) {
+  const snap = event.data;
+  if (!snap) return;
+  const id = event.params.id, now = Date.now();
+  await snap.ref.delete().catch(function () {});
+  const req = L.floorRequest(snap.data(), id, now);
+  if (!req) return;
+  const done = db.doc("pushFloorDone/" + id);
+  const finish = function (x) { return done.set(Object.assign({ uid: req.uid, at: now }, x)).catch(function (e) { logger.warn("floor receipt failed", { err: String(e) }); }); };
+  const office = req.office;
+  const me = await memberRef(office, req.uid).get().catch(function () { return null; });
+  if (!me || !me.exists || me.get("active") !== true || !L.weekLead(me.get("role"))) return finish({ status: "not-allowed" });
+  if (office) {
+    const o = await db.doc("offices/" + office).get();
+    if (!L.officeOpen(o.exists ? o.data() : null, now)) return finish({ status: "closed" });
+  }
+  const gate = db.doc("pushMeta/floor_" + (office || "_team"));
+  const lim = await db.runTransaction(async function (tx) {
+    const g = await tx.get(gate);
+    const r = L.floorGate(g.exists ? g.data() : null, now);
+    if (r.ok) tx.set(gate, r.next);
+    return r;
+  });
+  if (!lim.ok) return finish({ status: lim.why });
+  const ms = await (office ? db.collection("offices/" + office + "/members") : db.collection("members")).where("active", "==", true).get();
+  const people = L.floorRecipients(ms.docs.map(function (d) { return { uid: d.id, name: d.get("name") || d.get("username") || "" }; }), req.uid, req.to);
+  const byName = me.get("name") || me.get("username") || "";
+  await db.doc((office ? "offices/" + office + "/" : "") + "floor/" + id).set({ by: req.uid, byName: byName, body: req.body, to: req.to, at: now });
+  const msg = L.floorMessage(office, byName, req.body);
+  const res = await Promise.all(people.map(function (p) {
+    return sendTo(p.uid, [msg], 3600).catch(function () { return { sent: 0, phones: 0 }; }).then(function (r) { return { p: p, r: r }; });
+  }));
+  const reached = res.filter(function (x) { return x.r.sent > 0; }), off = res.filter(function (x) { return !x.r.sent; });
+  await finish({ status: "sent", people: people.length, reached: reached.length, phones: reached.reduce(function (n, x) { return n + x.r.sent; }, 0),
+    off: off.slice(0, 40).map(function (x) { return x.p.name || "A rep"; }) });
+  logger.info("floor message", { office: office ? "office" : "team", people: people.length, reached: reached.length });
+  // keep two days of messages
+  const old = await db.collection((office ? "offices/" + office + "/" : "") + "floor").where("at", "<", now - 2 * 86400000).limit(50).get().catch(function () { return null; });
+  if (old) await Promise.all(old.docs.map(function (d) { return d.ref.delete().catch(function () {}); }));
 });
 
 // ---------- morning summary ----------
