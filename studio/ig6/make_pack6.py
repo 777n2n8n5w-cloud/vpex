@@ -156,10 +156,10 @@ In VPEX, upload Excel, CSV, text or contacts, paste a list, or add one lead at a
 {BIO}
 
 #leadlists #salesmanager #salesfloor #callcenter #powerdialer""", T("pain", "list-import", "bio"), "trial"),
- (6, "19:00", "image", "vets", "Post: Wednesday is Veterans Day. No sales calls in 3 states.", "W6-Vets",
-  f"""Calling hours on Veterans Day: three states with no sales calls on legal holidays.
+ (6, "19:00", "image", "vets", "Post: Wednesday is Veterans Day. No sales calls in 4 states.", "W6-Vets",
+  f"""Calling hours on Veterans Day: four states with no sales calls on legal holidays.
 
-Wednesday, November 11 is Veterans Day. Alabama, Louisiana and Rhode Island don’t allow sales calls on legal holidays.
+Wednesday, November 11 is Veterans Day. Alabama, Louisiana, Pennsylvania and Rhode Island don’t allow sales calls on legal holidays.
 
 VPEX knows the holidays and flags those leads before anyone dials.
 
@@ -173,7 +173,7 @@ THREADS_TEXT = {   # written by hand where the automatic Threads version wouldn'
  "solar": "Built for solar floors: qualify while you talk (owns the home, bill, roof age, shade), the “my roof is old” rebuttal on the Dial screen, and List ROI that shows which lists sign homeowners.\n\nOpen the solar demo office, no sign-up: {link}",
  "rules": "How many times do you call a lead who never answers? Most floors never decide.\n\nIn VPEX you set it once: 4 tries over 4 business days, then the lead rests 60–90 days. Interested but stuck after 3 follow-ups? Parked, so reps move on. Closest to closing comes up first.\n\n{link}",
  "sunday": "Calling leads tomorrow? No sales calls on Sundays in Alabama, Louisiana, Mississippi, Pennsylvania, Rhode Island and South Dakota. Texas: noon to 9 PM, their time.\n\nVPEX checks each lead’s state before anyone dials.\n\nBased on published state rules as of November 2026. Not legal advice.\n\n{link}",
- "vets": "Wednesday is Veterans Day. Alabama, Louisiana and Rhode Island don’t allow sales calls on legal holidays.\n\nVPEX knows the holidays and flags those leads before anyone dials.\n\nBased on published state rules as of November 2026. Not legal advice.\n\n{link}",
+ "vets": "Wednesday is Veterans Day. Alabama, Louisiana, Pennsylvania and Rhode Island don’t allow sales calls on legal holidays.\n\nVPEX knows the holidays and flags those leads before anyone dials.\n\nBased on published state rules as of November 2026. Not legal advice.\n\n{link}",
  "ae": "8:15 AM. Can you call a lead in Connecticut? Not yet: sales calls there start at 9, their time. Michigan, Pennsylvania and Texas too on weekdays. Kentucky starts at 10.\n\nVPEX checks every lead’s state before anyone dials.\n\nBased on published state rules as of November 2026. Not legal advice.\n\n{link}",
  "trial": "Day one of a VPEX trial: the Dial screen with your script and rebuttals, calling hours checked for every lead’s state, a team-wide Do Not Call list, the scoreboard and Sales coach, and contests.\n\n7 days free, no card, then $49 per rep per month: {link}",
 }
@@ -205,7 +205,7 @@ ALT = {
  "W6-Sunday-4": "VPEX checks the lead's state first. A lead card flagged: no sales calls on Sundays in RI.",
  "W6-Sunday-5": "Calling on weekends? Save this.",
  "W6-Trial": "Day one of your free trial: the Dial screen with your script and rebuttals, calling hours checked for every lead's state, your own Do Not Call list team-wide, Team scoreboard and Sales coach, contests on every rep's screen. 7 days free, no card, then $49 per rep per month.",
- "W6-Vets": "Wednesday, November 11. Veterans Day. No sales calls in 3 states: Alabama, Louisiana, Rhode Island, no sales calls on legal holidays. A VPEX lead card flagged: holiday, no sales calls in AL today.",
+ "W6-Vets": "Wednesday, November 11. Veterans Day. No sales calls in 4 states: Alabama, Louisiana, Pennsylvania, Rhode Island, no sales calls on legal holidays. A VPEX lead card flagged: holiday, no sales calls in AL today.",
 }
 THREADS = [
  (0, "t-prize", "Floor owners: what prize actually gets your reps dialing harder?\n\nLunch? Cash? Leaving early Friday?\n\nVPEX contests put live standings on every rep’s dial screen. What would you put up? {link}",
@@ -230,7 +230,7 @@ STICKER = [
  ("Fri", "Poll: where do your reps dial from?", "Add a Poll sticker with 3 options: Office / Home / Both."),
  ("Sat", "Quiz: Sunday calls after noon", "Add a Quiz sticker: Texas / Pennsylvania / Rhode Island, with Texas as the right answer."),
  ("Sun", "Slider: Monday's list ready?", "Add an Emoji slider sticker with 🔥."),
- ("Mon", "Quiz: Veterans Day states", "Add a Quiz sticker: 1 / 3 / 5, with 3 as the right answer."),
+ ("Mon", "Quiz: Veterans Day states", "Add a Quiz sticker: 2 / 4 / 6, with 4 as the right answer."),
 ]
 
 def jpg(src, dst):

@@ -27,12 +27,16 @@ r = sc('RI', '2026-10-24T14:30:00Z'); check('RI Saturday 10:30 AM ok (10–5 Sat
 r = sc('RI', '2026-10-24T13:30:00Z'); check('RI Saturday 9:30 AM: before, fix 10 AM', !r.ok && loc(r.fix, 'RI') === 'Sat, Oct 24, 10:00 AM', [r, loc(r.fix, 'RI')]);
 r = sc('RI', '2026-10-24T22:00:00Z'); check('RI Saturday 6 PM: after, Sunday banned, fix Mon 9 AM', !r.ok && loc(r.fix, 'RI') === 'Mon, Oct 26, 9:00 AM', [r, loc(r.fix, 'RI')]);
 r = sc('TX', '2026-10-25T15:00:00Z'); check('TX Sunday 10 AM: before TX hours (12 PM–9 PM), fix noon', !r.ok && r.why === 'before TX calling hours (12 PM–9 PM)' && loc(r.fix, 'TX') === 'Sun, Oct 25, 12:00 PM', [r, loc(r.fix, 'TX')]);
+r = sc('PA', '2026-11-11T15:00:00Z'); check('PA Veterans Day 10 AM: holiday ban (73 P.S. 2245(a)(10)), fix Thu 9 AM', !r.ok && r.why === 'holiday, no sales calls in PA today' && loc(r.fix, 'PA') === 'Thu, Nov 12, 9:00 AM', [r, loc(r.fix, 'PA')]);
+r = sc('PA', '2026-09-07T15:00:00Z'); check('PA Labor Day 2026 (old hours): holiday ban applied before Oct 18 too', !r.ok && /holiday/.test(r.why), r);
+r = sc('PA', '2026-11-12T15:00:00Z'); check('PA Thu Nov 12 10 AM: ok', r.ok, r);
 r = sc('AL', '2026-12-25T18:00:00Z'); check('AL Christmas: holiday', !r.ok && /holiday/.test(r.why), r);
 r = ctx.slotCheck({ st: '' }, at('2026-10-21T11:00:00Z')); check('unknown location: no check', r === null, r);
-// slotAt skips banned holidays in AL/LA/RI (Tue Nov 10 -> next business day would be Veterans Day)
+// slotAt skips banned holidays in AL/LA/PA/RI (Tue Nov 10 -> next business day would be Veterans Day)
 ctx.NOW = at('2026-11-10T16:00:00Z');
 const s1 = ctx.slotAt({ st: 'RI' }, 1, 10); check('slotAt RI: skips Veterans Day to Thu 10 AM', loc(s1, 'RI') === 'Thu, Nov 12, 10:00 AM', loc(s1, 'RI'));
 const s2 = ctx.slotAt({ st: 'AL' }, 1, 16); check('slotAt AL: skips Veterans Day to Thu 4 PM', loc(s2, 'AL') === 'Thu, Nov 12, 4:00 PM', loc(s2, 'AL'));
+const s6 = ctx.slotAt({ st: 'PA' }, 1, 10); check('slotAt PA: skips Veterans Day to Thu 10 AM', loc(s6, 'PA') === 'Thu, Nov 12, 10:00 AM', loc(s6, 'PA'));
 const s3 = ctx.slotAt({ st: 'NY' }, 1, 10); check('slotAt NY: Veterans Day stays (federal rule has no holiday ban)', loc(s3, 'NY') === 'Wed, Nov 11, 10:00 AM', loc(s3, 'NY'));
 const s4 = ctx.slotAt({ st: 'TX' }, 2, 10); check('slotAt TX: 2 business days', loc(s4, 'TX') === 'Thu, Nov 12, 10:00 AM', loc(s4, 'TX'));
 ctx.NOW = at('2026-12-23T16:00:00Z');

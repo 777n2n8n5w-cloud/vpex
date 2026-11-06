@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <!-- Built by tools/build_calling_hours.js from this template and index.html's calling-hours rules. Edit the template, not calling-hours/index.html. -->
 <title>Oklahoma telemarketing calling hours (2026): can I call this lead now? | VPEX</title>
-<meta name="description" content="Sales calls to a lead in Oklahoma are allowed 8 AM–8 PM in the lead’s local time. No more than 3 sales calls to the same person in 24 hours. Free live checker with their local time and when calls open again. Updated October 2026.">
+<meta name="description" content="Sales calls to a lead in Oklahoma are allowed 8 AM–8 PM in the lead’s local time. No more than 3 sales calls to the same person in 24 hours. Free live checker with their local time and when calls open again. Updated November 2026.">
 <link rel="canonical" href="https://vpexdialer.com/calling-hours/oklahoma/">
 <meta property="og:title" content="Can I call a lead in Oklahoma right now?">
 <meta property="og:description" content="Oklahoma calling hours for sales calls: their local time, today’s window and when calls open again. Free, from VPEX.">
@@ -107,7 +107,7 @@
   <section class="card facts" aria-labelledby="facts-h">
     <h2 id="facts-h">Oklahoma calling hours for sales calls</h2>
     <dl><dt>Monday to Friday</dt><dd>8 AM–8 PM</dd><dt>Saturday</dt><dd>8 AM–8 PM</dd><dt>Sunday</dt><dd>8 AM–8 PM</dd><dt>Federal holidays</dt><dd>Normal hours</dd><dt>Calls per person</dt><dd>No more than 3 in 24 hours</dd><dt>Time zone</dt><dd>Central</dd></dl>
-    <p class="fine">Sales calls to a lead in Oklahoma are allowed 8 AM–8 PM in the lead’s local time. No more than 3 sales calls to the same person in 24 hours. Rules that only cover autodialers or prerecorded messages aren’t included. Based on published state rules as of October 2026. Not legal advice.</p>
+    <p class="fine">Sales calls to a lead in Oklahoma are allowed 8 AM–8 PM in the lead’s local time. No more than 3 sales calls to the same person in 24 hours. Rules that only cover autodialers or prerecorded messages aren’t included. Based on published state rules as of November 2026. Not legal advice.</p>
   </section>
 
   <h2>The 20 states with stricter calling hours</h2>
@@ -128,19 +128,19 @@
       <tr><td>New Mexico</td><td>9 AM–9 PM</td><td>Same</td><td>Same</td><td>Allowed</td><td>No state limit</td></tr>
       <tr><td>Oklahoma</td><td>8 AM–8 PM</td><td>Same</td><td>Same</td><td>Allowed</td><td>3 per 24 hours</td></tr>
       <tr><td>Oregon</td><td>8 AM–8 PM</td><td>Same</td><td>Same</td><td>Allowed</td><td>3 per 24 hours</td></tr>
-      <tr><td>Pennsylvania</td><td>9 AM–7 PM (from Oct 18, 2026)</td><td>Same</td><td>No calls</td><td>Allowed</td><td>No state limit</td></tr>
+      <tr><td>Pennsylvania</td><td>9 AM–7 PM (from Oct 18, 2026)</td><td>Same</td><td>No calls</td><td>No calls</td><td>No state limit</td></tr>
       <tr><td>Rhode Island</td><td>9 AM–6 PM</td><td>10 AM–5 PM</td><td>No calls</td><td>No calls</td><td>No state limit</td></tr>
       <tr><td>South Dakota</td><td>9 AM–9 PM</td><td>Same</td><td>No calls</td><td>Allowed</td><td>No state limit</td></tr>
       <tr><td>Texas</td><td>9 AM–9 PM</td><td>Same</td><td>12 PM–9 PM</td><td>Allowed</td><td>No state limit</td></tr>
       <tr><td>Washington</td><td>8 AM–8 PM</td><td>Same</td><td>Same</td><td>Allowed</td><td>No state limit</td></tr>
       <tr><td>Wyoming</td><td>8 AM–8 PM</td><td>Same</td><td>Same</td><td>Allowed</td><td>No state limit</td></tr></tbody>
   </table></div>
-  <p class="fine">Based on published state rules as of October 2026. Not legal advice.</p>
+  <p class="fine">Based on published state rules as of November 2026. Not legal advice.</p>
 
   <h2>Good to know</h2>
   <ul class="faq">
     <li><b>Federal rule:</b> sales calls only between 8 AM and 9 PM in the called person's local time.</li>
-    <li><b>Holiday bans</b> (Alabama, Louisiana and Rhode Island) follow federal legal holidays, including the weekday a holiday is observed on.</li>
+    <li><b>Holiday bans</b> (Alabama, Louisiana, Pennsylvania and Rhode Island) follow federal legal holidays, including the weekday a holiday is observed on.</li>
     <li><b>3-call limits</b> (Florida, Maryland, Oklahoma and Oregon): no more than 3 sales calls to the same person in 24 hours.</li>
     <li><b>Do Not Call:</b> these hours don't replace the National Do Not Call Registry or your own Do Not Call list.</li>
   </ul>
@@ -206,7 +206,7 @@
       NV: { h: [9, 20] },
       OK: { h: [8, 20], max3: true },
       OR: { h: [8, 20], max3: true },
-      PA: { h: [9, 19], sun: false, from: "2026-10-18", before: { h: [8, 21] } },
+      PA: { h: [9, 19], sun: false, hol: true, from: "2026-10-18", before: { h: [8, 21], hol: true } },
       RI: { h: [9, 18], sat: [10, 17], sun: false, hol: true },
       SD: { h: [9, 21], sun: false },
       TX: { h: [9, 21], sunH: [12, 21] },
@@ -297,7 +297,7 @@
     var o = check(st, Date.now());
     box.className = "on " + (o.open ? "ok" : "no");
     box.innerHTML = '<div class="vh"><span class="dot"></span>' + o.head + '</div><p class="vl">' + o.line + '</p>' + (o.line2 ? '<p class="vl">' + o.line2 + '</p>' : '') + (o.extra ? '<p class="vs">' + o.extra + '</p>' : '') +
-      '<p class="vs">Based on published state rules as of October 2026. Not legal advice.</p>';
+      '<p class="vs">Based on published state rules as of November 2026. Not legal advice.</p>';
     if (!PRE) try { history.replaceState(null, "", location.pathname + "?st=" + st); } catch (e) {}
   }
   sel.addEventListener("change", show);

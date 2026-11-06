@@ -136,7 +136,7 @@ def page(k):
   <ul class="feat">
     {cards}
   </ul>
-  <p class="comp">Based on published state rules as of October 2026. Not legal advice. <a href="/calling-hours/">Check any state's calling hours</a>.</p>
+  <p class="comp">Based on published state rules as of November 2026. Not legal advice. <a href="/calling-hours/">Check any state's calling hours</a>.</p>
 
   <h2>What VPEX doesn't do</h2>
   <ul class="list">

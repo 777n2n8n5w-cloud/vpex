@@ -1,5 +1,5 @@
 {
-"built": "2026-11-05T09:16-05:00",
+"built": "2026-11-06T02:01-05:00",
 "tiles": [
 {
 "id": "w7-trial",
@@ -130,7 +130,7 @@
 {
 "id": "w6-vets",
 "at": "2026-11-09T19:00:00-05:00",
-"t": "Wednesday is Veterans Day. No sales calls in 3 states.",
+"t": "Wednesday is Veterans Day. No sales calls in 4 states.",
 "img": "t/w6-vets.jpg",
 "go": "home",
 "c": "w6",

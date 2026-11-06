@@ -90,7 +90,7 @@ const setAndRead = (page, v) => page.evaluate(v => {
     }
     console.log('sweep', n, 'leads; found', { sun: !!sun, hol: !!hol, tx: !!tx });
     check('Sunday-ban state: says so, fix is Monday', !sun || (/no sales calls on Sundays in (AL|LA|MS|PA|RI|SD)/.test(sun.text) && /^Move to Mon/.test(sun.fix || '')), sun);
-    check('holiday state (Veterans Day): says so, fix is Thursday', !hol || (/holiday, no sales calls in (AL|LA|RI)/.test(hol.text) && /^Move to Thu/.test(hol.fix || '')), hol);
+    check('holiday state (Veterans Day): says so, fix is Thursday', !hol || (/holiday, no sales calls in (AL|LA|PA|RI)/.test(hol.text) && /^Move to Thu/.test(hol.fix || '')), hol);
     check('TX Sunday before noon: TX hours, fix at noon', !tx || (/before TX calling hours \(12 PM–9 PM\)/.test(tx.text) && /\(12:00 PM TX\)/.test(tx.fix || '')), tx);
     check('at least one ban case found in the demos', !!(sun || hol || tx));
   }

@@ -135,10 +135,11 @@ post("W6-Trial", "Post: Day one of the free trial", PAPER,
     at(88, 1160, para("Tap the link in our bio, then this post.", 34, SLATE, "font-weight: 600")) + foot_light(1262))
 
 # ========== Mon 19:00 post: Veterans Day ==========
-post("W6-Vets", "Post: Wednesday is Veterans Day. 3 states: no sales calls.", NIGHT,
+post("W6-Vets", "Post: Wednesday is Veterans Day. 4 states: no sales calls.", NIGHT,
     at(88, 84, para("Wednesday, November 11", 40, GOLD, "font-weight: 700")) +
-    at(84, 150, headline("Veterans Day. No sales calls in 3 states.", 104, PAPER), w=910) +
-    at(88, 470, rows([("Alabama", "No sales calls on legal holidays"), ("Louisiana", "No sales calls on legal holidays"), ("Rhode Island", "No sales calls on legal holidays")], True, 38, 300)) +
+    at(84, 150, headline("Veterans Day. No sales calls in 4 states.", 104, PAPER), w=910) +
+    at(88, 476, rows([("Alabama", "No sales calls on legal holidays"), ("Louisiana", "No sales calls on legal holidays"), ("Pennsylvania", "No sales calls on legal holidays"),
+                      ("Rhode Island", "No sales calls on legal holidays")], True, 34, 300)) +
     crop("al_hol", 830, 2.3, None, True) +
     small("Demo office. " + LEGAL, 1170, True) + foot_dark(1262))
 
