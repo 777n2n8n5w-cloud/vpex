@@ -1,0 +1,29 @@
+# Tests the database rules (firestore-rules.txt) with Google's own rules engine, on any branch.
+# Nothing is published: the deploy workflow puts the rules live from main, after the same test.
+name: Test VPEX database rules
+
+on:
+  push:
+    paths:
+      - "firestore-rules.txt"
+      - "tools/firestore_rules_test.py"
+      - ".github/workflows/vpex-db-rules.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      PROJECT: dovetail-f863c
+    steps:
+      - uses: actions/checkout@v5
+      - uses: google-github-actions/auth@v3
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Test the rules
+        run: python3 tools/firestore_rules_test.py
