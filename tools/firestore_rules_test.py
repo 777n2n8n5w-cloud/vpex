@@ -103,7 +103,8 @@ CASES = [
     case("receipt: the sender reads their own", "ALLOW", "get", "pushFloorDone/adm1_abc", ADM1, old={"uid": "adm1", "status": "sent"}),
     case("receipt: before the server writes it (listening for it)", "ALLOW", "get", "pushFloorDone/adm1_abz", ADM1),
     case("receipt: nobody else reads it", "DENY", "get", "pushFloorDone/adm1_abc", REP1, old={"uid": "adm1", "status": "sent"}),
-    case("receipt: a lookalike id doesn't count", "DENY", "get", "pushFloorDone/adm1x_abc", who("adm1x", "z@acme.vpex.app"), old={"uid": "adm1", "status": "sent"}),
+    case("receipt: an id that only starts like yours doesn't count", "DENY", "get", "pushFloorDone/adm1x_abc", ADM1, old={"uid": "adm1x", "status": "sent"}),
+    case("receipt: a shorter id inside yours doesn't count", "DENY", "get", "pushFloorDone/adm1_abc", who("adm", "z@acme.vpex.app"), old={"uid": "adm1", "status": "sent"}),
     case("receipt: nobody writes one but the server", "DENY", "create", "pushFloorDone/adm1_abc", ADM1, new={"uid": "adm1", "status": "sent"}),
     # ---- the kept messages reps see in the app ----
     case("message: a rep in the office reads it", "ALLOW", "get", FL, REP1, old=MSG),
