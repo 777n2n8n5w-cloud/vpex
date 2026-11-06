@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-01-22">
+<meta name="vpex-build" content="2027-01-23">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 /* Signature themes: six themes only the VPEX owner's own login can use (sig/*.css, sig.js).
@@ -7148,6 +7148,23 @@ window.VPEX_SIG = [
   .up-more { padding: 6px 10px; font-size: 12px; color: var(--text-faint); border-top: 1px solid var(--border); }
   .up-check { display: flex !important; align-items: center; gap: 10px; font-weight: 500 !important; }
   .up-check input { width: 20px; height: 20px; flex: none; }
+  .lead-prog { margin: 10px 0 4px; }
+  .lead-prog .lead-notes-label { display: flex; align-items: baseline; gap: 8px; }
+  .lead-prog-n { font-weight: 600; letter-spacing: 0; text-transform: none; opacity: 0.85; }
+  .lead-prog-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 138px), 1fr)); gap: 0 12px; }
+  .lead-prog-step { min-height: 44px; margin: 0 !important; font-size: 14px; color: var(--text-dim); cursor: pointer; min-width: 0; }
+  .lead-prog-step span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
+  .lead-prog-step.on { color: var(--text); font-weight: 650 !important; }
+  .lead-prog-step input { accent-color: var(--accent); cursor: pointer; }
+  #leadModalBody .lead-prog { margin: 12px 0 2px; }
+  #fuBody .lead-prog { margin: 12px 0 0; }
+  #fuBody .lead-prog-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lead-prog-face { display: inline-flex; align-items: center; gap: 4px; min-height: 30px; margin: 6px 0 0; padding: 0 12px; border-radius: 999px; border: 1px solid var(--border);
+    background: transparent; color: var(--text); font: inherit; font-size: 13px; font-weight: 650; cursor: pointer; position: relative; }
+  .lead-prog-face { border-color: color-mix(in srgb, var(--interested) 45%, var(--border)); background: color-mix(in srgb, var(--interested) 10%, transparent); }
+  .lead-prog-face span { color: color-mix(in srgb, var(--interested) 62%, var(--text)); }
+  .lead-prog-face small { color: var(--text-dim); font-weight: 500; font-size: 12.5px; }
+  .lead-prog-face::after { content: ""; position: absolute; left: 0; right: 0; top: -7px; bottom: -7px; }   /* 44 px to tap */
   .lp-src { font-size: 12px; color: var(--text-faint); margin: -6px 0 10px; }
   #submitUpload:disabled { opacity: 0.5; }
   @media (max-width: 360px) { .save-pill.ok { font-size: 0; gap: 0; } }   /* small phones: a dot when all is well; warnings always spelled out */
@@ -10013,6 +10030,7 @@ window.VPEX_SIG = [
   var INDUSTRIES = {
     investments: { name: "Investments", one: "Investor", many: "Investors", deal: "Investment", deals: "Investments", example: "Acme AI", fund: "funded",
       words: {}, steps: [["docs", "Docs sent", 1], ["returned", "Docs returned", 5], ["funded", "Account funded", 10]],
+      track: [["email", "Email sent"], ["docs", "Docs sent"], ["returned", "Docs returned"], ["funded", "Account funded"]],
       demo: { lists: ["Spring list", "Referral list"], note: function (n, st) { return "Account value $" + (50 + n % 900) + ",000 | " + st; }, deals: ["Pre-IPO AI chips", "Series E fintech", "Defense tech", "Payments platform", "Data platform"], amt: 25000, interest: "Late-stage tech", company: "Northgate Capital Partners" } },
     realestate: { target: 3000000, name: "Real estate", one: "Client", many: "Clients", deal: "Deal", deals: "Deals", example: "14 Oak St", fund: "closed", money: "in sales", amount: "Sale price", wants: "e.g. 3 bd in Holmdel, under $700K", dateLabel: "Add a closing anniversary or date",
       words: { Pitched: "Appointment set", Objection: "Negotiating", Committed: "Under contract", Funded: "Sold", Closed: "Commission paid" },
@@ -11518,6 +11536,7 @@ window.VPEX_SIG = [
       (cb || mv ? '' : '<div class="fu-label">Where are they?</div><div class="fu-row fu-stages" role="group" aria-label="Deal stage">' + FU_STAGES.map(function (s) {
         return '<button type="button" class="fu-chip' + (s === FU.stage ? ' on' : '') + '" data-fu-stage="' + s + '" aria-pressed="' + (s === FU.stage) + '">' + s + '</button>';
       }).join("") + '</div>') +
+      (cb || mv ? '' : progHtml(lead)) +
       '<input type="text" id="fuNote" class="fu-note" maxlength="200" autocomplete="off" placeholder="What to open with next time (optional)" value="' + escapeHtml(FU.note) + '" aria-label="Note for the next call">' +
       '</div></div>' +
       '<div class="modal-actions fu-acts"><button type="button" class="btn-secondary" id="fuKeep" aria-label="' + (mv ? 'Cancel, keep ' : 'Skip, keep ') + escapeHtml(fmtWhen(FU.sug)) + '">' + (mv ? 'Cancel' : 'Skip') + '</button>' +
@@ -12999,6 +13018,8 @@ window.VPEX_SIG = [
     window.__mockLeads = function () { return state.leads.map(function (l) { return { id: l.id, name: l.name, notes: l.notes || "", status: l.status }; }); };
     window.__mockLeadFull = function (q) { return JSON.parse(JSON.stringify(state.leads.filter(function (l) { return l.id === q || l.name === q; }))); };
     window.__mockCallsFor = function (id) { return JSON.parse(JSON.stringify(callsForLead(id))); };
+    window.__mockPayload = function (id) { var l = findLeadById(id); return l ? JSON.parse(JSON.stringify(teamPayload(l, [], []))) : null; };
+    window.__mockOpenTaskLead = function () { var t = state.tasks.filter(function (x) { return !x.done && x.leadId && findLeadById(x.leadId); })[0]; return t ? t.leadId : null; };
   }
   function fillTemplate(tpl, lead, nextOverride, extra) {
     var ts = textSettings();
@@ -13219,6 +13240,49 @@ window.VPEX_SIG = [
     if (lead.released && lead.status === "pending") bits.push("back from " + lead.released.from);
     return '<div class="lead-track">' + escapeHtml(bits.join(" \u00b7 ")) + '</div>';
   }
+  // Where a lead is at (industries with a track list; investments: Email sent, Docs sent, Docs returned, Account funded).
+  // A small checklist on the Dial card and the lead profile. Saved on the lead (lead.prog = { step: time ticked }),
+  // so it syncs with the lead to every phone and computer on the floor.
+  function progSteps() { return IND.track || []; }
+  function progCount(lead) { var p = (lead && lead.prog) || {}; return progSteps().filter(function (s) { return p[s[0]]; }).length; }
+  function progHtml(lead) {
+    var st = progSteps(); if (!st.length || !lead) return "";
+    var p = lead.prog || {};
+    return '<div class="lead-prog" role="group" data-prog-lead="' + escapeHtml(lead.id) + '" aria-label="Where ' + escapeHtml(firstName(lead.name) || "this lead") + ' is at">' +
+      '<div class="lead-notes-label">Progress <span class="lead-prog-n">' + progCount(lead) + ' of ' + st.length + '</span></div><div class="lead-prog-row">' +
+      st.map(function (x, n) {
+        var on = p[x[0]];
+        return '<label class="up-check lead-prog-step' + (on ? ' on' : '') + '"' + (on ? ' title="' + escapeHtml(x[1] + ' \u00b7 ' + fmtWhen(on)) + '"' : '') + '><input type="checkbox" data-prog="' + x[0] + '"' + (on ? ' checked' : '') + '> <span>' + escapeHtml(x[1]) + '</span></label>';
+      }).join("") + '</div></div>';
+  }
+  // The furthest step ticked, for the Tasks card ("✓ Docs returned").
+  function progChipHtml(lead) {
+    var st = progSteps(), p = (lead && lead.prog) || {}, last = null;
+    st.forEach(function (x) { if (p[x[0]]) last = x; });
+    return last ? '<span class="qi-status callback lead-prog-chip" title="' + progCount(lead) + ' of ' + st.length + ' done">\u2713 ' + escapeHtml(last[1]) + '</span>' : '';
+  }
+  // On the lead card itself, only the status: "✓ Docs sent · 2 of 4" (tap to open the lead and change it).
+  function progFaceHtml(lead) {
+    var st = progSteps(), p = (lead && lead.prog) || {}, last = null;
+    st.forEach(function (x) { if (p[x[0]]) last = x; });
+    if (!last) return "";
+    return '<button type="button" class="lead-prog-face" data-open-lead="' + escapeHtml(lead.id) + '" aria-label="' + escapeHtml(last[1] + ', ' + progCount(lead) + ' of ' + st.length + ' steps done. Open the lead to change it') + '">' +
+      '<span aria-hidden="true">\u2713</span> ' + escapeHtml(last[1]) + ' <small>\u00b7 ' + progCount(lead) + ' of ' + st.length + '</small></button>';
+  }
+  // One handler for every checklist (the follow-up sheet after Interested, the lead profile): saved on the lead right away.
+  document.addEventListener("change", function (e) {
+    var cb = e.target && e.target.closest && e.target.closest("input[data-prog]"); if (!cb) return;
+    var box = cb.closest(".lead-prog"), lead = box && findLeadById(box.getAttribute("data-prog-lead")); if (!lead) return;
+    var k = cb.getAttribute("data-prog"), x = progSteps().filter(function (y) { return y[0] === k; })[0]; if (!x) return;
+    var p = Object.assign({}, lead.prog || {});
+    if (cb.checked) p[k] = Date.now(); else delete p[k];
+    if (Object.keys(p).length) lead.prog = p; else delete lead.prog;
+    saveState();
+    var lab = cb.closest(".lead-prog-step"); if (lab) { lab.classList.toggle("on", cb.checked); if (cb.checked) lab.title = x[1] + " \u00b7 " + fmtWhen(p[k]); else lab.removeAttribute("title"); }
+    var cnt = box.querySelector(".lead-prog-n"); if (cnt) cnt.textContent = progCount(lead) + " of " + progSteps().length;
+    showToast(cb.checked ? x[1] + " \u2713 \u00b7 " + lead.name : x[1] + " unticked \u00b7 " + lead.name);
+    render();   // the lead card face and Tasks behind the sheet show the new status
+  });
   function callLinkHtml(lead, from, taskId, cls, inner, num) {
     return '<a target="' + telTarget() + '" rel="noopener" href="' + telHref(num ? normalizePhone(num) : lead.phone || normalizePhone(lead.phoneRaw)) + '" class="' + cls + '"' +
       ' data-call-lead="' + lead.id + '" data-from="' + from + '"' + (taskId ? ' data-task="' + taskId + '"' : '') + (num ? ' data-num="' + escapeHtml(num) + '"' : '') + ' title="Call">' + inner + '</a>';
@@ -14048,6 +14112,7 @@ window.VPEX_SIG = [
       '</div>' +
       '<label for="lpStage">Pipeline stage</label>' +
       '<select id="lpStage">' + STAGES.map(function (s2) { return '<option' + (s2 === (lead.stage || "New Lead") ? " selected" : "") + '>' + s2 + '</option>'; }).join("") + '</select>' +
+      progHtml(lead) +
       '<label for="lpWindow">Best time to call (their time)</label><select id="lpWindow"><option value="">Any time</option>' + Object.keys(CALL_WINDOWS).map(function (k) {
         return '<option value="' + k + '"' + (lead.callWindow === k ? ' selected' : '') + '>' + CALL_WINDOWS[k][0] + ' \u00b7 ' + hourLabel(CALL_WINDOWS[k][1]) + '\u2013' + hourLabel(CALL_WINDOWS[k][2]) + '</option>'; }).join("") + '</select>' +
       (qFields().length ? '<div class="lp-qf"><div class="lp-qf-head">Qualifying details</div>' + qfFormHtml(lead) + '</div>' : '') +
@@ -14522,7 +14587,7 @@ window.VPEX_SIG = [
           : '<span class="task-lead-name">' + escapeHtml(t.leadName || "Unlinked") + '</span>') +
         (t.pinned ? '<span class="qi-status interested">' + (missed ? 'Missed their time' : 'Booked') + '</span>' : '<span class="qi-status noanswer">' + escapeHtml(k === "int" && t.type !== "Call" ? "Follow-up" : label) + '</span>') +
         (t.priority === "High" && !t.pinned && !t.auto ? '<span class="qi-status notinterested">High</span>' : '') +
-        (k === "int" && !t.pinned ? '<span class="qi-status interested">Interested</span>' : '') +
+        (k === "int" && !t.pinned ? '<span class="qi-status interested">Interested</span>' : '') + progChipHtml(lead) +
         (TEAM.on && isAdmin() && !myTask(t) && assigneeOf(t) ? '<span class="qi-status voicemail">' + escapeHtml(firstName(assigneeOf(t).name)) + '</span>' : '') + '</div>' +
         (t.note ? '<div class="task-note">' + escapeHtml(t.note) + '</div>' : '') +
         '<div class="task-due">' + (missed ? 'Missed · ' : overdue ? 'Overdue · ' : '') + escapeHtml(taskWhen(t, lead)) + (status ? ' · ' + status : '') + '</div>' +
@@ -14668,6 +14733,7 @@ window.VPEX_SIG = [
         '<div class="lead-name">' + escapeHtml(lead.name) + '</div>' +
         '<div class="lead-phone">' + escapeHtml(formatPhoneDisplay(lead.phoneRaw)) + '</div>' +
         (m ? '<div style="margin-bottom:10px"><span class="qi-status ' + m.cls + '">' + m.label + '</span></div>' : '') +
+        (progFaceHtml(lead) ? '<div style="margin:-4px 0 10px">' + progFaceHtml(lead) + '</div>' : '') +
         (lead.notes ? '<div class="lead-notes-wrap"><div class="lead-notes-label">Notes</div><div style="font-size:13.5px;color:var(--text-dim);white-space:pre-wrap;">' + escapeHtml(lead.notes) + '</div></div>' : '') +
         '<div class="call-row">' +
           '<a target="' + telTarget() + '" rel="noopener" href="' + telHref(lead.phone) + '" class="call-btn" id="recallCallBtn" data-call-lead="' + lead.id + '" data-from="dial">' + callIconSvg() + '<span>Call ' + escapeHtml(firstName(lead.name)) + '</span></a>' +
@@ -14861,6 +14927,7 @@ window.VPEX_SIG = [
         altPillsHtml(lead) +
         (lead.callWindow ? '<div class="win-chip">Prefers ' + escapeHtml(windowLabel(lead)) + '</div>' : '') +
         '<div class="lead-meta">' + leadWhereWhenHtml(lead) + qfRowHtml(lead) + '</div>' +
+        progFaceHtml(lead) +
         leadTrackHtml(lead) +
         flowGuideHtml(lead) +
         '<div class="lead-stage-row">' +
