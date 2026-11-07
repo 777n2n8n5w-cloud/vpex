@@ -89,3 +89,12 @@
 
 /* Caps kits keep the Call label on one line, whatever the name. */
 :where(:root[data-vx-kit="ledger"], :root[data-vx-kit="hud"], :root[data-vx-kit="arena"]) .call-btn > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+
+/* ---- Header clock, in each kit's voice ---- */
+@KIT(ledger) .hdr-clock .hc-date { text-transform: uppercase; letter-spacing: .14em; font-size: 10.5px; }
+@KIT(neon) .hdr-clock .hc-time { color: var(--accent); text-shadow: 0 0 10px color-mix(in srgb, var(--accent) 70%, transparent); }
+@KIT(hud) .hdr-clock .hc-time { font-family: var(--font-num, 'IBM Plex Mono', ui-monospace, monospace); letter-spacing: .06em; }
+@KIT(hud) .hdr-clock .hc-date::before { content: "// "; color: var(--accent); }
+@KIT(arena) .hdr-clock .hc-time { font-style: italic; font-weight: 800; }
+@KIT(festive) .hdr-clock .hc-date::before { content: "\2726  "; color: var(--accent); }
+@KIT(botanic) .hdr-clock .hc-date { font-family: var(--font-display, inherit); }

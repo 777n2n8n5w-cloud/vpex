@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-01-28">
+<meta name="vpex-build" content="2027-01-29">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 /* Signature themes: six themes only the VPEX owner's own login can use (sig/*.css, sig.js).
@@ -7995,6 +7995,42 @@ window.VPEX_SIG = [
   .nx-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; } .nx-t b { font-size: 13.5px; font-weight: 650; } .nx-t span { font-size: 12px; color: var(--text-dim); }
   .nx-over .nx-t span { color: var(--notinterested); font-weight: 600; }
   .nx-go { flex: none; min-height: 34px; padding: 0 12px; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--nx) 45%, var(--border)); background: var(--surface); color: var(--text); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-grid; place-items: center; }
+  /* ---- Clock: your date and time in the header, in every theme. Tap for the time across the US. ---- */
+  .hdr-clock { order: -1; flex: 1 0 100%; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; min-width: 0;
+    margin: -4px 0 2px; padding: 0 0 8px; border: 0; border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent); border-radius: 0;
+    background: none; color: var(--text-dim); font: inherit; text-align: left; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .hdr-clock .hc-date { font-size: 12.5px; font-weight: 600; letter-spacing: .01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .hdr-clock .hc-time { flex: none; white-space: nowrap; font-family: var(--font-num, inherit); font-variant-numeric: tabular-nums; font-size: 14px; font-weight: 700; color: var(--text); letter-spacing: .01em; }
+  .hdr-clock .hc-zone { font-family: inherit; font-size: 11px; font-weight: 600; color: var(--text-faint); letter-spacing: .04em; margin-left: 1px; }
+  /* Pixel and condensed number faces run small; give them the same visual size. */
+  :root:is([data-theme="terminal"], [data-theme="arcade"], [data-theme="pocketlcd"], [data-theme="courtside"]) .hdr-clock .hc-time { font-size: 18px; line-height: 1; }
+  .hdr-clock:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+  .hdr-clock:active .hc-time { color: var(--accent); }
+  @media (max-height: 760px) { .hdr-clock { margin-top: -2px; padding-bottom: 6px; } }
+  @media (min-width: 1100px) {
+    body.desk .hdr-clock { order: 1; flex: none; flex-direction: column; align-items: flex-end; gap: 1px; margin: 0; padding: 4px 6px; border: 0; border-radius: 10px; }
+    body.desk .hdr-clock .hc-time { font-size: 17px; order: -1; }
+    body.desk .hdr-clock .hc-date { font-size: 12px; font-weight: 500; }
+    body.desk .hdr-clock:hover { background: color-mix(in srgb, var(--text) 6%, transparent); }
+    body.desk .header-right { order: 2; }
+  }
+  /* Time across the US sheet */
+  .tz-list { display: flex; flex-direction: column; gap: 7px; margin-top: 12px; }
+  .tz-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2px 12px; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-m, 12px); background: var(--surface); }
+  .tz-row.mine { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); }
+  .tz-name { font-weight: 700; font-size: 15px; color: var(--text); }
+  .tz-name small { font-weight: 600; font-size: 11.5px; color: var(--accent); margin-left: 6px; }
+  .tz-clock { font-family: var(--font-num, inherit); font-variant-numeric: tabular-nums; font-size: 18px; font-weight: 700; color: var(--text); text-align: right; }
+  .tz-clock .tz-ab { font-family: inherit; font-size: 11px; font-weight: 600; color: var(--text-faint); letter-spacing: .04em; }
+  .tz-clock small { display: block; font-family: inherit; font-size: 11.5px; font-weight: 500; color: var(--text-dim); }
+  .tz-st { font-size: 12.5px; color: var(--text-dim); display: flex; align-items: center; gap: 6px; }
+  .tz-st::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--text-faint); flex: none; }
+  .tz-st.open::before { background: var(--interested); }
+  .tz-st.soon::before { background: var(--callback); }
+  .tz-go { grid-column: 2; justify-self: end; border: 1px solid var(--border); background: none; color: var(--accent); font: inherit; font-size: 13px; font-weight: 700;
+    border-radius: 999px; padding: 6px 12px; min-height: 34px; cursor: pointer; white-space: nowrap; }
+  .tz-go:disabled { color: var(--text-faint); cursor: default; }
+  .tz-note { font-size: 12px; color: var(--text-faint); margin-top: 12px; line-height: 1.45; }
   .lp-stat-over b { color: var(--notinterested); }
   .pipe-filters { margin: 2px 0 12px; flex-wrap: wrap; overflow: visible; row-gap: 8px; } .pipe-filters .pf-over.active { background: var(--notinterested); border-color: var(--notinterested); color: #fff; }
   .pipe-summary .warn[role="button"] { cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
@@ -9679,6 +9715,15 @@ html[data-motion="off"] .modal-overlay { transition: none; }
 /* Caps kits keep the Call label on one line, whatever the name. */
 :where(:root[data-vx-kit="ledger"], :root[data-vx-kit="hud"], :root[data-vx-kit="arena"]) .call-btn > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 
+/* ---- Header clock, in each kit's voice ---- */
+:root[data-vx-kit="ledger"] .hdr-clock .hc-date { text-transform: uppercase; letter-spacing: .14em; font-size: 10.5px; }
+:root[data-vx-kit="neon"] .hdr-clock .hc-time { color: var(--accent); text-shadow: 0 0 10px color-mix(in srgb, var(--accent) 70%, transparent); }
+:root[data-vx-kit="hud"] .hdr-clock .hc-time { font-family: var(--font-num, 'IBM Plex Mono', ui-monospace, monospace); letter-spacing: .06em; }
+:root[data-vx-kit="hud"] .hdr-clock .hc-date::before { content: "// "; color: var(--accent); }
+:root[data-vx-kit="arena"] .hdr-clock .hc-time { font-style: italic; font-weight: 800; }
+:root[data-vx-kit="festive"] .hdr-clock .hc-date::before { content: "\2726  "; color: var(--accent); }
+:root[data-vx-kit="botanic"] .hdr-clock .hc-date { font-family: var(--font-display, inherit); }
+
 :root { --vx-gl: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 2.2 0 0 0 -0.9'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23n)'/%3E%3C/svg%3E"); --vx-gd: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2.2 0 0 0 -0.9'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23n)'/%3E%3C/svg%3E"); }
 :root:not([data-theme]), :root:is([data-theme="flow"], [data-theme="midnight"], [data-theme="slate"], [data-theme="forest"], [data-theme="sunset"], [data-theme="contrast"], [data-theme="emerald"], [data-theme="ocean"], [data-theme="graphite"], [data-theme="wallstreet"], [data-theme="royal"], [data-theme="terminal"], [data-theme="oxblood"], [data-theme="tickertape"], [data-theme="blackcard"], [data-theme="privatejet"], [data-theme="bullion"], [data-theme="chairman"], [data-theme="oceandrive"], [data-theme="kingpin"], [data-theme="neonnoir"], [data-theme="synthwave"], [data-theme="highroller"], [data-theme="velvet"], [data-theme="afterparty"], [data-theme="aurora"], [data-theme="deepsea"], [data-theme="desertdusk"], [data-theme="rainforest"], [data-theme="cybergrid"], [data-theme="chrome"], [data-theme="missioncontrol"], [data-theme="christmas"], [data-theme="newyears"], [data-theme="july4"], [data-theme="halloween"], [data-theme="stpatricks"], [data-theme="hd_mlk"], [data-theme="hd_lunar"], [data-theme="hd_pres"], [data-theme="hd_mardi"], [data-theme="hd_eid"], [data-theme="hd_memorial"], [data-theme="hd_dad"], [data-theme="hd_june"], [data-theme="hd_labor"], [data-theme="hd_diwali"], [data-theme="hd_veterans"], [data-theme="hd_hanukkah"], [data-theme="hd_kwanzaa"], [data-theme="gameday"], [data-theme="thepitch"], [data-theme="poleposition"], [data-theme="ringside"], [data-theme="trackfield"], [data-theme="arcade"], [data-theme="bossfight"], [data-theme="starfighter"], [data-theme="loadout"], [data-theme="victorian"], [data-theme="cyberpunk"], [data-theme="cybercore"], [data-theme="pixelart"], [data-theme="glassmorphism"], [data-theme="maximalism"], [data-theme="luxurytype"]) { --vx-grain: .05; --vx-grain-img: var(--vx-gl); --vx-vig: .34; --vx-vig-c: 0,0,0; --vx-spec: rgba(255,255,255,.07); --vx-bounce: color-mix(in srgb, var(--accent) 11%, transparent); }
 :root:is([data-theme="flowlight"], [data-theme="daylight"], [data-theme="rosegold"], [data-theme="arctic"], [data-theme="sand"], [data-theme="ivory"], [data-theme="oldmoney"], [data-theme="nantucket"], [data-theme="gilded"], [data-theme="monaco"], [data-theme="sakura"], [data-theme="winter"], [data-theme="valentine"], [data-theme="harvest"], [data-theme="hd_easter"], [data-theme="hd_passover"], [data-theme="hd_cinco"], [data-theme="hd_mom"], [data-theme="hd_rosh"], [data-theme="hd_earth"], [data-theme="courtside"], [data-theme="diamond"], [data-theme="centerice"], [data-theme="fairway"], [data-theme="grandslam"], [data-theme="pocketlcd"], [data-theme="cozyvillage"], [data-theme="ethereal"], [data-theme="bohemian"], [data-theme="wabisabi"], [data-theme="claymorphism"], [data-theme="neobrutalism"], [data-theme="scrapbook"], [data-theme="surrealism"], [data-theme="y2k"], [data-theme="neumorphism"], [data-theme="bentogrid"], [data-theme="editorial"], [data-theme="swiss"], [data-theme="minimalism"], [data-theme="sketch"]) { --vx-grain: .035; --vx-grain-img: var(--vx-gd); --vx-vig: .07; --vx-spec: rgba(255,255,255,.6); --vx-bounce: color-mix(in srgb, var(--accent) 5%, transparent); }
@@ -10133,6 +10178,7 @@ html[data-motion="off"] .modal-overlay { transition: none; }
 <div class="shell">
 
   <header class="top">
+    <button type="button" class="hdr-clock" id="hdrClock" aria-label="Your time. Tap to see the time across the US"><span class="hc-date" id="hcDate"></span><span class="hc-time"><span id="hcTime"></span> <span class="hc-zone" id="hcZone"></span></span></button>
     <div class="brand">
       <div class="name">VPEX</div>
       <div class="sub-line"><div class="sub" id="headerSub">No leads loaded</div><span class="loc-chip" id="locChip" hidden></span><span class="save-pill" id="savePill"></span></div>
@@ -13326,6 +13372,76 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     state.queueFilter = "now"; saveState(); render(); revealCard();
     showToast("Showing leads you can call now");
   });
+
+  // ---- Clock: your date and time in the header; tap for the time in every US zone, with calling hours and who's waiting there ----
+  var TZ_ROWS = [["E", "Eastern", "America/New_York"], ["C", "Central", "America/Chicago"], ["M", "Mountain", "America/Denver"], ["P", "Pacific", "America/Los_Angeles"], ["X", "Alaska", "America/Anchorage"], ["X", "Hawaii", "Pacific/Honolulu"]];
+  function myZone() { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch (e) { return ""; } }
+  function clockParts(d, iana) {
+    var o = iana ? { timeZone: iana } : {};
+    var time = d.toLocaleTimeString("en-US", Object.assign({ hour: "numeric", minute: "2-digit" }, o));
+    var date = d.toLocaleDateString("en-US", Object.assign({ weekday: "long", month: "long", day: "numeric" }, o));
+    var zone = "";
+    try { (new Intl.DateTimeFormat("en-US", Object.assign({ timeZoneName: "short" }, o))).formatToParts(d).forEach(function (p) { if (p.type === "timeZoneName") zone = p.value; }); } catch (e) {}
+    return { time: time, date: date, zone: /^GMT[+-]/.test(zone) && !iana ? "" : zone };
+  }
+  var clockTimer = 0;
+  function tickClock() {
+    var d = new Date(), c = clockParts(d), el = document.getElementById("hcTime");
+    if (!el) return;
+    if (el.textContent !== c.time) el.textContent = c.time;
+    var de = document.getElementById("hcDate"); if (de.textContent !== c.date) de.textContent = c.date;
+    var ze = document.getElementById("hcZone"); if (ze.textContent !== c.zone) ze.textContent = c.zone;
+    document.getElementById("hdrClock").setAttribute("aria-label", "It's " + c.time + " on " + c.date + ". Tap to see the time across the US");
+    var f = document.getElementById("featModalBody");
+    if (f && f.querySelector(".tz-list") && document.getElementById("featModal").classList.contains("show")) renderTzSheet();
+    clearTimeout(clockTimer);
+    clockTimer = setTimeout(tickClock, 60000 - (Date.now() % 60000) + 50);   // on the minute
+  }
+  function tzStatus(h) {
+    if (h >= 8 && h < 21) return { cls: h >= 20 ? "soon" : "open", txt: h >= 20 ? "Calling hours end at 9 PM" : "Calling hours, until 9 PM" };
+    if (h < 8) return { cls: "", txt: "Too early, opens at 8 AM" };
+    return { cls: "", txt: "After hours, opens 8 AM tomorrow" };
+  }
+  function renderTzSheet() {
+    var box = document.querySelector("#featModalBody .tz-list"); if (!box) return;
+    var now = new Date(), mine = myZone(), myC = clockParts(now), myDay = now.toLocaleDateString("en-US", { weekday: "short" }), cnt = {};
+    try { cnt = qsCounts(); } catch (e) {}
+    var seenX = false;
+    box.innerHTML = TZ_ROWS.map(function (r) {
+      var t = zoneTime(r[2]), c = clockParts(now, r[2]), st = tzStatus(t.hour);
+      var day = now.toLocaleDateString("en-US", { timeZone: r[2], weekday: "short" });
+      var isMine = mine === r[2] || (!!c.zone && c.zone === myC.zone && c.time === myC.time);
+      var extra = "";
+      if (r[0] === "M") { var az = clockParts(now, "America/Phoenix"); if (az.time !== c.time) extra = "Arizona " + az.time; }
+      var n = cnt[r[0]] || 0, go = "";
+      if (r[0] !== "X" || !seenX) {
+        go = n ? '<button type="button" class="tz-go" data-tz-go="' + r[0] + '"' + (st.cls ? "" : ' disabled') + '>' + (st.cls ? "Call " + n + (r[0] === "X" ? " AK / HI" : "") : n + " waiting") + '</button>' : "";
+        if (r[0] === "X") seenX = true;
+      }
+      return '<div class="tz-row' + (isMine ? " mine" : "") + '"><div class="tz-name">' + r[1] + (isMine ? " <small>You</small>" : "") + '</div>' +
+        '<div class="tz-clock">' + escapeHtml(c.time) + (c.zone ? ' <span class="tz-ab">' + escapeHtml(c.zone) + '</span>' : '') + (day !== myDay ? '<small>' + escapeHtml(day) + '</small>' : '') + '</div>' +
+        '<div class="tz-st ' + st.cls + '">' + st.txt + (extra ? " · " + escapeHtml(extra) : "") + '</div>' + go + '</div>';
+    }).join("");
+  }
+  function openTzSheet() {
+    var c = clockParts(new Date());
+    featOpen('<h3>' + escapeHtml(c.time) + (c.zone ? ' <span style="color:var(--text-faint);font-size:.7em;font-weight:600">' + escapeHtml(c.zone) + '</span>' : '') + '</h3>' +
+      '<p class="modal-sub">' + escapeHtml(c.date) + '. Here’s the time where your leads are.</p><div class="tz-list"></div>' +
+      '<p class="tz-note">Calling hours shown are the general 8 AM–9 PM. Some states are stricter, and VPEX checks each lead’s own state before it comes up.</p>');
+    renderTzSheet();
+  }
+  document.getElementById("hdrClock").addEventListener("click", openTzSheet);
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-tz-go]"); if (!b || b.disabled) return;
+    if (state.awaitingOutcome) { showToast("Log the outcome for this call first"); return; }
+    var g = b.getAttribute("data-tz-go"), name = { E: "Eastern", C: "Central", M: "Mountain", P: "Pacific", X: "Alaska and Hawaii" }[g];
+    state.queueFilter = g; saveState(); featClose();
+    if ((state.activeView || "dial") !== "dial") document.getElementById("viewTabDial").click(); else render();
+    revealCard();
+    showToast("Calling " + name + " leads");
+  });
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) tickClock(); });
+  tickClock();
   function flowGuideHtml(lead) {
     var st = lead.stage || "New Lead", r = stageRank(st), cfg = fuCfg(), out = "";
     if (r >= 1) {
