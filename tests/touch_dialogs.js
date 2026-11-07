@@ -11,6 +11,8 @@ const ev = (page, f, a) => page.evaluate(f, a);
 async function open(br, c, hash, theme) {
   const ctx = await br.newContext({ viewport: { width: c.w, height: 860 }, colorScheme: c.s, isMobile: c.w < 500, hasTouch: c.w < 500, timezoneId: 'America/New_York' });
   const page = await ctx.newPage(); const errs = []; page.on('pageerror', e => errs.push(e.message));
+  // A weekday late morning in New York, so Call dials straight away (at night the demo's calling-hours sheet opens first).
+  await page.clock.install({ time: new Date('2026-11-04T11:30:00-05:00') });
   if (theme) await page.addInitScript(t => { try { localStorage.setItem('dovetail_dialer_theme_v1', t); } catch (e) {} }, theme);
   await page.route(/gstatic\.com\/firebasejs|fonts\.g/, r => r.abort());
   await page.goto(BASE + hash); await page.waitForTimeout(2600);
