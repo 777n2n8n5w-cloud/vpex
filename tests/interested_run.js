@@ -107,7 +107,7 @@ const runLeft = page => ev(page, () => { const t = (document.querySelector('.que
         minChip: Math.min(...chips), fits: r.left >= 0 && r.right <= innerWidth + 1 && r.bottom <= innerHeight + 1, sw: document.documentElement.scrollWidth, vw: innerWidth,
         book: document.getElementById('fuBook').getBoundingClientRect() };
     });
-    check(c.n + ' Interested opens the follow-up sheet, Book focused', st.open && /follow-up with/.test(st.title) && st.focus === 'fuBook', st);
+    check(c.n + ' Interested opens the follow-up sheet, Book focused', st.open && /What’s next with .+, and when\?/.test(st.title) && st.focus === 'fuBook', st);
     // TX allows 8 AM-9 PM their time: every time offered is inside it
     const hrs = st.theirs.map(t => { const m = /(\d+)(?::(\d+))? (AM|PM)/.exec(t); let h = +m[1] % 12 + (m[3] === 'PM' ? 12 : 0); return h + (+(m[2] || 0)) / 60; });
     check(c.n + ' every time offered is inside Texas calling hours, shown in their time', st.n >= 4 && hrs.length === st.n && hrs.every(h => h >= 8 && h < 21), { n: st.n, theirs: st.theirs });
