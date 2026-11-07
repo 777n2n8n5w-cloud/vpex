@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-01-27">
+<meta name="vpex-build" content="2027-01-28">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 /* Signature themes: six themes only the VPEX owner's own login can use (sig/*.css, sig.js).
@@ -7967,6 +7967,48 @@ window.VPEX_SIG = [
   .sort-chip { font-weight: 600; }
   #featModal select#queueOrderSelect, #featModal select#queueListSelect { display: block; width: 100%; box-sizing: border-box; margin-top: 6px; }
   .sort-note { font-size: 12.5px; line-height: 1.5; color: var(--text-dim); margin: 8px 0 0; }
+  /* Sort your leads: three plain questions, every option says what it does */
+  .qs-sum { display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; margin: 4px 0 14px; border-radius: 12px;
+    background: color-mix(in srgb, var(--accent) 10%, var(--surface)); border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent); }
+  .qs-sum b { font-size: 16px; color: var(--text); } .qs-sum span { font-size: 13px; color: var(--text-dim); }
+  .qs-sec { margin: 0 0 16px; } .qs-sec h4 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 13px; font-weight: 700; color: var(--text); letter-spacing: .01em; }
+  .qs-sec h4 span { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; font-size: 11px; background: var(--accent-fill, var(--accent)); color: var(--accent-text); }
+  .qs-opt { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 54px; margin: 0 0 6px; padding: 10px 12px; text-align: left; cursor: pointer;
+    border-radius: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font: inherit; }
+  .qs-opt:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+  .qs-opt.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 9%, var(--surface)); box-shadow: inset 0 0 0 1px var(--accent); }
+  .qs-radio { flex: none; width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--text-faint); }
+  .qs-opt.on .qs-radio { border-color: var(--accent); background: radial-gradient(circle, var(--accent) 0 4px, transparent 5px); }
+  .qs-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .qs-txt b { font-size: 14.5px; font-weight: 600; } .qs-txt small { font-size: 12.5px; line-height: 1.35; color: var(--text-dim); } .qs-txt em { font-style: normal; color: var(--accent); font-weight: 600; }
+  .qs-n { flex: none; min-width: 34px; padding: 3px 8px; border-radius: 999px; text-align: center; font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums;
+    background: color-mix(in srgb, var(--text) 8%, transparent); color: var(--text); }
+  .qs-note { font-size: 13px; line-height: 1.5; color: var(--text-dim); margin: 0; padding: 10px 12px; border-radius: 12px; background: color-mix(in srgb, var(--text) 5%, transparent); }
+  .qs-acts { margin-top: 4px; }
+  .qs-zl { margin: 10px 0 6px; font-size: 12.5px; color: var(--text-dim); } .qs-zones { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  /* Next step: what happens next with a lead, and how it stands (overdue, due today, booked, missing) */
+  .nx-line { display: flex; align-items: center; gap: 10px; width: 100%; margin-top: 8px; padding: 9px 10px 9px 12px; border-radius: 10px; text-align: left; font: inherit;
+    border: 1px solid color-mix(in srgb, var(--nx) 40%, transparent); background: color-mix(in srgb, var(--nx) 10%, transparent); color: var(--text); --nx: var(--interested); }
+  .nx-over { --nx: var(--notinterested); } .nx-today { --nx: var(--voicemail); } .nx-none { --nx: var(--voicemail); cursor: pointer; border-style: dashed; }
+  .nx-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--nx); box-shadow: 0 0 0 3px color-mix(in srgb, var(--nx) 22%, transparent); }
+  .nx-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; } .nx-t b { font-size: 13.5px; font-weight: 650; } .nx-t span { font-size: 12px; color: var(--text-dim); }
+  .nx-over .nx-t span { color: var(--notinterested); font-weight: 600; }
+  .nx-go { flex: none; min-height: 34px; padding: 0 12px; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--nx) 45%, var(--border)); background: var(--surface); color: var(--text); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-grid; place-items: center; }
+  .lp-stat-over b { color: var(--notinterested); }
+  .pipe-filters { margin: 2px 0 12px; flex-wrap: wrap; overflow: visible; row-gap: 8px; } .pipe-filters .pf-over.active { background: var(--notinterested); border-color: var(--notinterested); color: #fff; }
+  .pipe-summary .warn[role="button"] { cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  .stage-help { margin: -4px 0 8px; font-size: 12px; line-height: 1.4; color: var(--text-faint); }
+  .task-what { font-size: 13.5px; font-weight: 650; color: var(--text); margin-top: 2px; }
+  .lp-next { display: grid; gap: 2px; width: 100%; margin: 12px 0 8px; padding: 12px 14px; border-radius: 12px; text-align: left; font: inherit; color: var(--text);
+    border: 1px solid color-mix(in srgb, var(--nx) 40%, transparent); background: color-mix(in srgb, var(--nx) 9%, var(--surface)); --nx: var(--interested); }
+  .lp-next.nx-over { --nx: var(--notinterested); } .lp-next.nx-today, .lp-next.nx-none { --nx: var(--voicemail); }
+  .lp-next-k { font-size: 11.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--nx); }
+  .lp-next b { font-size: 17px; } .lp-next > span:not(.lp-next-k):not(.lp-next-acts):not(.lp-next-go) { font-size: 13px; color: var(--text-dim); line-height: 1.4; }
+  .lp-next-acts { display: flex; gap: 8px; margin-top: 8px; } .lp-next-acts .btn-secondary { flex: 1; min-height: 40px; padding: 0 10px; }
+  .lp-next-go { justify-self: start; margin-top: 8px; padding: 9px 14px; border-radius: 9px; background: var(--accent-fill, var(--accent)); color: var(--accent-text); font-weight: 650; font-size: 14px; }
+  .fu-whats { gap: 6px; } .fu-whats .fu-chip { flex: 0 1 auto; padding: 8px 12px; font-size: 13.5px; }
+  .handoff-info .copy-btn { width: auto; min-width: 0; height: auto; min-height: 36px; padding: 6px 12px; white-space: nowrap; font-size: 13px; }
   .pipe-parked, .lp-parked { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; padding: 7px 10px;
     border-radius: var(--radius-s); background: var(--surface); border: 1px dashed var(--border); font-size: 12.5px; color: var(--text-dim); }
   .lp-parked { margin: 6px 0 8px; }
@@ -12224,7 +12266,8 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     var sug = t && t.dueAt && t.dueAt > Date.now() ? t.dueAt : slotAt(lead, 1, 10);
     var mv = o.kind === "move";
     FU = { leadId: lead.id, taskId: t ? t.id : null, kind: o.kind || "interested", sug: sug, at: sug, day: localDateStr(new Date(sug)),
-      stage: lead.stage && lead.stage !== "New Lead" ? lead.stage : "Qualified", note: mv && t && t.note && (t.pinned || !t.auto) && !/^They picked this time/.test(t.note) ? t.note : "", text: o.text || null, custom: false };
+      stage: lead.stage && lead.stage !== "New Lead" ? lead.stage : "Qualified", note: mv && t && t.note && (t.pinned || !t.auto) && !/^They picked this time/.test(t.note) ? t.note : "", text: o.text || null, custom: false,
+      what: o.kind === "callback" ? "Call back" : mv && t ? taskWhat(t) : (t && t.what) || nextSteps()[0], whatSet: false };
     renderFollowSheet();
     document.getElementById("fuSheet").classList.add("show");
     setTimeout(function () {
@@ -12240,7 +12283,8 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
   function renderFollowSheet(reveal) {
     var box = document.getElementById("fuBody"), lead = FU && findLeadById(FU.leadId);
     if (!box || !lead) return;
-    var first = escapeHtml(textFirstName(lead.name)), cb = FU.kind === "callback", mv = FU.kind === "move";
+    var first = escapeHtml(textFirstName(lead.name)), cb = FU.kind === "callback", mv = FU.kind === "move", set = FU.kind === "set";
+    var whats = nextSteps().slice(); if (FU.what && whats.indexOf(FU.what) === -1) whats.unshift(FU.what);
     var days = fuDays(lead);
     var moreOn = days.indexOf(FU.day) === -1;   // picked from the calendar
     var slots = fuSlots(lead, FU.day), clk = leadZone(lead).iana ? leadClock(lead) : null;
@@ -12259,10 +12303,13 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     FU.part = part;
     box.innerHTML =
       '<button class="close-x" type="button" id="fuX" aria-label="Keep the suggested time">&times;</button>' +
-      (mv ? '' : '<div class="fu-tag fu-' + (cb ? 'cb' : 'int') + '">' + (cb ? 'Callback later' : 'Interested') + ' \u00b7 logged</div>') +
-      '<h3 id="fuTitle">' + (mv ? 'Move the follow-up with ' + first : cb ? 'When should you call ' + first + ' back?' : 'When\u2019s the follow-up with ' + first + '?') + '</h3>' +
+      (mv || set ? '' : '<div class="fu-tag fu-' + (cb ? 'cb' : 'int') + '">' + (cb ? 'Callback later' : 'Interested') + ' \u00b7 logged</div>') +
+      '<h3 id="fuTitle">' + (mv ? 'Move the follow-up with ' + first : set ? 'What\u2019s next with ' + first + '?' : cb ? 'When should you call ' + first + ' back?' : 'What\u2019s next with ' + first + ', and when?') + '</h3>' +
       '<p class="modal-sub">' + (clk && clk.t ? 'It\u2019s ' + escapeHtml(clk.t.label || "") + ' for ' + first + ' right now (' + escapeHtml(clk.st) + '). ' : '') + 'Times are yours; every one offered is inside their calling hours.</p>' +
       '<div class="fu-cols"><div class="fu-col">' +
+      (cb ? '' : '<div class="fu-label">Next step</div><div class="fu-row fu-whats" role="group" aria-label="Next step">' + whats.map(function (w) {
+        return '<button type="button" class="fu-chip' + (w === FU.what ? ' on' : '') + '" data-fu-what="' + escapeHtml(w) + '" aria-pressed="' + (w === FU.what) + '">' + escapeHtml(w) + '</button>';
+      }).join("") + '</div><div class="fu-label">When</div>') +
       (quick.length ? '<div class="fu-row fu-quick" role="group" aria-label="Quick picks">' + quick.map(function (q) {
         return '<button type="button" class="fu-chip fu-q' + (q.ts === FU.at ? ' on' : '') + '" data-fu-at="' + q.ts + '" data-fu-q="1" aria-pressed="' + (q.ts === FU.at) + '"><b>' + q.label + '</b><small>' + escapeHtml(fuTime(q.ts)) + '</small></button>';
       }).join("") + '</div>' : '') +
@@ -12289,7 +12336,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
         (tt ? '<span>' + escapeHtml(tt) + ' for ' + first + '</span>' : '') +
         (past ? '<span>That time has passed. Pick a later one.</span>' : bad ? '<span>Outside their calling hours (' + escapeHtml(chk && chk.why || "8 AM–9 PM") + ').' +
           (chk && chk.fix ? ' <button type="button" class="link-btn" id="fuFix" data-at="' + chk.fix + '">Move to ' + escapeHtml(fmtWhen(chk.fix)) + '</button>' : '') + '</span>' : '') + '</div>' +
-      (cb || mv ? '' : '<div class="fu-label">Where are they?</div><div class="fu-row fu-stages" role="group" aria-label="Deal stage">' + FU_STAGES.map(function (s) {
+      (cb || mv ? '' : '<div class="fu-label">Where are they now?</div><div class="fu-row fu-stages" role="group" aria-label="Deal stage">' + FU_STAGES.map(function (s) {
         return '<button type="button" class="fu-chip' + (s === FU.stage ? ' on' : '') + '" data-fu-stage="' + s + '" aria-pressed="' + (s === FU.stage) + '">' + s + '</button>';
       }).join("") + '</div>') +
       (cb || mv ? '' : progHtml(lead)) +
@@ -12297,6 +12344,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       '</div></div>' +
       '<div class="modal-actions fu-acts"><button type="button" class="btn-secondary" id="fuKeep" aria-label="' + (mv ? 'Cancel, keep ' : 'Skip, keep ') + escapeHtml(fmtWhen(FU.sug)) + '">' + (mv ? 'Cancel' : 'Skip') + '</button>' +
         '<button type="button" class="btn-primary" id="fuBook"' + (past || bad ? ' disabled' : '') + '>' + (mv ? 'Move to ' : 'Book ') + escapeHtml(fuDayLabel(localDateStr(new Date(FU.at)))) + ' ' + escapeHtml(fuTime(FU.at)) + '</button></div>';
+    var kb = document.getElementById("fuKeep"); if (kb && set) { kb.textContent = "Cancel"; kb.setAttribute("aria-label", "Cancel"); }
     if (reveal && FU.cal) { var c = document.getElementById("fuCal"); if (c && c.scrollIntoView) c.scrollIntoView({ block: "nearest" }); }
   }
   function focusFu(sel) { var el = document.querySelector("#fuBody " + sel.split(", ").join(", #fuBody ")); if (el && el.focus) el.focus({ preventScroll: true }); }
@@ -12316,6 +12364,14 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     var lead = findLeadById(FU.leadId); if (!lead) { closeFollowSheet(); return; }
     if (FU.at < Date.now()) { showToast("That time has passed. Pick a later one."); return; }
     var t = FU.taskId ? state.tasks.filter(function (x) { return x.id === FU.taskId && !x.done; })[0] : null;
+    if (FU.kind === "set") {   // a next step the rep sets from the pipeline or a profile: theirs, so the automatic rules leave it alone
+      lead.stalled = null; lead.stallWhy = null; lead.touchAt = Date.now();
+      t = addAutoTask(lead, "Follow-up", "High", FU.at, FU.note.trim()); t.auto = false; t.what = FU.what;
+      if (FU.stage && FU.stage !== lead.stage) setStage(lead, FU.stage);
+      var st2 = theirTime(FU.at, lead);
+      showToast(FU.what + " set for " + fmtWhen(FU.at) + (st2 ? " \u00b7 " + st2 + " for " + firstName(lead.name) : ""));
+      closeFollowSheet(); return;
+    }
     if (!t) {   // parked by the follow-up rules, so nothing was scheduled: a time they agreed to is a real next step
       lead.stalled = null; lead.stallWhy = null; lead.touches = Math.min(lead.touches || 0, 1); lead.touchAt = Date.now();
       t = addAutoTask(lead, FU.kind === "callback" ? "Call" : "Follow-up", "High", FU.at, "");
@@ -12323,17 +12379,18 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     if (FU.kind === "move") {   // a rep moving a follow-up: the time changes; whether the lead picked it doesn't
       t.dueAt = FU.at; t.due = localDateStr(new Date(FU.at));
       if (FU.note.trim()) t.note = FU.note.trim();
+      if (FU.whatSet) t.what = FU.what;
       var tm = theirTime(FU.at, lead);
       showToast("Moved to " + fmtWhen(FU.at) + (tm ? " \u00b7 " + tm + " for " + firstName(lead.name) : ""));
       closeFollowSheet(); return;
     }
-    t.dueAt = FU.at; t.due = localDateStr(new Date(FU.at)); t.pinned = true;
+    t.dueAt = FU.at; t.due = localDateStr(new Date(FU.at)); t.pinned = true; t.what = FU.kind === "callback" ? "Call back" : FU.what;
     if (FU.note.trim()) t.note = FU.note.trim();
     else if (FU.kind === "callback") t.note = "They picked this time";
     else t.note = "They picked this time — move them forward";
     if (FU.kind !== "callback" && FU.stage && FU.stage !== lead.stage) setStage(lead, FU.stage);
     var tt = theirTime(FU.at, lead);
-    showToast((FU.kind === "callback" ? "Callback" : "Follow-up") + " booked " + fmtWhen(FU.at) + (tt ? " · " + tt + " for " + firstName(lead.name) : ""));
+    showToast((FU.kind === "callback" ? "Callback" : FU.what) + " booked " + fmtWhen(FU.at) + (tt ? " · " + tt + " for " + firstName(lead.name) : ""));
     closeFollowSheet();
   }
   document.addEventListener("click", function (e) {
@@ -12361,10 +12418,12 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       renderFollowSheet(); focusFu((a.hasAttribute("data-fu-q") ? '[data-fu-q]' : '') + '[data-fu-at="' + FU.at + '"]'); return;
     }
     if (s) { FU.stage = s.getAttribute("data-fu-stage"); renderFollowSheet(); focusFu('[data-fu-stage="' + FU.stage + '"]'); return; }
+    var wh = e.target.closest("[data-fu-what]");
+    if (wh) { FU.what = wh.getAttribute("data-fu-what"); FU.whatSet = true; renderFollowSheet(); focusFu('[data-fu-what="' + cssAttr(FU.what) + '"]'); return; }
     if (fx) { FU.at = +fx.getAttribute("data-at"); FU.day = localDateStr(new Date(FU.at)); FU.part = null; renderFollowSheet(); focusFu("#fuBook"); return; }
     if (e.target.closest("#fuBook")) { bookFollowSheet(); return; }
     if (e.target.closest("#fuKeep") || e.target.closest("#fuX")) {
-      if (FU.taskId && FU.kind !== "move") { var kt = state.tasks.filter(function (x) { return x.id === FU.taskId; })[0]; if (kt && FU.note.trim()) kt.note = FU.note.trim(); }
+      if (FU.taskId && FU.kind !== "move" && FU.kind !== "set") { var kt = state.tasks.filter(function (x) { return x.id === FU.taskId; })[0]; if (kt && FU.note.trim()) kt.note = FU.note.trim(); if (kt && FU.whatSet) kt.what = FU.what; }
       closeFollowSheet();
     }
   });
@@ -13214,7 +13273,16 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     clearTimeout(flowFlash.t); flowFlash.t = setTimeout(function () { r.removeAttribute("data-flash"); }, 1300);
   }
   var DEAL_STEPS = ["New Lead", "Qualified", "Pitched", "Objection", "Committed"];
+  // The coaching line, led by the step this call is for when the follow-up names one ("This call: Send quote.").
   function nextMove(lead) {
+    var m = nextMove0(lead);
+    if (!lead || !m) return m;
+    var ft = state.focusTaskId ? state.tasks.filter(function (t) { return t.id === state.focusTaskId; })[0] : null;
+    if (!ft && lead.status !== "pending") { var nt = openTasksFor(lead.id)[0]; if (nt && taskDueTs(nt) <= Date.now() + 900000) ft = nt; }
+    var w = ft && ft.what;
+    return w && !/^(Follow-up call|Call back|Retry call|Check in)$/.test(w) && !/^Parked|^Not now/.test(m) ? "This call: " + w + ". " + m : m;
+  }
+  function nextMove0(lead) {
     if (!lead || lead.stage === "Closed Lost") return "";
     var cfg = fuCfg(), st = lead.stage || "New Lead", tc = lead.touches || 0, last = lastCallFor(lead.id);
     var ft = state.focusTaskId ? state.tasks.filter(function (t) { return t.id === state.focusTaskId; })[0] : null;
@@ -13634,6 +13702,47 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       due: localDateStr(new Date(dueAt)), dueAt: dueAt, note: note, done: false, auto: true, createdAt: Date.now() };
     state.tasks.push(t);
     return t;
+  }
+
+  /* ----- Next steps: every follow-up says what it's for, not only when ----- */
+  // Each industry's own next steps, in the order deals usually move. Stored on the follow-up as t.what,
+  // shown on Tasks, the pipeline and the lead's profile, so anyone can see what happens next and why.
+  var NEXT_STEPS = {
+    investments: ["Follow-up call", "Send overview", "Advisor meeting", "Review docs", "Funding call", "Check in"],
+    realestate: ["Follow-up call", "Listing appointment", "Showing", "Send comps", "Offer review", "Closing check-in"],
+    mca: ["Follow-up call", "Get bank statements", "Send application", "Present offer", "Contract signing", "Renewal check-in"],
+    auto: ["Follow-up call", "Test drive", "Send quote", "Credit application", "Delivery", "Service reminder"],
+    insurance: ["Follow-up call", "Send quote", "Application call", "Medical exam", "Policy review", "Annual review"],
+    solar: ["Follow-up call", "Site survey", "Proposal review", "Financing call", "Install check-in", "Check in"]
+  };
+  function nextSteps() { return NEXT_STEPS[IND_KEY] || NEXT_STEPS.investments; }
+  function taskWhat(t) {
+    if (!t) return "";
+    if (t.what) return t.what;
+    if (t.type === "Call" && !t.auto) return "Call back";
+    var l = t.leadId ? findLeadById(t.leadId) : null;
+    if (t.auto && l && saidYes(l)) return "Follow-up call";
+    if (t.type && t.type !== "Call" && t.type !== "Follow-up") return t.type;
+    return t.auto ? (t.type === "Call" ? "Retry call" : "Follow-up call") : "Follow-up";
+  }
+  function stageNeedsNext(lead) { var st = lead.stage || "New Lead"; return st !== "New Lead" && st !== "Closed Lost" && !isDnc(lead); }
+  // Where the lead's next step stands: overdue (red), due today (amber), booked (green), or missing.
+  function nextInfo(lead) {
+    var t = openTasksFor(lead.id)[0];
+    if (!t) return { t: null, st: stageNeedsNext(lead) && !lead.stalled ? "none" : "idle" };
+    var ts = taskDueTs(t), now = Date.now(), d = ts === Infinity ? null : new Date(ts);
+    var st = ts === Infinity ? "ok" : ts < now - 15 * 60000 ? "over" : localDateStr(d) === localDateStr(new Date()) ? "today" : "ok";
+    var late = st === "over" ? Math.floor((now - ts) / 86400000) : 0;
+    return { t: t, st: st, what: taskWhat(t), when: taskWhen(t, null), late: late,
+      lateTxt: st === "over" ? (late >= 1 ? late + " day" + (late === 1 ? "" : "s") + " late" : "late today") : "" };
+  }
+  function nextLineHtml(lead, compact) {
+    var n = nextInfo(lead);
+    if (n.st === "idle") return "";
+    if (n.st === "none") return '<button type="button" class="nx-line nx-none" data-set-next="' + lead.id + '"><span class="nx-dot"></span><span class="nx-t"><b>No next step</b><span>Set what happens next and when</span></span><span class="nx-go">Set</span></button>';
+    var lab = n.st === "over" ? "Overdue · " + n.lateTxt : n.st === "today" ? "Due today" : "Next step";
+    return '<div class="nx-line nx-' + n.st + '"><span class="nx-dot"></span><span class="nx-t"><b>' + escapeHtml(n.what) + '</b><span>' + escapeHtml(lab) + ' · ' + escapeHtml(n.when) + '</span></span>' +
+      (compact ? '' : '<button type="button" class="nx-go" data-move-next="' + n.t.id + '" aria-label="Move ' + escapeHtml(n.what) + '">Move</button>') + '</div>';
   }
 
   // Runs after every logged call. Closes the call tasks this call answered,
@@ -14861,10 +14970,11 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
               "copy-btn lp-text", messageIconSvg())) +
         '<button class="copy-btn info-btn" id="lpInfo" title="Send info" aria-label="Send info">' + sendIconSvg() + '</button>' +
       '</div>' +
+      lpNextHtml(lead) +
       '<div class="lp-stats">' +
         '<div><b>' + calls.length + '</b><span>Calls</span></div>' +
         '<div><b>' + escapeHtml(last ? outcomeLabel(last.outcomeKey, last.outcome) : "\u2014") + '</b><span>' + (last ? escapeHtml(agoStr(last.timestamp)) : "Not called") + '</span></div>' +
-        '<div><b>' + escapeHtml(next ? taskWhen(next, null) : (lead.exhausted ? (lead.retired ? "Retired" : lead.restUntil ? "Back " + dayLabel(new Date(lead.restUntil)) : "Cadence done") : "\u2014")) + '</b><span>Next step</span></div>' +
+        '<div' + (next && taskDueTs(next) < Date.now() ? ' class="lp-stat-over"' : '') + '><b>' + escapeHtml(next ? (taskDueTs(next) < Date.now() ? "Overdue" : dayLabel(new Date(taskDueTs(next)))) : (lead.exhausted ? (lead.retired ? "Retired" : lead.restUntil ? "Back " + dayLabel(new Date(lead.restUntil)) : "Cadence done") : "\u2014")) + '</b><span>Next step</span></div>' +
       '</div>' +
       '<label for="lpStage">Pipeline stage</label>' +
       '<select id="lpStage">' + STAGES.map(function (s2) { return '<option' + (s2 === (lead.stage || "New Lead") ? " selected" : "") + '>' + s2 + '</option>'; }).join("") + '</select>' +
@@ -14883,7 +14993,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
         (lead.owner ? '' : '<option value="" selected>Not assigned yet</option>') + '</select>' : '') +
       '<button class="btn-secondary" id="lpVault" style="width:100%;margin-top:12px">' + (vaultForLead(lead.id) ? 'Open in Investor Vault' : 'Add to Investor Vault') + '</button>' +
       '<label class="up-check lp-notext"><input type="checkbox" id="lpNoText"' + (lead.noText ? ' checked' : '') + '> Do not text (they asked not to)</label>' +
-      '<div class="modal-actions"><button class="btn-secondary" id="lpAddTask">+ Follow-up</button><button class="btn-primary" id="lpDone">Done</button></div>' +
+      '<div class="modal-actions"><button class="btn-secondary" id="lpAddTask">+ Next step</button><button class="btn-primary" id="lpDone">Done</button></div>' +
       '<div class="lp-tl-head">Timeline</div>' +
       (items.length ? '<div class="lp-tl">' + items.map(function (x) { return x.html; }).join("") + '</div>' : '<div class="pipe-empty">No calls or follow-ups yet.</div>');
     var lpq = body.querySelector(".lp-qf"); if (lpq) wireQf(lpq, lead, null);
@@ -14931,10 +15041,24 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     });
     document.getElementById("lpAddTask").addEventListener("click", function () {
       closeLeadProfile(true);
-      openTaskModal(null, { leadId: id, type: "Call", priority: "Medium", dueAt: slotAt(lead, 1, 10) });
+      openFollowSheet({ leadId: id, kind: "set" });
+    });
+    var lnd = document.getElementById("lpNextDone");
+    if (lnd) lnd.addEventListener("click", function () {
+      var t = state.tasks.filter(function (x) { return x.id === lnd.getAttribute("data-task"); })[0]; if (!t || t.done) return;
+      t.done = true; t.doneAt = Date.now(); saveState(); openLeadProfile(id); afterStepDone(t);
     });
     document.getElementById("leadModal").classList.add("show");
     body.scrollTop = 0;
+  }
+  function lpNextHtml(lead) {
+    var n = nextInfo(lead);
+    if (!n.t) return n.st === "none" ? '<button type="button" class="lp-next nx-none" data-set-next="' + lead.id + '"><span class="lp-next-k">Next step</span><b>None set</b><span>Set what happens next with ' + escapeHtml(firstName(lead.name)) + ' and when</span><span class="lp-next-go">Set next step</span></button>' : '';
+    var tt = n.t.dueAt ? theirTime(n.t.dueAt, lead) : "";
+    return '<div class="lp-next nx-' + n.st + '"><span class="lp-next-k">' + (n.st === "over" ? "Overdue \u00b7 " + escapeHtml(n.lateTxt) : n.st === "today" ? "Next step \u00b7 due today" : "Next step") + '</span>' +
+      '<b>' + escapeHtml(n.what) + '</b><span>' + escapeHtml(fmtWhen(taskDueTs(n.t) === Infinity ? Date.now() : taskDueTs(n.t))) + (tt ? ' \u00b7 ' + escapeHtml(tt) + ' for ' + escapeHtml(firstName(lead.name)) : '') +
+      (n.t.note && !/^They picked this time/.test(n.t.note) ? ' \u00b7 \u201c' + escapeHtml(n.t.note) + '\u201d' : '') + '</span>' +
+      '<span class="lp-next-acts"><button type="button" class="btn-secondary" data-move-next="' + n.t.id + '">Move</button><button type="button" class="btn-secondary" id="lpNextDone" data-task="' + n.t.id + '">Mark done</button></span></div>';
   }
   function closeLeadProfile(silent) {
     var m = document.getElementById("leadModal");
@@ -15097,7 +15221,10 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     var sum = function (arr) { return arr.reduce(function (s, l) { return s + (Number(l.amount) || 0); }, 0); };
     var committed = sum(state.leads.filter(function (l) { return l.stage === "Committed" && pipeScope(l); }));
     var activeLeads = state.leads.filter(function (l) { return l.stage && l.stage !== "New Lead" && l.stage !== "Closed Lost" && pipeScope(l); });
-    var needs = activeLeads.filter(function (l) { return !openTasksFor(l.id).length; }).length;
+    var nxc = { over: 0, today: 0, none: 0 }, nxs = {};
+    activeLeads.forEach(function (l) { var n = nextInfo(l); nxs[l.id] = n.st; if (nxc[n.st] !== undefined) nxc[n.st]++; });
+    var needs = nxc.none;
+    if (PIPE.f !== "all" && !nxc[PIPE.f]) PIPE.f = "all";
     var target = Number(state.dealTarget) || 0;
     var pct = target > 0 ? Math.min(100, Math.round((committed / target) * 100)) : 0;
     var html = '<div class="deal-bar-card">' +
@@ -15107,11 +15234,18 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       '<div class="pipe-summary"><span><b>' + activeLeads.length + '</b> active</span><span><b>' + fmtMoney(sum(activeLeads)) + '</b> in play</span>' +
       (needs ? '<span class="warn"><b>' + needs + '</b> need a next step</span>' : '<span><b>0</b> without a next step</span>') + '</div>' +
       forecastHtml() +
-    '</div>';
+    '</div>' +
+    '<div class="filter-row pipe-filters" role="group" aria-label="Show">' + [["all", "All", activeLeads.length], ["over", "Overdue", nxc.over], ["today", "Due today", nxc.today], ["none", "No next step", nxc.none]]
+      .filter(function (c) { return c[0] === "all" || c[2]; }).map(function (c) {
+        return '<button type="button" class="filter-chip pf-' + c[0] + (PIPE.f === c[0] ? ' active' : '') + '" data-pipe-f="' + c[0] + '" aria-pressed="' + (PIPE.f === c[0]) + '">' + c[1] + ' <span class="chip-n">' + c[2] + '</span></button>';
+      }).join("") + '</div>';
+    var pf = PIPE.f;
     STAGES.forEach(function (stage) {
       var stLeads = state.leads.filter(function (l) { return (l.stage || "New Lead") === stage && (stage === "New Lead" || pipeScope(l)); });
+      if (pf !== "all") { if (stage === "New Lead" || stage === "Closed Lost") return; stLeads = stLeads.filter(function (l) { return nxs[l.id] === pf; }); if (!stLeads.length) return; }
       html += '<div class="stage-section"><div class="stage-head"><div class="stage-head-left ' + STAGE_CLASS[stage] + '"><span class="stage-dot"></span>' +
-        '<span class="stage-name">' + stage + '</span></div><span class="stage-count">' + stLeads.length + ' \u00b7 ' + fmtMoney(sum(stLeads)) + '</span></div>';
+        '<span class="stage-name">' + stage + '</span></div><span class="stage-count">' + stLeads.length + ' \u00b7 ' + fmtMoney(sum(stLeads)) + '</span></div>' +
+        (STAGE_HELP[stage] && stage !== "New Lead" ? '<p class="stage-help">' + STAGE_HELP[stage] + '</p>' : '');
       if (!stLeads.length) {
         html += '<div class="pipe-empty">No leads in this stage</div>';
       } else if (stage === "New Lead") {
@@ -15120,7 +15254,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
         stLeads.forEach(function (l) {
           var last = lastCallFor(l.id), next = openTasksFor(l.id)[0];
           var meta = (last ? 'Last: ' + outcomeLabel(last.outcomeKey, last.outcome).toLowerCase() + ' ' + agoStr(last.timestamp) : 'Not called yet') +
-            (next ? ' \u00b7 Next: ' + taskWhen(next, null) : '') + (TEAM.on && isAdmin() && l.owner ? ' \u00b7 ' + l.owner.name : '');
+            (TEAM.on && isAdmin() && l.owner ? ' \u00b7 ' + l.owner.name : '');
           html += '<div class="pipe-item" data-pipe-id="' + l.id + '">' +
             '<div class="pipe-item-top"><button class="pipe-item-name linkish" data-open-lead="' + l.id + '">' + escapeHtml(l.name) + '</button>' +
               '<button class="pipe-delete-btn" data-delete-pipe="' + l.id + '" title="Remove lead">' + trashIconSvg() + '</button></div>' +
@@ -15133,7 +15267,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
               callLinkHtml(l, "pipeline", next ? next.id : null, "pipe-call", callIconSvg()) +
             '</div>' +
             (l.stalled ? '<div class="pipe-parked"><span>Parked \u00b7 ' + escapeHtml(parkedWhy(l)) + '</span><button type="button" data-revive="' + l.id + '">Revive</button></div>'
-              : !next && stage !== "Closed Lost" ? '<button class="pipe-sched" data-schedule-lead="' + l.id + '">\u26A0 No next step \u2014 schedule a follow-up</button>' : '') +
+              : stage !== "Closed Lost" ? nextLineHtml(l) : '') +
           '</div>';
         });
       }
@@ -15159,16 +15293,28 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     main.querySelectorAll("[data-delete-pipe]").forEach(function (btn) {
       btn.addEventListener("click", function () { deleteLead(btn.getAttribute("data-delete-pipe")); });
     });
-    main.querySelectorAll("[data-schedule-lead]").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        var lead = findLeadById(btn.getAttribute("data-schedule-lead"));
-        if (!lead) return;
-        var t = addAutoTask(lead, "Follow-up", "High", slotAt(lead, 1, 10), "Pipeline check-in");
-        saveState(); render();
-        showToast("Follow-up set " + fmtWhen(t.dueAt));
-      });
+    main.querySelectorAll("[data-pipe-f]").forEach(function (b) {
+      b.addEventListener("click", function () { PIPE.f = b.getAttribute("data-pipe-f"); render(); });
     });
+    var nw = main.querySelector(".pipe-summary .warn");
+    if (nw) { nw.setAttribute("role", "button"); nw.setAttribute("tabindex", "0"); nw.addEventListener("click", function () { PIPE.f = "none"; render(); }); }
   }
+  var PIPE = { f: "all" };
+  // What each stage means, so everyone files a lead in the same place (the stage names change by industry; these don't need to).
+  var STAGE_HELP = {
+    "Qualified": "Interested and a fit. Next: present the offer.",
+    "Pitched": "They\u2019ve seen the offer. Next: answer questions and ask for the decision.",
+    "Objection": "They have a concern. Next: handle it, or set a date to revisit.",
+    "Committed": "They said yes. Next: the closing steps, until it\u2019s done.",
+    "Closed Lost": "Not moving forward. Kept for the record."
+  };
+  // One tap from anywhere a next step shows: set a missing one, or move one (both open the follow-up sheet).
+  document.addEventListener("click", function (e) {
+    if (!e.target.closest) return;
+    var sn = e.target.closest("[data-set-next]"), mn = e.target.closest("[data-move-next]");
+    if (sn) { var l = findLeadById(sn.getAttribute("data-set-next")); if (!l) return; if (profileLeadId) closeLeadProfile(true); openFollowSheet({ leadId: l.id, kind: "set" }); return; }
+    if (mn) { var t = state.tasks.filter(function (x) { return x.id === mn.getAttribute("data-move-next"); })[0]; if (!t) return; if (profileLeadId) closeLeadProfile(true); openFollowSheet({ leadId: t.leadId, taskId: t.id, kind: "move" }); }
+  });
 
   function findLeadById(id) {
     for (var i = 0; i < state.leads.length; i++) {
@@ -15341,10 +15487,11 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       '<div class="task-body' + (t.done ? " done" : "") + '">' +
         '<div class="task-top-row">' + (lead ? '<button class="task-lead-name linkish" data-open-lead="' + lead.id + '">' + escapeHtml(lead.name) + '</button>'
           : '<span class="task-lead-name">' + escapeHtml(t.leadName || "Unlinked") + '</span>') +
-        (t.pinned ? '<span class="qi-status interested">' + (missed ? 'Missed their time' : 'Booked') + '</span>' : '<span class="qi-status noanswer">' + escapeHtml(k === "int" && t.type !== "Call" ? "Follow-up" : label) + '</span>') +
+        (t.pinned ? '<span class="qi-status interested">' + (missed ? 'Missed their time' : 'Booked') + '</span>' : '') +
         (t.priority === "High" && !t.pinned && !t.auto ? '<span class="qi-status notinterested">High</span>' : '') +
         (k === "int" && !t.pinned ? '<span class="qi-status interested">Interested</span>' : '') + progChipHtml(lead) +
         (TEAM.on && isAdmin() && !myTask(t) && assigneeOf(t) ? '<span class="qi-status voicemail">' + escapeHtml(firstName(assigneeOf(t).name)) + '</span>' : '') + '</div>' +
+        '<div class="task-what">' + escapeHtml(taskWhat(t)) + '</div>' +
         (t.note ? '<div class="task-note">' + escapeHtml(t.note) + '</div>' : '') +
         '<div class="task-due">' + (missed ? 'Missed · ' : overdue ? 'Overdue · ' : '') + escapeHtml(taskWhen(t, lead)) + (status ? ' · ' + status : '') + '</div>' +
       '</div>' +
@@ -15364,7 +15511,16 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     t.doneAt = t.done ? Date.now() : null;
     saveState();
     render();
-    if (t.done) showToast("Done \u00b7 " + (t.leadName || "follow-up"), { action: { label: "Undo", fn: function () {
+    if (t.done) afterStepDone(t);
+  }
+  // A finished step on a live deal asks for the next one, so no lead in play is left without a plan.
+  function afterStepDone(t) {
+    var id = t.id, l = t.leadId ? findLeadById(t.leadId) : null;
+    if (l && stageNeedsNext(l) && !openTasksFor(l.id).length) {
+      showToast(taskWhat(t) + " done \u00b7 what\u2019s next with " + firstName(l.name) + "?", { action: { label: "Set next step", fn: function () { openFollowSheet({ leadId: l.id, kind: "set" }); } } });
+      return;
+    }
+    showToast("Done \u00b7 " + (t.leadName || "follow-up"), { action: { label: "Undo", fn: function () {
       var x = state.tasks.find(function (y) { return y.id === id; }); if (x) { x.done = false; x.doneAt = null; saveState(); render(); }
     } } });
   }
@@ -16985,10 +17141,10 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     var ORDER_SHORT = { smart: "\u2605 Best time", imported: "Sort", east: "East \u2192 West", west: "West \u2192 East", state: "By state" };
     var sortOn = o !== "imported" || (state.queueList || "all") !== "all";
     box.innerHTML = '<div class="filter-row qc-chips"><button class="filter-chip sort-chip' + (sortOn ? ' active' : '') + '" id="qcSortBtn" type="button" aria-label="Call order and lists">\u21c5 ' +
-      escapeHtml(ORDER_SHORT[o] || "Sort") + ((state.queueList || "all") !== "all" ? ' \u00b7 1 list' : '') + '</button>' + chipHtml + '</div>';
+      escapeHtml(o === "imported" ? "Sort & filter" : ORDER_SHORT[o] || "Sort") + ((state.queueList || "all") !== "all" ? ' \u00b7 1 list' : '') + '</button>' + chipHtml + '</div>';
     document.getElementById("qcSortBtn").addEventListener("click", function () {
       if (state.awaitingOutcome) { showToast("Log the outcome for this call first"); return; }
-      openSortSheet(o, orders, f === "int" || f === "hot" ? runPool(f) : all, counts.prime || 0);
+      openSortSheet();
     });
 
     box.querySelectorAll("[data-qfilter]").forEach(function (b) {
@@ -17001,26 +17157,91 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       });
     });
   }
-  function openSortSheet(o, orders, base, prime) {
-    var srcs = {}; base.forEach(function (l) { var k = l.source || "Original list"; srcs[k] = (srcs[k] || 0) + 1; });
-    var names = Object.keys(srcs), cur = state.queueList || "all";
-    featOpen('<h3>Sort your leads</h3>' +
-      '<label for="queueOrderSelect">Call order</label><select id="queueOrderSelect">' +
-      orders.map(function (x) { return '<option value="' + x[0] + '"' + (o === x[0] ? " selected" : "") + '>' + x[1] + '</option>'; }).join("") + '</select>' +
-      (o === "smart" ? '<p class="sort-note">' + smartNoteText(prime) + '</p>' : '') +
-      (names.length >= 2 || cur !== "all" ? '<label for="queueListSelect" style="margin-top:14px">List</label><select id="queueListSelect"><option value="all">All lists (' + base.length + ')</option>' +
-        names.map(function (k) { return '<option value="' + escapeHtml(k) + '"' + (cur === k ? ' selected' : '') + '>' + escapeHtml(k) + ' (' + srcs[k] + ')</option>'; }).join("") + '</select>' : '') +
-      '<div class="modal-actions"><button class="btn-primary" id="sortDone" type="button">Done</button></div>');
-    document.getElementById("queueOrderSelect").addEventListener("change", function (e) {
-      var label = e.target.options[e.target.selectedIndex].text;
-      applyQueueOrder(e.target.value);
-      showToast("Call order: " + label);
-      featClose();
-    });
-    var qls = document.getElementById("queueListSelect");
-    if (qls) qls.addEventListener("change", function (e) { state.queueList = e.target.value; saveState(); render(); featClose(); });
-    document.getElementById("sortDone").addEventListener("click", featClose);
+  /* ----- Sort your leads: who's in your call list, in what order, from which list ----- */
+  // One sheet, three plain questions. Every choice says what it does and how many leads it gives you,
+  // applies the moment you tap it, and the line at the top always reads back what you're calling now.
+  var QS_WHO = [
+    ["all", "Everyone to call", "Every lead waiting in your call list"],
+    ["now", "Callable now", "Only leads whose calling hours are open right now"],
+    ["hot", "Hot list", "Leads you starred, closest to closing first"],
+    ["int", "Interested", "People who said they\u2019re interested, most urgent first"],
+    ["E", "Eastern time", "Only leads in this time zone"], ["C", "Central time", "Only leads in this time zone"],
+    ["M", "Mountain time", "Only leads in this time zone"], ["P", "Pacific time", "Only leads in this time zone"],
+    ["X", "Alaska / Hawaii", "Only leads in these time zones"], ["U", "Time zone unknown", "No state or area code to place them"]
+  ];
+  var QS_ORDER = [
+    ["smart", "Best time to answer", "Whoever is most likely to pick up right now comes first. It re-ranks after every call.", 1],
+    ["imported", "As imported", "The order your list was uploaded in"],
+    ["east", "East \u2192 West", "Eastern first, then across the country"],
+    ["west", "West \u2192 East", "Pacific first; good late in your day"],
+    ["state", "State A \u2192 Z", "Grouped by state, alphabetically"]
+  ];
+  function qsCounts() {
+    var all = allPendingLeads(), c = { all: all.length, now: 0, E: 0, C: 0, M: 0, P: 0, X: 0, U: 0, prime: 0 };
+    all.forEach(function (l) { var z = leadZone(l); c[z.group]++; if (z.iana && leadClock(l).ok) c.now++; if (callScore(l) >= 0.9) c.prime++; });
+    c.hot = hotPool().length; c.int = interestedPool().length;
+    return c;
   }
+  function qsSummary(c) {
+    var f = state.queueFilter || "all", run = isRun(f), n = pendingLeads().length;
+    var who = (QS_WHO.filter(function (w) { return w[0] === f; })[0] || QS_WHO[0])[1];
+    var ord = run ? "most urgent first" : ((QS_ORDER.filter(function (x) { return x[0] === (state.queueOrder || "imported"); })[0] || QS_ORDER[1])[1]).replace(/^./, function (m) { return m.toLowerCase(); });
+    var ql = state.queueList || "all";
+    return '<div class="qs-sum" aria-live="polite"><b>' + n + ' lead' + (n === 1 ? '' : 's') + ' to call</b><span>' + escapeHtml(who) + ' \u00b7 ' + escapeHtml(ord) +
+      (ql !== "all" ? ' \u00b7 ' + escapeHtml(ql) : '') + '</span></div>';
+  }
+  function qsOpt(attr, val, title, desc, n, on, extra) {
+    return '<button type="button" class="qs-opt' + (on ? ' on' : '') + '" data-' + attr + '="' + escapeHtml(val) + '" aria-pressed="' + !!on + '"' + (extra || '') + '>' +
+      '<span class="qs-radio" aria-hidden="true"></span><span class="qs-txt"><b>' + escapeHtml(title) + '</b><small>' + desc + '</small></span>' +
+      (n !== null && n !== undefined ? '<span class="qs-n">' + n + '</span>' : '') + '</button>';
+  }
+  function renderSortSheet() {
+    var b = document.getElementById("featModalBody"); if (!b || !b.querySelector(".qs")) return;
+    var c = qsCounts(), f = state.queueFilter || "all", run = isRun(f), o = state.queueOrder || "imported", ql = state.queueList || "all";
+    var base = run ? runPool(f) : allPendingLeads(), srcs = {};
+    base.forEach(function (l) { var k = l.source || "Original list"; srcs[k] = (srcs[k] || 0) + 1; });
+    var names = Object.keys(srcs).sort();
+    var shown = function (w) { return w[0] === "all" || w[0] === "now" || c[w[0]] > 0 || w[0] === f; };
+    var who = QS_WHO.slice(0, 4).filter(shown), zones = QS_WHO.slice(4).filter(shown);
+    var html = qsSummary(c) +
+      '<section class="qs-sec" aria-labelledby="qsWho"><h4 id="qsWho"><span>1</span>Who to call</h4>' +
+        who.map(function (w) { return qsOpt("qs-who", w[0], w[1], escapeHtml(w[2]), c[w[0]] || 0, w[0] === f); }).join("") +
+        (zones.length ? '<div class="qs-zl">Or only one time zone</div><div class="qs-zones">' + zones.map(function (w) {
+          return '<button type="button" class="filter-chip' + (w[0] === f ? ' active' : '') + '" data-qs-who="' + w[0] + '" aria-pressed="' + (w[0] === f) + '">' + escapeHtml(w[1].replace(" time", "")) + ' <span class="chip-n">' + (c[w[0]] || 0) + '</span></button>';
+        }).join("") + '</div>' : '') + '</section>' +
+      '<section class="qs-sec" aria-labelledby="qsOrd"><h4 id="qsOrd"><span>2</span>In what order</h4>' +
+        (run ? '<p class="qs-note">' + (f === "hot" ? 'Your hot list' : 'The interested run') + ' always goes most urgent first: times they picked, then whoever is closest to closing. Pick \u201cEveryone to call\u201d to choose an order.</p>' :
+          QS_ORDER.map(function (x) {
+            var d = escapeHtml(x[2]) + (x[0] === "smart" && c.prime ? ' <em>' + c.prime + ' in a strong hour now.</em>' : '');
+            return qsOpt("qs-order", x[0], x[1] + (x[3] ? ' \u00b7 recommended' : ''), d, null, x[0] === o);
+          }).join("")) + '</section>' +
+      (names.length >= 2 || ql !== "all" ? '<section class="qs-sec" aria-labelledby="qsList"><h4 id="qsList"><span>3</span>From which list</h4>' +
+        qsOpt("qs-list", "all", "All lists", "Every list you\u2019ve loaded", base.length, ql === "all") +
+        names.map(function (k) { return qsOpt("qs-list", k, k, "Only leads from this list", srcs[k], ql === k); }).join("") + '</section>' : '') +
+      '<div class="modal-actions qs-acts">' + (f !== "all" || o !== "imported" || ql !== "all" ? '<button class="btn-secondary" id="qsReset" type="button">Reset</button>' : '') +
+        '<button class="btn-primary" id="sortDone" type="button">Done</button></div>';
+    b.querySelector(".qs").innerHTML = html;
+  }
+  function openSortSheet() {
+    featOpen('<h3>Sort your leads</h3><p class="modal-sub">Choose who comes up next on the Dial tab. Changes apply right away.</p><div class="qs"></div>');
+    renderSortSheet();
+  }
+  document.addEventListener("click", function (e) {
+      if (!e.target.closest || !e.target.closest("#featModalBody .qs")) return;
+      var w = e.target.closest("[data-qs-who]"), o = e.target.closest("[data-qs-order]"), l = e.target.closest("[data-qs-list]");
+      if (w) {
+        var qf = w.getAttribute("data-qs-who"), f = state.queueFilter || "all";
+        if (state.awaitingOutcome) { showToast("Log the outcome for this call first"); return; }
+        if (qf === "int" || qf === "hot") { if (!startRun(qf, false, qf === "int" && f !== "int" ? false : undefined)) return; } else state.queueFilter = qf;
+        saveState(); render(); renderSortSheet(); focusQs('[data-qs-who="' + qf + '"]'); return;
+      }
+      if (o) { applyQueueOrder(o.getAttribute("data-qs-order")); renderSortSheet(); focusQs('[data-qs-order="' + o.getAttribute("data-qs-order") + '"]'); return; }
+      if (l) { state.queueList = l.getAttribute("data-qs-list"); saveState(); render(); renderSortSheet(); focusQs('[data-qs-list="' + cssAttr(state.queueList) + '"]'); return; }
+      if (e.target.closest("#qsReset")) { state.queueFilter = "all"; state.queueList = "all"; applyQueueOrder("imported"); renderSortSheet(); showToast("Call list reset: everyone, as imported"); return; }
+      if (e.target.closest("#sortDone")) featClose();
+  });
+  function cssAttr(v) { return String(v).replace(/["\\]/g, "\\$&"); }
+  function focusQs(sel) { var el = document.querySelector("#featModalBody " + sel); if (el && el.focus) el.focus({ preventScroll: true }); }
 
   // When a new lead loads while you're scrolled down at the outcome buttons,
   // bring the top of its card (name + Previous) back into view.
@@ -19448,12 +19669,32 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     return { days: Math.round((d - now) / 86400000), year: d.getFullYear() };
   }
   function whenText(d) { return d === 0 ? " today" : d === 1 ? " tomorrow" : " in " + d + " days"; }
+  // The dates each industry lives by. [label, every year?, days of warning]. One-time dates (a lease ending,
+  // an X-date) warn once, far enough ahead to act; yearly ones (a birthday, a renewal) come round every year.
+  var KEY_DATES = {
+    investments: [["Birthday", 1, 14], ["Anniversary", 1, 14], ["Lock-up ends", 0, 30], ["Liquidity event", 0, 30]],
+    realestate: [["Closing anniversary", 1, 21], ["Birthday", 1, 14], ["Lease ends", 0, 90], ["Listing expires", 0, 14]],
+    mca: [["Renewal eligible", 0, 14], ["Payoff date", 0, 21], ["Business anniversary", 1, 14], ["Birthday", 1, 14]],
+    auto: [["Lease ends", 0, 90], ["Service due", 0, 14], ["Purchase anniversary", 1, 21], ["Birthday", 1, 14]],
+    insurance: [["Policy renewal", 1, 45], ["X-date", 0, 60], ["Turning 65", 0, 90], ["Birthday", 1, 14]],
+    solar: [["Install anniversary", 1, 21], ["Warranty check", 0, 30], ["Battery add-on", 0, 30], ["Birthday", 1, 14]]
+  };
+  function keyDateKinds() { return KEY_DATES[IND_KEY] || KEY_DATES.investments; }
+  function keyDateAlert(k) {   // { days, text } when a key date is close enough to act on
+    if (!k.date) return null;
+    if (k.once && k.date.length >= 10) {
+      var p = k.date.split("-"), d = Math.round((new Date(+p[0], +p[1] - 1, +p[2]).getTime() - dayStart(0)) / 86400000), lead = k.lead || 30;
+      if (d < -7 || d > lead) return null;
+      return { days: d, text: (k.label || "Key date") + (d < 0 ? " was " + (-d) + " day" + (d === -1 ? "" : "s") + " ago" : whenText(d)) };
+    }
+    var u = daysUntilYearly(k.date.length >= 10 ? k.date.slice(5, 10) : k.date);
+    return u.days <= Math.max(14, k.lead || 0) ? { days: u.days, text: (k.label || "Key date") + whenText(u.days) } : null;
+  }
   function vaultAlerts(r) {
     var out = [], now = Date.now();
     (r.keyDates || []).forEach(function (k) {
       if (!k.date) return;
-      var u = daysUntilYearly(k.date.length >= 10 ? k.date.slice(5, 10) : k.date);
-      if (u.days <= 14) out.push({ days: u.days, text: (k.label || "Key date") + whenText(u.days) });
+      var a = keyDateAlert(k); if (a) out.push(a);
     });
     var first = (r.investments || []).map(function (i) { return i.date; }).filter(Boolean).sort()[0];
     if (first) {
@@ -19638,7 +19879,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       ((r.keyDates || []).map(function (k) {
         return '<div class="kd-row"><span><b>' + escapeHtml(k.label) + '</b><small>' + escapeHtml(k.date) + '</small></span><button class="kd-del" data-kd-del="' + k.id + '" aria-label="Remove date">&times;</button></div>';
       }).join("") || '') +
-      (VAULT.addDate ? '<div class="vi-form"><select id="kdLabel"><option>Birthday</option><option>Anniversary</option><option>Other</option></select><input type="text" id="kdCustom" placeholder="Label (if Other)"><input type="date" id="kdDate"><div class="vi-btns"><button class="btn-secondary" id="kdCancel">Cancel</button><button class="btn-primary" id="kdSave">Save date</button></div></div>'
+      (VAULT.addDate ? '<div class="vi-form"><select id="kdLabel">' + keyDateKinds().map(function (k) { return '<option>' + k[0] + '</option>'; }).join("") + '<option>Other</option></select><input type="text" id="kdCustom" placeholder="Label (if Other)"><input type="date" id="kdDate"><div class="vi-btns"><button class="btn-secondary" id="kdCancel">Cancel</button><button class="btn-primary" id="kdSave">Save date</button></div></div>'
         : '<button class="btn-secondary" id="vAddDate" style="width:100%">+ Add a birthday or date</button>') +
       '<label for="vNext" style="margin-top:14px">Next reach-out</label><input type="date" id="vNext" value="' + escapeHtml(r.nextReachOut || "") + '">' +
       '<label for="vInterests">Interested in</label><input type="text" id="vInterests" placeholder="e.g. AI, late-stage tech, $50K+ tickets" value="' + escapeHtml(r.interests || "") + '">' +
@@ -19701,7 +19942,8 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       var d = document.getElementById("kdDate").value, lab = document.getElementById("kdLabel").value;
       if (lab === "Other") lab = document.getElementById("kdCustom").value.trim() || "Key date";
       if (!d) { showToast("Pick a date"); return; }
-      r.keyDates = (r.keyDates || []).concat([{ id: uid(), label: lab, date: d }]);
+      var kk = keyDateKinds().filter(function (x) { return x[0] === lab; })[0];
+      r.keyDates = (r.keyDates || []).concat([kk ? { id: uid(), label: lab, date: d, once: !kk[1], lead: kk[2] } : { id: uid(), label: lab, date: d }]);
       VAULT.addDate = false; save(lab + " saved"); renderVaultModal();
     });
     b.querySelectorAll("[data-kd-del]").forEach(function (el) {
