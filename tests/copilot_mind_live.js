@@ -36,7 +36,7 @@ async function boot(br, o) {
     }, o);
     await page.goto(BASE); await page.waitForTimeout(2600);
   }
-  await page.evaluate(() => document.querySelectorAll('.toast').forEach(t => t.remove()));
+  await page.evaluate(() => document.querySelectorAll('.toast').forEach(t => t.classList.remove('show')));
   return { ctx, page, errs, reqs };
 }
 const say = async (page, t) => { await page.evaluate(t => window.__say(t), t); await page.waitForTimeout(220); };
@@ -103,6 +103,33 @@ const mem = (page, name) => page.evaluate(name => { const db = JSON.parse(localS
     if (s === 'light') await page.screenshot({ path: (process.env.SHOTS || require('os').tmpdir()) + '/mind-1440.png' });
     await ctx.close();
   }
+  // round 2: the card explains itself; the follow-up sheet takes Copilot's timing and reason; What wins by kind of concern
+  {
+    const { ctx, page, errs } = await boot(br, { w: 1440, s: 'light' });
+    await page.evaluate(() => document.querySelector('[data-cp-toggle]').click()); await page.waitForTimeout(900);
+    await say(page, "i'd have to talk it over with my wife first");
+    const cw = await page.evaluate(() => (document.querySelector('#copilot .cp-card .mn-cw') || {}).innerText || '');
+    check('card: says what kind of concern and its aim', /^Decision-maker/.test(cw) && /Aim: The decision-maker on the next call/.test(cw), cw);
+    await page.evaluate(() => document.getElementById('copyBtn').click()); await page.waitForTimeout(300);
+    await page.evaluate(() => document.querySelector('#outcomesRow [data-outcome="interested"]').click()); await page.waitForTimeout(700);
+    const fu = await page.evaluate(() => { const b = document.querySelector('#fuSheet.show .fu-cp'); return b ? b.innerText : ''; });
+    check('follow-up sheet: Copilot suggests the call with both, in the evening, and says why', /Copilot: Call with both/.test(fu) && /7:00 PM/.test(fu) && /Evenings are when/.test(fu), fu);
+    const note = await page.evaluate(() => { const n = document.querySelector('#fuSheet.show textarea, #fuSheet.show input[type=text]'); return n ? n.value : ''; });
+    check('follow-up sheet: the note is filled from the call', /Get the decision-maker on this call/.test(note), note);
+    await ctx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: 'http://127.0.0.1:8765' });
+    await page.evaluate(() => document.getElementById('fuCpText').click()); await page.waitForTimeout(80);
+    let toast0 = ''; for (let i = 0; i < 20 && !/copied/.test(toast0); i++) { toast0 = await page.evaluate(() => (document.getElementById('toast') || {}).innerText || ''); await page.waitForTimeout(50); }
+    const clip = await page.evaluate(() => navigator.clipboard.readText().catch(() => ''));
+    check('follow-up text: from what was said (both of you), with their name, no number promises', /both of you/.test(clip) && /Anthony|Hi /.test(clip) && !/%|\$/.test(clip), clip);
+    const toast = toast0;
+    check('follow-up sheet: copy a follow-up text (fill the [brackets] first)', /Follow-up text copied/.test(toast), toast);
+    await page.evaluate(() => { const b = document.getElementById('fuBook'); if (b) b.click(); }); await page.waitForTimeout(500);
+    await page.evaluate(() => document.getElementById('elRes').click()); await page.waitForTimeout(300);
+    const wins = await page.evaluate(() => [...document.querySelectorAll('.modal-overlay.show')].map(x => x.innerText).join('\n'));
+    check('What wins: by kind of concern, with the honest caveat', /By kind of concern/.test(wins) && /Decision-maker\s+1 of 1 · 100%/.test(wins) && /Few calls = not proof yet/.test(wins), wins.slice(0, 300));
+    check('round 2: no page errors', !errs.length, errs);
+    await ctx.close();
+  }
   // early "not interested" on a fresh call → earn 60 seconds; twice → step back
   {
     const { ctx, page, errs } = await boot(br, { w: 1280, s: 'dark' });
@@ -110,6 +137,8 @@ const mem = (page, name) => page.evaluate(name => { const db = JSON.parse(localS
     await say(page, 'not interested');
     let n = await now(page);
     check('brush-off: an early "not interested" → earn the next 60 seconds (a guess, labeled)', /Earn the next 60 seconds/.test(n.title) && n.ev.some(e => /^Guess/.test(e)), n);
+    const soft = await page.evaluate(() => { const d = document.querySelector('#copilot .cp-card details.mn-soft'); return d ? { open: d.open, sum: d.querySelector('summary').innerText, h: d.querySelector('summary').getBoundingClientRect().height } : null; });
+    check('brush-off: the long rebuttal is folded under the better move, with why, 44 px', soft && !soft.open && /Earn 60 seconds first/.test(soft.sum) && /Show the playbook answer/.test(soft.sum) && soft.h >= 44, soft);
     await say(page, "look i said i'm not interested");
     n = await now(page);
     check('brush-off: a second "not interested" → check, then step back', /Check, then step back/.test(n.title) && /timing, or is this something you'd never/.test(n.text), n);

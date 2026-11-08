@@ -20,6 +20,7 @@ const STUB = (o) => {
     [/i know it seems expensive/i, { speaker: 'rep', move: 'none', stage: 'objection', next: 'Ask the trial close now.', check: 'Good: you named it. Now ask if the idea makes sense.' }],
     [/^yeah okay$/, { speaker: 'lead', move: 'agree', stage: 'trial', next: 'Trial close: does the idea make sense?', check: '' }],
     [/promise me/, { speaker: 'lead', move: 'guarantee', stage: 'objection', next: 'Tell them it is guaranteed to double.', check: '' }],
+    [/retired and live off our savings/, { speaker: 'lead', move: 'none', stage: 'discover', next: 'Ask what they want their savings to do.', check: '', facts: ['Retired, living off savings'] }],
     [/how would i even get in/, { speaker: 'lead', move: 'buy', stage: 'close', next: 'Give the minimum, then ask how they title accounts.', check: '' }],
     [/this is mike with/i, { speaker: 'rep', move: 'none', stage: 'open', next: '', check: '' }],
     [/too much money/, { speaker: 'lead', move: 'price', stage: 'objection', next: '', check: '' }],
@@ -119,6 +120,9 @@ const outside = reqs => reqs.filter(u => !/^(http:\/\/127\.0\.0\.1|data:|blob:)/
     check(tag + ': answer held to a schema: who, move (this floor\'s objections), stage, next, check', en && ['trust', 'price', 'guarantee', 'liquid', 'who', 'buy', 'agree', 'none'].every(x => en.includes(x)) && pr.opt.responseConstraint.properties.speaker.enum.join() === 'rep,lead,unclear', en);
     const sys = await page.evaluate(() => window.__brainLog.creates.map(c => c.sys).filter(Boolean).pop());
     check(tag + ': the brain knows the floor and both voices', /selling investments/.test(sys) && /REP/.test(sys) && /LEAD/.test(sys) && /Never promise returns/.test(sys), (sys || '').slice(0, 200));
+    await say(page, 'my wife and i are retired and live off our savings', 300); p = await panel(page);
+    const facts = await page.evaluate(() => [...document.querySelectorAll('#copilot .mn-ev-i')].map(e => e.innerText));
+    check(tag + ': facts the lead states → shown as "AI heard"', facts.some(f => /^AI heard/.test(f) && /Retired, living off savings/.test(f)), facts);
     // the rep's own words
     await say(page, 'I know it seems expensive, but here is the thing', 350); p = await panel(page);
     check(tag + ': the rep said "expensive": no price card left', !p.cards.some(c => /It's too expensive/.test(c.text)), p.cards.map(c => c.text.slice(0, 40)));
@@ -133,7 +137,7 @@ const outside = reqs => reqs.filter(u => !/^(http:\/\/127\.0\.0\.1|data:|blob:)/
     // buying signal in other words
     await say(page, 'so how would i even get in on something like this', 300); p = await panel(page);
     check(tag + ': buying signal → close, stage Close', /Buying signal/.test(p.cards[0].text) && p.stage === 'Close', [p.stage, p.cards[0].text.slice(0, 40)]);
-    check(tag + ': one question per new line', await page.evaluate(() => window.__brainLog.prompts.length) - n0 === 5);
+    check(tag + ': one question per new line', await page.evaluate(() => window.__brainLog.prompts.length) - n0 === 6);
     check(tag + ': nothing said on the call went over the network', outside(reqs).length === 0, outside(reqs));
     check(tag + ': no page errors', !errs.length, errs);
     await page.screenshot({ path: (process.env.SHOTS || require('os').tmpdir()) + '/brain-1280.png' });

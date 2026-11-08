@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-02-09">
+<meta name="vpex-build" content="2027-02-10">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 /* Signature themes: six themes only the VPEX owner's own login can use (sig/*.css, sig.js).
@@ -9542,6 +9542,11 @@ html[data-motion="off"] #floorTv *, html[data-motion="off"] .tv-cele * { animati
 .br-prog { height: 8px; border-radius: 999px; background: var(--surface-raised); overflow: hidden; margin: 8px 0; } .br-prog span { display: block; height: 100%; width: 0; background: var(--accent); transition: width .3s; }
 .br-acts { flex-wrap: wrap; } .br-acts button { min-height: 44px; }
 .br-row { font-size: 13px; padding: 3px 0; color: var(--text); }
+.mn-cw { font-size: 12.5px; line-height: 1.35; color: var(--text); margin: -2px 0 6px; } .mn-cw b { color: var(--text); } .mn-cw span { color: var(--text-dim); }
+.mn-soft { margin-top: 4px; } .mn-soft > summary { cursor: pointer; font-size: 13px; color: var(--text); padding: 8px 10px; border-radius: 9px; background: var(--surface-raised); min-height: 44px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; list-style: none; }
+.mn-soft > summary::-webkit-details-marker { display: none; } .mn-soft > summary u { color: var(--text-dim); }
+.fu-cp { font-size: 13px; line-height: 1.4; border: 1px solid var(--accent); border-radius: 10px; padding: 8px 10px; margin: 0 0 10px; background: color-mix(in srgb, var(--accent) 6%, var(--surface)); color: var(--text); }
+.fu-cp button { display: block; margin-top: 6px; min-height: 44px; }
 .mn-title { display: flex; align-items: center; gap: 8px; font-size: 15px; } .mn-title b { flex: 1; }
 .mn-conf { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--surface-raised); color: var(--text-dim); }
 .mn-conf.c-high { color: var(--text); border: 1px solid var(--interested); } .mn-conf.c-low { border: 1px dashed var(--border); }
@@ -12479,12 +12484,32 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     FU = { leadId: lead.id, taskId: t ? t.id : null, kind: o.kind || "interested", sug: sug, at: sug, day: localDateStr(new Date(sug)),
       stage: lead.stage && lead.stage !== "New Lead" ? lead.stage : "Qualified", note: mv && t && t.note && (t.pinned || !t.auto) && !/^They picked this time/.test(t.note) ? t.note : "", text: o.text || null, custom: false,
       what: o.kind === "callback" ? "Call back" : mv && t ? taskWhat(t) : (t && t.what) || nextSteps()[0], whatSet: false };
+    FU.cp = null;
+    if (cpElite() && window.VPEXMind && (o.kind === "interested" || o.kind === "callback") && (!t || t.auto)) {   // right after a call (its automatic follow-up is the one being set)   // Copilot Mind: when, and why, from this person's memory
+      var mctx = mindCtx(); mctx.lead = mindLead(lead); mctx.mem = lead.cpm || {};
+      var fs = window.VPEXMind.followup(mctx, lead.outcome);
+      if (fs) {
+        var at = mindSlot(lead, fs);
+        if (at) { FU.sug = FU.at = at; FU.day = localDateStr(new Date(at)); }
+        FU.what = fs.what; FU.cp = { what: fs.what, why: fs.why, text: window.VPEXMind.followText(mctx) };
+        if (!FU.note) FU.note = fs.note;
+      }
+    }
     renderFollowSheet();
     document.getElementById("fuSheet").classList.add("show");
     setTimeout(function () {
       renderFollowSheet(true);
       var b = document.getElementById("fuBook"); if (b) b.focus({ preventScroll: true });
     }, 60);
+  }
+  // A Copilot follow-up plan ({ days, hour, evening, soon }) → a time inside the lead's calling hours.
+  function mindSlot(lead, f) {
+    var iana = leadIana(lead); if (!iana) return 0;
+    var nowH = zonedParts(Date.now(), iana).h, hour = f.hour != null ? f.hour : Math.min(18, Math.max(9, nowH + (f.soon ? 1 : 0)));
+    var biz = f.soon ? 0 : f.days <= 1 ? f.days : Math.round(f.days * 5 / 7);
+    var ts = slotAt(lead, biz, hour), chk = slotCheck(lead, ts);
+    for (var h = hour - 1; chk && !chk.ok && h >= 9; h--) { ts = slotAt(lead, biz, h); chk = slotCheck(lead, ts); }   // evenings: the latest hour their state allows
+    return chk && !chk.ok && chk.fix ? chk.fix : ts;
   }
   function fuTheir(ts, lead) {   // "9 AM TX" when their clock differs from yours
     var z = leadZone(lead); if (!z.iana) return "";
@@ -12517,6 +12542,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       (mv || set ? '' : '<div class="fu-tag fu-' + (cb ? 'cb' : 'int') + '">' + (cb ? 'Callback later' : 'Interested') + ' \u00b7 logged</div>') +
       '<h3 id="fuTitle">' + (mv ? 'Move the follow-up with ' + first : set ? 'What\u2019s next with ' + first + '?' : cb ? 'When should you call ' + first + ' back?' : 'What\u2019s next with ' + first + ', and when?') + '</h3>' +
       '<p class="modal-sub">' + (clk && clk.t ? 'It\u2019s ' + escapeHtml(clk.t.label || "") + ' for ' + first + ' right now (' + escapeHtml(clk.st) + '). ' : '') + 'Times are yours; every one offered is inside their calling hours.</p>' +
+      (FU.cp ? '<div class="fu-cp"><b>Copilot:</b> ' + escapeHtml(FU.cp.what) + ', ' + escapeHtml(fmtWhen(FU.sug)) + '. ' + escapeHtml(FU.cp.why) + '<button type="button" class="btn-secondary" id="fuCpText">Copy a follow-up text</button></div>' : '') +
       '<div class="fu-cols"><div class="fu-col">' +
       (cb ? '' : '<div class="fu-label">Next step</div><div class="fu-row fu-whats" role="group" aria-label="Next step">' + whats.map(function (w) {
         return '<button type="button" class="fu-chip' + (w === FU.what ? ' on' : '') + '" data-fu-what="' + escapeHtml(w) + '" aria-pressed="' + (w === FU.what) + '">' + escapeHtml(w) + '</button>';
@@ -12633,6 +12659,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     if (wh) { FU.what = wh.getAttribute("data-fu-what"); FU.whatSet = true; renderFollowSheet(); focusFu('[data-fu-what="' + cssAttr(FU.what) + '"]'); return; }
     if (fx) { FU.at = +fx.getAttribute("data-at"); FU.day = localDateStr(new Date(FU.at)); FU.part = null; renderFollowSheet(); focusFu("#fuBook"); return; }
     if (e.target.closest("#fuBook")) { bookFollowSheet(); return; }
+    if (e.target.closest("#fuCpText") && FU.cp) { var fl = findLeadById(FU.leadId); clipCopy(fillTemplate(FU.cp.text, fl || { name: "" }), function () { showToast("Follow-up text copied. Fill in anything in [brackets] first."); }); return; }
     if (e.target.closest("#fuKeep") || e.target.closest("#fuX")) {
       if (FU.taskId && FU.kind !== "move" && FU.kind !== "set") { var kt = state.tasks.filter(function (x) { return x.id === FU.taskId; })[0]; if (kt && FU.note.trim()) kt.note = FU.note.trim(); if (kt && FU.whatSet) kt.what = FU.what; }
       closeFollowSheet();
@@ -21614,7 +21641,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
   }
   var MIND_SRC = { heard: "Heard", record: "On record", inferred: "Guess", unknown: "Unknown", ai: "AI heard" };
   function mindEvHtml(list) {
-    return (list || []).slice(0, 4).map(function (e) { return '<span class="mn-ev-i src-' + (e.src || "inferred") + '"><b>' + (MIND_SRC[e.src] || "Guess") + '</b> ' + escapeHtml(e.t) + '</span>'; }).join("");
+    return (list || []).slice(0, 5).map(function (e) { return '<span class="mn-ev-i src-' + (e.src || "inferred") + '"><b>' + (MIND_SRC[e.src] || "Guess") + '</b> ' + escapeHtml(e.t) + '</span>'; }).join("");
   }
   function mindNowHtml(lead) {
     var M = window.VPEXMind; if (!M) return "";
@@ -21629,14 +21656,14 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       '<div class="el-next-t"><b>Do:</b> ' + escapeHtml(p.do) + '</div>' +
       (p.say ? '<div class="mn-say"><span>Say</span>' + scFillHtml(p.say, lead).replace(/^<p>|<\/p>$/g, "") + '</div>' : p.card ? '<div class="mn-say mn-say-card"><span>Say</span>The answer below' + (p.after ? '. ' + escapeHtml(p.after) : '') + '</div>' : '') +
       '<div class="mn-read"><div><b>What\u2019s happening:</b> ' + escapeHtml(p.what) + '</div><div><b>Why:</b> ' + escapeHtml(p.why) + '</div><div><b>Aim:</b> ' + escapeHtml(p.aim) + '</div></div>' +
-      (p.evidence && p.evidence.length ? '<div class="mn-ev">' + mindEvHtml(p.evidence) + '</div>' : '') +
+      (p.evidence && p.evidence.length || (CP.facts || []).length ? '<div class="mn-ev">' + mindEvHtml((p.evidence || []).concat((CP.facts || []).slice(-2))) + '</div>' : '') +
       (byBrain ? '<div class="el-check mn-brain"><b><span class="el-brain-tag">Brain</span></b> ' + escapeHtml(f.brainNext) + '</div>' : '') +
       (brainOn() && f.brainCheck ? '<div class="el-check"><b>Your last line:</b> ' + escapeHtml(f.brainCheck) + '</div>' : '') +
       '<div class="mn-person"><span class="mn-band b-' + g.band + '">' + escapeHtml(g.label) + '</span>' +
         (who.style ? '<span title="' + escapeHtml(who.style.tip) + '">' + escapeHtml(who.style.label) + ' <i>guess</i></span>' : '') +
         (who.soph ? '<span title="' + escapeHtml(who.soph.tip) + '">' + escapeHtml(who.soph.label) + ' <i>guess</i></span>' : '') +
         who.motives.map(function (m) { return '<span>' + escapeHtml(m.label) + ' <i>heard</i></span>'; }).join("") + (g.sure ? '<span class="mn-miss">' + escapeHtml(g.sure) + '</span>' : '') + '</div>' +
-      '<div class="el-next-b">' + (elPool("trial").length ? '<button type="button" data-el-act="trial">Trial close</button>' : '') + '<button type="button" class="go" data-el-act="close">Close now</button></div></div>';
+      '<div class="el-next-b">' + (p.kind === "ask" || p.kind === "qualify" ? '<button type="button" data-el-qf>Record the answer</button>' : '') + (elPool("trial").length ? '<button type="button" data-el-act="trial">Trial close</button>' : '') + '<button type="button" class="go" data-el-act="close">Close now</button></div></div>';
     return h;
   }
   function elNextHtml(lead) {
@@ -21708,6 +21735,8 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       if (r.speaker === "rep") { mindRepLine(text); CP.leadLines = (CP.leadLines || []).filter(function (l) { return l !== text; }); }
       else if (r.speaker === "lead" && r.move !== "none") mindLeadLine(text);
       if (r.stage === "discover" || r.stage === "objection" || r.stage === "trial" || r.stage === "close") CP.discovered = true;
+      if (r.speaker !== "rep" && r.facts && r.facts.length) r.facts.forEach(function (ft) { if (!(CP.facts || []).some(function (x) { return x.t === ft; })) (CP.facts || (CP.facts = [])).push({ t: ft, src: "ai" }); });
+      if (CP.facts && CP.facts.length > 6) CP.facts = CP.facts.slice(-6);
       if (r.stage) f.stage = r.stage;
       f.brainNext = r.next && !BRAIN_BAN.test(r.next) ? r.next : "";
       f.brainCheck = r.speaker === "rep" && r.check && !BRAIN_BAN.test(r.check) ? r.check : "";
@@ -21776,11 +21805,15 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     var e = c.el, v = e.v, buy = c.idea === "buy" || c.idea === "close";
     var h = '<div class="cp-card el' + (buy ? ' buy' : '') + (v.rap ? ' rap' : '') + (i ? ' old' : ' new') + '"' + (i ? '' : ' role="status"') + '><h4>' +
       (c.idea === "close" ? '<b>Your close.</b> Ask, then stop talking.' : buy ? '<b>Buying signal.</b> Close now.' : c.idea === "trial" ? '<b>Trial close.</b> Test the water.' : (c.again ? 'Again, a new answer. ' : '') + 'They said: <b>\u201c' + escapeHtml(String(c.o.q).replace(/^["\u201c\u201d]+|["\u201c\u201d]+$/g, "")) + '\u201d</b>') + '</h4>';
+    var why = window.VPEXMind && !i ? window.VPEXMind.cardWhy(c.idea, mindCtx()) : null;
+    if (why) h += '<div class="mn-cw"><b>' + escapeHtml(why.label) + '</b> \u00b7 ' + escapeHtml(why.line) + ' <span>Aim: ' + escapeHtml(why.aim) + '</span></div>';
+    if (why && why.soft) h += '<details class="mn-soft"><summary>' + escapeHtml(why.softWhy) + ' <u>Show the playbook answer</u></summary>';
     if (v.rap) h += '<div class="el-rap-h">' + escapeHtml(v.m) + '</div><div class="sc-say el-rap">' + scFillHtml(v.rap, lead) + '</div>';   // a rap from the owner's own playbook: said as written
     else { h += '<ol class="el-steps">'; v.steps.forEach(function (st) { h += '<li><span class="el-k">' + escapeHtml(st[0]) + '</span><div class="sc-say">' + scFillHtml(st[1], lead) + '</div></li>'; }); h += '</ol>'; }
     if (v.note) h += '<div class="el-note">' + scFillHtml(v.note, lead) + '</div>';
     if (e.close) h += '<div class="cp-lab">Then close</div><div class="sc-say cp-close">' + scFillHtml(e.close, lead) + '</div>';
     if (v.tip) h += '<div class="el-tip"><b>How to say it:</b> ' + escapeHtml(v.tip) + '</div>';
+    if (why && why.soft) h += '</details>';
     return h + '<div class="cp-tag">' + (c.brain ? 'Heard by the brain \u00b7 ' : '') + escapeHtml(v.src ? v.src : v.m) + ' \u00b7 ' + elStatLine(v.id) + '</div></div>';
   }
   var EL_TAP = { all: ["notint", "busy", "what", "later", "send", "price", "money", "think", "spouse", "already", "trust", "number", "stall"],
@@ -21819,6 +21852,11 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     };
     ideas.forEach(function (k) { rows += one(k === "buy" ? "Buying signal" : elLabel(k), elPool(k)); });
     rows += one("Closing question (" + INDUSTRIES[ind].name + ")", E.CLOSE[ind] || []);
+    if (window.VPEXMind) {   // what works by kind of concern (calls where Copilot saw it), most common first
+      var pat = window.VPEXMind.patterns((state.callLog || []).filter(function (c) { return c && c.cpk && myCall(c); }).map(function (c) { return { cats: c.cpk, out: c.outcomeKey }; }));
+      if (pat.length) rows = '<div class="el-res"><b>By kind of concern</b>' + pat.map(function (x) { return '<div class="el-res-r"><span>' + escapeHtml(x.label) + '</span><span>' + x.w + ' of ' + x.n + ' \u00b7 ' + Math.round(x.rate * 100) + '%</span></div>'; }).join("") +
+        '<div class="el-res-r"><span>A win is a call logged Interested. Few calls = not proof yet.</span></div></div>' + rows;
+    }
     featOpen('<h3>Copilot Elite: what wins</h3><p class="modal-sub">Your calls only. A win is a call logged Interested after that answer showed. Each answer gets ' + EL_MIN + ' calls before Copilot leans on the leader; it still tries the others now and then.</p>' + rows);
   }
   // Copilot AI (functions/ coach): when the office's admin has it on, Claude writes the next line from what was just said,
@@ -21911,6 +21949,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
         if (e.target.closest("#cpMin")) { CP.min = !CP.min; cpDraw(); return; }
         var t = e.target.closest("[data-el-say]"); if (t) { elTap(t.getAttribute("data-el-say")); return; }
         var a = e.target.closest("[data-el-act]"); if (a) { elTap(a.getAttribute("data-el-act")); return; }   // the rep's own move: trial close, close
+        if (e.target.closest("[data-el-qf]")) { var ql = currentLead(); if (ql) openQualify(ql); return; }
         if (e.target.closest("#elRes")) { openElResults(); return; }
         if (e.target.closest("#elBrain")) { openBrain(); return; }
         var d = e.target.closest("[data-cp-dnc]"); if (d) { var l = findLeadById(d.getAttribute("data-cp-dnc")); if (l) toggleLeadDnc(l); }

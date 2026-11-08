@@ -402,7 +402,44 @@
       .sort(function (a, b) { return b.n - a.n; });
   }
 
+
+  // ---------- 12. Every answer card explains itself, and some answers should wait ----------
+  // soft: the playbook answer is the wrong first move here (a reflex brush-off, a repeated no, someone who doesn't
+  // qualify, a close before qualifying), so it's kept folded under the better move.
+  function cardWhy(idea, ctx) {
+    var c = ctx.call || {}, ev = { idea: idea, kind: "obj", text: "" }, d = diagnose(ev, c, ctx.mem || {});
+    if (idea === "buy" || idea === "size" || idea === "close") {
+      var must = missingInfo(ctx.ind, (ctx.lead || {}).qf).filter(function (x) { return x.must; });
+      return { cat: "signal", label: KIND.signal.label, line: KIND.signal.what, aim: KIND.signal.aim, soft: !!must.length || !!notQualified(ctx.ind, (ctx.lead || {}).qf, c.events),
+        softWhy: must.length ? "Qualify first: " + must[0].q : "Not qualified: don't take the order." };
+    }
+    if (idea === "trial") return { cat: "trial", label: "Trial close", line: "Checking where they stand before asking for the order.", aim: "A yes to the idea, or the real concern." };
+    var soft = d.cat === "brushoff" && d.genuine === false || d.cat === "disinterest" || (!!notQualified(ctx.ind, (ctx.lead || {}).qf, c.events) && d.cat !== "qualification");
+    return { cat: d.cat, label: d.kind.label + (d.genuine ? " · a real concern" : d.genuine === false ? " · likely a reflex" : ""), line: d.kind.what, aim: d.kind.aim, soft: soft,
+      softWhy: d.cat === "disinterest" ? "Two no's: check timing-or-never first. Pushing a rebuttal now costs trust." : d.cat === "brushoff" ? "It's a reflex, not a decision. Earn 60 seconds first; use this only if they engage." : "Not qualified: don't pitch." };
+  }
+
+  // ---------- 13. A follow-up text built only from what was said ----------
+  // No product facts, numbers or promises: just the person, what they raised, and a two-choice time. [Brackets] = the rep fills in.
+  function followText(ctx, when) {
+    var m = ctx.mem || {}, last = m.lastObj, cat = last ? CAT[last] : "", L = ctx.lead || {}, first = L.first || "{first}";
+    var hi = "Hi " + first + ", it's {me} with {company}. ";
+    var t = {
+      authority: "Thanks for the time today. You mentioned wanting to go over it together, would " + (when || "tonight at 7 or tomorrow at 6") + " work for a quick call with both of you?",
+      hesitation: "Thanks for the time today. I know you wanted to think it over. What's the one thing you'd want answered? Happy to call " + (when || "tomorrow morning or afternoon") + ".",
+      info: "As promised, here's [what you're sending]. Let's go over it together so nothing gets missed: " + (when || "tomorrow morning or afternoon") + "?",
+      trust: "Good talking with you. Here's how to check us out: [your registration / website / direct line]. Call me any time, or I'll try you " + (when || "in a couple of days") + ".",
+      means: "Thanks for being straight with me today. No pressure at all. I'll check back " + (when || "next month") + " to see if the timing's better.",
+      timing: "Sorry I caught you at a bad time. Would " + (when || "later today or tomorrow morning") + " be better for a quick call?",
+      value: "Thanks for the time today. I'm putting together what this could look like at a size that fits. Would " + (when || "tomorrow morning or afternoon") + " work to go over it?",
+      risk: "Thanks for the honest questions about the risk. I'd like to walk you through it properly, with the documents. Would " + (when || "tomorrow morning or afternoon") + " work?",
+      statusquo: "Thanks for the time today. Not asking you to change anything you have. Would a quick side-by-side " + (when || "next week") + " be worth 10 minutes?",
+      brushoff: "Sorry I caught you at a bad time earlier. It's about [your one-line reason]. Would " + (when || "tomorrow morning or afternoon") + " be better?",
+      signal: "Great talking with you. Here's the next step: [what happens next]. Does " + (when || "today or tomorrow") + " work to finish up?"
+    }[(m.s || {}).buy ? "signal" : cat];
+    return t ? hi + t : hi + "Thanks for the time today. Would " + (when || "tomorrow morning or afternoon") + " work to pick up where we left off?";
+  }
   root.VPEXMind = { v: 1, CAT: CAT, KIND: KIND, QUAL: QUAL, missingInfo: missingInfo, notQualified: notQualified, readPerson: readPerson, diagnose: diagnose,
-    progress: progress, alerts: alerts, plan: plan, remember: remember, followup: followup, lifecycle: lifecycle, coach: coach, patterns: patterns,
+    progress: progress, alerts: alerts, plan: plan, cardWhy: cardWhy, followText: followText, remember: remember, followup: followup, lifecycle: lifecycle, coach: coach, patterns: patterns,
     PROMISE: PROMISE, CLOSE_RE: CLOSE_RE };
 })(typeof window !== "undefined" ? window : this);

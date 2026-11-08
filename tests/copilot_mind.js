@@ -180,4 +180,23 @@ check('coach: on track', tip('Ana') === 'ok', tips);
 const pat = M.patterns([{ cats: ['value', 'trust'], out: 'interested' }, { cats: ['trust'], out: 'notinterested' }, { cats: ['trust'], out: 'callback' }]);
 check('patterns: by kind of concern, most common first, with the win count', pat[0].cat === 'trust' && pat[0].n === 3 && pat[0].w === 1 && pat[1].cat === 'value' && pat[1].rate === 1, pat);
 
+// --- round 2: every card explains itself; the wrong first move stays folded; follow-up texts from what was said ---
+let w = M.cardWhy('notint', mk({ events: [ev('obj', 'notint', 'no')] }));
+check('card: an early "not interested" → labeled a likely reflex, the rebuttal folded with why', w.soft && /likely a reflex/.test(w.label) && /Earn 60 seconds first/.test(w.softWhy), w);
+w = M.cardWhy('notint', mk({ events: [ev('obj', 'notint', 'no'), ev('obj', 'notint', 'no again')] }));
+check('card: a second no → folded: check timing-or-never first', w.soft && /timing-or-never/.test(w.softWhy), w);
+w = M.cardWhy('price', mk({ call: { discovered: true, stage: 'objection' }, events: [ev('obj', 'price', 'x'), ev('obj', 'price', 'y')] }));
+check('card: price twice → a real concern, shown, with its aim', !w.soft && /a real concern/.test(w.label) && /worth it at some size/.test(w.aim), w);
+w = M.cardWhy('rent', mk({ ind: 'solar', events: [ev('obj', 'rent', 'i rent')] }));
+check('card: the renter answer itself is shown (it is the right move)', !w.soft, w);
+w = M.cardWhy('buy', mk({ events: [ev('buy', 'buy', 'min')] }));
+check('card: a close before qualifying is folded, with the question to ask first', w.soft && /accredited investor/.test(w.softWhy), w);
+w = M.cardWhy('buy', mk({ events: [ev('buy', 'buy', 'min')], lead: { qf: { accredited: 'Yes', check: '$50K' } } }));
+check('card: a qualified buying signal → the close is shown', !w.soft, w);
+let ft = M.followText(mk({ mem: { lastObj: 'spouse' } }));
+check('follow-up text: spouse → both of you, two choices, the person\'s name', /Hi Pat/.test(ft) && /both of you/.test(ft) && / or /.test(ft), ft);
+ft = M.followText(mk({ mem: { lastObj: 'trust' } }));
+check('follow-up text: trust → how to check us out, rep fills the facts in [brackets]', /\[your registration/.test(ft), ft);
+const texts = ['spouse', 'think', 'info', 'trust', 'money', 'later', 'price', 'guarantee', 'already', 'notint'].map(k => M.followText(mk({ mem: { lastObj: k } }))).concat([M.followText(mk({ mem: { s: { buy: 1 } } })), M.followText(mk({}))]);
+check('follow-up texts: never a number, a promise or a product claim', texts.every(x => !/\$|%|\d\s*(k|x|percent|times)\b/i.test(x) && !M.PROMISE.test(' ' + x.toLowerCase() + ' ') && !/guarantee|return|profit|double/i.test(x)), texts.filter(x => /\$|%|guarantee|return|profit/i.test(x)));
 console.log(`copilot_mind: ${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);

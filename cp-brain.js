@@ -32,6 +32,7 @@
       "stage: open, discover, objection, trial or close.\n" +
       "next: the rep's single best next move toward the close, one short sentence the rep can act on now. Always move toward the close. Never promise returns, approvals or savings, never invent deadlines or facts.\n" +
       "check: if the rep said the newest line, one short note on it (what was good or what to do next), else empty.\n" +
+      "facts: up to 2 short facts the LEAD stated about themselves in the newest line (their money, family, timing, what they own now), in their own words. Never guess; empty if none.\n" +
       "Reply with JSON only.";
   }
   function userMsg(ctx) {
@@ -47,7 +48,8 @@
       move: { type: "string", enum: ctx.ideas.map(function (x) { return x[0]; }).concat(["buy", "agree", "question", "none"]) },
       stage: { type: "string", enum: ["open", "discover", "objection", "trial", "close"] },
       next: { type: "string", maxLength: 180 },
-      check: { type: "string", maxLength: 160 } } };
+      check: { type: "string", maxLength: 160 },
+      facts: { type: "array", maxItems: 2, items: { type: "string", maxLength: 90 } } } };
   }
   function parse(txt, ctx) {
     var s = String(txt || "").replace(/^[\s\S]*?(\{)/, "$1").replace(/\}[^}]*$/, "}"), j;
@@ -55,7 +57,8 @@
     var moves = ctx.ideas.map(function (x) { return x[0]; }).concat(["buy", "agree", "question", "none"]);
     if (!j || moves.indexOf(j.move) < 0) return null;
     return { speaker: ["rep", "lead"].indexOf(j.speaker) >= 0 ? j.speaker : "unclear", move: j.move,
-      stage: ["open", "discover", "objection", "trial", "close"].indexOf(j.stage) >= 0 ? j.stage : "", next: String(j.next || "").slice(0, 180), check: String(j.check || "").slice(0, 160) };
+      stage: ["open", "discover", "objection", "trial", "close"].indexOf(j.stage) >= 0 ? j.stage : "", next: String(j.next || "").slice(0, 180), check: String(j.check || "").slice(0, 160),
+      facts: Array.isArray(j.facts) ? j.facts.filter(function (f) { return typeof f === "string" && f.trim(); }).slice(0, 2).map(function (f) { return f.trim().slice(0, 90); }) : [] };
   }
 
   // ----- engine 1: Chrome's built-in AI -----
