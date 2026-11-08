@@ -139,11 +139,16 @@ const eliteReq = reqs => reqs.filter(u => /cp-elite\.js/.test(u)).length;
     check(tag + ': still testing line', /Still testing · 0 of 20 calls/.test(c0.tag), c0.tag);
     const firstTag = c0.tag;
     await tap(page, 'think'); await tap(page, 'price'); p = await panel(page);
-    check(tag + ': the same answer for the whole call', p.cards[0].tag === firstTag && p.cards.length === 2, p.cards.map(c => c.tag));
+    check(tag + ': same objection again → a different answer, marked', /^Again, a new answer\. They said: “It's too expensive\.”/.test(p.cards[0].text) && p.cards[0].tag.split(' · ')[0] !== firstTag.split(' · ')[0] && p.cards.length === 3, p.cards.map(c => c.text.slice(0, 50) + ' / ' + c.tag));
+    const nx = await page.evaluate(() => { const n = document.querySelector('#copilot .el-next'); return n && { now: (n.querySelector('.el-steps-bar .now') || {}).textContent, t: n.querySelector('.el-next-t').innerText, b: [...n.querySelectorAll('button')].map(b => [b.textContent, b.getBoundingClientRect().height]) }; });
+    check(tag + ': Next move after the same objection twice: it is the real one, isolate it', nx && nx.now === 'Handle' && /Same objection twice/.test(nx.t), nx);
+    check(tag + ': Next move buttons: Trial close and Close now, 44 px', nx && nx.b.map(b => b[0]).join() === 'Trial close,Close now' && nx.b.every(b => b[1] >= 44), nx && nx.b);
     await tap(page, 'guarantee'); p = await panel(page);
     check(tag + ': guarantee (investments): honest about loss', /lose some or all/.test(p.cards[0].text), p.cards[0].text);
     await tap(page, 'buy'); p = await panel(page);
     check(tag + ': Ready to buy → one of your 10 closes, from your playbook', /Buying signal/.test(p.cards[0].text) && p.cards[0].el && /^Your playbook · /.test(p.cards[0].tag) && /\d+(st|nd|rd|th) CLOSE/i.test(p.cards[0].text), p.cards[0].text.slice(0, 160));
+    const nb = await page.evaluate(() => ({ now: document.querySelector('#copilot .el-steps-bar .now').textContent, t: document.querySelector('#copilot .el-next-t').innerText }));
+    check(tag + ': after Ready to buy the call is at Close, with the details to lock', nb.now === 'Close' && /how the account is titled/.test(nb.t), nb);
     const rules = await page.evaluate(() => { const d = document.querySelector('#copilot .el-rules'); if (!d) return null; d.open = true; return { n: d.querySelectorAll('li').length, t: d.innerText, h: d.querySelector('summary').getBoundingClientRect().height }; });
     check(tag + ': Rules on every call (6), 44 px', rules && rules.n === 6 && /never tell them to stretch/.test(rules.t) && rules.h >= 44, rules);
     await page.evaluate(() => { const d = document.querySelector('#copilot .el-rules'); if (d) d.open = false; });
@@ -154,6 +159,7 @@ const eliteReq = reqs => reqs.filter(u => /cp-elite\.js/.test(u)).length;
     await tap(page, 'market'); p = await panel(page);
     check(tag + ': market down → Market Down / Private Markets / Buying Dynamics', /(Market Down|Private Markets Bullet|Buying Dynamics)/i.test(p.cards[0].text), p.cards[0].text.slice(0, 120));
     check(tag + ': at most 3 cards', p.cards.length === 3, p.cards.length);
+
     // log Interested: a win for what was shown
     await logOutcome(page, 'interested');
     await page.evaluate(() => document.getElementById('elRes').click()); await page.waitForTimeout(300);
@@ -201,6 +207,40 @@ const eliteReq = reqs => reqs.filter(u => /cp-elite\.js/.test(u)).length;
     check(tag + ': panel on screen, no sideways scroll', p.inView && p.sw <= p.vw, p);
     await page.screenshot({ path: (process.env.SHOTS || require('os').tmpdir()) + '/elite-1440.png' });
     check(tag + ': no page errors', !errs.length, errs);
+    await ctx.close();
+  }
+  // 3b2. hearing: every phrasing in tests/data (and a held-out set) lands on the right objection; everyday talk on nothing
+  {
+    const { ctx, page, errs } = await boot(br, { w: 1280, s: 'dark' });
+    await page.evaluate(() => document.querySelector('[data-cp-toggle]').click()); await page.waitForTimeout(800);
+    for (const f of ['copilot_phrases.json', 'copilot_phrases_holdout.json']) {
+      const P = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', f), 'utf8')); let n = 0, ok = 0; const miss = [];
+      for (const [k, arr] of Object.entries(P)) for (const t of arr) {
+        n++; const got = (await page.evaluate(t => window.__vpexCpMatch(t), t)).map(x => x.split(':')[0]);
+        if (k === 'none' ? !got.length : got.includes(k)) ok++; else miss.push(k + ': "' + t + '" → ' + (got.join(',') || 'nothing'));
+      }
+      check('hearing (' + f + '): ' + ok + ' of ' + n + ' phrasings land right', ok === n, miss);
+    }
+    // the flow on a call: open → discover → objection → isolate → trial → close
+    const stage = () => page.evaluate(() => ({ now: (document.querySelector('#copilot .el-steps-bar .now') || {}).textContent, t: (document.querySelector('#copilot .el-next-t') || {}).innerText }));
+    let st = await stage();
+    check('flow: starts at Open with the IPO question', st.now === 'Open' && /involved in an IPO before/.test(st.t), st);
+    await page.evaluate(() => { window.__say('well i have most of my money in index funds and some real estate here and there'); window.__say('i have been investing for a long time now with my own accounts'); }); await page.waitForTimeout(200);
+    st = await stage(); check('flow: they talk → Discover', st.now === 'Find' && /Find what matters/.test(st.t), st);
+    await page.evaluate(() => window.__say('honestly it sounds too expensive')); await page.waitForTimeout(200);
+    st = await stage(); check('flow: an objection → answer, then trial close', st.now === 'Handle' && /trial close/.test(st.t), st);
+    await page.evaluate(() => window.__say("and i'd have to ask my accountant")); await page.waitForTimeout(200);
+    st = await stage(); check('flow: a second objection → isolate it', st.now === 'Handle' && /Isolate it: “Other than your advisor, is there anything else/.test(st.t), st);
+    await page.evaluate(() => window.__say('yeah okay i hear you')); await page.waitForTimeout(200);
+    st = await stage(); check('flow: they go along → Trial close', st.now === 'Trial' && /Trial close now/.test(st.t), st);
+    await page.evaluate(() => window.__say('i guess so')); await page.waitForTimeout(200);
+    st = await stage(); check('flow: they go along again → Close', st.now === 'Close', st);
+    await page.evaluate(() => document.querySelector('#copilot .el-next [data-el-say="buy"]').click()); await page.waitForTimeout(250);
+    const top = await page.evaluate(() => document.querySelector('#copilot .cp-card').innerText);
+    check('flow: Close now shows a close', /Buying signal/.test(top) && /CLOSE/.test(top), top.slice(0, 80));
+    await page.evaluate(() => document.querySelector('#copilot .el-next [data-el-say="trial"]').click()); await page.waitForTimeout(250);
+    st = await stage(); check('flow: Trial close button → Trial close card and stage', st.now === 'Trial' && /Trial close\./.test(await page.evaluate(() => document.querySelector('#copilot .cp-card').innerText)), st);
+    check('flow: no page errors', !errs.length, errs);
     await ctx.close();
   }
   // 3c. everyone else: unchanged, and never downloads the playbook

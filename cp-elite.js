@@ -381,5 +381,74 @@
   LABEL.who = "Tell me about yourself."; LABEL.realestate = "I invest in real estate."; LABEL.conservative = "I'm conservative."; LABEL.watch = "I'll watch it for a while.";
   LABEL.phone = "I don't do business over the phone."; LABEL.notwork = "I don't think it's going to work out."; LABEL.market = "The market's down."; LABEL.trial = "Trial close";
 
-  window.VPEXElite = { v: 2, IDEAS: IDEAS, LABEL: LABEL, CLOSE: CLOSE, PLAYS: P, RULES: { investments: RULES } };
+  /* ----- More ways people say it. Calls don't sound the same: these widen what Copilot hears for each objection (the
+     lead's words as the phone's speech recognition writes them: lowercase, no punctuation, apostrophes sometimes
+     dropped). Checked against tests/data/copilot_phrases.json, including everyday talk that must match nothing. ----- */
+  var MORE = {
+    notint: /\b(i'?m|we'?re|i am|we are) (good|fine|okay|ok|all set|set)( thanks| thank you| here)?\b(?! (with|to|for|at|on))|\bno (i'?m|we'?re) (good|fine|okay|ok)\b|\bnah\b|\b(i'?ll|i will|gonna|going to) pass\b|\bhard pass\b|\bpass on (that|it|this)\b|\b(we|i) (don'?t|do not) need (anything|it|that|this)\b|\b(isn'?t|is not|not) (something|anything) i'?d\b|\bnot (my thing|looking for anything|buying anything)\b|\b(i'?m|i am) not (looking|buying|in the market)\b/,
+    price: /\b(that'?s|thats|it'?s|its) (a lot|steep|pricey|expensive|too much)\b|\b(do|go) (better|lower) on (the )?price\b|\bprice range\b|\btoo rich for\b|\bpricey\b|\bsteep\b|\boverpriced\b|\bthe (minimum|min|valuation|buy ?in) is (too )?(high|steep|a lot)\b|\b(seems|sounds|looks|is|that'?s|it'?s) (a bit |kind of |really |way |too |pretty )?(expensive|steep|pricey|high)\b|\bfees? (are|is|sound|seem|look)s? (high|steep|a lot|crazy)\b|\b(lower|drop|cut|reduce) the (minimum|price|fees?|min)\b/,
+    money: /\b(i'?m|we'?re) broke\b|\bnot in (the|my|our) budget\b|\bbills to pay\b|\b(no|don'?t have (any)?) extra (cash|money)\b|\bbudget'?s? (is )?tight\b|\bfixed income\b|\b(don'?t|do not) have that (kind of )?(money|cash)\b|\bfunds are (low|tight)\b|\bmoney is tight\b/,
+    send: /\bsend (me )?(the |some )?(info|information|details|link|deck|stuff)\b|\bshoot me an? (email|text)\b|\btext me (the|some|it)\b|\bput it in writing\b|\bsend me a link\b|\b(do you have|what'?s) (a|your) website\b|\bemail me\b|\bemail (that|it|this)( over)?( to me)?\b|\bmail (it|that|this) to me\b/,
+    advisor: /\b(money|wealth|portfolio) manager\b|\bmy (guy|broker|planner) (handles|does|takes care of)\b/,
+    already: /\b(i|we) (already )?(work with|use|have|got) (someone|somebody|another (company|firm|broker|guy)|a guy)( already)?\b|\b(i'?ve|we'?ve) got a guy\b|\b(i'?m|we'?re) (with|at) (merrill|schwab|fidelity|vanguard|morgan stanley|edward jones|ameriprise|wells fargo|ubs|a broker)\b|\b(i'?m|we'?re) already (invested|covered|in|set up)\b|\bmy broker (takes care|handles)\b/,
+    later: /\btry me (later|tomorrow|next week|another time|back)\b|\bcan you call (me )?back\b|\breach out (in|next|later)\b|\bnow (isn'?t|is not|is not a|isn'?t a) (good|great)\b|\bnot right now\b|\bcatch me (another|later|some other)\b|\bcall (me )?(back )?in an? (hour|bit|few)\b|\bbad time\b|\b(isn'?t|is not|not) a (good|great) time\b/,
+    number: /\bwhere'?d you get (my|this)\b|\bhow (do|did) you (have|get|find) (this|my|me)\b|\bhow'?d you (get|find)\b|\bwhy are you calling (me|here)\b/,
+    trust: /\bhow do i know (you'?re|you are|this is) (real|legit|legitimate)\b|\b(you guys|you'?re|you are) (are )?crooks\b|\b(sounds|seems) (shady|fishy|sketchy|like a scam)\b|\bwhat'?s the catch\b|\b(are|is) (you|he) (even )?licensed\b|\bpump and dump\b|\bfinra\b|\bsec (registered|license)\b/,
+    think: /\bthink (it|this|that) over\b|\bgive me (a few|some|a couple( of)?) (days|time|weeks)\b|\bmull (it|this) over\b|\b(i'?m|i am) not (so |too )?sure\b|\bon the fence\b|\bi (don'?t|do not) know about (this|that|it)\b|\b(need to |let me )?process (it|this)\b|\bweigh (it|my options)\b/,
+    busy: /\b(i|i'?ve) (got|have) (two|2|a couple|five|5|one|1) (minutes|seconds|minute|second)\b|\bcaught me at a bad time\b|\b(don'?t|do not) have time\b|\brunning out the door\b|\bon my way out\b/,
+    what: /\bwhat do you want\b|\bwho'?s (calling|this)\b|\bwhat'?s this for\b|\bwhat is this\b(?! (company|stock|deal))|\bwhat'?s this\b(?! (company|stock|deal))/,
+    who: /\bwhat'?s your (background|track record|experience|title)\b|\bwhat firm (is this|are you)\b|\bwho do you work (for|with)\b|\btell me about your (company|firm|track record)\b/,
+    wait: /\bmaybe next (year|quarter|month)\b|\bnot until (the )?(new year|next year|spring|summer|fall)\b|\brevisit (in|this|it)\b|\b(the )?timing (isn'?t|is not) right\b|\bhold off\b|\bwait (until|till) (things|the market|it) (settle|calm)|\brather wait\b|\bwait (till|until|til) next\b|\bwait (a while|a bit|on it)\b/,
+    bad: /\blost (money|my shirt|my ass|everything|a lot)\b|\b(the last|my last|last) (guy|broker|company|time) (screwed|burned|ripped|lost|took)\b|\bripped off\b|\bgot (taken|screwed|burned|scammed)\b/,
+    info: /\b(do|need to do|want to do) (my|some|more) (research|homework|due diligence)\b|\blook (into|at) it\b|\bgoogle (it|you|this)\b|\b(see|look at) the (numbers|financials|deck|documents)( first)?\b|\bmore information\b|\blook into (it|your|the|this|that)\b/,
+    liquid: /\b(i'?m|i am) not liquid\b|\bmoney'?s? (is )?(all )?tied up\b|\bcan'?t touch (that|my) money\b|\bneed access to (my )?(money|cash)\b|\b(all|it'?s all|everything'?s?) (is )?(in|tied up in) (my )?(401 ?k|four oh one k|ira|real estate|the house|cds?|stocks)\b|\b(don'?t|do not) have (cash|money) available\b|\b(everything|it) is tied up\b|\bnot (very |that |too |super )?liquid\b/,
+    guarantee: /\bwhat'?s (the|my) (risk|downside)\b|\bwhat if (they|it) (don'?t|doesn'?t|never) (go public|ipo|list)\b|\bcan you guarantee\b|\bwhat happens if (it|they) (doesn'?t|don'?t|fails|never)\b|\blose (all|everything|it all|my (money|investment|shirt))\b/,
+    stall: /\bi'?ll reach out\b|\b(i'?ll|we'?ll) be in touch\b|\bgive me your (number|info|card) and i'?ll\b/,
+    conservative: /\bi (don'?t|do not) gamble\b|\bplay it safe\b|\b(only|just) do safe\b|\bi like (bonds|cds|safe)\b|\b(too |that'?s |sounds |it'?s )?speculative\b|\b(very |pretty )?cautious investor\b|\b(a |very |pretty )?conservative (investor|guy|person|with my money)\b/,
+    watch: /\b(wait|until|till) (it|they) (go|goes) public\b|\b(buy|get in|invest) (it |in )?(after|when) (the ipo|it lists|it goes public|it'?s public)\b|\bsee how it (performs|does)\b|\bwhen it lists\b/,
+    phone: /\bcold call(s|ed|er|ers)?\b|\bmeet (you )?in person\b|\bface to face\b|\bcome (in|by) (your|the) office\b|\b(anything|business|deals?|investing) (over|on) the phone\b/,
+    notwork: /\b(don'?t|do not) think (it'?ll|it will|it'?s gonna|it'?s going to) work\b|\bnot going to work( out)?\b|\b(don'?t|do not) see it working\b|\bwon'?t make it\b|\b(don'?t|do not) (believe|buy) (in it|the story|it)\b|\b(it'?ll|it will|going to|gonna) fail\b/,
+    market: /\bmarket (is|'?s) (crazy|down|bad|volatile|shaky|too high|overvalued)\b|\bvolatil(e|ity)\b|\brecession\b|\bbad time to (invest|buy)\b|\beconomy (is|'?s) (bad|terrible|shaky)\b|\bstocks are (falling|down|crashing)\b|\b(the )?election\b|\binterest rates\b|\bmarket'?s? (has )?been (crazy|rough|bad|down|volatile|shaky)\b/,
+    realestate: /\b(i )?prefer (property|real estate)\b|\brather buy (property|real estate|land)\b|\binto real estate\b|\bi do real estate\b|\bown (rental|rentals|properties)\b/,
+    buy: /\bhow many shares\b|\bhow do i (get started|start|pay|wire|send (the )?money)\b|\bwhere do i sign\b|\blet'?s do (it|this)\b|\bcount me in\b|\bi'?m in\b(?= ?$| (let'?s|for (it|that|this)|on (it|that|this)|go ahead|sign me))|\bwhen (does|will|do) (it|they) (go public|ipo|list)\b|\bwhat'?s the (valuation|share price|price per share)\b|\bi like (it|that|this)\b|\b(do you|can i) (take|send) (a )?wire\b|\bwhat'?s the next step\b|\bhow (do|can|would) (we|i) (get started|start|do (this|it))\b/,
+    dnc: /\blose my number\b|\bquit calling\b|\b(don'?t|do not|never) (ever )?call (me|here|this number)( again| anymore)?\b/
+  };
+  // When two readings overlap, the more specific one wins (the second is dropped when the first is heard).
+  // Some of the base hearing is too loose for real calls ("my wife and I are retired" isn't an objection): replaced here.
+  var BASE = {
+    spouse: /\b(talk|speak|check|run it by|run this by|ask|discuss|consult|go over)\b.{0,25}\b(wife|husband|spouse|partner|other half)\b|\b(wife|husband|spouse|partner) (handles|makes|decides|would kill|has to|needs to|does (all )?the|takes care)\b|\bwithout (my|the) (wife|husband|spouse|partner)\b/
+  };
+  var OVER = [["trust", "buy"], ["stall", "buy"], ["watch", "wait"], ["liquid", "money"], ["guarantee", "conservative"], ["dnc", "notint"], ["dnc", "later"]];
+
+  /* ----- Where the call is, and the next move toward the close. Copilot follows the call (opening, finding what
+     matters, objections, agreement, buying signals) and always shows the next step, so every answer moves the lead
+     one step closer to yes. ----- */
+  // A lead going along with you (said alone, with no objection in it): after an objection that's the moment to trial close.
+  var AGREE = /\b(yeah|yes|yep|yup|ok|okay|sure|right|true|exactly|absolutely|definitely|correct|fair enough|that'?s fair|makes sense|i hear you|i guess|i suppose|sounds (good|fair|interesting|reasonable)|i like (that|it)|interesting|not bad|good point|i agree|go on|tell me more)\b/;
+  var FLOW = {
+    open: { all: "Open: your name, {company}, why you called, in 15 seconds. Then ask a question and let them talk.",
+      investments: "Open: your name, {company}, why you called. Then: “{first}, have you ever been involved in an IPO before?” Let them talk." },
+    discover: { all: "Find what matters: what they have now, what they’d change, what it’s costing them. Then trial close.",
+      investments: "Find what matters: what they own now, how much is in the market, what they’d want from a private deal. Then trial close." },
+    objection: { all: "Answer it with the card below, then trial close: “Putting that aside, does this make sense for you?”",
+      investments: "Answer it with the card below, then trial close: “Putting the buying aside, does the idea make sense?”" },
+    isolate: { all: "Isolate it: “Other than {obj}, is there anything else stopping you from going ahead today?” If no, close." },
+    again: { all: "Same objection twice: that’s the real one. Use the new answer below, then isolate it: “If we solve that, are you in?”" },
+    trial: { all: "They’re going along with you. Trial close now. If they say yes, go straight to the close." },
+    close: { all: "Close: ask for it, then stop talking. The first one to speak loses.",
+      investments: "Close: put them down for the shares, then lock the details: how the account is titled, where to send the documents. Then stop talking." }
+  };
+  // How the objection reads in "Other than …, is there anything else…"
+  var OBJ = { price: "the price", payment: "the payment", money: "the money", think: "thinking it over", spouse: "talking it over at home", decide: "who decides", advisor: "your advisor",
+    already: "who you have now", later: "the timing", stall: "the timing", wait: "the timing", busy: "the timing", send: "the paperwork", info: "the research", trust: "trusting us",
+    number: "how I got your number", notint: "that", credit: "credit", guarantee: "the risk", conservative: "the risk", liquid: "liquidity", market: "the market", watch: "waiting to see",
+    phone: "doing it over the phone", notwork: "whether it works", bad: "what happened before", who: "who I am", realestate: "real estate", browse: "shopping around", old: "age", self: "selling it yourself" };
+  P.trial.all = [
+    R("trial-a", "Trial close", "Putting the price aside for a second, does this make sense for you?"),
+    R("trial-b", "Trial close", "On a scale of 1 to 10, where are you right now? … What would make it a 10?"),
+    R("trial-c", "Trial close", "What would you need to see to go ahead today?") ];
+  P.trial.all.forEach(function (v) { v.src = ""; v.close = ""; });
+  P.trial.noAll = ["investments"];   // the owner's floor uses his playbook's trial closes
+
+  window.VPEXElite = { v: 3, IDEAS: IDEAS, LABEL: LABEL, CLOSE: CLOSE, PLAYS: P, RULES: { investments: RULES }, MORE: MORE, OVER: OVER, BASE: BASE, AGREE: AGREE, FLOW: FLOW, OBJ: OBJ };
 })();
