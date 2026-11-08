@@ -77,7 +77,7 @@ async function boot(br, o) {
 const say = async (page, t, ms) => { await page.evaluate(t => window.__say(t), t); await page.waitForTimeout(ms || 250); };
 const panel = page => page.evaluate(() => { const el = document.getElementById('copilot'); if (!el || el.hidden) return null;
   return { head: el.querySelector('.cp-head').innerText, cards: [...el.querySelectorAll('.cp-card')].map(c => ({ text: c.innerText, tag: (c.querySelector('.cp-tag') || {}).innerText || '' })),
-    next: (el.querySelector('.el-next-t') || {}).innerText || '', brainTag: !!el.querySelector('.el-next-t .el-brain-tag'), checkLine: (el.querySelector('.el-check') || {}).innerText || '',
+    next: (el.querySelector('.mn-brain') || {}).innerText || '', brainTag: !!el.querySelector('.mn-brain .el-brain-tag'), checkLine: (el.querySelector('.el-check:not(.mn-brain)') || {}).innerText || '',
     stage: (el.querySelector('.el-steps-bar .now') || {}).textContent, brainBtn: !!el.querySelector('#elBrain') }; });
 const outside = reqs => reqs.filter(u => !/^(http:\/\/127\.0\.0\.1|data:|blob:)/.test(u) && !/gstatic|fonts\.|cloudfunctions/.test(u));
 

@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-02-08">
+<meta name="vpex-build" content="2027-02-09">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 /* Signature themes: six themes only the VPEX owner's own login can use (sig/*.css, sig.js).
@@ -9542,6 +9542,22 @@ html[data-motion="off"] #floorTv *, html[data-motion="off"] .tv-cele * { animati
 .br-prog { height: 8px; border-radius: 999px; background: var(--surface-raised); overflow: hidden; margin: 8px 0; } .br-prog span { display: block; height: 100%; width: 0; background: var(--accent); transition: width .3s; }
 .br-acts { flex-wrap: wrap; } .br-acts button { min-height: 44px; }
 .br-row { font-size: 13px; padding: 3px 0; color: var(--text); }
+.mn-title { display: flex; align-items: center; gap: 8px; font-size: 15px; } .mn-title b { flex: 1; }
+.mn-conf { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--surface-raised); color: var(--text-dim); }
+.mn-conf.c-high { color: var(--text); border: 1px solid var(--interested); } .mn-conf.c-low { border: 1px dashed var(--border); }
+.mn-say { font-size: 15px; line-height: 1.45; background: var(--surface-raised); border-radius: 10px; padding: 8px 10px; color: var(--text); }
+.mn-say > span { display: block; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 2px; }
+.mn-say-card { font-size: 13px; }
+.mn-read { font-size: 13px; line-height: 1.4; color: var(--text); display: flex; flex-direction: column; gap: 2px; } .mn-read b { color: var(--text-dim); font-weight: 600; }
+.mn-ev { display: flex; flex-wrap: wrap; gap: 4px; } .mn-ev-i { font-size: 11.5px; padding: 3px 8px; border-radius: 8px; background: var(--surface-raised); color: var(--text); }
+.mn-ev-i b { font-weight: 700; color: var(--text-dim); margin-right: 2px; } .mn-ev-i.src-heard b { color: var(--interested); } .mn-ev-i.src-unknown b { color: var(--voicemail); }
+.mn-person { display: flex; flex-wrap: wrap; gap: 4px; font-size: 12px; } .mn-person span { padding: 3px 8px; border-radius: 999px; background: var(--surface-raised); color: var(--text); }
+.mn-person i { font-style: normal; color: var(--text-dim); font-size: 10.5px; } .mn-person .mn-miss { color: var(--text); border: 1px dashed var(--voicemail); }
+.mn-band.b-ready, .mn-band.b-leaning { border: 1px solid var(--interested); font-weight: 650; } .mn-band.b-cooling, .mn-band.b-notq { border: 1px solid var(--notinterested); font-weight: 650; }
+.mn-alerts { display: flex; flex-direction: column; gap: 4px; } .mn-al { font-size: 13px; line-height: 1.35; padding: 7px 9px; border-radius: 9px; color: var(--text); }
+.mn-al.lv-stop { background: color-mix(in srgb, var(--notinterested) 16%, var(--surface)); border: 1px solid var(--notinterested); font-weight: 600; }
+.mn-al.lv-warn { background: color-mix(in srgb, var(--voicemail) 14%, var(--surface)); border: 1px solid var(--voicemail); }
+.mn-al.lv-info { background: var(--surface-raised); border: 1px dashed var(--border); }
 .el-rap-h { font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 4px; }
 .el-rap p { margin: 0 0 8px; }
 .el-note { margin-top: 6px; font-size: 12px; font-style: italic; color: var(--text-dim); }
@@ -13271,7 +13287,15 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       outcomeKey: outcome, outcome: outcomeLabel(outcome), attempt: attempt, timestamp: lead.calledAt, talk: talkFor(lead.id)
     };
     if (dialed) callEntry.alt = dialed.l || "Other";
-    if (CP.elShown && CP.elShown.length && CP.elLead === lead.id && cpElite()) { callEntry.cpv = CP.elShown.slice(0, 12); CP.elShown = []; CP.elPick = {}; CP.elLead = ""; }   // Copilot Elite: what was shown on this call
+    if (cpElite() && CP.elLead === lead.id && window.VPEXMind && ((CP.ev && CP.ev.length) || (CP.elShown && CP.elShown.length))) {   // Copilot Mind: remember this call on the lead
+      var M0 = window.VPEXMind, cats = [];
+      (CP.ev || []).forEach(function (e) { var c0 = e.kind === "obj" ? M0.CAT[e.idea] : e.kind === "buy" || e.kind === "size" ? "signal" : ""; if (c0 && cats.indexOf(c0) < 0) cats.push(c0); });
+      if (cats.length) callEntry.cpk = cats.slice(0, 8);
+      lead.cpm = M0.remember(lead.cpm, { events: CP.ev || [], shown: CP.elShown || [], stage: elFlow().stage, facts: CP.facts || [], nba: CP.nba || "" }, outcome, Date.now());
+      if (lead.cpm.t && lead.cpm.t.length > 24) lead.cpm.t = lead.cpm.t.slice(-24);
+    }
+    if (CP.elShown && CP.elShown.length && CP.elLead === lead.id && cpElite()) { callEntry.cpv = CP.elShown.slice(0, 12); }   // Copilot Elite: what was shown on this call
+    if (cpElite() && CP.elLead === lead.id) { CP.elShown = []; CP.elPick = {}; CP.elLead = ""; mindReset(); }
     if (outcome === "interested") state.lastInterested = { id: lead.id, at: Date.now() };
     if (TEAM.on && TEAM.me) {
       callEntry.by = meRef();
@@ -13616,6 +13640,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
   }
   function render() {
     migrateHot(); syncSettingsBits(); flowState(); scRefresh(); contactMigrate(); sigOwnerBits();
+    if (CP.on && CP.drawnLead !== ((currentLead() || {}).id || "")) setTimeout(cpDraw, 0);   // the dial moved to another lead: Copilot follows
     var total = totalCount();
     var done = doneCount();
     var lead = currentLead();
@@ -21438,22 +21463,27 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     if (final) found = found.concat(cpMatch(text).filter(function (m) { return m.idea === "buy"; }));
     var added = 0;
     elLeadCheck();
+    var own = final && elReady() ? cpMatch(text) : [];
     found.forEach(function (m) {
       var key = m.idea + (m.o ? "|" + m.o.id : "");
-      if (CP.last[key] && now - CP.last[key] < 25000) return;   // the same objection once, not every second while it's in the window
+      if (CP.last[key] && now - CP.last[key] < 25000) {   // the same objection once, not every second while it's in the window…
+        if (own.some(function (x) { return x.idea === m.idea; }) && m.idea !== "dnc" && m.idea !== "buy" && !(CP.ev || []).some(function (e) { return e.text === text; })) { elFlowEvent("obj", m.idea); mindEvent(m.idea === "size" ? "size" : "obj", m.idea, text, now); }   // …but said again in a new sentence, it counts
+        return;
+      }
       added++;
       cpAddCard(m, key, text, now);
       if (m.idea !== "dnc") cpAsk(CP.cards[0], win);
     });
     if (final && !added && !cpMatch(text).length && text.split(/\s+/).length >= 6 && now - (CP.askAt || 0) > 8000) cpAsk(null, text);   // something the playbook didn't catch
-    if (final && elReady()) { CP.lines = (CP.lines || []).concat([text]).slice(-12); elFlowHeard(text, found); brainAsk(text); }
+    if (final && elReady()) { CP.lines = (CP.lines || []).concat([text]).slice(-12); mindLine(text); elFlowHeard(text, found); brainAsk(text); }
     cpDraw();
   }
   function cpAddCard(m, key, text, now) {
     CP.last[key] = now;
     CP.cards = CP.cards.filter(function (c) { return c.key !== key; });
     var card = { key: key, idea: m.idea, o: m.o, own: !!m.own, at: now, said: text };
-    if (m.el || ((m.idea === "buy" || m.idea === "trial") && elReady())) { elAttach(card); elFlowEvent(m.idea === "buy" || m.idea === "size" ? "buy" : m.idea === "trial" ? "trial" : "obj", m.idea); }
+    if (m.el || ((m.idea === "buy" || m.idea === "trial" || m.idea === "close") && elReady())) { elAttach(card); elFlowEvent(m.idea === "buy" || m.idea === "size" || m.idea === "close" ? "buy" : m.idea === "trial" ? "trial" : "obj", m.idea); }
+    if (elReady()) mindEvent(m.idea === "dnc" ? "dnc" : m.idea === "buy" || m.idea === "size" || m.idea === "trial" || m.idea === "close" ? m.idea : "obj", m.idea, text || (m.o && m.o.q) || elLabel(m.idea), now);
     CP.cards.unshift(card);
     CP.cards = CP.cards.slice(0, 3); CP.min = false;
   }
@@ -21469,11 +21499,12 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
   function elReady() { return !!(window.VPEXElite && cpElite()); }
   function elLoad() {
     if (EL.load || !cpElite()) return EL.load || Promise.resolve();
-    EL.load = new Promise(function (res) {
-      if (window.VPEXElite) { res(); return; }
-      var js = document.createElement("script"); js.src = "cp-elite.js?b=" + encodeURIComponent(sigBuildTag()); js.async = true;
+    var one = function (file, have) { return new Promise(function (res) {
+      if (have()) { res(); return; }
+      var js = document.createElement("script"); js.src = file + "?b=" + encodeURIComponent(sigBuildTag()); js.async = true;
       js.onload = js.onerror = function () { res(); }; document.head.appendChild(js);
-    });
+    }); };
+    EL.load = Promise.all([one("cp-elite.js", function () { return !!window.VPEXElite; }), one("cp-mind.js", function () { return !!window.VPEXMind; })]);   // the playbook and the reasoning
     return EL.load;
   }
   function elInd() { var k = EL.ind || lsGet("vpex_el_ind") || IND_KEY; return INDUSTRIES[k] ? k : IND_KEY; }
@@ -21503,16 +21534,18 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
   }
   function elLeadCheck() {   // a new lead on the card: fresh picks, and what was shown belongs to the call just logged
     var l = currentLead(), id = l ? l.id : "";
-    if (CP.elLead !== id) { CP.elLead = id; CP.elPick = {}; CP.elShown = []; CP.elSeen = {}; CP.flow = null; }
+    if (CP.elLead !== id) { var had = CP.elLead !== undefined; CP.elLead = id; CP.elPick = {}; CP.elShown = []; CP.elSeen = {}; CP.flow = null; mindReset();
+      if (had) { CP.cards = []; CP.last = {}; CP.heard = []; CP.interim = ""; CP.lines = []; }   // a new person on the card: a clean slate (memory comes from their record)
+    }
   }
   function elAttach(card) {   // the answer (and close) for this objection; heard again on the same call, a different answer
-    var idea = card.idea, pick = CP.elPick || (CP.elPick = {}), seen = CP.elSeen || (CP.elSeen = {});
+    var idea = card.idea, pid = idea === "close" ? "buy" : idea, pick = CP.elPick || (CP.elPick = {}), seen = CP.elSeen || (CP.elSeen = {});
     if (pick[idea] && seen[idea]) {
-      var other = elPool(idea).filter(function (x) { return x.id !== pick[idea].id; });
+      var other = elPool(pid).filter(function (x) { return x.id !== pick[idea].id; });
       if (other.length) { pick[idea] = elChoose(other); card.again = true; }
     }
     seen[idea] = 1;
-    if (!pick[idea]) pick[idea] = elChoose(elPool(idea));
+    if (!pick[idea]) { var pool = elPool(pid), lead0 = currentLead(), heard0 = lead0 && lead0.cpm && lead0.cpm.t || [], fresh = pool.filter(function (x) { return heard0.indexOf(x.id) < 0; }); pick[idea] = elChoose(fresh.length ? fresh : pool); }
     var v = pick[idea]; if (!v) return;
     var cl = null;
     if (v.close === undefined) { if (!pick._close) pick._close = elChoose((window.VPEXElite.CLOSE[elInd()] || []).slice()); cl = pick._close; }
@@ -21534,10 +21567,80 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     if (cpMatch(text).length) return;   // this sentence was an objection or a buying signal: its card already moved the flow
     var t = " " + String(text || "").toLowerCase().replace(/[’]/g, "'").replace(/[^a-z0-9' ]+/g, " ").replace(/\s+/g, " ") + " ";
     if (brainOn()) return;   // the brain reads agreement and the stage from the whole call
-    if (E.AGREE && E.AGREE.test(t)) elFlowEvent("agree");
-    else if (f.stage === "open" && t.split(" ").length >= 8 && ++f.said >= 2) f.stage = "discover";   // they're talking: find what matters
+    if (E.AGREE && E.AGREE.test(t)) { elFlowEvent("agree"); mindEvent("agree", "", text); mindLeadLine(text); }
+    else if (f.stage === "open" && t.split(" ").length >= 8 && ++f.said >= 2) { f.stage = "discover"; CP.discovered = true; }   // they're talking: find what matters
+  }
+  /* ----- Copilot Mind (cp-mind.js): the reasoning. Events from the call + what VPEX knows about the lead + memory from
+     earlier calls → where the deal is, what's really going on and why, what's missing, and the single best next move
+     (what's happening · why · do · say · aim), every piece labeled heard / on record / a guess / unknown. ----- */
+  var REP_RE = /\b(my name is|this is \w+ (with|from)|i'?m calling (from|about|because)|the reason (i'?m|i am) calling|i'?ll put you down|let me (ask|tell|show|send) you|we specialize|our firm|i'?d suggest|what i'?d recommend|nobody can promise|here'?s why we like|you'?ll receive|i'?ll send you)\b/;
+  function mindReset() { CP.ev = []; CP.leadLines = []; CP.repLines = []; CP.discovered = false; CP.facts = []; }
+  function mindEvent(kind, idea, text, at) {
+    if (!elReady()) return;
+    (CP.ev || (CP.ev = [])).push({ kind: kind, idea: idea || "", text: String(text || "").slice(0, 160), at: at || Date.now() });
+    if (CP.ev.length > 60) CP.ev = CP.ev.slice(-60);
+    if (kind === "obj" || kind === "buy" || kind === "size") mindLeadLine(text);
+    if (kind === "agree") CP.discovered = true;
+  }
+  function mindLeadLine(t) { if (!t) return; var a = CP.leadLines || (CP.leadLines = []); if (a.indexOf(t) < 0) a.push(String(t).slice(0, 200)); if (a.length > 20) a.shift(); if (a.length >= 2) CP.discovered = true; }
+  function mindRepLine(t) { if (!t) return; var a = CP.repLines || (CP.repLines = []); if (a.indexOf(t) < 0) a.push(String(t).slice(0, 300)); if (a.length > 20) a.shift(); }
+  function mindLine(text) {   // without the brain, a line that reads like the rep (introducing, asking for the order, promising) counts as the rep's
+    var t = " " + String(text || "").toLowerCase() + " ", M = window.VPEXMind; if (!M) return;
+    var question = /^ (is|will|can|could|does|do|what|how) /.test(t) || /\b(is it|will it|can i|could i|would i)\b/.test(t);
+    if (REP_RE.test(t) || M.CLOSE_RE.test(t) || (M.PROMISE.test(t) && !question)) mindRepLine(text);
+  }
+  var MIND_IDEAOF = null;
+  function mindCtx() {
+    var M = window.VPEXMind, E = window.VPEXElite, lead = currentLead(), ind = elInd(), f = elFlow();
+    if (!MIND_IDEAOF && E) { MIND_IDEAOF = {}; Object.keys(E.PLAYS).forEach(function (k) { Object.keys(E.PLAYS[k]).forEach(function (fl) { (Array.isArray(E.PLAYS[k][fl]) ? E.PLAYS[k][fl] : []).forEach(function (v) { if (v && v.id && !MIND_IDEAOF[v.id]) MIND_IDEAOF[v.id] = k; }); }); }); }
+    var labels = {}; Object.keys((E || {}).PLAYS || {}).forEach(function (k) { labels[k] = elLabel(k); });
+    var counts = {}; (CP.ev || []).forEach(function (e) { if (e.kind === "obj") counts[e.idea] = (counts[e.idea] || 0) + 1; });
+    return { ind: ind, now: Date.now(), lead: mindLead(lead), mem: (lead && lead.cpm) || {},
+      call: { stage: f.stage, events: CP.ev || [], lines: CP.lines || [], leadLines: CP.leadLines || [], repLines: CP.repLines || [], counts: counts, objs: f.objs || [], again: f.again || "",
+        discovered: !!CP.discovered, brain: brainOn(), shown: CP.elShown || [] },
+      objName: (E && E.OBJ) || {}, objLabel: labels, ideaOf: MIND_IDEAOF || {} };
+  }
+  function mindMoney(v) { var m = String(v || "").replace(/,/g, "").match(/\$?\s*(\d+(?:\.\d+)?)\s*(k|m|million|thousand)?/i); if (!m) return 0; var n = +m[1], u = (m[2] || "").toLowerCase(); return n * (u === "k" || u === "thousand" ? 1e3 : u === "m" || u === "million" ? 1e6 : 1); }
+  function mindLead(lead) {
+    if (!lead) return { qf: {} };
+    var calls = callsForLead(lead.id), labels = {}, ni = nextInfo(lead), t = ni.t;
+    qFields().forEach(function (q) { labels[q.k] = q.l; });
+    var last = calls[calls.length - 1];
+    return { first: textFirstName(lead.name), stage: lead.stage || "New Lead", outcome: lead.outcome || "", calls: calls.length, qf: lead.qf || {}, qfLabels: labels,
+      reached: calls.some(function (c) { return CONTACT_OUTCOMES[c.outcomeKey]; }), interestedBefore: calls.some(function (c) { return c.outcomeKey === "interested"; }),
+      lastCallAt: last ? new Date(last.timestamp).getTime() : 0, prog: lead.prog || {}, track: (INDUSTRIES[IND_KEY] || {}).track || [], amount: Number(lead.amount) || 0,
+      checkValue: mindMoney((lead.qf || {}).check), dnc: isDnc(lead), stalled: !!lead.stalled,
+      nextTask: t ? { what: ni.what, over: ni.st === "over", lateDays: ni.late || 0, when: ni.when } : null };
+  }
+  var MIND_SRC = { heard: "Heard", record: "On record", inferred: "Guess", unknown: "Unknown", ai: "AI heard" };
+  function mindEvHtml(list) {
+    return (list || []).slice(0, 4).map(function (e) { return '<span class="mn-ev-i src-' + (e.src || "inferred") + '"><b>' + (MIND_SRC[e.src] || "Guess") + '</b> ' + escapeHtml(e.t) + '</span>'; }).join("");
+  }
+  function mindNowHtml(lead) {
+    var M = window.VPEXMind; if (!M) return "";
+    var ctx = mindCtx(), p = M.plan(ctx), g = M.progress(ctx), who = M.readPerson(ctx.call.leadLines), al = M.alerts(ctx), f = elFlow();
+    CP.nba = p.kind;
+    var steps = ["open", "discover", "objection", "trial", "close"], at = steps.indexOf(f.stage);
+    var byBrain = !!(brainOn() && f.brainNext);
+    var h = '<div class="el-next mn" role="status"><div class="el-steps-bar" aria-label="Where the call is">' + ["Open", "Find", "Handle", "Trial", "Close"].map(function (n, i) {
+      return '<span class="' + (i < at ? 'done' : i === at ? 'now' : '') + '">' + n + '</span>'; }).join("") + '</div>';
+    if (al.length) h += '<div class="mn-alerts">' + al.slice(0, 2).map(function (a) { return '<div class="mn-al lv-' + a.level + '" role="alert">' + escapeHtml(a.t) + '</div>'; }).join("") + '</div>';
+    h += '<div class="mn-title"><b>' + escapeHtml(p.title) + '</b><span class="mn-conf c-' + p.confidence + '">' + ({ high: "Clear", medium: "Likely", low: "Unsure" }[p.confidence] || "") + '</span></div>' +
+      '<div class="el-next-t"><b>Do:</b> ' + escapeHtml(p.do) + '</div>' +
+      (p.say ? '<div class="mn-say"><span>Say</span>' + scFillHtml(p.say, lead).replace(/^<p>|<\/p>$/g, "") + '</div>' : p.card ? '<div class="mn-say mn-say-card"><span>Say</span>The answer below' + (p.after ? '. ' + escapeHtml(p.after) : '') + '</div>' : '') +
+      '<div class="mn-read"><div><b>What\u2019s happening:</b> ' + escapeHtml(p.what) + '</div><div><b>Why:</b> ' + escapeHtml(p.why) + '</div><div><b>Aim:</b> ' + escapeHtml(p.aim) + '</div></div>' +
+      (p.evidence && p.evidence.length ? '<div class="mn-ev">' + mindEvHtml(p.evidence) + '</div>' : '') +
+      (byBrain ? '<div class="el-check mn-brain"><b><span class="el-brain-tag">Brain</span></b> ' + escapeHtml(f.brainNext) + '</div>' : '') +
+      (brainOn() && f.brainCheck ? '<div class="el-check"><b>Your last line:</b> ' + escapeHtml(f.brainCheck) + '</div>' : '') +
+      '<div class="mn-person"><span class="mn-band b-' + g.band + '">' + escapeHtml(g.label) + '</span>' +
+        (who.style ? '<span title="' + escapeHtml(who.style.tip) + '">' + escapeHtml(who.style.label) + ' <i>guess</i></span>' : '') +
+        (who.soph ? '<span title="' + escapeHtml(who.soph.tip) + '">' + escapeHtml(who.soph.label) + ' <i>guess</i></span>' : '') +
+        who.motives.map(function (m) { return '<span>' + escapeHtml(m.label) + ' <i>heard</i></span>'; }).join("") + (g.sure ? '<span class="mn-miss">' + escapeHtml(g.sure) + '</span>' : '') + '</div>' +
+      '<div class="el-next-b">' + (elPool("trial").length ? '<button type="button" data-el-act="trial">Trial close</button>' : '') + '<button type="button" class="go" data-el-act="close">Close now</button></div></div>';
+    return h;
   }
   function elNextHtml(lead) {
+    if (window.VPEXMind) return mindNowHtml(lead);
     var E = window.VPEXElite, F = E.FLOW || {}, f = elFlow(), ind = elInd();
     var key = f.stage === "objection" ? (f.again ? "again" : f.objs.length >= 2 ? "isolate" : "objection") : f.stage;
     var row = F[key] || F.open, txt = (row[ind] || row.all || "").replace(/\{obj\}/g, (E.OBJ || {})[f.last] || "that");
@@ -21601,7 +21704,10 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
           var m = r.move === "buy" ? { idea: "buy" } : { idea: r.move, o: { id: "el-" + r.move, q: elLabel(r.move) }, el: true };
           cpAddCard(m, key, text, now); CP.cards[0].brain = true;
         }
-      } else if (r.move === "agree") elFlowEvent("agree");
+      } else if (r.move === "agree") { elFlowEvent("agree"); mindEvent("agree", "", text); }
+      if (r.speaker === "rep") { mindRepLine(text); CP.leadLines = (CP.leadLines || []).filter(function (l) { return l !== text; }); }
+      else if (r.speaker === "lead" && r.move !== "none") mindLeadLine(text);
+      if (r.stage === "discover" || r.stage === "objection" || r.stage === "trial" || r.stage === "close") CP.discovered = true;
       if (r.stage) f.stage = r.stage;
       f.brainNext = r.next && !BRAIN_BAN.test(r.next) ? r.next : "";
       f.brainCheck = r.speaker === "rep" && r.check && !BRAIN_BAN.test(r.check) ? r.check : "";
@@ -21667,9 +21773,9 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     return s.n < EL_MIN ? "Still testing \u00b7 " + s.n + " of " + EL_MIN + " calls" : "Wins " + Math.round(s.w / s.n * 100) + "% \u00b7 " + s.n + " calls";
   }
   function elCardHtml(c, i, lead) {
-    var e = c.el, v = e.v, buy = c.idea === "buy";
+    var e = c.el, v = e.v, buy = c.idea === "buy" || c.idea === "close";
     var h = '<div class="cp-card el' + (buy ? ' buy' : '') + (v.rap ? ' rap' : '') + (i ? ' old' : ' new') + '"' + (i ? '' : ' role="status"') + '><h4>' +
-      (buy ? '<b>Buying signal.</b> Close now.' : c.idea === "trial" ? '<b>Trial close.</b> Test the water.' : (c.again ? 'Again, a new answer. ' : '') + 'They said: <b>\u201c' + escapeHtml(String(c.o.q).replace(/^["\u201c\u201d]+|["\u201c\u201d]+$/g, "")) + '\u201d</b>') + '</h4>';
+      (c.idea === "close" ? '<b>Your close.</b> Ask, then stop talking.' : buy ? '<b>Buying signal.</b> Close now.' : c.idea === "trial" ? '<b>Trial close.</b> Test the water.' : (c.again ? 'Again, a new answer. ' : '') + 'They said: <b>\u201c' + escapeHtml(String(c.o.q).replace(/^["\u201c\u201d]+|["\u201c\u201d]+$/g, "")) + '\u201d</b>') + '</h4>';
     if (v.rap) h += '<div class="el-rap-h">' + escapeHtml(v.m) + '</div><div class="sc-say el-rap">' + scFillHtml(v.rap, lead) + '</div>';   // a rap from the owner's own playbook: said as written
     else { h += '<ol class="el-steps">'; v.steps.forEach(function (st) { h += '<li><span class="el-k">' + escapeHtml(st[0]) + '</span><div class="sc-say">' + scFillHtml(st[1], lead) + '</div></li>'; }); h += '</ol>'; }
     if (v.note) h += '<div class="el-note">' + scFillHtml(v.note, lead) + '</div>';
@@ -21690,7 +21796,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
   }
   function elTap(idea) {
     elLeadCheck();
-    var m = idea === "buy" ? { idea: "buy" } : { idea: idea, o: { id: "el-" + idea, q: elLabel(idea) }, el: true };
+    var m = idea === "buy" || idea === "close" ? { idea: idea } : { idea: idea, o: { id: "el-" + idea, q: elLabel(idea) }, el: true };
     var key = idea + (m.o ? "|" + m.o.id : "");
     if (CP.elSeen && CP.elSeen[idea]) key += "|" + Date.now();   // tapped again: show the next answer
     cpAddCard(m, key, "", Date.now());
@@ -21743,6 +21849,8 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
   }
   function cpDraw() {
     var el = document.getElementById("copilot"); if (!el) return;
+    CP.drawnLead = (currentLead() || {}).id || "";
+    if (elReady() && CP.on) elLeadCheck();
     var lead = currentLead(), live = CP.on && !CP.err, heard = CP.heard.map(function (h) { return h.t; }).concat(CP.interim ? [CP.interim] : []).join(" "), elite = elReady();
     var h = '<div class="cp-head"><span class="cp-dot' + (live && !CP.tap ? ' on' : '') + '" aria-hidden="true"></span><b>Copilot' + (elite ? ' <span class="el-badge">Elite</span>' : '') + '<small>' + (CP.err ? "Stopped" : CP.tap && CP.on ? "Tap mode \u00b7 nothing is heard or saved" : live ? "Listening on this device" + (brainOn() ? " \u00b7 Brain on" : "") + (cpAiOn() ? " \u00b7 AI on" : "") : "Off") + '</small></b>' +
       (DESK.on ? '' : '<button type="button" id="cpMin" aria-expanded="' + !CP.min + '" aria-label="' + (CP.min ? "Show Copilot" : "Shrink Copilot") + '">' + (CP.min ? "\u25b4" : "\u25be") + '</button>') +
@@ -21802,13 +21910,14 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
         if (e.target.closest("#cpStop")) { if (CP.on) cpStop(); else { el.hidden = true; } return; }
         if (e.target.closest("#cpMin")) { CP.min = !CP.min; cpDraw(); return; }
         var t = e.target.closest("[data-el-say]"); if (t) { elTap(t.getAttribute("data-el-say")); return; }
+        var a = e.target.closest("[data-el-act]"); if (a) { elTap(a.getAttribute("data-el-act")); return; }   // the rep's own move: trial close, close
         if (e.target.closest("#elRes")) { openElResults(); return; }
         if (e.target.closest("#elBrain")) { openBrain(); return; }
         var d = e.target.closest("[data-cp-dnc]"); if (d) { var l = findLeadById(d.getAttribute("data-cp-dnc")); if (l) toggleLeadDnc(l); }
       });
       document.body.appendChild(el);
     }
-    el.hidden = false; CP.on = true; CP.tap = tap; CP.flow = null; CP.elSeen = {}; CP.lines = []; CP.err = ""; CP.cards = []; CP.heard = []; CP.interim = ""; CP.last = {}; CP.started = Date.now();
+    el.hidden = false; CP.on = true; CP.tap = tap; CP.flow = null; CP.elSeen = {}; CP.lines = []; mindReset(); CP.err = ""; CP.cards = []; CP.heard = []; CP.interim = ""; CP.last = {}; CP.started = Date.now();
     el.classList.toggle("cp-tap", tap);
     if (!tap) cpListen();
     cpDraw(); render();
