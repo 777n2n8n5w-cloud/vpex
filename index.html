@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-02-07">
+<meta name="vpex-build" content="2027-02-08">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 /* Signature themes: six themes only the VPEX owner's own login can use (sig/*.css, sig.js).
@@ -9518,7 +9518,8 @@ html[data-motion="off"] #floorTv *, html[data-motion="off"] .tv-cele * { animati
 /* Copilot Elite (owner only): four-step answers, tap chips, playbook picker, what wins */
 .el-badge { display: inline-block; vertical-align: 2px; margin-left: 4px; padding: 1px 7px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: .04em; background: var(--gold, #c9a227); color: #1a1405; }
 .el-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--text-dim); }
-.el-bar label { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; }
+.el-bar label { display: flex; align-items: center; gap: 6px; flex: 1 1 100%; min-width: 0; }
+.el-bar > button { flex: 1 1 0; }
 .el-bar select { min-height: 44px; flex: 1; min-width: 0; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-raised); color: var(--text); font: inherit; font-size: 14px; padding: 0 8px; }
 .el-bar button { min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-raised); color: var(--text); font: inherit; font-size: 14px; cursor: pointer; }
 .el-chips { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -9535,6 +9536,12 @@ html[data-motion="off"] #floorTv *, html[data-motion="off"] .tv-cele * { animati
 .el-next-t { font-size: 14px; line-height: 1.4; } .el-next-t p { margin: 0; display: inline; }
 .el-next-b { display: flex; gap: 8px; } .el-next-b button { flex: 1; min-height: 44px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-raised); color: var(--text); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
 .el-next-b button.go { border-color: var(--interested); background: color-mix(in srgb, var(--interested) 16%, var(--surface)); }
+.el-bar button.on { border-color: var(--interested); }
+.el-brain-tag { display: inline-block; padding: 0 6px; border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; vertical-align: 1px; background: var(--gold, #c9a227); color: #1a1405; }
+.el-check { font-size: 13px; color: var(--text); background: var(--surface-raised); border-radius: 8px; padding: 6px 8px; } .el-check b { color: var(--text-dim); font-weight: 600; }
+.br-prog { height: 8px; border-radius: 999px; background: var(--surface-raised); overflow: hidden; margin: 8px 0; } .br-prog span { display: block; height: 100%; width: 0; background: var(--accent); transition: width .3s; }
+.br-acts { flex-wrap: wrap; } .br-acts button { min-height: 44px; }
+.br-row { font-size: 13px; padding: 3px 0; color: var(--text); }
 .el-rap-h { font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 4px; }
 .el-rap p { margin: 0 0 8px; }
 .el-note { margin-top: 6px; font-size: 12px; font-style: italic; color: var(--text-dim); }
@@ -21393,6 +21400,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
   function cpMatch(text) {   // what the lead just said → { idea, o } (or a do-not-call request)
     var t = " " + String(text || "").toLowerCase().replace(/[’]/g, "'").replace(/[^a-z0-9' ]+/g, " ").replace(/\s+/g, " ") + " ", out = [];
     var E = elReady() ? window.VPEXElite : null, ideas = E ? CP_IDEAS.slice(0, -2).concat(E.IDEAS, CP_IDEAS.slice(-2)) : CP_IDEAS;
+    if (E && E.NORM) t = " " + E.NORM.reduce(function (a, r) { return a.replace(r[0], r[1]); }, t).replace(/\s+/g, " ").trim() + " ";   // gonna → going to, um, 401 k …
     var seenIdea = {};
     ideas.forEach(function (x) {
       var re = E && E.BASE && E.BASE[x[0]] || x[1];
@@ -21406,6 +21414,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       else if (CP_PLAY[x[0]]) out.push({ idea: x[0], o: { id: "play-" + x[0], q: CP_LABEL[x[0]] || x[0], a: CP_PLAY[x[0]].say } });
       else if (CP_BASE[x[0]]) out.push({ idea: x[0], o: { id: "base-" + x[0], q: CP_BASE[x[0]][0], a: CP_BASE[x[0]][1] } });
     });
+    if (E && E.NEG) out = out.filter(function (x) { return !(E.NEG[x.idea] && E.NEG[x.idea].test(t)); });   // "it's NOT too expensive" isn't the price objection
     if (out.some(function (x) { return x.idea !== "buy" && x.idea !== "dnc"; })) out = out.filter(function (x) { return x.idea !== "buy"; });   // an objection first; the close comes with its answer
     if (E) {   // the elite playbook's sharper reading wins over the general one it overlaps
       var has = {}; out.forEach(function (x) { has[x.idea] = 1; });
@@ -21437,14 +21446,14 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       if (m.idea !== "dnc") cpAsk(CP.cards[0], win);
     });
     if (final && !added && !cpMatch(text).length && text.split(/\s+/).length >= 6 && now - (CP.askAt || 0) > 8000) cpAsk(null, text);   // something the playbook didn't catch
-    if (final && elReady()) elFlowHeard(text, found);
+    if (final && elReady()) { CP.lines = (CP.lines || []).concat([text]).slice(-12); elFlowHeard(text, found); brainAsk(text); }
     cpDraw();
   }
   function cpAddCard(m, key, text, now) {
     CP.last[key] = now;
     CP.cards = CP.cards.filter(function (c) { return c.key !== key; });
     var card = { key: key, idea: m.idea, o: m.o, own: !!m.own, at: now, said: text };
-    if (m.el || ((m.idea === "buy" || m.idea === "trial") && elReady())) { elAttach(card); elFlowEvent(m.idea === "buy" ? "buy" : m.idea === "trial" ? "trial" : "obj", m.idea); }
+    if (m.el || ((m.idea === "buy" || m.idea === "trial") && elReady())) { elAttach(card); elFlowEvent(m.idea === "buy" || m.idea === "size" ? "buy" : m.idea === "trial" ? "trial" : "obj", m.idea); }
     CP.cards.unshift(card);
     CP.cards = CP.cards.slice(0, 3); CP.min = false;
   }
@@ -21514,7 +21523,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
   // Following the call: where it is (open → discover → objection → trial → close) and the next move toward the close.
   function elFlow() { return CP.flow || (CP.flow = { stage: "open", objs: [], said: 0, at: Date.now() }); }
   function elFlowEvent(kind, idea) {
-    var f = elFlow(); f.at = Date.now();
+    var f = elFlow(); f.at = Date.now(); if (!CP.brainApplying) f.brainNext = "";
     if (kind === "obj") { f.again = f.objs.indexOf(idea) >= 0 ? idea : ""; if (!f.again) f.objs.push(idea); f.last = idea; f.stage = "objection"; }
     else if (kind === "buy") f.stage = "close";
     else if (kind === "trial") f.stage = "trial";
@@ -21524,6 +21533,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     var E = window.VPEXElite, f = elFlow();
     if (cpMatch(text).length) return;   // this sentence was an objection or a buying signal: its card already moved the flow
     var t = " " + String(text || "").toLowerCase().replace(/[’]/g, "'").replace(/[^a-z0-9' ]+/g, " ").replace(/\s+/g, " ") + " ";
+    if (brainOn()) return;   // the brain reads agreement and the stage from the whole call
     if (E.AGREE && E.AGREE.test(t)) elFlowEvent("agree");
     else if (f.stage === "open" && t.split(" ").length >= 8 && ++f.said >= 2) f.stage = "discover";   // they're talking: find what matters
   }
@@ -21531,11 +21541,126 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     var E = window.VPEXElite, F = E.FLOW || {}, f = elFlow(), ind = elInd();
     var key = f.stage === "objection" ? (f.again ? "again" : f.objs.length >= 2 ? "isolate" : "objection") : f.stage;
     var row = F[key] || F.open, txt = (row[ind] || row.all || "").replace(/\{obj\}/g, (E.OBJ || {})[f.last] || "that");
+    var byBrain = !!(brainOn() && f.brainNext); if (byBrain) txt = f.brainNext;
     var steps = ["open", "discover", "objection", "trial", "close"], at = steps.indexOf(f.stage);
     return '<div class="el-next" role="status"><div class="el-steps-bar" aria-label="Where the call is">' + ["Open", "Find", "Handle", "Trial", "Close"].map(function (n, i) {
       return '<span class="' + (i < at ? 'done' : i === at ? 'now' : '') + '">' + n + '</span>'; }).join("") + '</div>' +
-      '<div class="el-next-t"><b>Next:</b> ' + scFillHtml(txt, lead).replace(/^<p>|<\/p>$/g, "") + '</div>' +
+      '<div class="el-next-t"><b>Next' + (byBrain ? ' <span class="el-brain-tag">Brain</span>' : '') + ':</b> ' + scFillHtml(txt, lead).replace(/^<p>|<\/p>$/g, "") + '</div>' +
+      (brainOn() && f.brainCheck ? '<div class="el-check"><b>Your last line:</b> ' + escapeHtml(f.brainCheck) + '</div>' : '') +
       '<div class="el-next-b">' + (elPool("trial").length ? '<button type="button" data-el-say="trial">Trial close</button>' : '') + '<button type="button" class="go" data-el-say="buy">Close now</button></div></div>';
+  }
+  /* ----- Copilot Brain (owner only, on a computer): an AI on this computer follows the whole call, the rep and the lead
+     (cp-brain.js). It tells who said each line, what the lead is really doing even in words no keyword catches, where
+     the call is and the next move toward the close. Free and private: nothing said on the call leaves the computer.
+     The keyword engine still answers instantly; the brain adds what it missed, drops cards set off by the rep's own
+     words, and writes the Next line. ----- */
+  var BR = { load: null, busy: false, pending: "", applying: false };
+  function brainOn() { return !!(window.VPEXBrain && window.VPEXBrain.info().state === "on" && cpElite() && !CP.tap); }
+  function brainLoad() {
+    if (BR.load || !cpElite()) return BR.load || Promise.resolve();
+    BR.load = new Promise(function (res) {
+      if (window.VPEXBrain) { res(); return; }
+      var js = document.createElement("script"); js.src = "cp-brain.js?b=" + encodeURIComponent(sigBuildTag()); js.async = true;
+      js.onload = js.onerror = function () { res(); }; document.head.appendChild(js);
+    });
+    return BR.load;
+  }
+  function brainResume() {   // turned on before: start again quietly (already downloaded, so no tap needed)
+    var pref = lsGet("vpex_brain"); if (!pref || pref === "off") return;
+    brainLoad().then(function () {
+      if (!window.VPEXBrain || window.VPEXBrain.info().state !== "off") { cpDraw(); return; }
+      window.VPEXBrain.start(pref).then(function () { cpDraw(); }, function () { cpDraw(); });
+    });
+  }
+  function brainCtx(lines) {
+    var E = window.VPEXElite, ids = Object.keys(E.PLAYS).filter(function (k) { return k !== "buy" && k !== "trial" && elPool(k).length; });
+    return { floor: INDUSTRIES[elInd()].name.toLowerCase(), ideas: ids.map(function (k) { return [k, elLabel(k).replace(/[.]$/, "")]; }), lines: lines, stage: CP.flow ? CP.flow.stage : "open" };
+  }
+  var BRAIN_BAN = /guarantee|risk[- ]?free|can'?t lose|double your|promis(e|ed) (you )?(a )?(return|profit)|act now|today only|last chance|before it'?s too late/i;
+  function brainAsk(text) {
+    if (!brainOn() || !String(text || "").trim()) return;
+    if (BR.busy) { BR.pending = text; return; }   // one at a time; the newest line waiting goes next
+    BR.busy = true;
+    var startedFor = CP.started, lines = (CP.lines || []).slice();
+    window.VPEXBrain.judge(brainCtx(lines)).then(function (r) { if (r && CP.on && CP.started === startedFor) brainApply(r, text); }, function () {})
+      .then(function () { BR.busy = false; if (BR.pending) { var p = BR.pending; BR.pending = ""; brainAsk(p); } });
+  }
+  function brainApply(r, text) {
+    var now = Date.now(), f = elFlow();
+    CP.brainApplying = true;
+    try {
+      if (r.speaker === "rep") {   // the rep's own words set off a card: take it back
+        var gone = CP.cards.filter(function (c) { return !c.brain && c.said === text && now - c.at < 20000; });
+        if (gone.length) {
+          CP.cards = CP.cards.filter(function (c) { return gone.indexOf(c) < 0; });
+          gone.forEach(function (c) { if (c.el) CP.elShown = (CP.elShown || []).filter(function (id) { return id !== c.el.v.id && id !== c.el.closeId || CP.cards.some(function (k) { return k.el && (k.el.v.id === id || k.el.closeId === id); }); }); });
+        }
+      } else if (r.move === "buy" || (r.move !== "agree" && r.move !== "question" && r.move !== "none" && elPool(r.move).length)) {
+        var key = r.move === "buy" ? "buy" : r.move + "|el-" + r.move;
+        if (!(CP.last[key] && now - CP.last[key] < 25000)) {   // the keywords missed it
+          var m = r.move === "buy" ? { idea: "buy" } : { idea: r.move, o: { id: "el-" + r.move, q: elLabel(r.move) }, el: true };
+          cpAddCard(m, key, text, now); CP.cards[0].brain = true;
+        }
+      } else if (r.move === "agree") elFlowEvent("agree");
+      if (r.stage) f.stage = r.stage;
+      f.brainNext = r.next && !BRAIN_BAN.test(r.next) ? r.next : "";
+      f.brainCheck = r.speaker === "rep" && r.check && !BRAIN_BAN.test(r.check) ? r.check : "";
+    } finally { CP.brainApplying = false; }
+    cpDraw();
+  }
+  var BRAIN_TEST = [
+    ["Hi, this is Mike with {company}, how are you doing today?", "rep", ""],
+    ["Honestly that sounds like way too much money for me", "lead", "price"],
+    ["I'd have to talk it over with my wife before I do anything", "lead", "spouse"],
+    ["I got burned pretty bad by a broker a few years back", "lead", "bad"],
+    ["Look, I'm slammed, you've got about a minute", "lead", "busy"],
+    ["Okay so what's the minimum to get in on this?", "lead", "buy"],
+    ["I hear you. Putting the price aside for a second, does the idea make sense?", "rep", ""],
+    ["Yeah, I guess that makes sense", "lead", "agree"]
+  ];
+  function openBrain() {
+    var b = featOpen('<h3>Copilot Brain</h3><p class="modal-sub">An AI on this computer that follows the whole call, what you say and what the client says, even in words no keyword list catches. It tells Copilot who said what, which answer to show and your next move toward the close. Free, and private: nothing said on the call leaves this computer.</p>' +
+      '<div class="li-box" id="brStat"><b>This computer</b>Checking\u2026</div><div class="br-prog" id="brProg" hidden><span></span></div><p class="modal-sub" id="brMsg" role="status"></p>' +
+      '<div class="modal-actions br-acts"><button class="btn-primary" id="brOn">Turn on the brain</button><button class="btn-secondary" id="brTest">Test it</button><button class="btn-secondary" id="brOff">Turn off</button></div>' +
+      '<div id="brRes"></div><p class="modal-sub">Works on a computer with the call on speaker (Chrome or Edge). On a phone Copilot can\u2019t hear the call, so it stays on tap mode.</p>');
+    var stat = document.getElementById("brStat"), msg = document.getElementById("brMsg"), prog = document.getElementById("brProg");
+    var show = function () {
+      var on = brainOn(), inf = window.VPEXBrain ? window.VPEXBrain.info() : {};
+      document.getElementById("brOn").hidden = on; document.getElementById("brOff").hidden = !on; document.getElementById("brTest").hidden = !on;
+      return inf;
+    };
+    brainLoad().then(function () {
+      if (!window.VPEXBrain) { stat.innerHTML = '<b>This computer</b>Couldn\u2019t load the brain. Check your connection and try again.'; return; }
+      window.VPEXBrain.check().then(function (c) {
+        var inf = show();
+        var bi = { available: "ready", downloadable: "can download it (Chrome does it once, about 4 GB)", downloading: "downloading now", unavailable: "not on this computer", none: "not in this browser (needs Chrome 148 or newer)" }[c.builtin] || "not available";
+        stat.innerHTML = '<b>This computer</b>' + (inf.state === "on" ? 'Brain is on: ' + escapeHtml(inf.model) + '.<br>' : '') +
+          'Chrome\u2019s built-in AI (Gemini Nano): ' + escapeHtml(bi) + '.<br>Open model in the browser (Qwen3): ' + (c.gpu ? 'can run here (downloads once, about 1 GB)' : 'needs Chrome or Edge with a graphics chip it can use') + '.';
+        BR.cap = c;
+      });
+    });
+    document.getElementById("brOn").addEventListener("click", function () {
+      var c = BR.cap || {}, pref = ["available", "downloadable", "downloading"].indexOf(c.builtin) >= 0 ? "builtin" : c.gpu ? "webllm" : "";
+      if (!pref) { msg.textContent = "This computer can\u2019t run the brain. Use Chrome on a recent Windows, Mac or Linux computer."; return; }
+      prog.hidden = false; msg.textContent = "Starting\u2026 the first time it downloads the model, then it\u2019s instant.";
+      window.VPEXBrain.start(pref, function (p) { var pc = Math.round((p || 0) * 100); prog.firstChild.style.width = pc + "%"; msg.textContent = "Downloading the brain\u2026 " + pc + "%"; })
+        .then(function () { lsSet("vpex_brain", window.VPEXBrain.info().kind); prog.hidden = true; msg.textContent = "Brain is on: " + window.VPEXBrain.info().model + ". Tap Test it to check it on a few lines."; show(); cpDraw(); },
+          function (e) { prog.hidden = true; msg.textContent = "Couldn\u2019t start the brain on this computer (" + String(e && e.message || e).slice(0, 80) + ")."; });
+    });
+    document.getElementById("brOff").addEventListener("click", function () { window.VPEXBrain.stop(); lsSet("vpex_brain", "off"); msg.textContent = "Brain is off. Copilot uses its keywords."; show(); cpDraw(); });
+    document.getElementById("brTest").addEventListener("click", function () {
+      var out = document.getElementById("brRes"), right = 0, ms = 0, rows = [], lines = [], i = 0;
+      out.innerHTML = '<p class="modal-sub">Testing 8 lines\u2026</p>';
+      var next = function () {
+        if (i >= BRAIN_TEST.length) { out.innerHTML = '<div class="li-box"><b>' + right + ' of ' + BRAIN_TEST.length + ' right \u00b7 about ' + (Math.round(ms / BRAIN_TEST.length / 100) / 10) + ' s a line</b>' + rows.join("") + '</div>'; return; }
+        var t = BRAIN_TEST[i++], line = t[0].replace("{company}", currentCompany() || "our firm"); lines.push(line);
+        window.VPEXBrain.judge(brainCtx(lines.slice())).then(function (r) {
+          var ok = r && r.speaker === t[1] && (!t[2] || r.move === t[2]); if (ok) right++; ms += r && r.ms || 0;
+          rows.push('<div class="br-row">' + (ok ? '\u2713' : '\u2717') + ' \u201c' + escapeHtml(line) + '\u201d \u2192 ' + escapeHtml(r ? r.speaker + ", " + r.move : "no answer") + '</div>');
+        }, function () { rows.push('<div class="br-row">\u2717 \u201c' + escapeHtml(line) + '\u201d \u2192 error</div>'); }).then(next);
+      };
+      next();
+    });
   }
   function elStatLine(id) {
     var s = elStats()[id] || { n: 0, w: 0 };
@@ -21550,11 +21675,11 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     if (v.note) h += '<div class="el-note">' + scFillHtml(v.note, lead) + '</div>';
     if (e.close) h += '<div class="cp-lab">Then close</div><div class="sc-say cp-close">' + scFillHtml(e.close, lead) + '</div>';
     if (v.tip) h += '<div class="el-tip"><b>How to say it:</b> ' + escapeHtml(v.tip) + '</div>';
-    return h + '<div class="cp-tag">' + escapeHtml(v.src ? v.src : v.m) + ' \u00b7 ' + elStatLine(v.id) + '</div></div>';
+    return h + '<div class="cp-tag">' + (c.brain ? 'Heard by the brain \u00b7 ' : '') + escapeHtml(v.src ? v.src : v.m) + ' \u00b7 ' + elStatLine(v.id) + '</div></div>';
   }
   var EL_TAP = { all: ["notint", "busy", "what", "later", "send", "price", "money", "think", "spouse", "already", "trust", "number", "stall"],
     insurance: ["old"], realestate: ["self", "wait"], mca: ["credit", "payment"], auto: ["browse", "credit", "payment"], solar: ["rent", "roof", "wait"],
-    investments: ["trial", "who", "conservative", "bad", "info", "watch", "phone", "notwork", "market", "realestate", "liquid", "guarantee", "advisor"] };
+    investments: ["trial", "size", "who", "conservative", "bad", "info", "watch", "phone", "notwork", "market", "realestate", "elsewhere", "diy", "accredited", "liquid", "guarantee", "advisor"] };
   function elTapHtml() {
     var ids = EL_TAP.all.concat(EL_TAP[elInd()] || []).filter(function (k) { return elPool(k).length; });
     var rules = (window.VPEXElite.RULES || {})[elInd()];
@@ -21619,11 +21744,11 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
   function cpDraw() {
     var el = document.getElementById("copilot"); if (!el) return;
     var lead = currentLead(), live = CP.on && !CP.err, heard = CP.heard.map(function (h) { return h.t; }).concat(CP.interim ? [CP.interim] : []).join(" "), elite = elReady();
-    var h = '<div class="cp-head"><span class="cp-dot' + (live && !CP.tap ? ' on' : '') + '" aria-hidden="true"></span><b>Copilot' + (elite ? ' <span class="el-badge">Elite</span>' : '') + '<small>' + (CP.err ? "Stopped" : CP.tap && CP.on ? "Tap mode \u00b7 nothing is heard or saved" : live ? "Listening on this device" + (cpAiOn() ? " \u00b7 AI on" : "") : "Off") + '</small></b>' +
+    var h = '<div class="cp-head"><span class="cp-dot' + (live && !CP.tap ? ' on' : '') + '" aria-hidden="true"></span><b>Copilot' + (elite ? ' <span class="el-badge">Elite</span>' : '') + '<small>' + (CP.err ? "Stopped" : CP.tap && CP.on ? "Tap mode \u00b7 nothing is heard or saved" : live ? "Listening on this device" + (brainOn() ? " \u00b7 Brain on" : "") + (cpAiOn() ? " \u00b7 AI on" : "") : "Off") + '</small></b>' +
       (DESK.on ? '' : '<button type="button" id="cpMin" aria-expanded="' + !CP.min + '" aria-label="' + (CP.min ? "Show Copilot" : "Shrink Copilot") + '">' + (CP.min ? "\u25b4" : "\u25be") + '</button>') +
       '<button type="button" id="cpStop">' + (CP.on ? "Stop" : "Close") + '</button></div><div class="cp-body">';
     if (CP.err) h += '<div class="cp-msg" role="alert">' + escapeHtml(CP.err) + '</div>';
-    if (elite) h += '<div class="el-bar"><label>Playbook <select id="elInd" aria-label="Playbook for which floor">' + Object.keys(window.VPEXElite.CLOSE).map(function (k) { return '<option value="' + k + '"' + (k === elInd() ? ' selected' : '') + '>' + escapeHtml(INDUSTRIES[k].name) + '</option>'; }).join("") + '</select></label><button type="button" id="elRes">What wins</button></div>' + (CP.tap ? elTapHtml() : '');
+    if (elite) h += '<div class="el-bar"><label>Playbook <select id="elInd" aria-label="Playbook for which floor">' + Object.keys(window.VPEXElite.CLOSE).map(function (k) { return '<option value="' + k + '"' + (k === elInd() ? ' selected' : '') + '>' + escapeHtml(INDUSTRIES[k].name) + '</option>'; }).join("") + '</select></label><button type="button" id="elRes">What wins</button>' + (CP.tap ? '' : '<button type="button" id="elBrain"' + (brainOn() ? ' class="on"' : '') + '>Brain</button>') + '</div>' + (CP.tap ? elTapHtml() : '');
     if (elite) h += elNextHtml(lead);
     if (live && !CP.tap && Date.now() - CP.started < 90000) h += '<div class="cp-consent">Put the call on speaker. Start with: <q>Just so you know, I use a tool that transcribes our call to help me take notes.</q> Nothing is recorded or saved.</div>';
     if (!CP.tap) h += '<div class="cp-heard" aria-live="off">' + (heard ? '…<em>' + escapeHtml(heard.slice(-150)) + '</em>' : (live ? 'Waiting to hear the call…' : '')) + '</div>';
@@ -21668,7 +21793,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
   function cpStart() {
     var tap = cpElite() && (cpPhone() || !cpSupported());   // the owner's phone: the microphone is on the call, so he taps instead
     if (!tap && !cpSupported()) { showToast("Copilot needs Chrome, Edge or Safari on a computer or iPad."); return; }
-    if (cpElite()) elLoad().then(function () { if (document.getElementById("copilot")) cpDraw(); });
+    if (cpElite()) elLoad().then(function () { if (document.getElementById("copilot")) cpDraw(); if (!tap) brainResume(); });
     var el = document.getElementById("copilot");
     if (!el) {
       el = document.createElement("section"); el.id = "copilot"; el.setAttribute("aria-label", "Call copilot");
@@ -21678,11 +21803,12 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
         if (e.target.closest("#cpMin")) { CP.min = !CP.min; cpDraw(); return; }
         var t = e.target.closest("[data-el-say]"); if (t) { elTap(t.getAttribute("data-el-say")); return; }
         if (e.target.closest("#elRes")) { openElResults(); return; }
+        if (e.target.closest("#elBrain")) { openBrain(); return; }
         var d = e.target.closest("[data-cp-dnc]"); if (d) { var l = findLeadById(d.getAttribute("data-cp-dnc")); if (l) toggleLeadDnc(l); }
       });
       document.body.appendChild(el);
     }
-    el.hidden = false; CP.on = true; CP.tap = tap; CP.flow = null; CP.elSeen = {}; CP.err = ""; CP.cards = []; CP.heard = []; CP.interim = ""; CP.last = {}; CP.started = Date.now();
+    el.hidden = false; CP.on = true; CP.tap = tap; CP.flow = null; CP.elSeen = {}; CP.lines = []; CP.err = ""; CP.cards = []; CP.heard = []; CP.interim = ""; CP.last = {}; CP.started = Date.now();
     el.classList.toggle("cp-tap", tap);
     if (!tap) cpListen();
     cpDraw(); render();
@@ -21704,7 +21830,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
   function cpStop() {
     CP.on = false; var r = CP.rec; CP.rec = null;
     try { if (r) r.abort(); } catch (e) {}
-    CP.heard = []; CP.interim = "";   // nothing said on the call is kept
+    CP.heard = []; CP.interim = ""; CP.lines = [];   // nothing said on the call is kept
     cpDraw(); render();
   }
   /* ----- Floor TV ----- */

@@ -49,8 +49,9 @@ check('investments: guarantee answer says no and names the risk of loss', /lose 
 check('every objection the base Copilot hears has an elite answer on every floor', ['notint', 'price', 'money', 'send', 'spouse', 'advisor', 'already', 'later', 'number', 'trust', 'think', 'credit', 'self', 'rent', 'roof', 'buy'].every(k => E.PLAYS[k] && (E.PLAYS[k].all || []).length));
 const said = { busy: "sorry i'm slammed right now", what: 'what is this about', decide: "i'm not the decision maker", wait: 'i want to wait until after the holidays', bad: 'we had a bad experience last time',
   info: 'i need to do my own research', old: "i'm too old for this", browse: "i'm just shopping around", payment: 'the payment is too high', guarantee: 'is it guaranteed', liquid: 'when can i get my money back', stall: "i'll get back to you",
-  who: 'so tell me about yourself', realestate: 'i invest in real estate', conservative: "i'm pretty conservative", watch: "i'll watch it for a while", phone: "i don't do business over the phone", notwork: "i don't think it's going to work", market: "the market's down right now" };
-E.IDEAS.forEach(x => check('idea ' + x[0] + ' hears "' + said[x[0]] + '"', said[x[0]] && x[1].test(' ' + said[x[0]] + ' '), x[0]));
+  who: 'so tell me about yourself', realestate: 'i invest in real estate', conservative: "i'm pretty conservative", watch: "i'll watch it for a while", phone: "i don't do business over the phone", notwork: "i don't think it's going to work", market: "the market's down right now",
+  accredited: 'do i have to be accredited', diy: 'i do my own investing', elsewhere: "i'm into crypto", size: 'can i start smaller' };
+E.IDEAS.forEach(x => check('idea ' + x[0] + ' hears "' + said[x[0]] + '"', said[x[0]] && (x[1].test(' ' + said[x[0]] + ' ') || (E.MORE[x[0]] && E.MORE[x[0]].test(' ' + said[x[0]] + ' '))), x[0]));
 check('every new idea has a label and an answer', E.IDEAS.every(x => E.LABEL[x[0]] && E.PLAYS[x[0]]));
 
 // ---------- 2. choosing: least-tried until 20 calls, then the leader most of the time ----------
@@ -213,11 +214,11 @@ const eliteReq = reqs => reqs.filter(u => /cp-elite\.js/.test(u)).length;
   {
     const { ctx, page, errs } = await boot(br, { w: 1280, s: 'dark' });
     await page.evaluate(() => document.querySelector('[data-cp-toggle]').click()); await page.waitForTimeout(800);
-    for (const f of ['copilot_phrases.json', 'copilot_phrases_holdout.json']) {
+    for (const f of ['copilot_phrases.json', 'copilot_phrases_holdout.json', 'copilot_phrases_holdout2.json', 'copilot_phrases_holdout3.json']) {
       const P = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', f), 'utf8')); let n = 0, ok = 0; const miss = [];
       for (const [k, arr] of Object.entries(P)) for (const t of arr) {
         n++; const got = (await page.evaluate(t => window.__vpexCpMatch(t), t)).map(x => x.split(':')[0]);
-        if (k === 'none' ? !got.length : got.includes(k)) ok++; else miss.push(k + ': "' + t + '" → ' + (got.join(',') || 'nothing'));
+        if (k === 'none' ? !got.length : k.split('|').some(x => got.includes(x))) ok++;   // a|b: either reading is right else miss.push(k + ': "' + t + '" → ' + (got.join(',') || 'nothing'));
       }
       check('hearing (' + f + '): ' + ok + ' of ' + n + ' phrasings land right', ok === n, miss);
     }
@@ -225,7 +226,7 @@ const eliteReq = reqs => reqs.filter(u => /cp-elite\.js/.test(u)).length;
     const stage = () => page.evaluate(() => ({ now: (document.querySelector('#copilot .el-steps-bar .now') || {}).textContent, t: (document.querySelector('#copilot .el-next-t') || {}).innerText }));
     let st = await stage();
     check('flow: starts at Open with the IPO question', st.now === 'Open' && /involved in an IPO before/.test(st.t), st);
-    await page.evaluate(() => { window.__say('well i have most of my money in index funds and some real estate here and there'); window.__say('i have been investing for a long time now with my own accounts'); }); await page.waitForTimeout(200);
+    await page.evaluate(() => { window.__say('well i have been investing on and off for a long time now'); window.__say('we have three kids and we live out in the suburbs these days'); }); await page.waitForTimeout(200);
     st = await stage(); check('flow: they talk → Discover', st.now === 'Find' && /Find what matters/.test(st.t), st);
     await page.evaluate(() => window.__say('honestly it sounds too expensive')); await page.waitForTimeout(200);
     st = await stage(); check('flow: an objection → answer, then trial close', st.now === 'Handle' && /trial close/.test(st.t), st);
