@@ -23,7 +23,7 @@ const sheet = page => page.evaluate(() => {
     find: !!document.getElementById('scFind'), sw: document.documentElement.scrollWidth, vw: innerWidth,
     sheetFits: (() => { const r = b.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth + 0.5 && r.top >= 0; })() };
 });
-const bar = page => page.evaluate(() => [...document.querySelectorAll('.sc-bar-b')].map(b => b.innerText.replace(/\s+/g, ' ').trim()));
+const bar = page => page.evaluate(() => [...document.querySelectorAll('.sc-bar-b[data-sc-open]')].map(b => b.innerText.replace(/\s+/g, ' ').trim()));
 const setField = (page, sel, v) => page.evaluate(([s, v]) => { const el = document.querySelector(s); el.value = v; el.dispatchEvent(new Event('input', { bubbles: true })); }, [sel, v]);
 const openEditorFromHub = async page => {
   await click(page, '#adminBtn'); await page.waitForTimeout(300);

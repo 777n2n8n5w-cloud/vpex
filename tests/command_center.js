@@ -178,7 +178,7 @@ const GH = { workflow_runs: [
     const sy = await txt(page, '#cx-systems');
     check('systems: failed check, running bot, website OK, app build' + tag, /Notifications daily check\s*Failed/.test(sy) && /Instagram bot\s*Running now/.test(sy) && /Website\s*OK/.test(sy) && /Build \d{4}-\d\d-\d\d/.test(sy), sy);
     // ---- controls ----
-    check('controls: every setting listed (25)' + tag, await ev(page, () => document.querySelectorAll('#cx-controls .cx-ctl').length) === 25);
+    check('controls: every setting listed (26, incl. Floor TV)' + tag, await ev(page, () => document.querySelectorAll('#cx-controls .cx-ctl').length) === 26 && await ev(page, () => !!document.querySelector('#cx-controls [data-cx-ctl="tv"]')));
     await ev(page, () => { const b = [...document.querySelectorAll('#cx-controls .cx-ctl')].find(x => /Lead lists/.test(x.innerText)); b.querySelector('[data-cx-pin]').click(); }); await page.waitForTimeout(200);
     check('controls: pinning puts it in the brief' + tag, /Pinned[\s\S]*Lead lists/.test(await txt(page, '#cx-brief .cx-quick')));
     await ev(page, () => { const b = [...document.querySelectorAll('#cx-controls .cx-ctl-b')].find(x => /Follow-up rules/.test(x.innerText)); b.click(); }); await page.waitForTimeout(400);

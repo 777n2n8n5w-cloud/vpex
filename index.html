@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-01-29">
+<meta name="vpex-build" content="2027-01-30">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 /* Signature themes: six themes only the VPEX owner's own login can use (sig/*.css, sig.js).
@@ -58,10 +58,25 @@ window.VPEX_SIG = [
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" type="image/png" href="vpex-icon-64.png">
 <link rel="manifest" href="manifest.webmanifest">
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<script>
+/* Sign-in scripts (about 180 KB) download in the background instead of holding up the first paint: added from here,
+   in order (async = false), so they still run app → auth → firestore → messaging, but the page draws without them.
+   init() waits for them (window.__vpexFb) and, on the live site, shows the sales page meanwhile to a phone that isn't signed in.
+   Demo offices and the test bench use the in-page backend, so they skip the download (it would replace their stand-in). */
+(function () {
+  var L = window.__vpexFb = { done: false, ok: false, cbs: [], t0: Date.now() };
+  try { if (/demo|mockbench/i.test(location.hash) || localStorage.getItem("dovetail_demo") === "1" || localStorage.getItem("vpex_mockbench") === "1") { L.done = true; L.skip = true; return; } } catch (e) {}
+  var files = ["app", "auth", "firestore", "messaging"], left = files.length;
+  function settle() { if (--left) return; L.done = true; L.ms = Date.now() - L.t0; var c = L.cbs.splice(0); for (var i = 0; i < c.length; i++) { try { c[i](); } catch (e) { setTimeout(function () { throw e; }); } } }
+  files.forEach(function (f) {
+    var el = document.createElement("script");
+    el.src = "https://www.gstatic.com/firebasejs/10.12.2/firebase-" + f + "-compat.js"; el.async = false;
+    el.onload = el.onerror = settle;
+    document.head.appendChild(el);
+  });
+})();
+</script>
 <meta name="format-detection" content="telephone=yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -9412,6 +9427,89 @@ window.VPEX_SIG = [
     /* hover affordances a mouse expects */
     body.desk .view-tab:not(.active):hover, body.desk .icon-btn:hover { color: var(--text); background: var(--surface-raised); }
   }
+/* ----- Floor TV (the TV on the wall: today's numbers, leaderboard, who's on a call, a celebration on each yes) ----- */
+#floorTv { position: fixed; inset: 0; z-index: 2600; background: var(--bg); color: var(--text); display: flex; flex-direction: column; gap: clamp(10px, 1.6vh, 22px);
+  padding: max(12px, env(safe-area-inset-top, 0px)) clamp(16px, 2.4vw, 48px) max(14px, env(safe-area-inset-bottom, 0px)); overflow-y: auto; overflow-x: hidden; font-variant-numeric: tabular-nums; }
+#floorTv:focus { outline: none; }
+.tv-top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.tv-brand { flex: 1 1 200px; min-width: 0; } .tv-brand b { display: block; font-size: clamp(20px, 2.4vw, 44px); line-height: 1.1; overflow-wrap: anywhere; }
+.tv-brand span { color: var(--text-dim); font-size: clamp(13px, 1.1vw, 20px); }
+.tv-clock { font-size: clamp(26px, 3.4vw, 64px); font-weight: 700; letter-spacing: -0.01em; } .tv-clock small { font-size: 0.45em; color: var(--text-dim); margin-left: 4px; }
+.tv-ctl { display: flex; gap: 8px; align-items: center; }
+.tv-ctl button { min-width: 44px; min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-raised); color: var(--text); font: inherit; font-size: 14px; cursor: pointer; }
+.tv-ctl button[aria-pressed="true"] { border-color: var(--accent); color: var(--text); }
+.tv-live { display: inline-flex; align-items: center; gap: 6px; font-size: clamp(13px, 1vw, 18px); color: var(--text-dim); padding: 0 6px; }
+.tv-live i { width: 10px; height: 10px; border-radius: 50%; background: var(--text-faint); } .tv-live.on i { background: var(--interested); box-shadow: 0 0 0 4px color-mix(in srgb, var(--interested) 25%, transparent); }
+.tv-kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: clamp(8px, 1vw, 18px); }
+.tv-kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: clamp(10px, 1.4vw, 24px); min-width: 0; }
+.tv-kpi b { display: block; font-size: clamp(28px, 4.6vw, 96px); line-height: 1; letter-spacing: -0.02em; overflow-wrap: anywhere; }
+.tv-kpi span { display: block; margin-top: 6px; color: var(--text-dim); font-size: clamp(12px, 1.1vw, 22px); }
+.tv-kpi.int b { color: color-mix(in srgb, var(--interested) 70%, var(--text)); }
+.tv-kpi.bump b { animation: tvBump .9s ease-out; }
+@keyframes tvBump { 0% { transform: scale(1.18); } 100% { transform: none; } }
+.tv-contest { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); border: 1px solid var(--accent); border-radius: 14px; padding: 10px 16px; font-size: clamp(14px, 1.3vw, 26px); }
+.tv-main { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: clamp(10px, 1.4vw, 28px); flex: 1; min-height: 0; }
+.tv-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: clamp(12px, 1.4vw, 28px); min-width: 0; min-height: 0; overflow: hidden; }
+.tv-panel h3 { margin: 0 0 clamp(8px, 1vh, 16px); font-size: clamp(16px, 1.6vw, 32px); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.tv-panel h3 small { font-size: 0.6em; color: var(--text-dim); font-weight: 500; }
+.tv-board-h { cursor: pointer; } .tv-board-h:hover small { color: var(--text); }
+.tv-rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: clamp(6px, 1vh, 14px); }
+.tv-row { display: grid; grid-template-columns: 2.2em minmax(0, 1fr) auto; align-items: center; gap: 4px 12px; font-size: clamp(15px, 1.7vw, 34px); }
+.tv-rank { color: var(--text-dim); font-weight: 700; text-align: center; } .tv-row.top .tv-rank { color: var(--text); }
+.tv-who { min-width: 0; } .tv-who b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tv-bar { height: clamp(6px, 0.8vh, 12px); border-radius: 99px; background: color-mix(in srgb, var(--accent) 16%, transparent); margin-top: 4px; overflow: hidden; }
+.tv-bar i { display: block; height: 100%; border-radius: inherit; background: var(--accent); transition: width .8s ease; }
+.tv-row.top .tv-bar i { background: color-mix(in srgb, var(--gold, #FFC94D) 80%, var(--accent)); }
+.tv-val { font-weight: 800; font-size: 1.15em; } .tv-sub { grid-column: 2 / 4; color: var(--text-dim); font-size: max(12px, 0.58em); margin-top: -2px; }
+.tv-side { display: flex; flex-direction: column; gap: clamp(10px, 1.4vh, 22px); }
+.tv-feed { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-size: clamp(14px, 1.25vw, 24px); }
+.tv-feed li { display: flex; align-items: center; gap: 10px; min-width: 0; } .tv-feed b { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tv-feed time, .tv-feed .tv-t { color: var(--text-dim); font-size: 0.85em; white-space: nowrap; }
+.tv-feed .qi-status { font-size: 0.8em; white-space: nowrap; }
+.tv-feed li.fresh { animation: tvIn .7s ease-out; } @keyframes tvIn { from { opacity: 0; transform: translateY(-8px); } }
+.tv-oc i { width: 10px; height: 10px; border-radius: 50%; background: var(--interested); flex: none; animation: tvPulse 1.6s ease-in-out infinite; }
+@keyframes tvPulse { 50% { opacity: 0.35; } }
+.tv-empty { color: var(--text-dim); font-size: clamp(14px, 1.2vw, 22px); }
+.tv-foot { color: var(--text-faint); font-size: clamp(11px, 0.9vw, 16px); text-align: right; }
+.tv-cele { position: fixed; inset: 0; z-index: 2601; display: grid; place-items: center; pointer-events: none; background: color-mix(in srgb, var(--bg) 55%, transparent); }
+.tv-cele[hidden] { display: none; }
+.tv-cele-card { text-align: center; background: var(--surface); border: 2px solid var(--interested); border-radius: 28px; padding: clamp(24px, 4vw, 72px) clamp(28px, 6vw, 120px); max-width: 92vw;
+  box-shadow: 0 20px 80px rgba(0,0,0,.35); animation: tvPop .5s cubic-bezier(.2,1.4,.4,1); }
+.tv-cele-card b { display: block; font-size: clamp(36px, 7vw, 150px); line-height: 1.05; overflow-wrap: anywhere; }
+.tv-cele-card span { display: block; margin-top: 10px; font-size: clamp(20px, 3vw, 60px); color: color-mix(in srgb, var(--interested) 70%, var(--text)); font-weight: 700; }
+@keyframes tvPop { from { transform: scale(.6); opacity: 0; } }
+.tv-conf { position: absolute; top: -4vh; width: 12px; height: 18px; border-radius: 3px; animation: tvFall 3.2s linear forwards; }
+@keyframes tvFall { to { transform: translateY(110vh) rotate(720deg); } }
+body.tv-open { overflow: hidden; }
+@media (max-width: 760px) {
+  .tv-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .tv-kpis .tv-kpi:last-child { grid-column: 1 / -1; }
+  .tv-main { grid-template-columns: minmax(0, 1fr); flex: none; } .tv-panel { overflow: visible; }
+  .tv-clock { order: 3; flex-basis: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { #floorTv *, .tv-cele * { animation: none !important; transition: none !important; } .tv-conf { display: none; } }
+html[data-motion="off"] #floorTv *, html[data-motion="off"] .tv-cele * { animation: none !important; transition: none !important; }
+/* ----- Call copilot (listens on speaker, shows the office's answer to the objection it hears) ----- */
+#copilot { position: fixed; right: 16px; bottom: max(16px, env(safe-area-inset-bottom, 0px)); width: min(400px, calc(100vw - 32px)); max-height: min(70vh, 620px); z-index: 1400;
+  display: flex; flex-direction: column; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 18px 50px rgba(0,0,0,.35); overflow: hidden; }
+#copilot[hidden] { display: none; } #copilot.cp-min .cp-body { display: none; }
+.cp-head { display: flex; align-items: center; gap: 10px; padding: 10px 10px 10px 14px; border-bottom: 1px solid var(--border); }
+.cp-head b { flex: 1; font-size: 15px; } .cp-head b small { display: block; font-weight: 500; font-size: 12px; color: var(--text-dim); }
+.cp-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--text-faint); flex: none; } .cp-dot.on { background: var(--notinterested); animation: tvPulse 1.4s ease-in-out infinite; }
+.cp-head button { min-height: 44px; min-width: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-raised); color: var(--text); font: inherit; font-size: 14px; cursor: pointer; }
+.cp-body { overflow-y: auto; padding: 10px 14px 14px; display: flex; flex-direction: column; gap: 10px; }
+.cp-consent { font-size: 13px; color: var(--text-dim); background: var(--surface-raised); border-radius: 10px; padding: 8px 10px; }
+.cp-consent q { color: var(--text); }
+.cp-heard { font-size: 13px; color: var(--text-dim); min-height: 18px; overflow-wrap: anywhere; } .cp-heard em { color: var(--text); font-style: normal; }
+.cp-card { border: 1px solid var(--accent); border-radius: 12px; padding: 10px 12px; background: color-mix(in srgb, var(--accent) 7%, var(--surface)); }
+.cp-card.new { animation: tvIn .5s ease-out; } .cp-card.old { border-color: var(--border); background: var(--surface-raised); }
+.cp-card h4 { margin: 0 0 6px; font-size: 13px; color: var(--text-dim); font-weight: 600; } .cp-card h4 b { color: var(--text); }
+.cp-card .sc-say p, .cp-card .sc-say ul { margin: 0 0 6px; font-size: 15px; line-height: 1.45; } .cp-card.old .sc-say { font-size: 14px; }
+.cp-card.dnc { border-color: var(--notinterested); background: color-mix(in srgb, var(--notinterested) 10%, var(--surface)); }
+.cp-card.dnc button { margin-top: 6px; min-height: 44px; padding: 0 14px; border-radius: 10px; border: 0; background: var(--notinterested); color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+.cp-empty { font-size: 14px; color: var(--text-dim); }
+.cp-msg { font-size: 14px; color: var(--notinterested); }
+.sc-bar-b.cp-on { border-color: var(--notinterested); }
+@media (max-width: 700px) { #copilot { left: 8px; right: 8px; width: auto; bottom: max(8px, env(safe-area-inset-bottom, 0px)); max-height: 46vh; } }
 /* VX:CSS:BEGIN (generated by vx/build.py from vx/core.css + vx/themes.py; edit those, then rebuild) */
 /* ===================== VPEX Experience layer (vx) =====================
    One system on top of every theme: light, material, and motion.
@@ -10338,6 +10436,7 @@ html[data-motion="off"] .modal-overlay { transition: none; }
         <button class="hub-row" id="openCoachBtn" type="button"><span class="hub-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19l5-5 4 4 7-8"/><path d="M15 10h5v5"/></svg></span><span class="hub-t"><b>My coach</b><span id="coachHeadline"></span></span><span class="hub-go" aria-hidden="true">›</span></button>
         <button class="hub-row" id="openBriefBtn" type="button"><span class="hub-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18"/><path d="M8 2v4M16 2v4"/></svg></span><span class="hub-t"><b>My day</b><span>Who to call first, follow-ups and your best hours</span></span><span class="hub-go" aria-hidden="true">›</span></button>
         <button class="hub-row" id="openReportBtn" type="button"><span class="hub-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l3 3v15H6z"/><path d="M9 13h6"/><path d="M9 17h6"/><path d="M9 9h2"/></svg></span><span class="hub-t"><b>Results report</b><span>Your numbers this week, ready to share</span></span><span class="hub-go" aria-hidden="true">›</span></button>
+        <button class="hub-row" id="openTvBtn" type="button"><span class="hub-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg></span><span class="hub-t"><b>Floor TV</b><span>Today's leaderboard for the TV on the wall</span></span><span class="hub-go" aria-hidden="true">›</span></button>
       </div>
       <div class="set-card set-gap" id="appBadgeCard">
         <label class="set-toggle" for="setAppBadge"><span><b>Badge on the app icon</b><span id="appBadgeNote">Shows how many follow-ups are due on your Home Screen icon.</span></span><span class="switch"><input type="checkbox" id="setAppBadge"><span class="slider"></span></span></label>
@@ -13479,6 +13578,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     if (["dial", "history", "pipeline", "tasks", "vault"].indexOf(state.activeView || "dial") < 0) state.activeView = "dial";   // e.g. a saved view from the removed Ops tab
     document.body.setAttribute("data-view", state.activeView || "dial");
     if (DESK && DESK.on) Promise.resolve().then(deskRenderLive);
+    if (typeof TV !== "undefined" && TV && TV.on) Promise.resolve().then(tvRender);
     document.getElementById("viewTabs").style.display = total > 0 ? "" : "none";
     document.getElementById("viewTabDial").classList.toggle("active", state.activeView === "dial");
     document.getElementById("viewTabHistory").classList.toggle("active", state.activeView === "history");
@@ -14328,13 +14428,15 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
   }
   // The two buttons on the Dial card. Nothing shows until the office has a script.
   function scriptBarHtml() {
-    var c = scriptCfg();
-    if (!c) return "";
+    var c = scriptCfg(), cp = typeof cpSupported === "function" && cpSupported() && (DESK.on || !window.matchMedia("(pointer: coarse)").matches || window.matchMedia("(min-width: 700px)").matches);   // Copilot: computers and tablets (a phone on a call can't lend its microphone)
+    if (!c && !cp) return "";
     return '<div class="sc-bar">' +
-      (c.steps.length ? '<button type="button" class="sc-bar-b" data-sc-open="script">' + scIcon("script") + '<span>Script</span></button>' : '') +
-      (c.objs.length ? '<button type="button" class="sc-bar-b" data-sc-open="rebut">' + scIcon("rebut") + '<span>Rebuttals</span><small>' + c.objs.length + '</small></button>' : '') +
+      (c && c.steps.length ? '<button type="button" class="sc-bar-b" data-sc-open="script">' + scIcon("script") + '<span>Script</span></button>' : '') +
+      (c && c.objs.length ? '<button type="button" class="sc-bar-b" data-sc-open="rebut">' + scIcon("rebut") + '<span>Rebuttals</span><small>' + c.objs.length + '</small></button>' : '') +
+      (cp ? '<button type="button" class="sc-bar-b' + (CP.on ? ' cp-on' : '') + '" data-cp-toggle aria-pressed="' + CP.on + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg><span>' + (CP.on ? "Copilot on" : "Copilot") + '</span></button>' : '') +
       '</div>';
   }
+  document.addEventListener("click", function (e) { if (e.target.closest("[data-cp-toggle]")) { if (CP.on) cpStop(); else cpStart(); } });
   document.addEventListener("click", function (e) {
     var b = e.target.closest("[data-sc-open]");
     if (b) openScript(b.getAttribute("data-sc-open"));
@@ -16485,7 +16587,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     document.getElementById("pasteError").textContent = "";
     document.getElementById("singleError").textContent = "";
   }
-  function openMenuModal() { document.getElementById("menuModal").classList.add("show"); }
+  function openMenuModal() { var tb = document.getElementById("openTvBtn"); if (tb) tb.style.display = tvAllowed() ? "" : "none"; document.getElementById("menuModal").classList.add("show"); }
   // Settings home: one card per area with a live summary; tap a card for its controls.
   function setShow(key) {
     var body = document.getElementById("menuModalBody"); if (!body) return;
@@ -17632,6 +17734,20 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       if (!TEAM.fbOnline) { TEAM.fbOnline = true; window.addEventListener("online", function () { if (TEAM.noBackend) location.reload(); }); }
     });
   }
+  // Live site, sign-in scripts still downloading: a phone that isn't signed in sees the sales page right away (they arrive
+  // long before anyone finishes the trial form); a signed-in phone sees "Connecting…" as before. Then the usual boot.
+  function signedInHint() { try { for (var i = 0; i < window.localStorage.length; i++) if (/^(dovetail|vpex)_team_(?!signedout)/.test(window.localStorage.key(i))) return true; } catch (e) {} return false; }
+  function fbEarly() {
+    TEAM.on = true; TEAM.noBackend = true; TEAM.early = true;
+    document.body.classList.add("team-mode");
+    if (signedInHint()) showAuthScreen("", true);
+    else { TEAM.earlyForm = true; showAuthScreen(""); }
+  }
+  function fbEarlyDone() {
+    TEAM.early = false;
+    if (fbReady()) { TEAM.noBackend = false; teamBoot(); return; }
+    TEAM.earlyForm = false; fbRetryBoot(0);
+  }
   function fbNotReady(id) {   // a form was sent before the sign-in scripts arrived
     if (TEAM.auth) return false;
     authFail(id, "Still connecting to VPEX. Check your signal and try again in a moment.");
@@ -17653,8 +17769,9 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       showAuthScreen("Couldn\u2019t reach the team server. Check your connection and reload.");
       return;
     }
-    showAuthScreen("", true);
+    if (!TEAM.earlyForm) showAuthScreen("", true);   // the sales page already showing (fbEarly) stays as it is until sign-in is known
     TEAM.auth.onAuthStateChanged(function (user) {
+      TEAM.earlyForm = false;
       if (user) teamSignedIn(user);
       else if (TEAM.me) forceSignOut("You were signed out. Please sign in again.", "auth-signed-out");
       else showAuthScreen(document.getElementById("authMsg").textContent || "");
@@ -21048,6 +21165,271 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
 
   function isManager() { return !!(TEAM.me && TEAM.me.role === "manager"); }
   function canSeeTeam() { return !TEAM.on || isAdmin() || isManager(); }
+  /* ----- Call copilot ----- */
+  // Put the call on speaker and open VPEX on a computer or iPad: Copilot listens through that device's microphone,
+  // spots the objection and shows the office's own answer to it (the Rebuttals in the call script, or the industry
+  // starter when there's no script yet). It also catches "take me off your list". Runs on the device's speech
+  // recognition (the browser's own); VPEX saves no audio and no transcript. Off until the rep taps Copilot.
+  var CP = { on: false, rec: null, heard: [], cards: [], last: {}, err: "", started: 0, restart: 0 };
+  var CP_IDEAS = [
+    ["notint", /\bnot interested\b|\bno thanks?\b|\bno thank you\b|\bnot for me\b|\bdon'?t want (it|that|any)/],
+    ["send", /\bsend (me )?(something|some ?thing|info|information|an? email|it over|the details|details|a brochure)|\bemail (me|it)\b|\bmail me\b|\bjust send/],
+    ["money", /\b(don'?t|do not) have (the )?(money|cash|funds)\b|\bcan'?t afford\b|\bno money\b|\bmoney'?s tight\b|\btight right now\b|\bcash is tight\b/],
+    ["price", /\btoo (high|expensive|much)\b|\b(the )?rates? (are|is) \b|\bcosts? too\b|\bprice is\b|\bcommission is\b|\bfees? (are|is)\b|\bcheaper\b|\bbest price\b/],
+    ["spouse", /\b(talk|speak|check|run it by|ask|discuss)\b.{0,20}\b(wife|husband|spouse|partner)\b|\bmy (wife|husband|spouse)\b/],
+    ["advisor", /\b(my )?(financial )?(advisor|adviser|accountant|planner|cpa|attorney|lawyer)\b/],
+    ["already", /\balready (have|got|work with|use|has)\b|\bi have (an?|my) (agent|provider|policy|advisor|guy|realtor|lender)\b|\bhappy with (my|our|what)\b|\balready have an advance\b/],
+    ["later", /\bcall (me )?(back )?(later|another time|next (week|month)|in a (few|couple))\b|\bnot (a good|the right) time\b|\b(i'?m|i am) (busy|driving|at work|in a meeting)\b|\bin a few months\b|\bmaybe later\b/],
+    ["number", /\bhow did you get (my|this) (number|info|information|name)\b|\bwhere did you get (my|this)\b|\bwho gave you\b/],
+    ["trust", /\bscam\b|\bis this (legit|real)\b|\bsounds too good\b|\bdon'?t trust\b|\bnever heard of (you|your company)\b/],
+    ["think", /\bthink about it\b|\blet me think\b|\bsleep on it\b|\bneed (some )?time\b/],
+    ["credit", /\b(bad|poor|my) credit\b|\bcredit (isn'?t|is not|is bad|score)\b/],
+    ["self", /\bsell it (myself|ourselves)\b|\bby owner\b|\bnot selling\b|\bno longer selling\b/],
+    ["rent", /\bi rent\b|\b(i'?m|we'?re) renting\b|\bmy landlord\b|\b(don'?t|do not) own (the|my|this) (home|house|place)\b/],
+    ["roof", /\broof is (old|bad|new)\b|\bold roof\b|\bnew roof\b/],
+    ["dnc", /\btake (me|my number) off\b|\bstop calling\b|\b(put me on|add me to) (the |your )?do not call\b|\bdon'?t call (me|here) (again|anymore)\b|\bremove (me|my number)\b/]
+  ];
+  var CP_STOP = { the: 1, and: 1, that: 1, this: 1, with: 1, your: 1, you: 1, have: 1, just: 1, about: 1, what: 1, right: 1, from: 1, they: 1, them: 1, there: 1, then: 1, will: 1, would: 1, could: 1, really: 1 };
+  function cpSupported() { return !!(window.SpeechRecognition || window.webkitSpeechRecognition); }
+  function cpObjs() {   // the office's rebuttals, or the industry starter's when there's no script yet
+    var c = scriptCfg(), objs = c && c.objs.length ? c.objs : (scStarter(IND_KEY) || [[], []])[1].map(function (x, i) { return { id: "st" + i, q: x[0], a: x[1] }; });
+    if (cpObjs.src !== objs) {
+      cpObjs.src = objs;
+      cpObjs.val = objs.map(function (o) {
+        var q = String(o.q || "").toLowerCase(), ideas = CP_IDEAS.filter(function (x) { return x[0] !== "dnc" && x[1].test(q); }).map(function (x) { return x[0]; });
+        var words = (q.match(/[a-z']{4,}/g) || []).filter(function (w) { return !CP_STOP[w]; });
+        return { o: o, ideas: ideas, words: words };
+      });
+    }
+    return cpObjs.val;
+  }
+  // Answers for the objections every floor hears, used only when the office's rebuttals don't cover that one.
+  var CP_BASE = {
+    number: ["How did you get my number?", "It came from [where your list came from]. If you'd rather not hear from us, I'll take you off our list right now."],
+    later: ["Call me later.", "No problem. When is better for you, later today or tomorrow morning? I'll put it in my calendar."],
+    send: ["Just send me something.", "Happy to. So I send the right thing, what matters most to you? I'll send it today and call you in a couple of days with any questions."],
+    think: ["I need to think about it.", "Of course. Which part do you want to think over? I may be able to answer it now."],
+    spouse: ["I need to talk to my spouse.", "Of course. Would it help to set a time when you can both be on the call?"],
+    notint: ["I'm not interested.", "That's fair. Is it the timing, or is it something you'd never look at? If it's the timing, I'm happy to check back when it suits you."]
+  };
+  function cpMatch(text) {   // what the lead just said → { idea, o } (or a do-not-call request)
+    var t = " " + String(text || "").toLowerCase().replace(/[’]/g, "'").replace(/[^a-z0-9' ]+/g, " ").replace(/\s+/g, " ") + " ", out = [];
+    CP_IDEAS.forEach(function (x) {
+      if (!x[1].test(t)) return;
+      if (x[0] === "dnc") { out.push({ idea: "dnc" }); return; }
+      var best = null; cpObjs().forEach(function (m) { if (m.ideas.indexOf(x[0]) >= 0 && !best) best = m; });
+      if (best) out.push({ idea: x[0], o: best.o });
+      else if (CP_BASE[x[0]]) out.push({ idea: x[0], o: { id: "base-" + x[0], q: CP_BASE[x[0]][0], a: CP_BASE[x[0]][1] } });
+    });
+    if (!out.length) cpObjs().forEach(function (m) {   // no known idea: most of an objection's own words were said
+      if (m.words.length < 2 || out.length) return;
+      var hit = m.words.filter(function (w) { return t.indexOf(" " + w + " ") >= 0 || t.indexOf(" " + w.replace(/'/g, "") + " ") >= 0; }).length;
+      if (hit >= Math.max(2, Math.ceil(m.words.length * 0.7))) out.push({ idea: "w:" + m.o.id, o: m.o });
+    });
+    return out;
+  }
+  window.__vpexCpMatch = function (t) { return cpMatch(t).map(function (x) { return x.idea + (x.o ? ":" + x.o.q : ""); }); };   // tests/copilot.js
+  function cpHear(text, final) {
+    var now = Date.now();
+    if (final) { CP.heard.push({ t: text, at: now }); CP.heard = CP.heard.filter(function (h) { return now - h.at < 20000; }).slice(-6); CP.interim = ""; } else CP.interim = text;
+    var win = CP.heard.filter(function (h) { return now - h.at < 12000; }).map(function (h) { return h.t; }).concat(CP.interim ? [CP.interim] : []).join(" ");
+    cpMatch(win).forEach(function (m) {
+      var key = m.idea + (m.o ? "|" + m.o.id : "");
+      if (CP.last[key] && now - CP.last[key] < 25000) return;   // the same objection once, not every second while it's in the window
+      CP.last[key] = now;
+      CP.cards = CP.cards.filter(function (c) { return c.key !== key; });
+      CP.cards.unshift({ key: key, idea: m.idea, o: m.o, at: now, said: text });
+      CP.cards = CP.cards.slice(0, 3); CP.min = false;
+    });
+    cpDraw();
+  }
+  function cpDraw() {
+    var el = document.getElementById("copilot"); if (!el) return;
+    var lead = currentLead(), live = CP.on && !CP.err, heard = CP.heard.map(function (h) { return h.t; }).concat(CP.interim ? [CP.interim] : []).join(" ");
+    var h = '<div class="cp-head"><span class="cp-dot' + (live ? ' on' : '') + '" aria-hidden="true"></span><b>Copilot<small>' + (CP.err ? "Stopped" : live ? "Listening on this device" : "Off") + '</small></b>' +
+      (DESK.on ? '' : '<button type="button" id="cpMin" aria-expanded="' + !CP.min + '" aria-label="' + (CP.min ? "Show Copilot" : "Shrink Copilot") + '">' + (CP.min ? "\u25b4" : "\u25be") + '</button>') +
+      '<button type="button" id="cpStop">' + (CP.on ? "Stop" : "Close") + '</button></div><div class="cp-body">';
+    if (CP.err) h += '<div class="cp-msg" role="alert">' + escapeHtml(CP.err) + '</div>';
+    if (live && Date.now() - CP.started < 90000) h += '<div class="cp-consent">Put the call on speaker. Start with: <q>Just so you know, I use a tool that transcribes our call to help me take notes.</q> Nothing is recorded or saved.</div>';
+    h += '<div class="cp-heard" aria-live="off">' + (heard ? '…<em>' + escapeHtml(heard.slice(-150)) + '</em>' : (live ? 'Waiting to hear the call…' : '')) + '</div>';
+    if (!CP.cards.length) h += '<div class="cp-empty">When they raise an objection, your best answer shows here.</div>';
+    CP.cards.forEach(function (c, i) {
+      if (c.idea === "dnc") { h += '<div class="cp-card dnc' + (i ? ' old' : ' new') + '" role="alert"><h4><b>They asked not to be called again.</b></h4><div class="sc-say"><p>Say: “Understood, I’ll take you off our list right now.”</p></div>' +
+        (lead && !isDnc(lead) ? '<button type="button" data-cp-dnc="' + escapeHtml(lead.id) + '">Add ' + escapeHtml(firstName(lead.name)) + ' to Do Not Call</button>' : '') + '</div>'; return; }
+      h += '<div class="cp-card' + (i ? ' old' : ' new') + '"' + (i ? '' : ' role="status"') + '><h4>They said: <b>“' + escapeHtml(String(c.o.q).replace(/^["“”]+|["“”]+$/g, "")) + '”</b></h4><div class="sc-say">' + scFillHtml(c.o.a, lead) + '</div></div>';
+    });
+    el.innerHTML = h + '</div>';
+    el.classList.toggle("cp-min", !!CP.min);
+    cpPlace();
+  }
+  function cpPlace() {   // on a computer it sits over the Live column, so the lead card and outcome buttons stay clear
+    var el = document.getElementById("copilot"), lv = DESK.on && document.getElementById("deskLive"), r = lv && lv.getBoundingClientRect();
+    if (!el) return;
+    if (r && r.width > 200) { el.style.left = Math.round(r.left) + "px"; el.style.width = Math.round(r.width) + "px"; el.style.right = "auto"; el.style.top = Math.max(8, Math.round(r.top)) + "px"; el.style.bottom = "auto"; el.style.maxHeight = "calc(100vh - " + (Math.max(8, Math.round(r.top)) + 16) + "px)"; }
+    else { el.style.left = el.style.width = el.style.right = el.style.top = el.style.bottom = el.style.maxHeight = ""; }
+  }
+  window.addEventListener("resize", function () { if (document.getElementById("copilot")) cpPlace(); });
+  function cpStart() {
+    if (!cpSupported()) { showToast("Copilot needs Chrome, Edge or Safari on a computer or iPad."); return; }
+    var el = document.getElementById("copilot");
+    if (!el) {
+      el = document.createElement("section"); el.id = "copilot"; el.setAttribute("aria-label", "Call copilot");
+      el.addEventListener("click", function (e) {
+        if (e.target.closest("#cpStop")) { if (CP.on) cpStop(); else { el.hidden = true; } return; }
+        if (e.target.closest("#cpMin")) { CP.min = !CP.min; cpDraw(); return; }
+        var d = e.target.closest("[data-cp-dnc]"); if (d) { var l = findLeadById(d.getAttribute("data-cp-dnc")); if (l) toggleLeadDnc(l); }
+      });
+      document.body.appendChild(el);
+    }
+    el.hidden = false; CP.on = true; CP.err = ""; CP.cards = []; CP.heard = []; CP.interim = ""; CP.last = {}; CP.started = Date.now();
+    cpListen(); cpDraw(); render();
+  }
+  function cpListen() {
+    if (!CP.on) return;
+    var R = window.SpeechRecognition || window.webkitSpeechRecognition, r;
+    try { r = new R(); } catch (e) { CP.err = "Copilot couldn’t start the microphone on this device."; CP.on = false; cpDraw(); return; }
+    r.continuous = true; r.interimResults = true; r.lang = "en-US"; r.maxAlternatives = 1;
+    r.onresult = function (ev) { for (var i = ev.resultIndex; i < ev.results.length; i++) { var x = ev.results[i]; cpHear(x[0].transcript, x.isFinal); } };
+    r.onerror = function (ev) {
+      if (ev.error === "not-allowed" || ev.error === "service-not-allowed") { CP.err = "The microphone is blocked. Allow it for vpexdialer.com in this browser’s site settings, then tap Copilot again."; CP.on = false; cpDraw(); render(); }
+      else if (ev.error === "audio-capture") { CP.err = "No microphone found on this device."; CP.on = false; cpDraw(); render(); }
+    };
+    r.onend = function () { if (CP.rec !== r) return; if (CP.on && ++CP.restart < 500) setTimeout(cpListen, 250); };   // the browser stops after a pause; keep listening until Stop
+    CP.rec = r;
+    try { r.start(); } catch (e) {}
+  }
+  function cpStop() {
+    CP.on = false; var r = CP.rec; CP.rec = null;
+    try { if (r) r.abort(); } catch (e) {}
+    CP.heard = []; CP.interim = "";   // nothing said on the call is kept
+    cpDraw(); render();
+  }
+  /* ----- Floor TV ----- */
+  // A screen for the TV on the wall (Settings › Floor TV, Admin controls › Reports, Command, or vpexdialer.com/#tv):
+  // today's numbers, the leaderboard (calls, conversations, interested, taking turns), who's on a call and a
+  // celebration on each yes. Rep names and outcomes only, never a lead's name or number: anyone walking past can read it.
+  var TV = { on: false, seen: null, deals: null, q: [], showing: false, metric: 0, timers: [], lock: null, sound: false, last: {}, back: null };
+  var TV_METRICS = [["calls", "Most calls"], ["talk", "Most conversations"], ["int", "Most interested"]];
+  function tvAllowed() { return canSeeTeam(); }
+  function tvStart() { var d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime(); }
+  function tvData() {
+    var t0 = tvStart(), floor = canSeeTeam(), calls = [], log = state.callLog || [];
+    for (var i = log.length - 1; i >= 0; i--) {
+      var c = log[i], t = new Date(c.timestamp).getTime(); if (!(t >= t0)) { if (t < t0 - 86400000 && calls.length) break; continue; }
+      if (floor || myCall(c)) calls.push(c);
+    }
+    var n = { calls: calls.length, talk: 0, int: 0, appts: 0, money: 0, deals: 0 }, reps = {};
+    calls.forEach(function (c) {
+      var k = c.by ? c.by.uid : "me", r = reps[k] || (reps[k] = { name: c.by ? c.by.name : "You", calls: 0, talk: 0, int: 0 });
+      r.calls++; if (CONTACT_OUTCOMES[c.outcomeKey]) { n.talk++; r.talk++; } if (c.outcomeKey === "interested") { n.int++; r.int++; }
+    });
+    var won = [];
+    state.leads.forEach(function (l) {
+      if (l.handoff && l.handoff.at >= t0) n.appts++;
+      if (l.stage === "Committed" && (l.stageLog || []).some(function (x) { return x.s === "Committed" && x.at >= t0; })) { n.deals++; n.money += Number(l.amount) || 0; won.push(l); }
+    });
+    return { calls: calls, n: n, won: won, reps: Object.keys(reps).map(function (k) { return reps[k]; }) };
+  }
+  function tvCallId(c) { return c.id || (c.timestamp + "|" + c.name); }
+  function tvRender() {
+    var el = document.getElementById("floorTv"); if (!el || !TV.on) return;
+    var d = tvData(), n = d.n, m = TV_METRICS[TV.metric % TV_METRICS.length], now = new Date();
+    // celebrations: a new yes, or a deal that closed since the screen opened
+    if (TV.seen) d.calls.forEach(function (c) { var id = tvCallId(c); if (TV.seen[id]) return; TV.seen[id] = 1; if (c.outcomeKey === "interested") TV.q.push({ who: c.by ? firstName(c.by.name) : "You", what: "Interested!" }); });
+    if (TV.deals) d.won.forEach(function (l) { if (TV.deals[l.id]) return; TV.deals[l.id] = 1; TV.q.push({ who: l.owner && l.owner.name ? firstName(l.owner.name) : "Deal closed", what: (l.amount ? fmtMoney(Number(l.amount) || 0) + " · " : "") + "Committed" }); });
+    tvCelebrate();
+    var reps = d.reps.slice().sort(function (a, b) { return b[m[0]] - a[m[0]] || b.calls - a.calls; }), top = Math.max(1, reps.length ? reps[0][m[0]] : 1);
+    var st = cloud.status, liveOk = TEAM.on ? st === "teamsynced" : DEMO, stTxt = !TEAM.on && !DEMO ? "This device" : (liveOk ? "Live" : (st === "teamoffline" ? "Reconnecting…" : "Syncing…"));
+    var hh = now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }).split(" ");
+    var kpi = function (k, v, l, cls) { var bump = TV.last[k] !== undefined && TV.last[k] !== v; TV.last[k] = v; return '<div class="tv-kpi' + (cls ? " " + cls : "") + (bump ? " bump" : "") + '"><b>' + v + '</b><span>' + l + '</span></div>'; };
+    var h = '<div class="tv-top"><div class="tv-brand"><b>' + escapeHtml(currentCompany()) + '</b><span>Floor TV · ' + escapeHtml(now.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })) + '</span></div>' +
+      '<div class="tv-clock" aria-hidden="true">' + escapeHtml(hh[0]) + '<small>' + escapeHtml(hh[1] || "") + '</small></div>' +
+      '<div class="tv-ctl"><span class="tv-live' + (liveOk ? " on" : "") + '"><i aria-hidden="true"></i>' + escapeHtml(stTxt) + '</span>' +
+      '<button type="button" id="tvSound" aria-pressed="' + TV.sound + '" title="Chime on each yes">' + (TV.sound ? "Sound on" : "Sound off") + '</button>' +
+      (document.fullscreenEnabled ? '<button type="button" id="tvFull">' + (document.fullscreenElement ? "Exit full screen" : "Full screen") + '</button>' : '') +
+      '<button type="button" id="tvClose" aria-label="Close Floor TV">✕</button></div></div>';
+    h += '<div class="tv-kpis">' + kpi("c", n.calls.toLocaleString(), n.calls === 1 ? "call today" : "calls today") + kpi("t", n.talk.toLocaleString(), "conversations") + kpi("i", n.int.toLocaleString(), "interested", "int") +
+      kpi("a", n.appts.toLocaleString(), n.appts === 1 ? "appointment set" : "appointments set") + kpi("m", n.deals ? fmtMoney(n.money) : (n.calls ? Math.round(n.talk * 100 / n.calls) + "%" : "—"), n.deals ? "committed today" : "reach rate") + '</div>';
+    var ct = typeof contestCfg === "function" ? contestCfg() : null;
+    if (ct && ct.end && Date.now() >= ct.start && Date.now() < ct.end) { var cb = contestBoard(ct); h += '<div class="tv-contest">🏆 ' + escapeHtml(CONTEST_METRICS[ct.metric] || "Contest") + (cb.length ? ': ' + escapeHtml(firstName(cb[0].name)) + ' leads with ' + cb[0].n : '') + (ct.prize ? ' · Prize: ' + escapeHtml(ct.prize) : '') + '</div>'; }
+    h += '<div class="tv-main"><section class="tv-panel tv-board" aria-label="Leaderboard"><h3 class="tv-board-h" id="tvBoardH" title="Show the next board">' + escapeHtml(m[1]) + ' today <small>' + TV_METRICS.map(function (x, i) { return i === TV.metric % TV_METRICS.length ? "●" : "○"; }).join(" ") + '</small></h3>';
+    if (!reps.length) h += '<div class="tv-empty">No calls yet today. The board fills in as your reps log calls.</div>';
+    else h += '<ol class="tv-rows">' + reps.slice(0, 10).map(function (r, i) {
+      var v = r[m[0]]; return '<li class="tv-row' + (i === 0 && v > 0 ? " top" : "") + '"><span class="tv-rank">' + (i === 0 && v > 0 ? "👑" : i + 1) + '</span><div class="tv-who"><b>' + escapeHtml(r.name || "Rep") + '</b><div class="tv-bar"><i style="width:' + Math.round(v / top * 100) + '%"></i></div></div><span class="tv-val">' + v.toLocaleString() + '</span>' +
+        '<span class="tv-sub">' + r.calls + ' call' + (r.calls === 1 ? '' : 's') + ' · ' + r.talk + ' talked · ' + r.int + ' interested</span></li>'; }).join("") + '</ol>';
+    h += '</section><div class="tv-side">';
+    var onc = TEAM.on ? presenceNow() : [];
+    if (onc.length) h += '<section class="tv-panel" aria-label="On calls now"><h3>On calls now <small>' + onc.length + '</small></h3><ul class="tv-feed">' + onc.slice(0, 8).map(function (x) {
+      return '<li class="tv-oc"><i aria-hidden="true"></i><b>' + escapeHtml(firstName(x.p.by || "Rep")) + '</b><time class="tv-t" data-since="' + (+x.p.at) + '">' + presClock(x.p.at) + '</time></li>'; }).join("") + '</ul></section>';
+    var fresh = TV.fresh || {};
+    h += '<section class="tv-panel" aria-label="Latest calls"><h3>Latest</h3>' + (d.calls.length ? '<ol class="tv-feed">' + d.calls.slice(0, onc.length ? 7 : 11).map(function (c) {
+      var mm = OUTCOME_META[c.outcomeKey] || { label: c.outcome || "Call", cls: "noanswer" };
+      return '<li' + (fresh[tvCallId(c)] ? ' class="fresh"' : '') + '><b>' + escapeHtml(c.by ? firstName(c.by.name) : "You") + '</b><span class="qi-status ' + mm.cls + '">' + escapeHtml(mm.label) + '</span><time datetime="' + escapeHtml(String(c.timestamp)) + '">' + escapeHtml(agoStr(c.timestamp)) + '</time></li>'; }).join("") + '</ol>' : '<div class="tv-empty">Calls show up here the moment they’re logged.</div>') + '</section>';
+    h += '</div></div><div class="tv-foot">VPEX · updated ' + escapeHtml(now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", second: "2-digit" })) + '</div>';
+    TV.fresh = {};
+    el.innerHTML = h;
+  }
+  function tvChime() {
+    if (!TV.sound) return;
+    try {
+      var A = window.AudioContext || window.webkitAudioContext, ctx = TV.ac || (TV.ac = new A()), t = ctx.currentTime;
+      [523.25, 659.25, 783.99, 1046.5].forEach(function (f, i) { var o = ctx.createOscillator(), g = ctx.createGain(); o.type = "sine"; o.frequency.value = f; g.gain.setValueAtTime(0.0001, t + i * 0.12); g.gain.exponentialRampToValueAtTime(0.18, t + i * 0.12 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + i * 0.12 + 0.9); o.connect(g); g.connect(ctx.destination); o.start(t + i * 0.12); o.stop(t + i * 0.12 + 1); });
+    } catch (e) {}
+  }
+  function tvCelebrate() {
+    if (TV.showing || !TV.q.length || !TV.on) return;
+    var x = TV.q.shift(), c = document.getElementById("tvCele"); if (!c) return;
+    TV.showing = true;
+    var cols = ["var(--interested)", "var(--accent)", "var(--gold, #FFC94D)", "var(--callback)"], conf = "";
+    for (var i = 0; i < 28; i++) conf += '<i class="tv-conf" style="left:' + (Math.random() * 100).toFixed(1) + 'vw;background:' + cols[i % 4] + ';animation-delay:' + (Math.random() * 0.8).toFixed(2) + 's"></i>';
+    c.innerHTML = conf + '<div class="tv-cele-card"><b>' + escapeHtml(x.who) + '</b><span>' + escapeHtml(x.what) + '</span></div>';
+    c.hidden = false; tvChime();
+    setTimeout(function () { c.hidden = true; c.innerHTML = ""; TV.showing = false; tvCelebrate(); }, 5000);
+  }
+  function tvWake() { try { if (TV.on && navigator.wakeLock && !document.hidden) navigator.wakeLock.request("screen").then(function (l) { TV.lock = l; }).catch(function () {}); } catch (e) {} }
+  function tvOpen() {
+    if (TV.on) return; if (!tvAllowed()) { showToast("Floor TV is for admins and managers."); return; }
+    try { closeMenuModal(); } catch (e) {} try { if (typeof closeAdminHub === "function" && document.getElementById("adminModal").classList.contains("show")) closeAdminHub(); } catch (e) {}
+    TV.back = document.activeElement; TV.on = true; TV.q = []; TV.last = {}; TV.metric = 0;
+    var d = tvData(); TV.seen = {}; d.calls.forEach(function (c) { TV.seen[tvCallId(c)] = 1; }); TV.deals = {}; d.won.forEach(function (l) { TV.deals[l.id] = 1; });
+    var el = document.createElement("div"); el.id = "floorTv"; el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true"); el.setAttribute("aria-label", "Floor TV"); el.tabIndex = -1;
+    var cele = document.createElement("div"); cele.id = "tvCele"; cele.className = "tv-cele"; cele.hidden = true; cele.setAttribute("role", "status"); cele.setAttribute("aria-live", "assertive");
+    document.body.appendChild(el); document.body.appendChild(cele); document.body.classList.add("tv-open");
+    el.addEventListener("click", function (e) {
+      var t = e.target.closest("button, #tvBoardH"); if (!t) return;
+      if (t.id === "tvClose") tvClose();
+      else if (t.id === "tvSound") { TV.sound = !TV.sound; if (TV.sound) { var s0 = TV.sound; TV.sound = true; tvChime(); TV.sound = s0; } tvRender(); }
+      else if (t.id === "tvFull") { if (document.fullscreenElement) document.exitFullscreen().catch(function () {}); else el.requestFullscreen().catch(function () {}); setTimeout(tvRender, 300); }
+      else if (t.id === "tvBoardH") { TV.metric++; tvRender(); }
+    });
+    tvRender();
+    TV.timers = [
+      setInterval(function () { if (!document.hidden) tvRender(); }, 5000),
+      setInterval(function () { if (document.hidden) return; TV.metric++; tvRender(); }, 15000),
+      setInterval(function () { document.querySelectorAll("#floorTv time[data-since]").forEach(function (t) { t.textContent = presClock(+t.getAttribute("data-since")); }); }, 1000)
+    ];
+    tvWake();
+    try { (document.getElementById("tvClose") || el).focus({ preventScroll: true }); } catch (e) {}
+  }
+  function tvClose() {
+    if (!TV.on) return;
+    TV.on = false; TV.timers.forEach(clearInterval); TV.timers = []; TV.q = []; TV.showing = false;
+    try { if (TV.lock) TV.lock.release(); } catch (e) {} TV.lock = null;
+    try { if (document.fullscreenElement) document.exitFullscreen().catch(function () {}); } catch (e) {}
+    ["floorTv", "tvCele"].forEach(function (id) { var e = document.getElementById(id); if (e) e.remove(); });
+    document.body.classList.remove("tv-open");
+    if (/(^#|[-_&])tv$/i.test(location.hash)) try { history.replaceState(null, "", location.pathname + location.search + location.hash.replace(/([-_&])?tv$/i, "").replace(/^#$/, "")); } catch (e) {}
+    try { if (TV.back && document.contains(TV.back)) TV.back.focus({ preventScroll: true }); } catch (e) {}
+  }
+  document.addEventListener("keydown", function (e) {
+    if (!TV.on) return;
+    if (e.key === "Escape") { e.preventDefault(); tvClose(); return; }
+    if (e.key === "Tab") { var b = [].slice.call(document.querySelectorAll("#floorTv button")); if (!b.length) return; var i = b.indexOf(document.activeElement);
+      if (e.shiftKey ? i <= 0 : i === b.length - 1 || i < 0) { e.preventDefault(); b[e.shiftKey ? b.length - 1 : 0].focus(); } }
+  });
+  document.addEventListener("visibilitychange", function () { if (TV.on && !document.hidden) { tvWake(); tvRender(); } });
+  window.__vpexTvTest = { open: function () { tvOpen(); }, data: function () { return tvData().n; } };   // used by tests/floor_tv.js
+
   /* ----- results report ----- */
   // Same clock time n calendar days away (a week is not always 7 × 24 h when the clocks change).
   function shiftDays(t, n) { var d = new Date(t); d.setDate(d.getDate() + n); return d.getTime(); }
@@ -22325,6 +22707,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       { id: "dnc", g: "Leads", t: "Do Not Call list", s: function () { return Object.keys(dncNums()).length.toLocaleString() + " blocked"; }, run: function () { openDnc(); }, k: "dnc block" },
       { id: "overdue", g: "Leads", t: "Overdue follow-ups", s: function () { return od ? od + " over a day late" : "None right now"; }, run: openOverdue, k: "late reassign" },
       { id: "vault", g: "Leads", t: "Investor Vault", s: function () { return "Investors, deals and key dates"; }, run: function () { cmdClose(); state.activeView = "vault"; saveState(); render(); }, k: "investments clients" },
+      { id: "tv", g: "Reports", t: "Floor TV", s: function () { return "Today\u2019s leaderboard for the TV on the wall"; }, run: function () { cmdClose(); tvOpen(); }, k: "tv leaderboard screen wall" },
       { id: "report", g: "Reports", t: "Results report", s: function () { return "Weekly results, share or PDF"; }, run: function () { openReport("week"); }, k: "pdf weekly" },
       { id: "answers", g: "Reports", t: "Answer times", s: function () { return "When people actually pick up"; }, run: function () { openScoreboard("answers"); }, k: "best time" },
       { id: "roi", g: "Reports", t: "List ROI", s: function () { return "Which lists produce deals"; }, run: openListRoi, k: "return" },
@@ -22912,6 +23295,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       ]],
       ["reports", "Reports", "callback", '<path d="M5 20V10M12 20V4M19 20v-7"/>', "", "Results, answer times, list ROI", [
         row("hubReport", '<path d="M6 3h9l3 3v15H6z"/><path d="M9 13h6"/><path d="M9 17h6"/><path d="M9 9h2"/>', "Results report", "Weekly results, share or save as PDF"),
+        row("hubTv", '<rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/>', "Floor TV", "Today\u2019s leaderboard for the TV on the wall"),
         row("hubAnswers", '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', "Answer times", "When investors actually pick up"),
         row("hubRoi", '<path d="M4 20h16"/><path d="M7 16l4-4 3 3 5-6"/>', "List ROI", "Which lead lists produce investors")
       ]],
@@ -22985,6 +23369,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     (document.getElementById("hubRoi") || document.createElement("i")).addEventListener("click", openListRoi);
     (document.getElementById("hubSecurity") || document.createElement("i")).addEventListener("click", openSecurity);
     (document.getElementById("hubReport") || document.createElement("i")).addEventListener("click", function () { openReport("week"); });
+    (document.getElementById("hubTv") || document.createElement("i")).addEventListener("click", function () { closeAdminHub(); tvOpen(); });
     (document.getElementById("hubContest") || document.createElement("i")).addEventListener("click", openContestSetup);
     (document.getElementById("hubDnc") || document.createElement("i")).addEventListener("click", function () { openDnc(); });
     (document.getElementById("hubLists") || document.createElement("i")).addEventListener("click", openLists);
@@ -23335,6 +23720,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     document.getElementById("openBriefBtn").addEventListener("click", openBrief);
     document.getElementById("openInstallBtn").addEventListener("click", function () { closeMenuModal(); openInstall(); });
     document.getElementById("openReportBtn").addEventListener("click", function () { closeMenuModal(); openReport("week"); });
+    document.getElementById("openTvBtn").addEventListener("click", function () { closeMenuModal(); tvOpen(); });
     document.getElementById("openTourBtn").addEventListener("click", function () { closeMenuModal(); setTimeout(startTour, 250); });
     document.getElementById("authDemo").addEventListener("click", enterDemo);
     document.getElementById("authOffice").addEventListener("input", function () { setOffice(this.value); if (!OFFICE) try { window.localStorage.removeItem("vpex_company"); } catch (e) {} });
@@ -23467,9 +23853,20 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       });
     })();
     deskSetup();
-    if (teamAvailable()) teamBoot();
-    else if (fbShouldRetry()) fbRetryBoot(0);
-    else { vaultStart(); render(); startCloudSync(); }
+    var bootBackend = function () {
+      if (teamAvailable()) teamBoot();
+      else if (fbShouldRetry()) fbRetryBoot(0);
+      else { vaultStart(); render(); startCloudSync(); }
+    }, FBL = window.__vpexFb;
+    if (FBL && !FBL.done && !teamAvailable()) {   // sign-in scripts still on their way (see the loader in <head>)
+      if (fbShouldRetry()) fbEarly();
+      FBL.cbs.push(function () { if (TEAM.early) fbEarlyDone(); else bootBackend(); });
+    } else bootBackend();
+    if (/(^#|[-_&])tv$/i.test(location.hash)) (function waitTv(n) {   // vpexdialer.com/#tv (or #demo-insurance-tv): open Floor TV once the office has loaded
+      if (TV.on || n > 120) return;
+      if (state && state.callLog && (!TEAM.on || (TEAM.me && !TEAM.noBackend)) && document.getElementById("authScreen").style.display === "none") { if (tvAllowed()) tvOpen(); return; }
+      setTimeout(function () { waitTv(n + 1); }, 500);
+    })(0);
     setInterval(softRefresh, 60000);
     setTimeout(function () { updCheck(true); }, 4000);
     setInterval(function () { updCheck(false); updMaybeApply(); }, 60000);
