@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-02-05">
+<meta name="vpex-build" content="2027-02-06">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 /* Signature themes: six themes only the VPEX owner's own login can use (sig/*.css, sig.js).
@@ -9529,6 +9529,12 @@ html[data-motion="off"] #floorTv *, html[data-motion="off"] .tv-cele * { animati
 .el-steps li { display: grid; grid-template-columns: 74px 1fr; gap: 8px; align-items: baseline; }
 .el-k { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--text-dim); }
 .el-steps .sc-say p { margin: 0; }
+.el-rap-h { font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 4px; }
+.el-rap p { margin: 0 0 8px; }
+.el-note { margin-top: 6px; font-size: 12px; font-style: italic; color: var(--text-dim); }
+.el-rules { font-size: 13px; color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 0 10px; }
+.el-rules summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; color: var(--text-dim); }
+.el-rules ol { margin: 0 0 8px; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
 .el-tip { margin-top: 8px; font-size: 13px; color: var(--text); background: var(--surface-raised); border-radius: 8px; padding: 6px 8px; } .el-tip b { color: var(--text-dim); font-weight: 600; }
 .el-res { border: 1px solid var(--border); border-radius: 12px; padding: 8px 12px; margin: 8px 0; } .el-res > b { display: block; font-size: 14px; margin-bottom: 4px; }
 .el-res-r { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--text-dim); padding: 3px 0; } .el-res-r span:last-child { flex: none; color: var(--text); }
@@ -21495,19 +21501,23 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
   }
   function elCardHtml(c, i, lead) {
     var e = c.el, v = e.v, buy = c.idea === "buy";
-    var h = '<div class="cp-card el' + (buy ? ' buy' : '') + (i ? ' old' : ' new') + '"' + (i ? '' : ' role="status"') + '><h4>' +
-      (buy ? '<b>Buying signal.</b> Close now.' : 'They said: <b>\u201c' + escapeHtml(String(c.o.q).replace(/^["\u201c\u201d]+|["\u201c\u201d]+$/g, "")) + '\u201d</b>') + '</h4><ol class="el-steps">';
-    v.steps.forEach(function (st) { h += '<li><span class="el-k">' + escapeHtml(st[0]) + '</span><div class="sc-say">' + scFillHtml(st[1], lead) + '</div></li>'; });
-    h += '</ol>';
+    var h = '<div class="cp-card el' + (buy ? ' buy' : '') + (v.rap ? ' rap' : '') + (i ? ' old' : ' new') + '"' + (i ? '' : ' role="status"') + '><h4>' +
+      (buy ? '<b>Buying signal.</b> Close now.' : c.idea === "trial" ? '<b>Trial close.</b> Test the water.' : 'They said: <b>\u201c' + escapeHtml(String(c.o.q).replace(/^["\u201c\u201d]+|["\u201c\u201d]+$/g, "")) + '\u201d</b>') + '</h4>';
+    if (v.rap) h += '<div class="el-rap-h">' + escapeHtml(v.m) + '</div><div class="sc-say el-rap">' + scFillHtml(v.rap, lead) + '</div>';   // a rap from the owner's own playbook: said as written
+    else { h += '<ol class="el-steps">'; v.steps.forEach(function (st) { h += '<li><span class="el-k">' + escapeHtml(st[0]) + '</span><div class="sc-say">' + scFillHtml(st[1], lead) + '</div></li>'; }); h += '</ol>'; }
+    if (v.note) h += '<div class="el-note">' + scFillHtml(v.note, lead) + '</div>';
     if (e.close) h += '<div class="cp-lab">Then close</div><div class="sc-say cp-close">' + scFillHtml(e.close, lead) + '</div>';
     if (v.tip) h += '<div class="el-tip"><b>How to say it:</b> ' + escapeHtml(v.tip) + '</div>';
-    return h + '<div class="cp-tag">' + escapeHtml(v.m) + ' \u00b7 ' + elStatLine(v.id) + '</div></div>';
+    return h + '<div class="cp-tag">' + escapeHtml(v.src ? v.src : v.m) + ' \u00b7 ' + elStatLine(v.id) + '</div></div>';
   }
   var EL_TAP = { all: ["notint", "busy", "what", "later", "send", "price", "money", "think", "spouse", "already", "trust", "number", "stall"],
-    insurance: ["old"], realestate: ["self", "wait"], mca: ["credit", "payment"], auto: ["browse", "credit", "payment"], solar: ["rent", "roof", "wait"], investments: ["guarantee", "liquid", "advisor"] };
+    insurance: ["old"], realestate: ["self", "wait"], mca: ["credit", "payment"], auto: ["browse", "credit", "payment"], solar: ["rent", "roof", "wait"],
+    investments: ["trial", "who", "conservative", "bad", "info", "watch", "phone", "notwork", "market", "realestate", "liquid", "guarantee", "advisor"] };
   function elTapHtml() {
     var ids = EL_TAP.all.concat(EL_TAP[elInd()] || []).filter(function (k) { return elPool(k).length; });
-    return '<div class="el-tap"><div class="cp-lab">Tap what they said</div><div class="el-chips">' +
+    var rules = (window.VPEXElite.RULES || {})[elInd()];
+    return (rules ? '<details class="el-rules"><summary>Rules on every call</summary><ol>' + rules.map(function (r) { return '<li>' + scFillHtml(r, null) + '</li>'; }).join("") + '</ol></details>' : '') +
+      '<div class="el-tap"><div class="cp-lab">Tap what they said</div><div class="el-chips">' +
       '<button type="button" class="el-chip buy" data-el-say="buy">Ready to buy</button>' +
       ids.map(function (k) { return '<button type="button" class="el-chip" data-el-say="' + k + '">' + escapeHtml(elLabel(k).replace(/[.?]$/, "")) + '</button>'; }).join("") + '</div></div>';
   }

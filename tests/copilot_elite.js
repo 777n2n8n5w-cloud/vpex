@@ -19,25 +19,37 @@ const INDS = ['insurance', 'realestate', 'mca', 'auto', 'solar', 'investments'];
 const ids = {}, all = [];
 Object.keys(E.PLAYS).forEach(k => Object.keys(E.PLAYS[k]).filter(ind => ind !== 'noAll').forEach(ind => {
   check('floor key ' + k + '/' + ind, ind === 'all' || INDS.includes(ind), ind);
-  E.PLAYS[k][ind].forEach(v => { all.push(v); check('unique id ' + v.id, !ids[v.id], v.id); ids[v.id] = 1; });
+  E.PLAYS[k][ind].forEach(v => { if (ids[v.id] === v) return; all.push(v); check('unique id ' + v.id, !ids[v.id], v.id); ids[v.id] = v; });   // the same answer may serve two objections
 }));
 INDS.forEach(ind => {
   const c = E.CLOSE[ind] || [];
-  check(ind + ': two closes', c.length === 2, c.length);
+  check(ind + ': two or more closes', c.length >= 2, c.length);
   c.forEach(x => { check('close ' + x.id + ' offers two choices', / or /.test(x.t) && /\?$/.test(x.t), x.t); check('unique id ' + x.id, !ids[x.id]); ids[x.id] = 1; });
 });
 const BANNED = /risk[- ]free|can'?t lose|double your money|guaranteed (approval|returns?|savings)|act now|today only|last chance|only \d+ (spots|left)|dovetail/i;
 all.forEach(v => {
-  check(v.id + ': method, steps, tip', v.m && Array.isArray(v.steps) && v.steps.length >= 1 && v.steps.every(s => s.length === 2 && s[0] && s[1]) && v.tip, v);
-  const text = [v.m, v.tip, v.close || ''].concat(v.steps.map(s => s[1])).join(' ');
+  check(v.id + ': method and either a rap or steps with a tip', v.m && (v.rap ? typeof v.rap === 'string' && v.rap.length > 10 : Array.isArray(v.steps) && v.steps.length >= 1 && v.steps.every(s => s.length === 2 && s[0] && s[1]) && v.tip), v.id);
+  const text = [v.m, v.tip, v.close || '', v.rap || '', v.note || ''].concat(v.steps.map(s => s[1])).join(' ');
   check(v.id + ': no banned promise or fake urgency', !BANNED.test(text), (text.match(BANNED) || [])[0]);
   check(v.id + ': fill-ins are {first}/{me}/{company} only', (text.match(/\{[^}]*\}/g) || []).every(f => /^\{(first|me|company|name)\}$/.test(f)), text.match(/\{[^}]*\}/g));
   if (v.close) check(v.id + ': its own close gives two choices', / or /.test(v.close), v.close);
 });
+// the owner's Closer's Playbook: every section is in, the firm's name never is
+const BOOK = ['bk-close-2', 'bk-close-3', 'bk-close-4', 'bk-close-5', 'bk-close-6', 'bk-close-7', 'bk-close-8', 'bk-close-9', 'bk-close-10', 'bk-trial-a', 'bk-trial-b', 'bk-trial-c',
+  'bk-think', 'bk-acct', 'bk-burnt', 'bk-re', 'bk-broker-1', 'bk-broker-2', 'bk-local', 'bk-self-1', 'bk-self-2', 'bk-self-3', 'bk-self-4', 'bk-self-5', 'bk-self-6', 'bk-spectacular',
+  'bk-conservative', 'bk-send', 'bk-look', 'bk-watch', 'bk-phone', 'bk-self-7', 'bk-no', 'bk-raps-1', 'bk-raps-2', 'bk-key', 'bk-raps-3', 'bk-indecision', 'bk-raps-4',
+  'bk-liquid-1', 'bk-liquid-2', 'bk-liquid-3', 'bk-cb-1', 'bk-cb-2', 'bk-cb-3', 'bk-cb-4', 'bk-notwork', 'bk-market', 'bk-private', 'bk-dynamics'];
+check('playbook: all 50 sections are in', BOOK.every(id => ids[id] && ids[id].rap && ids[id].src === 'Your playbook'), BOOK.filter(id => !ids[id]));
+check('playbook: the firm is never named (cp-elite.js)', !/dovetail/i.test(SRC));
+check('playbook: no blank lines left (______)', !/_{3,}/.test(SRC));
+check('playbook: the 6 rules on every call, for investments only', E.RULES && E.RULES.investments.length === 6 && /lose the full amount/.test(E.RULES.investments[2]) && Object.keys(E.RULES).join() === 'investments');
+check('playbook: "allocation is filling" only with its [Only if true:] guard', (SRC.match(/allocation is filling/g) || []).length === 1 && /\[Only if true:\] This allocation is filling/.test(SRC));
+check('playbook: the closes end on their own question (no second close stacked on)', E.PLAYS.buy.investments.every(v => v.close === '' || /\?$/.test(v.close)));
 check('investments: guarantee answer says no and names the risk of loss', /lose some or all/.test(JSON.stringify(E.PLAYS.guarantee.investments)) && /^No/.test(E.PLAYS.guarantee.investments[0].steps[0][1]));
 check('every objection the base Copilot hears has an elite answer on every floor', ['notint', 'price', 'money', 'send', 'spouse', 'advisor', 'already', 'later', 'number', 'trust', 'think', 'credit', 'self', 'rent', 'roof', 'buy'].every(k => E.PLAYS[k] && (E.PLAYS[k].all || []).length));
 const said = { busy: "sorry i'm slammed right now", what: 'what is this about', decide: "i'm not the decision maker", wait: 'i want to wait until after the holidays', bad: 'we had a bad experience last time',
-  info: 'i need to do my own research', old: "i'm too old for this", browse: "i'm just shopping around", payment: 'the payment is too high', guarantee: 'is it guaranteed', liquid: 'when can i get my money back', stall: "i'll get back to you" };
+  info: 'i need to do my own research', old: "i'm too old for this", browse: "i'm just shopping around", payment: 'the payment is too high', guarantee: 'is it guaranteed', liquid: 'when can i get my money back', stall: "i'll get back to you",
+  who: 'so tell me about yourself', realestate: 'i invest in real estate', conservative: "i'm pretty conservative", watch: "i'll watch it for a while", phone: "i don't do business over the phone", notwork: "i don't think it's going to work", market: "the market's down right now" };
 E.IDEAS.forEach(x => check('idea ' + x[0] + ' hears "' + said[x[0]] + '"', said[x[0]] && x[1].test(' ' + said[x[0]] + ' '), x[0]));
 check('every new idea has a label and an answer', E.IDEAS.every(x => E.LABEL[x[0]] && E.PLAYS[x[0]]));
 
@@ -118,7 +130,7 @@ const eliteReq = reqs => reqs.filter(u => /cp-elite\.js/.test(u)).length;
     check(tag + ': no microphone used on the phone', await page.evaluate(() => window.__sr.list.length) === 0);
     check(tag + ': cp-elite.js loaded once', eliteReq(reqs) === 1, eliteReq(reqs));
     check(tag + ': playbook is his floor (investments)', p.ind === 'investments', p.ind);
-    check(tag + ': tap chips incl. Ready to buy and the investor ones', ['buy', 'price', 'think', 'guarantee', 'liquid'].every(k => p.chips.some(c => c.k === k)), p.chips.map(c => c.k));
+    check(tag + ': tap chips incl. Ready to buy and the investor ones', ['buy', 'price', 'think', 'guarantee', 'liquid', 'trial', 'who', 'conservative', 'market', 'watch', 'phone', 'notwork', 'realestate'].every(k => p.chips.some(c => c.k === k)), p.chips.map(c => c.k));
     check(tag + ': every chip and button >= 44 px', p.chips.every(c => c.h >= 44) && p.btns.every(h => h >= 44), [p.chips.map(c => c.h), p.btns]);
     check(tag + ': panel on screen, no sideways scroll', p.inView && p.sw <= p.vw, p);
     await tap(page, 'price'); p = await panel(page);
@@ -131,7 +143,16 @@ const eliteReq = reqs => reqs.filter(u => /cp-elite\.js/.test(u)).length;
     await tap(page, 'guarantee'); p = await panel(page);
     check(tag + ': guarantee (investments): honest about loss', /lose some or all/.test(p.cards[0].text), p.cards[0].text);
     await tap(page, 'buy'); p = await panel(page);
-    check(tag + ': Ready to buy → close card', /Buying signal/.test(p.cards[0].text) && p.cards[0].el && /Then close/i.test(p.cards[0].text), p.cards[0].text);
+    check(tag + ': Ready to buy → one of your 10 closes, from your playbook', /Buying signal/.test(p.cards[0].text) && p.cards[0].el && /^Your playbook · /.test(p.cards[0].tag) && /\d+(st|nd|rd|th) CLOSE/i.test(p.cards[0].text), p.cards[0].text.slice(0, 160));
+    const rules = await page.evaluate(() => { const d = document.querySelector('#copilot .el-rules'); if (!d) return null; d.open = true; return { n: d.querySelectorAll('li').length, t: d.innerText, h: d.querySelector('summary').getBoundingClientRect().height }; });
+    check(tag + ': Rules on every call (6), 44 px', rules && rules.n === 6 && /never tell them to stretch/.test(rules.t) && rules.h >= 44, rules);
+    await page.evaluate(() => { const d = document.querySelector('#copilot .el-rules'); if (d) d.open = false; });
+    await tap(page, 'who'); p = await panel(page);
+    check(tag + ': Tell me about yourself → a Self / Raps rap, said as written', /Tell me about yourself/.test(p.cards[0].text) && /^Your playbook · /.test(p.cards[0].tag) && /(SELF|RAPS|KEY|SPECTACULAR)/i.test(p.cards[0].text) && !/Dovetail/i.test(p.cards[0].text), p.cards[0].text.slice(0, 160));
+    await tap(page, 'trial'); p = await panel(page);
+    check(tag + ': Trial close card', /Trial close\./.test(p.cards[0].text) && /title your accounts|does the idea make sense|holding you back/.test(p.cards[0].text), p.cards[0].text);
+    await tap(page, 'market'); p = await panel(page);
+    check(tag + ': market down → Market Down / Private Markets / Buying Dynamics', /(Market Down|Private Markets Bullet|Buying Dynamics)/i.test(p.cards[0].text), p.cards[0].text.slice(0, 120));
     check(tag + ': at most 3 cards', p.cards.length === 3, p.cards.length);
     // log Interested: a win for what was shown
     await logOutcome(page, 'interested');
