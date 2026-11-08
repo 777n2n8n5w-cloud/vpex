@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-02-03">
+<meta name="vpex-build" content="2027-02-04">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 /* Signature themes: six themes only the VPEX owner's own login can use (sig/*.css, sig.js).
@@ -8049,6 +8049,8 @@ window.VPEX_SIG = [
   .lp-stat-over b { color: var(--notinterested); }
   .pipe-filters { margin: 2px 0 12px; flex-wrap: wrap; overflow: visible; row-gap: 8px; } .pipe-filters .pf-over.active { background: var(--notinterested); border-color: var(--notinterested); color: #fff; }
   .pipe-summary .warn[role="button"] { cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  /* "N need a next step" answers a 44 px tall tap on touch screens without changing its look */
+  @media (pointer: coarse) { .pipe-summary .warn[role="button"] { position: relative; } .pipe-summary .warn[role="button"]::before { content: ""; position: absolute; left: -6px; right: -6px; top: 50%; height: 44px; transform: translateY(-50%); } }
   .stage-help { margin: -4px 0 8px; font-size: 12px; line-height: 1.4; color: var(--text-faint); }
   .task-what { font-size: 13.5px; font-weight: 650; color: var(--text); margin-top: 2px; }
   .lp-next { display: grid; gap: 2px; width: 100%; margin: 12px 0 8px; padding: 12px 14px; border-radius: 12px; text-align: left; font: inherit; color: var(--text);
@@ -13889,8 +13891,8 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
   function dayLabel(d) {
     var ds = localDateStr(d);
     if (ds === localDateStr(new Date())) return "Today";
-    if (ds === localDateStr(new Date(Date.now() + 86400000))) return "Tomorrow";
-    if (ds === localDateStr(new Date(Date.now() - 86400000))) return "Yesterday";
+    if (ds === localDateStr(new Date(shiftDays(Date.now(), 1)))) return "Tomorrow";      // calendar days, so a 23- or 25-hour day can't skip one
+    if (ds === localDateStr(new Date(shiftDays(Date.now(), -1)))) return "Yesterday";
     return d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
   }
   function fmtWhen(ts) {
@@ -15527,7 +15529,8 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       b.addEventListener("click", function () { PIPE.f = b.getAttribute("data-pipe-f"); render(); });
     });
     var nw = main.querySelector(".pipe-summary .warn");
-    if (nw) { nw.setAttribute("role", "button"); nw.setAttribute("tabindex", "0"); nw.addEventListener("click", function () { PIPE.f = "none"; render(); }); }
+    if (nw) { nw.setAttribute("role", "button"); nw.setAttribute("tabindex", "0"); nw.addEventListener("click", function () { PIPE.f = "none"; render(); });
+      nw.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); PIPE.f = "none"; render(); } }); }
   }
   var PIPE = { f: "all" };
   // What each stage means, so everyone files a lead in the same place (the stage names change by industry; these don't need to).
@@ -15607,6 +15610,46 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
         saveState(); render(); showToast("Put back");
       } } });
   }
+  // Upcoming follow-ups that land outside the lead's calling hours (a legal holiday or Sunday ban in their state, or too
+  // early/late their time), e.g. retries booked before a state's rule changed or a time typed past the warning. Only the
+  // rep's own, with a time set, not Email/Docs, and never a time the lead picked (pinned: they asked for it).
+  function tasksOffHours(open, now) {
+    var m = leadMap(), out = [];
+    open.forEach(function (t) {
+      if (t.done || t.pinned || !t.dueAt || t.dueAt <= now || !t.leadId || t.type === "Email" || t.type === "Docs") return;
+      var l = m[t.leadId]; if (!l || isDnc(l)) return;
+      var c = slotCheck(l, t.dueAt); if (!c || c.ok) return;
+      var to = hoursFixAt(l, t.dueAt, c); if (to) out.push({ t: t, l: l, c: c, to: to });
+    });
+    return out;
+  }
+  // Where an off-hours follow-up goes: on a closed day (holiday, Sunday ban) the same time on the next open day when that's
+  // inside its hours, otherwise the first allowed time after it (slotCheck's fix, the opening of the next open window).
+  function hoursFixAt(lead, ts, c) {
+    var z = leadZone(lead), p = zonedParts(ts, z.iana), h = p.h + p.mi / 60;
+    if (dayWindow(z.st, { ymd: p.y + "-" + pad2(p.m + 1) + "-" + pad2(p.d), wd: p.dow }).closed) {
+      for (var k = 1; k < 10; k++) {
+        var b = new Date(Date.UTC(p.y, p.m, p.d + k)), y = b.getUTCFullYear(), mo = b.getUTCMonth(), d = b.getUTCDate();
+        var dw = dayWindow(z.st, { ymd: y + "-" + pad2(mo + 1) + "-" + pad2(d), wd: b.getUTCDay() });
+        if (dw.closed) continue;
+        if (h >= dw.open && h < dw.close) return zonedToUtc(y, mo, d, p.h, p.mi, z.iana);
+        break;
+      }
+    }
+    return c.fix || null;
+  }
+  function moveOffHours() {
+    var list = tasksOffHours(state.tasks.filter(function (t) { return !t.done && taskScope(t) && myTask(t); }), Date.now());
+    if (!list.length) return;
+    var undo = list.map(function (x) { return [x.t.id, x.t.dueAt, x.t.due]; });
+    list.forEach(function (x) { x.t.dueAt = x.to; x.t.due = localDateStr(new Date(x.to)); });
+    saveState(); render();
+    showToast("Moved " + list.length + " follow-up" + (list.length === 1 ? "" : "s") + " into calling hours", { action: { label: "Undo", fn: function () {
+      var byId = {}; state.tasks.forEach(function (t) { byId[t.id] = t; });
+      undo.forEach(function (u) { var t = byId[u[0]]; if (t && !t.done) { t.dueAt = u[1]; t.due = u[2]; } });
+      saveState(); render(); showToast("Put back");
+    } } });
+  }
   function renderTasksTab() {
     var main = document.getElementById("mainArea");
     var now = Date.now(), today = localDateStr(new Date()), m = leadMap();
@@ -15624,6 +15667,8 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     var dueAll = open.filter(function (t) { return info[t.id].due; });
     var callNow = dueAll.filter(function (t) { return info[t.id].ok && t.leadId; }).length;
     var backlog = tasksBacklog(open.filter(function (t) { return myTask(t); }), now);
+    var offHours = tasksOffHours(open.filter(function (t) { return myTask(t); }), now);
+    offHours.forEach(function (x) { if (info[x.t.id]) info[x.t.id].off = true; });
     var header = '<div class="tasks-head"><div><div class="tasks-title">Follow-ups</div>' +
       '<div class="tasks-sub">' + open.length + ' open · ' + dueAll.length + ' due now' + (dueAll.length && callNow < dueAll.length ? ' · ' + callNow + ' callable now' : '') + '</div></div>' +
       '<button class="btn-primary" id="addTaskBtn" style="flex:none;padding:9px 16px;border-radius:8px;font-size:13px;">+ Add</button></div>';
@@ -15640,6 +15685,13 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     }
     var bl = backlog.length >= 10 ? '<div class="tk-backlog"><div><b>' + backlog.length + ' automatic retries are 2+ days late.</b><span>Spread them over the next 5 business days, about ' + Math.ceil(backlog.length / 5) + ' a day. Booked times and interested leads stay where they are.</span></div>' +
       '<button type="button" class="btn-secondary" id="tkSpread">Spread them out</button></div>' : '';
+    var oh = "";
+    if (offHours.length) {
+      var x0 = offHours[0], n0 = offHours.length;
+      oh = '<div class="tk-backlog tk-offhours" role="status"><div><b>' + n0 + ' upcoming follow-up' + (n0 === 1 ? ' lands' : 's land') + ' outside calling hours.</b><span>' +
+        escapeHtml(x0.l.name + ' (' + x0.c.st + '): ' + x0.c.their + ', ' + x0.c.why.replace(/ today$/, '')) + (n0 > 1 ? ' and ' + (n0 - 1) + ' more' : '') +
+        '. Move ' + (n0 === 1 ? 'it' : 'each') + ' to the first allowed time.</span></div><button type="button" class="btn-secondary" id="tkOffHours">Move ' + (n0 === 1 ? 'it' : 'them') + '</button></div>';
+    }
     var chips = '<div class="filter-row tk-kinds" role="group" aria-label="Show">' + TK_KINDS.filter(function (k) { return k[0] === "all" || kinds[k[0]]; }).map(function (k) {
       return '<button type="button" class="filter-chip' + (TK.kind === k[0] ? ' active' : '') + '" data-tk-kind="' + k[0] + '" aria-pressed="' + (TK.kind === k[0]) + '">' + k[1] + ' <span class="chip-n">' + kinds[k[0]] + '</span></button>';
     }).join("") + '</div>';
@@ -15661,7 +15713,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     if (later.length) sec.push({ id: "later", title: "Later", sub: "", cls: "noanswer", items: later, up: true });
     sec.push({ id: "nodate", title: "No date", sub: "", cls: "noanswer", items: shown.filter(function (t) { return !t.due && !t.dueAt; }) });
     var doneList = state.tasks.filter(function (t) { return t.done && taskScope(t); }).sort(function (a, b) { return (b.doneAt || 0) - (a.doneAt || 0); });
-    var html = header + (TEAM.on && canSeeTeam() ? '<div class="filter-row tscope"><button class="filter-chip' + (TEAM.taskScope === "mine" ? " active" : "") + '" data-tscope="mine">Mine</button><button class="filter-chip' + (TEAM.taskScope === "all" ? " active" : "") + '" data-tscope="all">Everyone’s</button></div>' : '') + banner + bl + chips;
+    var html = header + (TEAM.on && canSeeTeam() ? '<div class="filter-row tscope"><button class="filter-chip' + (TEAM.taskScope === "mine" ? " active" : "") + '" data-tscope="mine">Mine</button><button class="filter-chip' + (TEAM.taskScope === "all" ? " active" : "") + '" data-tscope="all">Everyone’s</button></div>' : '') + banner + bl + oh + chips;
     var upHead = false, any = false;
     sec.forEach(function (s) {
       if (!s.items.length) return;
@@ -15690,6 +15742,8 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     });
     var sp = document.getElementById("tkSpread");
     if (sp) sp.addEventListener("click", spreadBacklog);
+    var ohb = document.getElementById("tkOffHours");
+    if (ohb) ohb.addEventListener("click", moveOffHours);
     var tog = document.getElementById("toggleDoneTasks");
     if (tog) tog.addEventListener("click", function () { showDoneTasks = !showDoneTasks; render(); });
     main.querySelectorAll("[data-toggle-task]").forEach(function (btn) {
@@ -15710,7 +15764,8 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     var lead = t.leadId ? findLeadById(t.leadId) : null;
     var overdue = !t.done && taskDueTs(t) < now - 3600000;
     var k = inf ? inf.kind : taskKind(t, lead), missed = !t.done && t.pinned && taskDueTs(t) < now - 900000;
-    var status = !t.done && lead && inf && inf.due ? (inf.ok ? '<span class="tk-ok">Callable now</span>' : '<span class="tk-wait">' + escapeHtml(taskOpensTxt(lead) || "outside calling hours") + '</span>') : '';
+    var status = !t.done && lead && inf && inf.due ? (inf.ok ? '<span class="tk-ok">Callable now</span>' : '<span class="tk-wait">' + escapeHtml(taskOpensTxt(lead) || "outside calling hours") + '</span>')
+      : !t.done && lead && inf && inf.off ? '<span class="tk-wait">outside their calling hours</span>' : '';
     var label = k === "retry" && t.type === "Call" ? "Retry" : (t.type || "Task");
     return '<div class="task-item' + (overdue ? ' overdue' : '') + (missed ? ' missed' : '') + '">' +
       '<button class="task-check' + (t.done ? " done" : "") + '" data-toggle-task="' + t.id + '" aria-label="Mark done">' + (t.done ? checkIconSvg() : "") + '</button>' +
@@ -18533,7 +18588,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     if (!TEAM.on || !TEAM.db) return;
     TEAM.acts = TEAM.acts || {}; TEAM.actUnsub = TEAM.actUnsub || {};
     var want = {};
-    for (var i = 0; i < 8; i++) want[actDocId(new Date(Date.now() - i * 86400000))] = true;
+    for (var i = 0; i < 8; i++) want[actDocId(new Date(dayStart(-i) + 12 * 3600000))] = true;   // noon of each of the last 8 calendar days
     Object.keys(TEAM.actUnsub).forEach(function (k) { if (!want[k]) { try { TEAM.actUnsub[k](); } catch (e) {} delete TEAM.actUnsub[k]; delete TEAM.acts[k]; } });
     Object.keys(want).forEach(function (k) {
       if (TEAM.actUnsub[k]) return;
@@ -19307,7 +19362,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       '<div class="sb-seg">' + tabs.map(function (t) { return '<button class="sb-tab' + (scoreView === t[0] ? ' active' : '') + '" data-sbview="' + t[0] + '">' + t[1] + '</button>'; }).join("") + '</div>';
     if (scoreView === "today" || scoreView === "week") {
       var from = scoreView === "today" ? dayStart(0) : weekStart();
-      var allRows = repStats(from, dayStart(1), localDateStr(new Date(Date.now() + 86400000)));
+      var allRows = repStats(from, dayStart(1), localDateStr(new Date(dayStart(1))));
       var locOf = function (r) { return r.uid === "_none" ? "" : repLoc(r.uid); };
       var lcount = { office: 0, remote: 0, out: 0, none: 0 };
       allRows.forEach(function (r) { if (r.uid !== "_none") lcount[locOf(r) || "none"]++; });
@@ -19500,7 +19555,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     var mineC = function (c) { return uid ? !!(c.by && c.by.uid === uid) : myCall(c); };
     var mineL = function (l) { return uid ? !!(l.owner && l.owner.uid === uid) : pipeScope(l); };
     var mineT = function (t) { var a = assigneeOf(t); return uid ? !!(a && a.uid === uid) : myTask(t); };
-    var now = ctx.now, today = dayStart(0), ws = weekStart(), lwFrom = ws - 7 * 86400000, lwTo = now - 7 * 86400000;
+    var now = ctx.now, today = dayStart(0), ws = weekStart(), lwFrom = shiftDays(ws, -7), lwTo = shiftDays(now, -7);
     var s = { today: 0, todayReached: 0, firstToday: 0, week: 0, lastWeek: 0, c14: 0, r14: 0, hours: {}, early: [0, 0], late: [0, 0], days: {}, all: 0, timed: 0, short: 0, talk: 0 };
     state.callLog.forEach(function (c) {
       if (!mineC(c)) return;
@@ -19596,7 +19651,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     Object.keys(groups).forEach(function (k) { var b = groups[k]; if (b[0] < 20) return; var r = b[1] / b[0]; if (!bestZ || r > bestZ.r) bestZ = { k: k, r: r, n: b[0] }; });
     if (bestZ) { var pr = bestZ.k.split("|"); ins.push({ tone: "info", text: "Your team reaches " + ZN[pr[0]] + " leads best at " + hourLabel(+pr[1]) + " their time (" + Math.round(bestZ.r * 100) + "% over " + bestZ.n + " calls)." }); }
     if (ctx.teamCalls) ins.push({ tone: "info", text: "Team reach rate: " + pctN(ctx.teamReached, ctx.teamCalls) + "% over the last " + COACH_DAYS + " days (" + ctx.teamCalls + " calls)." });
-    var ws = weekStart(), lwFrom = ws - 7 * 86400000, lwTo = now - 7 * 86400000, w = 0, lw = 0;
+    var ws = weekStart(), lwFrom = shiftDays(ws, -7), lwTo = shiftDays(now, -7), w = 0, lw = 0;
     state.callLog.forEach(function (c) { var ts = new Date(c.timestamp).getTime(); if (ts >= ws) w++; if (ts >= lwFrom && ts < lwTo) lw++; });
     if (lw >= 30) { var ch = Math.round(((w - lw) / lw) * 100); ins.push({ tone: ch >= 0 ? "good" : "warn", text: "Team calls are " + (ch >= 0 ? "up " : "down ") + Math.abs(ch) + "% vs this point last week (" + w + " vs " + lw + ")." }); }
     var idle = Object.keys(TEAM.members).map(function (k) { return TEAM.members[k]; }).filter(function (m) {
@@ -21676,7 +21731,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     }
     if (now < c.start) return "";
     var lead = board[0], mine = pos >= 0 ? board[pos] : null;
-    return '<button class="contest-bar" id="contestBtn"><b>\uD83C\uDFC6 ' + escapeHtml(CONTEST_METRICS[c.metric] || "Contest") + (c.end - c.start <= 86400000 ? ' today' : ' this week') + '</b><span>' +
+    return '<button class="contest-bar" id="contestBtn"><b>\uD83C\uDFC6 ' + escapeHtml(CONTEST_METRICS[c.metric] || "Contest") + (c.end - c.start <= 25 * 3600000 ? ' today' : ' this week') + '</b><span>' +
       (mine ? (pos === 0 ? 'You\u2019re in the lead with ' + mine.n : 'You\u2019re #' + (pos + 1) + ' with ' + mine.n + ' \u00b7 ' + escapeHtml(firstName(lead.name)) + ' leads with ' + lead.n) : lead ? escapeHtml(firstName(lead.name)) + ' leads with ' + lead.n + ' \u00b7 get on the board' : 'No one on the board yet \u2014 be first') +
       (c.prize ? ' \u00b7 Prize: ' + escapeHtml(c.prize) : '') + '</span></button>';
   }
