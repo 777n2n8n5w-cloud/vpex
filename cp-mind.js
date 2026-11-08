@@ -291,6 +291,7 @@
     var o = mem.o || (mem.o = {});
     (call.events || []).forEach(function (e) { if (e.kind === "obj") { var x = o[e.idea] || (o[e.idea] = [0, 0]); x[0]++; x[1] = now; } });
     var s = mem.s || (mem.s = {}); (call.events || []).forEach(function (e) { if (e.kind === "buy" || e.kind === "size" || e.kind === "agree") s[e.kind] = (s[e.kind] || 0) + 1; });
+    if ((call.events || []).some(function (e) { return e.kind === "buy" || e.kind === "size"; })) mem.sAt = now;
     mem.t = (mem.t || []).concat((call.shown || []).filter(function (id) { return (mem.t || []).indexOf(id) < 0; })).slice(-40);
     if (call.stage && STAGE_ORDER.indexOf(call.stage) > STAGE_ORDER.indexOf(mem.st || "open")) mem.st = call.stage;
     var objs = (call.events || []).filter(function (e) { return e.kind === "obj"; });
@@ -300,6 +301,11 @@
     Object.keys(o).forEach(function (k) { if (now - o[k][1] > 180 * 86400000) delete o[k]; });   // half a year on, it's history
     return mem;
   }
+  function buyIsLatest(m) {   // a buying signal leads only if no concern was raised after it
+    if (!(m.s || {}).buy) return false;
+    var last = m.lastObj, lo = last && m.o && m.o[last] ? m.o[last][1] : 0;
+    return !last || (m.sAt || 0) >= lo;
+  }
   // When to follow up and why: { days, hour, evening, what, why, note }. The app turns it into a time inside the lead's calling hours.
   function followup(ctx, outcome) {
     var m = ctx.mem || {}, last = m.lastObj, cat = last ? CAT[last] : "", s = m.s || {}, ind = ctx.ind;
@@ -307,7 +313,7 @@
       if ((m.o && m.o.notint && m.o.notint[0] >= 2)) return null;
       return { days: 90, hour: 10, what: "Check in", why: "They said no for now. A respectful check-in in a few months keeps the door open.", note: "Said not interested. Check timing, no pitch." };
     }
-    if (s.buy && (ctx.lead || {}).stage !== "Committed") return { days: 0, hour: null, soon: true, what: ind === "investments" ? "Finish the paperwork" : "Lock in the next step", why: "They gave buying signals. Strike while it's warm: today or tomorrow.", note: "Gave buying signals" + (last ? "; last concern: " + (ctx.objLabel && ctx.objLabel[last] || last) : "") + "." };
+    if (buyIsLatest(m) && (ctx.lead || {}).stage !== "Committed") return { days: 0, hour: null, soon: true, what: ind === "investments" ? "Finish the paperwork" : "Lock in the next step", why: "They gave buying signals. Strike while it's warm: today or tomorrow.", note: "Gave buying signals" + (last ? "; last concern: " + (ctx.objLabel && ctx.objLabel[last] || last) : "") + "." };
     var plan = {
       authority: { days: 1, hour: 19, evening: true, what: "Call with both", why: "They wanted to involve someone else. Evenings are when couples and partners can both be on.", note: "Wanted to talk it over. Get the decision-maker on this call." },
       hesitation: { days: 1, hour: null, what: "Follow up while it's fresh", why: "They're thinking it over. Within a day, the conversation is still fresh; longer, it fades.", note: "On the fence. Isolate the one concern." },
@@ -334,6 +340,7 @@
     var L = ctx.lead || {}, m = ctx.mem || {}, ind = ctx.ind, now = ctx.now || Date.now(), ev = [], blockers = [];
     var day = 86400000, since = L.lastCallAt ? Math.floor((now - L.lastCallAt) / day) : null;
     var nq = notQualified(ind, L.qf, []), miss = missingInfo(ind, L.qf), must = miss.filter(function (x) { return x.must; });
+    var reached = L.reached || !!(m.o && Object.keys(m.o).length) || !!(m.s && (m.s.buy || m.s.agree));   // Copilot heard them: they were reached
     var openObj = Object.keys(m.o || {}).sort(function (a, b) { return m.o[b][0] - m.o[a][0]; });
     var res = function (phase, bucket, nba, pri) { return { phase: phase, bucket: bucket, nba: nba, evidence: ev, blockers: blockers, priority: pri || 0 }; };
     if (L.dnc) { ev.push({ t: "On the Do Not Call list", src: "record" }); return res("lost", "closed", { title: "Leave it", why: "They asked not to be called." }, -1); }
@@ -349,9 +356,11 @@
         else { phase = "document"; nba = { title: nextStep[1] + ": next", why: "Committed. The deal isn't done until the paperwork and funding are: " + nextStep[1].toLowerCase() + " is the open step." }; ev.push({ t: "Committed; open step: " + nextStep[1], src: "record" }); }
       } else { phase = "document"; nba = { title: "Finish the closing steps", why: "Committed. Walk the closing steps to completion." }; }
     } else if (!L.calls) { phase = "new"; nba = { title: "First call", why: "Never called. Call in their best hours." }; }
-    else if (!L.reached) { phase = "reach"; nba = { title: "Reach them", why: (L.calls) + " tries, no conversation yet. Try a different time of day, then text." }; }
+    else if (!reached) { phase = "reach"; nba = { title: "Reach them", why: (L.calls) + " tries, no conversation yet. Try a different time of day, then text." }; }
     else if (must.length) { phase = "qualify"; nba = { title: "Qualify: " + (L.qfLabels && L.qfLabels[must[0].k] || must[0].k), why: "A must-know answer is missing before any commitment.", say: must[0].q }; must.forEach(function (x) { blockers.push({ t: "Unknown: " + (L.qfLabels && L.qfLabels[x.k] || x.k), src: "unknown" }); }); }
-    else if (openObj.length && L.outcome !== "interested") { phase = "resolve"; var top = openObj[0], cat = CAT[top]; nba = { title: "Resolve: " + (ctx.objLabel && ctx.objLabel[top] || top), why: (KIND[cat] || KIND.info).do }; }
+    else if ((m.lastObj && m.o && m.o[m.lastObj] && !buyIsLatest(m) && CAT[m.lastObj] !== "signal") || (openObj.length && L.outcome !== "interested")) {   // the most recent unresolved concern comes first
+      phase = "resolve"; var top = m.lastObj && m.o && m.o[m.lastObj] ? m.lastObj : openObj[0], cat = CAT[top];
+      nba = { title: "Resolve: " + (ctx.objLabel && ctx.objLabel[top] || top), why: "Last time this was in the way. " + (KIND[cat] || KIND.info).do }; }
     else if (L.outcome === "interested" || L.interestedBefore) { phase = "advance"; nba = { title: "Move to commitment", why: "Interested and qualified. Present, trial close, then ask." }; }
     else { phase = "educate"; nba = { title: "Show the value", why: "Talked, no clear interest yet. Find what matters to them." }; }
     openObj.slice(0, 3).forEach(function (k) { var c = CAT[k]; blockers.push({ t: (ctx.objLabel && ctx.objLabel[k] || k) + (m.o[k][0] > 1 ? " ×" + m.o[k][0] : "") + " · " + (KIND[c] || KIND.info).label, src: "record", cat: c }); });
@@ -360,7 +369,7 @@
     if ((m.s || {}).buy) ev.push({ t: "Gave buying signals before", src: "record" });
     if (L.interestedBefore) ev.push({ t: "Said interested", src: "record" });
     if (nt && nt.over) { bucket = "stalling"; ev.push({ t: "Follow-up " + (nt.lateDays ? nt.lateDays + " day" + (nt.lateDays > 1 ? "s" : "") + " late" : "late"), src: "record" }); }
-    if (!nt && phase !== "done" && phase !== "new" && L.reached) { bucket = "stalling"; blockers.push({ t: "No next step booked", src: "record" }); }
+    if (!nt && phase !== "done" && phase !== "new" && reached) { bucket = "stalling"; blockers.push({ t: "No next step booked", src: "record" }); }
     if (since !== null && since >= 7 && phase !== "done" && (L.interestedBefore || phase === "document" || phase === "advance")) { bucket = "stalling"; ev.push({ t: "No contact in " + since + " days", src: "record" }); }
     var noCount = m.o && m.o.notint ? m.o.notint[0] : 0;
     if (L.outcome === "notinterested" && L.interestedBefore) { bucket = "atrisk"; ev.push({ t: "Said not interested after showing interest", src: "record" }); }
@@ -436,7 +445,7 @@
       statusquo: "Thanks for the time today. Not asking you to change anything you have. Would a quick side-by-side " + (when || "next week") + " be worth 10 minutes?",
       brushoff: "Sorry I caught you at a bad time earlier. It's about [your one-line reason]. Would " + (when || "tomorrow morning or afternoon") + " be better?",
       signal: "Great talking with you. Here's the next step: [what happens next]. Does " + (when || "today or tomorrow") + " work to finish up?"
-    }[(m.s || {}).buy ? "signal" : cat];
+    }[buyIsLatest(m) ? "signal" : cat];
     return t ? hi + t : hi + "Thanks for the time today. Would " + (when || "tomorrow morning or afternoon") + " work to pick up where we left off?";
   }
   root.VPEXMind = { v: 1, CAT: CAT, KIND: KIND, QUAL: QUAL, missingInfo: missingInfo, notQualified: notQualified, readPerson: readPerson, diagnose: diagnose,

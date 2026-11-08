@@ -75,6 +75,7 @@ async function boot(br, o) {
   await page.evaluate(() => document.querySelectorAll('.toast').forEach(t => t.remove()));
   return { ctx, page, errs, reqs };
 }
+const brainBtn = async page => { if (await page.evaluate(() => { const m = document.querySelector('#copilot .el-menu'); return !!(m && m.hidden); })) await page.click('#elMenuBtn'); await page.click('#elBrain'); };   // the Brain button lives in the Copilot menu
 const say = async (page, t, ms) => { await page.evaluate(t => window.__say(t), t); await page.waitForTimeout(ms || 250); };
 const panel = page => page.evaluate(() => { const el = document.getElementById('copilot'); if (!el || el.hidden) return null;
   return { head: el.querySelector('.cp-head').innerText, cards: [...el.querySelectorAll('.cp-card')].map(c => ({ text: c.innerText, tag: (c.querySelector('.cp-tag') || {}).innerText || '' })),
@@ -92,7 +93,7 @@ const outside = reqs => reqs.filter(u => !/^(http:\/\/127\.0\.0\.1|data:|blob:)/
     let p = await panel(page);
     check(tag + ': Brain button on the computer', p && p.brainBtn);
     check(tag + ': cp-brain.js not loaded until asked', !reqs.some(u => /cp-brain\.js/.test(u)));
-    await page.click('#elBrain'); await page.waitForTimeout(500);
+    await brainBtn(page); await page.waitForTimeout(500);
     const st = await page.evaluate(() => document.getElementById('brStat').innerText);
     check(tag + ': sheet says Gemini Nano can download once', /Gemini Nano\): can download it/.test(st) && /Qwen3/.test(st), st);
     await page.click('#brOn'); await page.waitForTimeout(60);
@@ -155,7 +156,7 @@ const outside = reqs => reqs.filter(u => !/^(http:\/\/127\.0\.0\.1|data:|blob:)/
     check('busy: never two questions at once', L.max === 1, L);
     check('busy: the newest line is judged, the one in between skipped', L.n === 2 && /NEWEST: third line here/.test(L.last), L);
     // turn off
-    await page.click('#elBrain'); await page.waitForTimeout(400); await page.click('#brOff'); await page.waitForTimeout(200);
+    await brainBtn(page); await page.waitForTimeout(400); await page.click('#brOff'); await page.waitForTimeout(200);
     await page.evaluate(() => { document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show')); });
     p = await panel(page);
     check('off: header without Brain, remembered off', !/Brain on/.test(p.head) && await page.evaluate(() => localStorage.getItem('vpex_brain')) === 'off', p.head);
@@ -169,7 +170,7 @@ const outside = reqs => reqs.filter(u => !/^(http:\/\/127\.0\.0\.1|data:|blob:)/
   {
     const { ctx, page, errs } = await boot(br, { gpu: true, web: true });
     await page.evaluate(() => document.querySelector('[data-cp-toggle]').click()); await page.waitForTimeout(800);
-    await page.click('#elBrain'); await page.waitForTimeout(500);
+    await brainBtn(page); await page.waitForTimeout(500);
     const st = await page.evaluate(() => document.getElementById('brStat').innerText);
     check('webllm: sheet: built-in not in this browser, open model can run', /not in this browser/.test(st) && /can run here/.test(st), st);
     await page.click('#brOn'); await page.waitForTimeout(400);
@@ -188,7 +189,7 @@ const outside = reqs => reqs.filter(u => !/^(http:\/\/127\.0\.0\.1|data:|blob:)/
   {
     const { ctx, page, errs } = await boot(br, {});
     await page.evaluate(() => document.querySelector('[data-cp-toggle]').click()); await page.waitForTimeout(800);
-    await page.click('#elBrain'); await page.waitForTimeout(500); await page.click('#brOn'); await page.waitForTimeout(200);
+    await brainBtn(page); await page.waitForTimeout(500); await page.click('#brOn'); await page.waitForTimeout(200);
     const t = await page.evaluate(() => document.getElementById('brMsg').textContent + ' | ' + document.getElementById('brStat').innerText);
     check('no AI here: says so plainly, keywords keep working', /can’t run the brain/.test(t) && /needs Chrome or Edge/.test(t), t);
     check('no AI here: no page errors', !errs.length, errs);

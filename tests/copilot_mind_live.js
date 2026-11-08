@@ -44,7 +44,7 @@ const now = page => page.evaluate(() => { const n = document.querySelector('#cop
   return { title: (n.querySelector('.mn-title b') || {}).textContent || '', conf: (n.querySelector('.mn-conf') || {}).textContent || '', text: n.innerText,
     ev: [...n.querySelectorAll('.mn-ev-i')].map(e => e.innerText), alerts: [...n.querySelectorAll('.mn-al')].map(a => [a.className.replace(/.*lv-/, ''), a.innerText]),
     band: (n.querySelector('.mn-band') || {}).textContent || '', stage: (n.querySelector('.el-steps-bar .now') || {}).textContent || '' }; });
-const cards = page => page.evaluate(() => [...document.querySelectorAll('#copilot .cp-card')].map(c => ({ text: c.innerText, tag: (c.querySelector('.cp-tag') || {}).innerText || '' })));
+const cards = page => page.evaluate(() => [...document.querySelectorAll('#copilot .cp-card')].map(c => ({ text: c.innerText || c.textContent, tag: ((c.querySelector('.cp-tag') || {}).textContent || '').trim() })));   // earlier cards are folded: read their text, not their layout
 const leadName = page => page.evaluate(() => (document.querySelector('.lead-name, #leadName, .ln-name, h2.lead-name') || document.querySelector('.lead-card h2') || {}).textContent || '');
 const mem = (page, name) => page.evaluate(name => { const db = JSON.parse(localStorage.getItem('__mockfs') || '{}'); let out = null, call = null;
   Object.keys(db).forEach(k => { if (/leadChunks\//.test(k) && db[k].leads) Object.values(db[k].leads).forEach(l => { if (l.name === name && l.cpm) out = l.cpm; }); });

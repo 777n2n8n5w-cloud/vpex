@@ -141,7 +141,7 @@ const eliteReq = reqs => reqs.filter(u => /cp-elite\.js/.test(u)).length;
     const firstTag = c0.tag;
     await tap(page, 'think'); await tap(page, 'price'); p = await panel(page);
     check(tag + ': same objection again → a different answer, marked', /^Again, a new answer\. They said: “It's too expensive\.”/.test(p.cards[0].text) && p.cards[0].tag.split(' · ')[0] !== firstTag.split(' · ')[0] && p.cards.length === 3, p.cards.map(c => c.text.slice(0, 50) + ' / ' + c.tag));
-    const nx = await page.evaluate(() => { const n = document.querySelector('#copilot .el-next'); return n && { now: (n.querySelector('.el-steps-bar .now') || {}).textContent, t: n.innerText, b: [...n.querySelectorAll('button')].map(b => [b.textContent, b.getBoundingClientRect().height]) }; });
+    const nx = await page.evaluate(() => { const n = document.querySelector('#copilot .el-next'); return n && { now: (n.querySelector('.el-steps-bar .now') || {}).textContent, t: n.innerText + ' ' + [...n.querySelectorAll('.mn-ev-i')].map(e => e.textContent).join(' '), b: [...n.querySelectorAll('button')].map(b => [b.textContent, b.getBoundingClientRect().height]) }; });
     check(tag + ': same objection twice → the mind calls it a real concern, with the evidence', nx && nx.now === 'Handle' && /a real concern/.test(nx.t) && /Raised 2 times/.test(nx.t), nx);
     check(tag + ': Next move buttons: Trial close and Close now, 44 px', nx && nx.b.map(b => b[0]).join() === 'Trial close,Close now' && nx.b.every(b => b[1] >= 44), nx && nx.b);
     await tap(page, 'guarantee'); p = await panel(page);

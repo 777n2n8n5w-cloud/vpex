@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-02-10">
+<meta name="vpex-build" content="2027-02-11">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 /* Signature themes: six themes only the VPEX owner's own login can use (sig/*.css, sig.js).
@@ -9514,6 +9514,10 @@ html[data-motion="off"] #floorTv *, html[data-motion="off"] .tv-cele * { animati
 .cp-card.buy { border-color: var(--interested); background: color-mix(in srgb, var(--interested) 10%, var(--surface)); }
 .cp-msg { font-size: 14px; color: var(--notinterested); }
 .sc-bar-b.cp-on { border-color: var(--notinterested); }
+/* a sheet opened over Copilot (Radar, What wins, outcome) goes on top where the two can't sit side by side; Copilot comes back when it closes */
+@media (max-width: 1400px) { body:has(.modal-overlay.show) #copilot { z-index: 99; } }
+/* on a desk the lead profile is a 560 px panel on the right: Copilot (pinned over the Live column by cpPlace's inline style) moves to its left so both stay in view (unless another sheet is open on top) */
+body.desk:has(#leadModal.show):not(:has(.modal-overlay.show:not(#leadModal))) #copilot { left: auto !important; right: 576px !important; z-index: 1400; }
 @media (max-width: 700px) { #copilot { left: 8px; right: 8px; width: auto; bottom: max(8px, env(safe-area-inset-bottom, 0px)); max-height: 46vh; } #copilot.cp-tap { max-height: 72vh; } }
 /* Copilot Elite (owner only): four-step answers, tap chips, playbook picker, what wins */
 .el-badge { display: inline-block; vertical-align: 2px; margin-left: 4px; padding: 1px 7px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: .04em; background: var(--gold, #c9a227); color: #1a1405; }
@@ -9542,6 +9546,35 @@ html[data-motion="off"] #floorTv *, html[data-motion="off"] .tv-cele * { animati
 .br-prog { height: 8px; border-radius: 999px; background: var(--surface-raised); overflow: hidden; margin: 8px 0; } .br-prog span { display: block; height: 100%; width: 0; background: var(--accent); transition: width .3s; }
 .br-acts { flex-wrap: wrap; } .br-acts button { min-height: 44px; }
 .br-row { font-size: 13px; padding: 3px 0; color: var(--text); }
+#elMenuBtn { font-size: 20px; line-height: 1; }
+.rd-tabs { display: flex; gap: 6px; margin: 4px 0 10px; } .rd-tabs button { flex: 1; min-height: 44px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-raised); color: var(--text); font: inherit; font-weight: 600; cursor: pointer; }
+.rd-tabs button[aria-selected="true"] { background: var(--accent-fill, var(--accent)); color: var(--accent-text, #fff); border-color: transparent; }
+.rd-sec { margin: 0 0 14px; } .rd-h { display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; } .rd-h span { font-weight: 700; color: var(--text-dim); } .rd-h small { color: var(--text-dim); font-size: 12px; flex-basis: 100%; }
+.rd-row { display: flex; flex-direction: column; gap: 3px; width: 100%; text-align: left; border: 1px solid var(--border); border-left: 4px solid var(--border); border-radius: 12px; padding: 9px 11px; margin-bottom: 6px; background: var(--surface); color: var(--text); font: inherit; cursor: pointer; min-height: 44px; }
+.rd-row.b-stalling { border-left-color: var(--voicemail); } .rd-row.b-atrisk { border-left-color: var(--notinterested); } .rd-row.b-moving { border-left-color: var(--interested); }
+.rd-top { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; } .rd-top b { font-size: 15px; } .rd-val { font-weight: 700; color: var(--text); font-size: 13px; }
+.rd-ph, .rd-b { font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: var(--surface-raised); color: var(--text-dim); margin-left: auto; }
+.rd-nba { font-weight: 650; font-size: 14px; } .rd-why { font-size: 12.5px; color: var(--text-dim); line-height: 1.35; }
+.rd-ev, .lp-mind-l { display: flex; flex-wrap: wrap; gap: 4px; } .rd-ev i, .lp-mind-l i { font-style: normal; font-size: 11.5px; padding: 2px 7px; border-radius: 7px; background: var(--surface-raised); color: var(--text); }
+.rd-ev i.src-unknown, .lp-mind-l i.src-unknown { border: 1px dashed var(--voicemail); } .lp-mind-l i.src-ai { border: 1px dashed var(--border); }
+.rd-note { font-size: 12px; color: var(--text-dim); margin: 4px 0; } .rd-more > summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-weight: 600; color: var(--text-dim); }
+.rd-rep { display: flex; flex-direction: column; gap: 2px; border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; margin-bottom: 6px; } .rd-rep span { font-size: 13px; color: var(--text); }
+.rd-rep.k-followup, .rd-rep.k-convert, .rd-rep.k-nextstep, .rd-rep.k-reach { border-left: 4px solid var(--voicemail); }
+.lp-mind { border: 1px solid var(--accent); border-radius: 12px; padding: 10px 12px; margin: 10px 0; display: flex; flex-direction: column; gap: 6px; background: color-mix(in srgb, var(--accent) 5%, var(--surface)); }
+.lp-mind-h { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 14px; } .lp-mind-h .rd-ph { margin-left: auto; }
+.rd-b.b-stalling { color: var(--text); border: 1px solid var(--voicemail); } .rd-b.b-atrisk { color: var(--text); border: 1px solid var(--notinterested); } .rd-b.b-moving { color: var(--text); border: 1px solid var(--interested); }
+.lp-mind-n, .lp-mind-f { font-size: 13.5px; line-height: 1.4; color: var(--text); } .lp-mind-n q { display: block; margin-top: 4px; color: var(--text); font-style: italic; }
+.lp-mind-l b, .lp-mind-f b, .lp-mind-n b { color: var(--text-dim); font-weight: 600; font-size: 12.5px; margin-right: 4px; }
+.lp-mind-f span { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; } .lp-mind-f button { min-height: 44px; }
+.el-menu[hidden] { display: none !important; }
+.mn-what { font-size: 13.5px; line-height: 1.4; color: var(--text); } .mn-what b { color: var(--text-dim); font-weight: 600; }
+.mn-title .mn-band { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--surface-raised); color: var(--text); white-space: nowrap; }
+.mn-why > summary, .el-older > summary, .el-tapbox > summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-size: 13px; font-weight: 600; color: var(--text-dim); list-style: none; }
+.mn-why > summary::-webkit-details-marker, .el-older > summary::-webkit-details-marker, .el-tapbox > summary::-webkit-details-marker { display: none; }
+.mn-why > summary::after, .el-older > summary::after, .el-tapbox > summary::after { content: "\25be"; margin-left: 6px; font-size: 11px; } .mn-why[open] > summary::after, .el-older[open] > summary::after, .el-tapbox[open] > summary::after { content: "\25b4"; }
+.mn-why > div { margin-bottom: 6px; } .mn-tip { font-size: 12.5px; color: var(--text); background: var(--surface-raised); border-radius: 8px; padding: 6px 8px; margin-top: 4px; }
+.el-older { border: 1px solid var(--border); border-radius: 12px; padding: 0 10px 6px; } .el-older > summary { font-weight: 500; color: var(--text); }
+.el-older .cp-card { margin-top: 6px; }
 .mn-cw { font-size: 12.5px; line-height: 1.35; color: var(--text); margin: -2px 0 6px; } .mn-cw b { color: var(--text); } .mn-cw span { color: var(--text-dim); }
 .mn-soft { margin-top: 4px; } .mn-soft > summary { cursor: pointer; font-size: 13px; color: var(--text); padding: 8px 10px; border-radius: 9px; background: var(--surface-raised); min-height: 44px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; list-style: none; }
 .mn-soft > summary::-webkit-details-marker { display: none; } .mn-soft > summary u { color: var(--text-dim); }
@@ -12542,7 +12575,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       (mv || set ? '' : '<div class="fu-tag fu-' + (cb ? 'cb' : 'int') + '">' + (cb ? 'Callback later' : 'Interested') + ' \u00b7 logged</div>') +
       '<h3 id="fuTitle">' + (mv ? 'Move the follow-up with ' + first : set ? 'What\u2019s next with ' + first + '?' : cb ? 'When should you call ' + first + ' back?' : 'What\u2019s next with ' + first + ', and when?') + '</h3>' +
       '<p class="modal-sub">' + (clk && clk.t ? 'It\u2019s ' + escapeHtml(clk.t.label || "") + ' for ' + first + ' right now (' + escapeHtml(clk.st) + '). ' : '') + 'Times are yours; every one offered is inside their calling hours.</p>' +
-      (FU.cp ? '<div class="fu-cp"><b>Copilot:</b> ' + escapeHtml(FU.cp.what) + ', ' + escapeHtml(fmtWhen(FU.sug)) + '. ' + escapeHtml(FU.cp.why) + '<button type="button" class="btn-secondary" id="fuCpText">Copy a follow-up text</button></div>' : '') +
+      (FU.cp ? '<div class="fu-cp"><b>Copilot:</b> ' + escapeHtml(FU.cp.what) + ', ' + escapeHtml(fmtWhen(FU.sug)) + (fuTheir(FU.sug, lead) ? ' (' + escapeHtml(fuTheir(FU.sug, lead)) + ' their time)' : '') + '. ' + escapeHtml(FU.cp.why) + '<button type="button" class="btn-secondary" id="fuCpText">Copy a follow-up text</button></div>' : '') +
       '<div class="fu-cols"><div class="fu-col">' +
       (cb ? '' : '<div class="fu-label">Next step</div><div class="fu-row fu-whats" role="group" aria-label="Next step">' + whats.map(function (w) {
         return '<button type="button" class="fu-chip' + (w === FU.what ? ' on' : '') + '" data-fu-what="' + escapeHtml(w) + '" aria-pressed="' + (w === FU.what) + '">' + escapeHtml(w) + '</button>';
@@ -15293,6 +15326,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
         '<button class="copy-btn info-btn" id="lpInfo" title="Send info" aria-label="Send info">' + sendIconSvg() + '</button>' +
       '</div>' +
       lpNextHtml(lead) +
+      lpMindHtml(lead) +
       '<div class="lp-stats">' +
         '<div><b>' + calls.length + '</b><span>Calls</span></div>' +
         '<div><b>' + escapeHtml(last ? outcomeLabel(last.outcomeKey, last.outcome) : "\u2014") + '</b><span>' + (last ? escapeHtml(agoStr(last.timestamp)) : "Not called") + '</span></div>' +
@@ -21647,22 +21681,27 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     var M = window.VPEXMind; if (!M) return "";
     var ctx = mindCtx(), p = M.plan(ctx), g = M.progress(ctx), who = M.readPerson(ctx.call.leadLines), al = M.alerts(ctx), f = elFlow();
     CP.nba = p.kind;
-    var steps = ["open", "discover", "objection", "trial", "close"], at = steps.indexOf(f.stage);
-    var byBrain = !!(brainOn() && f.brainNext);
+    var steps = ["open", "discover", "objection", "trial", "close"], at = steps.indexOf(f.stage), wide = window.matchMedia("(min-width: 700px)").matches;
+    var byBrain = !!(brainOn() && f.brainNext), rules = (window.VPEXElite.RULES || {})[elInd()];
     var h = '<div class="el-next mn" role="status"><div class="el-steps-bar" aria-label="Where the call is">' + ["Open", "Find", "Handle", "Trial", "Close"].map(function (n, i) {
       return '<span class="' + (i < at ? 'done' : i === at ? 'now' : '') + '">' + n + '</span>'; }).join("") + '</div>';
     if (al.length) h += '<div class="mn-alerts">' + al.slice(0, 2).map(function (a) { return '<div class="mn-al lv-' + a.level + '" role="alert">' + escapeHtml(a.t) + '</div>'; }).join("") + '</div>';
-    h += '<div class="mn-title"><b>' + escapeHtml(p.title) + '</b><span class="mn-conf c-' + p.confidence + '">' + ({ high: "Clear", medium: "Likely", low: "Unsure" }[p.confidence] || "") + '</span></div>' +
+    h += '<div class="mn-title"><b>' + escapeHtml(p.title) + '</b><span class="mn-band b-' + g.band + '">' + escapeHtml(g.label) + '</span><span class="mn-conf c-' + p.confidence + '">' + ({ high: "Clear", medium: "Likely", low: "Unsure" }[p.confidence] || "") + '</span></div>' +
+      '<div class="mn-what"><b>What\u2019s happening:</b> ' + escapeHtml(p.what) + '</div>' +
       '<div class="el-next-t"><b>Do:</b> ' + escapeHtml(p.do) + '</div>' +
       (p.say ? '<div class="mn-say"><span>Say</span>' + scFillHtml(p.say, lead).replace(/^<p>|<\/p>$/g, "") + '</div>' : p.card ? '<div class="mn-say mn-say-card"><span>Say</span>The answer below' + (p.after ? '. ' + escapeHtml(p.after) : '') + '</div>' : '') +
-      '<div class="mn-read"><div><b>What\u2019s happening:</b> ' + escapeHtml(p.what) + '</div><div><b>Why:</b> ' + escapeHtml(p.why) + '</div><div><b>Aim:</b> ' + escapeHtml(p.aim) + '</div></div>' +
-      (p.evidence && p.evidence.length || (CP.facts || []).length ? '<div class="mn-ev">' + mindEvHtml((p.evidence || []).concat((CP.facts || []).slice(-2))) + '</div>' : '') +
       (byBrain ? '<div class="el-check mn-brain"><b><span class="el-brain-tag">Brain</span></b> ' + escapeHtml(f.brainNext) + '</div>' : '') +
       (brainOn() && f.brainCheck ? '<div class="el-check"><b>Your last line:</b> ' + escapeHtml(f.brainCheck) + '</div>' : '') +
-      '<div class="mn-person"><span class="mn-band b-' + g.band + '">' + escapeHtml(g.label) + '</span>' +
-        (who.style ? '<span title="' + escapeHtml(who.style.tip) + '">' + escapeHtml(who.style.label) + ' <i>guess</i></span>' : '') +
-        (who.soph ? '<span title="' + escapeHtml(who.soph.tip) + '">' + escapeHtml(who.soph.label) + ' <i>guess</i></span>' : '') +
-        who.motives.map(function (m) { return '<span>' + escapeHtml(m.label) + ' <i>heard</i></span>'; }).join("") + (g.sure ? '<span class="mn-miss">' + escapeHtml(g.sure) + '</span>' : '') + '</div>' +
+      '<details class="mn-why"' + (wide ? ' open' : '') + '><summary>Why this move</summary>' +
+        '<div class="mn-read"><div><b>Why:</b> ' + escapeHtml(p.why) + '</div><div><b>Aim:</b> ' + escapeHtml(p.aim) + '</div></div>' +
+        (p.evidence && p.evidence.length || (CP.facts || []).length ? '<div class="mn-ev">' + mindEvHtml((p.evidence || []).concat((CP.facts || []).slice(-2))) + '</div>' : '') +
+        (who.style || who.soph || who.motives.length || g.sure ? '<div class="mn-person">' +
+          (who.style ? '<span title="' + escapeHtml(who.style.tip) + '">' + escapeHtml(who.style.label) + ' <i>guess</i></span>' : '') +
+          (who.soph ? '<span title="' + escapeHtml(who.soph.tip) + '">' + escapeHtml(who.soph.label) + ' <i>guess</i></span>' : '') +
+          who.motives.map(function (m) { return '<span>' + escapeHtml(m.label) + ' <i>heard</i></span>'; }).join("") + (g.sure ? '<span class="mn-miss">' + escapeHtml(g.sure) + '</span>' : '') + '</div>' : '') +
+        (who.style ? '<div class="mn-tip">' + escapeHtml(who.style.tip) + '</div>' : '') +
+      '</details>' +
+      (rules ? '<details class="el-rules"><summary>Rules on every call</summary><ol>' + rules.map(function (r) { return '<li>' + scFillHtml(r, null) + '</li>'; }).join("") + '</ol></details>' : '') +
       '<div class="el-next-b">' + (p.kind === "ask" || p.kind === "qualify" ? '<button type="button" data-el-qf>Record the answer</button>' : '') + (elPool("trial").length ? '<button type="button" data-el-act="trial">Trial close</button>' : '') + '<button type="button" class="go" data-el-act="close">Close now</button></div></div>';
     return h;
   }
@@ -21821,9 +21860,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     investments: ["trial", "size", "who", "conservative", "bad", "info", "watch", "phone", "notwork", "market", "realestate", "elsewhere", "diy", "accredited", "liquid", "guarantee", "advisor"] };
   function elTapHtml() {
     var ids = EL_TAP.all.concat(EL_TAP[elInd()] || []).filter(function (k) { return elPool(k).length; });
-    var rules = (window.VPEXElite.RULES || {})[elInd()];
-    return (rules ? '<details class="el-rules"><summary>Rules on every call</summary><ol>' + rules.map(function (r) { return '<li>' + scFillHtml(r, null) + '</li>'; }).join("") + '</ol></details>' : '') +
-      '<div class="el-tap"><div class="cp-lab">Tap what they said</div><div class="el-chips">' +
+    return '<div class="el-tap"><div class="cp-lab">Tap what they said</div><div class="el-chips">' +
       '<button type="button" class="el-chip buy" data-el-say="buy">Ready to buy</button>' +
       ids.map(function (k) { return '<button type="button" class="el-chip" data-el-say="' + k + '">' + escapeHtml(elLabel(k).replace(/[.?]$/, "")) + '</button>'; }).join("") + '</div></div>';
   }
@@ -21833,8 +21870,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     var key = idea + (m.o ? "|" + m.o.id : "");
     if (CP.elSeen && CP.elSeen[idea]) key += "|" + Date.now();   // tapped again: show the next answer
     cpAddCard(m, key, "", Date.now());
-    cpDraw();
-    var b = document.querySelector("#copilot .cp-card"); if (b && b.scrollIntoView) b.scrollIntoView({ block: "nearest" });
+    cpDraw();   // the Now card stays on top: it's the move to make
   }
   function openElResults() {
     var E = window.VPEXElite; if (!E) return;
@@ -21891,11 +21927,22 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     if (elReady() && CP.on) elLeadCheck();
     var lead = currentLead(), live = CP.on && !CP.err, heard = CP.heard.map(function (h) { return h.t; }).concat(CP.interim ? [CP.interim] : []).join(" "), elite = elReady();
     var h = '<div class="cp-head"><span class="cp-dot' + (live && !CP.tap ? ' on' : '') + '" aria-hidden="true"></span><b>Copilot' + (elite ? ' <span class="el-badge">Elite</span>' : '') + '<small>' + (CP.err ? "Stopped" : CP.tap && CP.on ? "Tap mode \u00b7 nothing is heard or saved" : live ? "Listening on this device" + (brainOn() ? " \u00b7 Brain on" : "") + (cpAiOn() ? " \u00b7 AI on" : "") : "Off") + '</small></b>' +
+      (elite ? '<button type="button" id="elMenuBtn" aria-expanded="' + !!CP.menu + '" aria-label="Copilot menu">\u22ef</button>' : '') +
       (DESK.on ? '' : '<button type="button" id="cpMin" aria-expanded="' + !CP.min + '" aria-label="' + (CP.min ? "Show Copilot" : "Shrink Copilot") + '">' + (CP.min ? "\u25b4" : "\u25be") + '</button>') +
       '<button type="button" id="cpStop">' + (CP.on ? "Stop" : "Close") + '</button></div><div class="cp-body">';
     if (CP.err) h += '<div class="cp-msg" role="alert">' + escapeHtml(CP.err) + '</div>';
-    if (elite) h += '<div class="el-bar"><label>Playbook <select id="elInd" aria-label="Playbook for which floor">' + Object.keys(window.VPEXElite.CLOSE).map(function (k) { return '<option value="' + k + '"' + (k === elInd() ? ' selected' : '') + '>' + escapeHtml(INDUSTRIES[k].name) + '</option>'; }).join("") + '</select></label><button type="button" id="elRes">What wins</button>' + (CP.tap ? '' : '<button type="button" id="elBrain"' + (brainOn() ? ' class="on"' : '') + '>Brain</button>') + '</div>' + (CP.tap ? elTapHtml() : '');
+    if (elite) h += '<div class="el-bar el-menu"' + (CP.menu ? '' : ' hidden') + '><label>Playbook <select id="elInd" aria-label="Playbook for which floor">' + Object.keys(window.VPEXElite.CLOSE).map(function (k) { return '<option value="' + k + '"' + (k === elInd() ? ' selected' : '') + '>' + escapeHtml(INDUSTRIES[k].name) + '</option>'; }).join("") + '</select></label>' +
+      '<button type="button" id="elRadar">Radar</button><button type="button" id="elRes">What wins</button>' + (CP.tap ? '' : '<button type="button" id="elBrain"' + (brainOn() ? ' class="on"' : '') + '>Brain</button>') + '</div>' + (CP.tap ? elTapHtml() : '');
     if (elite) h += elNextHtml(lead);
+    if (elite) {   // the newest answer in full; earlier ones on this call folded into one line
+      if (CP.cards[0]) h += CP.cards[0].el ? elCardHtml(CP.cards[0], 0, lead) : cpCardHtml(CP.cards[0], 0, lead);
+      if (CP.cards.length > 1) h += '<details class="el-older"><summary>Earlier on this call: ' + CP.cards.slice(1).map(function (c) { return escapeHtml(c.idea === "buy" ? "Buying signal" : c.idea === "close" ? "Your close" : c.idea === "trial" ? "Trial close" : String((c.o && c.o.q) || c.idea).replace(/[.?]$/, "")); }).join(" \u00b7 ") + '</summary>' +
+        CP.cards.slice(1).map(function (c, k) { return c.el ? elCardHtml(c, k + 1, lead) : cpCardHtml(c, k + 1, lead); }).join("") + '</details>';
+      if (live && !CP.tap && Date.now() - CP.started < 90000) h += '<div class="cp-consent">Put the call on speaker. Start with: <q>Just so you know, I use a tool that transcribes our call to help me take notes.</q> Nothing is recorded or saved.</div>';
+      if (!CP.tap) h += '<div class="cp-heard" aria-live="off">' + (heard ? '…<em>' + escapeHtml(heard.slice(-150)) + '</em>' : (live ? 'Waiting to hear the call…' : '')) + '</div>';
+      if (!CP.tap) h += '<details class="el-tapbox"><summary>Didn\u2019t catch it? Tap what they said</summary>' + elTapHtml() + '</details>';
+      el.innerHTML = h + '</div>'; el.classList.toggle("cp-min", !!CP.min); cpPlace(); return;
+    }
     if (live && !CP.tap && Date.now() - CP.started < 90000) h += '<div class="cp-consent">Put the call on speaker. Start with: <q>Just so you know, I use a tool that transcribes our call to help me take notes.</q> Nothing is recorded or saved.</div>';
     if (!CP.tap) h += '<div class="cp-heard" aria-live="off">' + (heard ? '…<em>' + escapeHtml(heard.slice(-150)) + '</em>' : (live ? 'Waiting to hear the call…' : '')) + '</div>';
     if (!CP.cards.length) h += '<div class="cp-empty">' + (CP.tap ? 'Tap what they said and your best answer shows here.' : 'When they raise an objection, your best answer shows here.') + '</div>';
@@ -21914,6 +21961,13 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     el.innerHTML = h + '</div>';
     el.classList.toggle("cp-min", !!CP.min);
     cpPlace();
+  }
+  function cpCardHtml(c, i, lead) {   // a card that isn't from the Elite playbook (do-not-call, the office's own answers)
+    if (c.idea === "dnc") return '<div class="cp-card dnc' + (i ? ' old' : ' new') + '" role="alert"><h4><b>They asked not to be called again.</b></h4><div class="sc-say"><p>Say: “Understood, I’ll take you off our list right now.”</p></div>' +
+      (lead && !isDnc(lead) ? '<button type="button" data-cp-dnc="' + escapeHtml(lead.id) + '">Add ' + escapeHtml(firstName(lead.name)) + ' to Do Not Call</button>' : '') + '</div>';
+    var play = cpPlay(c.idea && c.idea.indexOf("w:") ? c.idea : "") || { t: "", close: CP_CLOSE[IND_KEY] || CP_CLOSE.investments };
+    return '<div class="cp-card' + (i ? ' old' : ' new') + '"><h4>They said: <b>“' + escapeHtml(String((c.o && c.o.q) || "").replace(/^["“”]+|["“”]+$/g, "")) + '”</b></h4><div class="cp-lab">Say</div><div class="sc-say">' + scFillHtml((c.o && c.o.a) || "", lead) + '</div>' +
+      (play.close ? '<div class="cp-lab">Then close</div><div class="sc-say cp-close">' + scFillHtml(play.close, lead) + '</div>' : '') + (play.t ? '<div class="cp-tag">' + escapeHtml(play.t) + '</div>' : '') + '</div>';
   }
   function cpPlace() {   // on a computer it sits over the Live column, so the lead card and outcome buttons stay clear
     var el = document.getElementById("copilot"), lv = DESK.on && document.getElementById("deskLive"), r = lv && lv.getBoundingClientRect();
@@ -21935,6 +21989,85 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
           function () { showToast("Couldn\u2019t save. Check your connection.", { kind: "err" }); });
     });
   }
+
+  /* ----- Opportunity Radar, deal diagnosis, team coaching and patterns (owner only, Copilot Mind) -----
+     Every deal with activity, judged on evidence: where it is in its lifecycle (reach → qualify → resolve → advance →
+     paperwork → funded), whether it's moving, needs a push or is at risk, what's in the way, and the one next action;
+     ranked by how close it is, its size and how overdue it is. Tapping a deal opens it. */
+  var MIND_PHASE = { new: "New", reach: "Reaching", qualify: "Qualifying", educate: "Showing value", resolve: "Resolving a concern", advance: "Ready to advance", document: "Paperwork", done: "Funded", lost: "Lost", notq: "Not qualified" };
+  var MIND_BUCKET = { stalling: "Needs a push", atrisk: "At risk", moving: "Moving", early: "Early", done: "Done", notq: "Not qualified", closed: "Closed" };
+  function mindLabels() { var E = window.VPEXElite, o = {}; Object.keys((E || {}).PLAYS || {}).forEach(function (k) { o[k] = elLabel(k).replace(/[.?]$/, ""); }); return o; }
+  function mindLeadCtx(l) { return { ind: IND_KEY, now: Date.now(), lead: mindLead(l), mem: l.cpm || {}, objLabel: mindLabels() }; }
+  function mindRadar() {
+    var t0 = performance.now(), out = [];
+    var leads = state.leads.filter(function (l) { return pipeScope(l) && (l.calledAt || (l.stage && l.stage !== "New Lead") || l.cpm || openTasksFor(l.id).length); });
+    leads.sort(function (a, b) { return String(b.calledAt || "").localeCompare(String(a.calledAt || "")); });
+    leads.slice(0, 1500).forEach(function (l) { var r = window.VPEXMind.lifecycle(mindLeadCtx(l)); out.push({ l: l, r: r }); });
+    out.sort(function (a, b) { return b.r.priority - a.r.priority; });
+    return { items: out, ms: Math.round(performance.now() - t0), total: leads.length };
+  }
+  function mindRowHtml(x) {
+    var l = x.l, r = x.r, val = mindLead(l).checkValue || Number(l.amount) || 0, ch = r.blockers.concat(r.evidence).slice(0, 2);
+    return '<button type="button" class="rd-row b-' + r.bucket + '" data-radar-lead="' + escapeHtml(l.id) + '"><span class="rd-top"><b>' + escapeHtml(l.name) + '</b>' + (val ? '<span class="rd-val">' + escapeHtml(fmtMoney(val)) + '</span>' : '') + '<span class="rd-ph">' + escapeHtml(MIND_PHASE[r.phase] || r.phase) + '</span></span>' +
+      '<span class="rd-nba">' + (r.nba.urgent ? '⚠ ' : '') + escapeHtml(r.nba.title || "") + '</span><span class="rd-why">' + escapeHtml(r.nba.why || "") + '</span>' +
+      (ch.length ? '<span class="rd-ev">' + ch.map(function (e) { return '<i class="src-' + (e.src || "record") + '">' + escapeHtml(e.t) + '</i>'; }).join("") + '</span>' : '') + '</button>';
+  }
+  var RD = { tab: "pipe" };
+  function openRadar() {
+    elLoad().then(function () {
+      if (!window.VPEXMind) return;
+      var R = mindRadar(), by = {};
+      R.items.forEach(function (x) { (by[x.r.bucket] = by[x.r.bucket] || []).push(x); });
+      var sec = function (k, title, sub, n) { var a = by[k] || []; if (!a.length) return ""; return '<div class="rd-sec"><div class="rd-h"><b>' + title + '</b> <span>' + a.length + '</span><small>' + sub + '</small></div>' + a.slice(0, n || 8).map(mindRowHtml).join("") +
+        (a.length > (n || 8) ? '<details class="rd-more"><summary>Show all ' + a.length + '</summary>' + a.slice(n || 8, 60).map(mindRowHtml).join("") + '</details>' : '') + '</div>'; };
+      var pipe = sec("stalling", "Needs a push", "Overdue, quiet or no next step") + sec("atrisk", "At risk", "Signs of losing it") + sec("moving", "Moving", "On track: keep the next step") +
+        sec("early", "Early", "Not reached or not qualified yet", 4) + (by.notq ? '<div class="rd-note">' + by.notq.length + ' not qualified (not shown)</div>' : '');
+      if (!pipe) pipe = '<p class="modal-sub">No deals with activity yet. Calls you make with Copilot fill this in.</p>';
+      var team = "";
+      if (TEAM.on && canSeeTeam()) {
+        var since = Date.now() - 14 * 86400000, reps = {}, now = Date.now();
+        Object.keys(TEAM.members).forEach(function (k) { var m = TEAM.members[k]; if (m.active) reps[m.uid] = { uid: m.uid, name: m.name || m.username, calls: 0, talked: 0, interested: 0, warm: 0, warmNoNext: 0, followOver: 0 }; });
+        (state.callLog || []).forEach(function (c) { var r = c.by && reps[c.by.uid]; if (!r || !(new Date(c.timestamp).getTime() >= since)) return; r.calls++; if (CONTACT_OUTCOMES[c.outcomeKey]) r.talked++; if (c.outcomeKey === "interested") r.interested++; });
+        state.leads.forEach(function (l) { var r = l.owner && reps[l.owner.uid]; if (!r || !warmLead(l)) return; r.warm++; if (nextInfo(l).st === "none") r.warmNoNext++; });
+        state.tasks.forEach(function (t) { var a = assigneeOf(t), r = a && reps[a.uid]; if (r && !t.done && taskDueTs(t) < now - 86400000) r.followOver++; });
+        var tips = window.VPEXMind.coach(Object.keys(reps).map(function (k) { return reps[k]; }));
+        team = tips.length ? tips.map(function (t) { return '<div class="rd-rep k-' + t.tip.k + '"><b>' + escapeHtml(t.name) + '</b><span>' + escapeHtml(t.tip.t) + '</span></div>'; }).join("") + '<div class="rd-note">From the last 14 days of calls and today’s follow-ups.</div>' : '<p class="modal-sub">No active reps.</p>';
+      }
+      var pat = window.VPEXMind.patterns((state.callLog || []).filter(function (c) { return c && c.cpk; }).map(function (c) { return { cats: c.cpk, out: c.outcomeKey }; }));
+      var phases = {}; R.items.forEach(function (x) { phases[x.r.phase] = (phases[x.r.phase] || 0) + 1; });
+      var pats = '<div class="rd-sec"><div class="rd-h"><b>Where deals sit</b></div>' + ["reach", "qualify", "educate", "resolve", "advance", "document", "done"].filter(function (k) { return phases[k]; }).map(function (k) { return '<div class="el-res-r"><span>' + MIND_PHASE[k] + '</span><span>' + phases[k] + '</span></div>'; }).join("") + '</div>' +
+        '<div class="rd-sec"><div class="rd-h"><b>What happens after each kind of concern</b></div>' + (pat.length ? pat.map(function (x) { return '<div class="el-res-r"><span>' + escapeHtml(x.label) + '</span><span>' + x.w + ' of ' + x.n + ' interested</span></div>'; }).join("") : '<div class="rd-note">Fills in as you take calls with Copilot.</div>') + '<div class="rd-note">Few calls are not proof yet. Copilot keeps testing.</div></div>';
+      var tabs = [["pipe", "Pipeline"], ["patterns", "Patterns"]].concat(team ? [["team", "Team"]] : []);
+      featOpen('<h3>Opportunity Radar</h3><p class="modal-sub">Every deal with activity, judged on evidence, with the one next action. ' + R.items.length + ' deals checked in ' + R.ms + ' ms.</p>' +
+        '<div class="rd-tabs" role="tablist">' + tabs.map(function (t) { return '<button type="button" role="tab" data-rd-tab="' + t[0] + '" aria-selected="' + (RD.tab === t[0]) + '">' + t[1] + '</button>'; }).join("") + '</div>' +
+        '<div class="rd-pane" data-rd="pipe"' + (RD.tab === "pipe" ? '' : ' hidden') + '>' + pipe + '</div><div class="rd-pane" data-rd="patterns"' + (RD.tab === "patterns" ? '' : ' hidden') + '>' + pats + '</div>' +
+        (team ? '<div class="rd-pane" data-rd="team"' + (RD.tab === "team" ? '' : ' hidden') + '>' + team + '</div>' : ''));
+    });
+  }
+  document.addEventListener("click", function (e) {
+    var t = e.target.closest("[data-rd-tab]");
+    if (t) { RD.tab = t.getAttribute("data-rd-tab"); document.querySelectorAll("[data-rd-tab]").forEach(function (b) { b.setAttribute("aria-selected", b === t); }); document.querySelectorAll(".rd-pane").forEach(function (p) { p.hidden = p.getAttribute("data-rd") !== RD.tab; }); return; }
+    var r = e.target.closest("[data-radar-lead]");
+    if (r) { var id = r.getAttribute("data-radar-lead"); featClose(); openLeadProfile(id); return; }
+    var c = e.target.closest("[data-lpmind-text]");
+    if (c && window.VPEXMind) { var l = findLeadById(c.getAttribute("data-lpmind-text")); if (l) clipCopy(fillTemplate(window.VPEXMind.followText(mindLeadCtx(l)), l), function () { showToast("Follow-up text copied. Fill in anything in [brackets] first."); }); }
+    var rr = e.target.closest("[data-lpmind-radar]"); if (rr) { closeLeadProfile(true); openRadar(); }
+  });
+  // The lead profile: Copilot's read of this deal (owner only).
+  function lpMindHtml(lead) {
+    if (!cpElite()) return "";
+    if (!window.VPEXMind || !window.VPEXElite) { elLoad().then(function () { var b = document.getElementById("lpMind"); if (b && profileLeadId === lead.id) b.outerHTML = lpMindHtml(lead); }); return '<div class="lp-mind" id="lpMind"><div class="lp-mind-h">Copilot read</div><span class="rd-note">Loading…</span></div>'; }
+    var ctx = mindLeadCtx(lead), r = window.VPEXMind.lifecycle(ctx), m = lead.cpm || {}, fs = window.VPEXMind.followup(ctx, lead.outcome), labels = ctx.objLabel;
+    var conc = Object.keys(m.o || {}).sort(function (a, b) { return m.o[b][0] - m.o[a][0]; }).map(function (k) { return (labels[k] || k) + (m.o[k][0] > 1 ? " ×" + m.o[k][0] : ""); });
+    var at = fs && !fs.soon ? mindSlot(lead, fs) : 0;
+    return '<div class="lp-mind" id="lpMind"><div class="lp-mind-h">Copilot read <span class="rd-ph">' + escapeHtml(MIND_PHASE[r.phase] || r.phase) + '</span><span class="rd-b b-' + r.bucket + '">' + escapeHtml(MIND_BUCKET[r.bucket] || r.bucket) + '</span></div>' +
+      '<div class="lp-mind-n"><b>Next:</b> ' + escapeHtml(r.nba.title || "") + '. ' + escapeHtml(r.nba.why || "") + (r.nba.say ? ' <q>' + escapeHtml(r.nba.say) + '</q>' : '') + '</div>' +
+      (r.blockers.length ? '<div class="lp-mind-l"><b>In the way</b>' + r.blockers.map(function (b) { return '<i class="src-' + (b.src || "record") + '">' + escapeHtml(b.t) + '</i>'; }).join("") + '</div>' : '') +
+      (m.calls ? '<div class="lp-mind-l"><b>Remembered</b><i>' + m.calls + ' call' + (m.calls > 1 ? 's' : '') + ' with Copilot</i>' + (conc.length ? '<i>Concerns: ' + escapeHtml(conc.slice(0, 4).join(", ")) + '</i>' : '') + ((m.s || {}).buy ? '<i>Buying signals: ' + m.s.buy + '</i>' : '') +
+        ((m.t || []).length ? '<i>' + m.t.length + ' answers tried</i>' : '') + (m.f || []).slice(-2).map(function (f) { return '<i class="src-ai">AI heard: ' + escapeHtml(f.t) + '</i>'; }).join("") + '</div>' : '') +
+      (fs ? '<div class="lp-mind-f"><b>Follow-up:</b> ' + escapeHtml(fs.what) + (at ? ', ' + escapeHtml(fmtWhen(at)) + (fuTheir(at, lead) ? ' (' + escapeHtml(fuTheir(at, lead)) + ' their time)' : '') : fs.soon ? ', today or tomorrow' : '') + '. ' + escapeHtml(fs.why) + '<span><button type="button" class="btn-secondary" data-lpmind-text="' + escapeHtml(lead.id) + '">Copy a follow-up text</button><button type="button" class="btn-secondary" data-lpmind-radar>Radar</button></span></div>' :
+        '<div class="lp-mind-f"><span><button type="button" class="btn-secondary" data-lpmind-radar>Radar</button></span></div>') + '</div>';
+  }
   function cpPhone() { return !DESK.on && window.matchMedia("(pointer: coarse)").matches && !window.matchMedia("(min-width: 700px)").matches; }
   function cpStart() {
     var tap = cpElite() && (cpPhone() || !cpSupported());   // the owner's phone: the microphone is on the call, so he taps instead
@@ -21952,6 +22085,8 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
         if (e.target.closest("[data-el-qf]")) { var ql = currentLead(); if (ql) openQualify(ql); return; }
         if (e.target.closest("#elRes")) { openElResults(); return; }
         if (e.target.closest("#elBrain")) { openBrain(); return; }
+        if (e.target.closest("#elMenuBtn")) { CP.menu = !CP.menu; cpDraw(); return; }
+        if (e.target.closest("#elRadar")) { openRadar(); return; }
         var d = e.target.closest("[data-cp-dnc]"); if (d) { var l = findLeadById(d.getAttribute("data-cp-dnc")); if (l) toggleLeadDnc(l); }
       });
       document.body.appendChild(el);
