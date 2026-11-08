@@ -346,9 +346,147 @@ function floorMessage(office, senderName, body) {
   return { kind: "floor", title: who ? "From " + who : "From your manager", body: str(body, FLOOR_MAX), link: leadLink(office, ""), tag: "vpex-floor", leadId: "", office: office || "" };
 }
 
+// ---------- live leads in (leadIn) ----------
+// A website form, Zapier, Make or a Google Sheet posts leads to the leadIn endpoint with the office's key:
+// "vk_<office>_<64 hex>" (the original team: "vk__<64 hex>"). The office keeps only the key's SHA-256 (leadChunks/_team, leadIn.h).
+const LEADIN_MAX = 100;                 // leads in one request
+const LEADIN_STATES = { alabama: "AL", alaska: "AK", arizona: "AZ", arkansas: "AR", california: "CA", colorado: "CO", connecticut: "CT", delaware: "DE",
+  "district of columbia": "DC", "washington dc": "DC", florida: "FL", georgia: "GA", hawaii: "HI", idaho: "ID", illinois: "IL", indiana: "IN", iowa: "IA", kansas: "KS",
+  kentucky: "KY", louisiana: "LA", maine: "ME", maryland: "MD", massachusetts: "MA", michigan: "MI", minnesota: "MN", mississippi: "MS", missouri: "MO",
+  montana: "MT", nebraska: "NE", nevada: "NV", "new hampshire": "NH", "new jersey": "NJ", "new mexico": "NM", "new york": "NY", "north carolina": "NC",
+  "north dakota": "ND", ohio: "OH", oklahoma: "OK", oregon: "OR", pennsylvania: "PA", "rhode island": "RI", "south carolina": "SC", "south dakota": "SD",
+  tennessee: "TN", texas: "TX", utah: "UT", vermont: "VT", virginia: "VA", washington: "WA", "west virginia": "WV", wisconsin: "WI", wyoming: "WY" };
+const LEADIN_ABBR = new Set(Object.values(LEADIN_STATES));
+const LI_NAME = ["name", "fullname", "contactname", "leadname", "yourname", "customername"], LI_FIRST = ["firstname", "fname", "first", "givenname"], LI_LAST = ["lastname", "lname", "last", "surname", "familyname"];
+const LI_PHONE = ["phone", "phonenumber", "mobile", "mobilephone", "mobilenumber", "cell", "cellphone", "tel", "telephone", "primaryphone", "homephone", "workphone", "phone1", "yourphone"];
+const LI_EMAIL = ["email", "emailaddress", "mail", "youremail"], LI_STATE = ["state", "st", "province", "stateprovince"], LI_NOTES = ["notes", "note", "message", "comments", "comment", "question", "details", "yourmessage"];
+const LI_LIST = ["list", "leadlist", "source", "leadsource", "campaign"], LI_SKIP = ["key", "apikey", "vpexkey", "o", "office", "token", "submit", "gclid", "fbclid", "gbraid", "wbraid", "msclkid", "redirect", "next", "honeypot", "website2"];
+function liNorm(k) { return String(k == null ? "" : k).toLowerCase().replace(/[^a-z0-9]/g, ""); }
+function liVal(v) { if (Array.isArray(v)) v = v.join(", "); if (v && typeof v === "object") return ""; return String(v == null ? "" : v).replace(/[\u0000-\u001f\u007f]+/g, " ").replace(/\s+/g, " ").trim(); }
+function leadInKey(key) {
+  const m = /^vk_([a-z0-9][a-z0-9-]{0,62})?_([0-9a-f]{64})$/.exec(String(key || "").trim());
+  return m ? { office: m[1] || "", secret: m[2] } : null;
+}
+function sha256hex(s) { return require("crypto").createHash("sha256").update(String(s)).digest("hex"); }
+function sameHash(a, b) {
+  a = String(a || ""); b = String(b || "");
+  if (a.length !== 64 || b.length !== 64) return false;
+  return require("crypto").timingSafeEqual(Buffer.from(a), Buffer.from(b));
+}
+// The body as a list of plain objects: JSON (one lead or a list of them, or {leads: [...]}) or a web form (urlencoded).
+function leadInParse(contentType, raw) {
+  raw = String(raw == null ? "" : raw); const ct = String(contentType || "").toLowerCase();
+  let items = null;
+  if (/x-www-form-urlencoded/.test(ct) || (!/json/.test(ct) && /^[^{\[]/.test(raw.trim()) && /=/.test(raw))) {
+    const o = {}; new URLSearchParams(raw).forEach(function (v, k) { o[k] = o[k] === undefined ? v : o[k] + ", " + v; }); items = [o];
+  } else {
+    try { const j = JSON.parse(raw); items = Array.isArray(j) ? j : j && Array.isArray(j.leads) ? j.leads : [j]; } catch (e) { return null; }
+  }
+  items = (items || []).filter(function (x) { return x && typeof x === "object" && !Array.isArray(x); });
+  if (!items.length || items.length > LEADIN_MAX) return null;
+  return items;
+}
+function liPhone(v) {
+  const s = liVal(v).replace(/\s*(?:x|ext\.?|extension|#)\s*\d+$/i, ""), d = s.replace(/\D/g, "");
+  const ten = d.length === 10 ? d : d.length === 11 && d.charAt(0) === "1" ? d.slice(1) : "";
+  if (!ten || /^[01]/.test(ten) || /^[01]/.test(ten.slice(3))) return null;   // US numbers only: area code and exchange can't start with 0 or 1
+  return { phone: "+1" + ten, phoneRaw: "(" + ten.slice(0, 3) + ") " + ten.slice(3, 6) + "-" + ten.slice(6), key: "n" + ten };
+}
+function liLabel(k) { const t = String(k).replace(/[_\-.]+/g, " ").replace(/([a-z])([A-Z])/g, "$1 $2").replace(/\s+/g, " ").trim(); return t ? t.charAt(0).toUpperCase() + t.slice(1, 40) : ""; }
+// One posted lead → the lead record the app reads (same shape as an uploaded lead), or { error }.
+function leadInClean(obj, now, idTail) {
+  const by = {}; Object.keys(obj).forEach(function (k) { const n = liNorm(k); if (n && by[n] === undefined) by[n] = { k: k, v: liVal(obj[k]) }; });
+  const pick = function (names) { for (const n of names) if (by[n] && by[n].v) return by[n].v; return ""; };
+  const used = new Set();
+  const take = function (names) { for (const n of names) if (by[n] && by[n].v) { used.add(n); return by[n].v; } return ""; };
+  if (pick(["honeypot", "website2"])) return { error: "spam" };           // a hidden field a person never fills in
+  let name = take(LI_NAME);
+  if (!name) { const f = take(LI_FIRST), l = take(LI_LAST); name = [f, l].filter(Boolean).join(" "); }
+  const ph = liPhone(take(LI_PHONE));
+  if (!ph) return { error: "phone" };
+  let email = take(LI_EMAIL).toLowerCase(); if (email && !/^[^\s@]{1,64}@[^\s@]{1,190}\.[a-z]{2,}$/.test(email)) email = "";
+  let st = take(LI_STATE); const stU = st.toUpperCase(); st = LEADIN_ABBR.has(stU) ? stU : (LEADIN_STATES[st.toLowerCase().replace(/\./g, "")] || "");
+  const note = take(LI_NOTES), list = take(LI_LIST).replace(/[^A-Za-z0-9 &'\-]/g, "").replace(/\s+/g, " ").trim().slice(0, 40);
+  LI_SKIP.forEach(function (n) { used.add(n); });
+  const extra = [];
+  Object.keys(by).forEach(function (n) { if (used.has(n) || n.charAt(0) === "_" || /^utm/.test(n) || !by[n].v || extra.length >= 12) return; const lab = liLabel(by[n].k); if (lab) extra.push(lab + ": " + str(by[n].v, 120)); });
+  const notes = str([note, extra.join(" · ")].filter(Boolean).join(" | "), 1500);
+  const lead = { name: str(name || "Web lead", 80), phoneRaw: ph.phoneRaw, phone: ph.phone, notes: notes, stage: "New Lead", amount: 0, status: "pending", outcome: null, calledAt: null,
+    source: list || "Web leads", addedAt: now, front: true, web: { at: now }, tasks: [], texts: [] };
+  if (email) lead.email = email;
+  if (st) lead.st = st;
+  return { id: "w" + now.toString(36) + String(idTail || "").replace(/[^a-z0-9]/g, "").slice(0, 8), lead: lead, key: ph.key };
+}
+function leadInRecipients(members, lists, source) {   // the reps the list is assigned to, else everyone active on the floor
+  const active = members.filter(function (m) { return m && m.active === true && isUid(m.uid); });
+  const c = lists && lists[source], only = c && Array.isArray(c.reps) && c.reps.length ? new Set(c.reps) : null;
+  const out = only ? active.filter(function (m) { return only.has(m.uid); }) : active;
+  return out.length ? out : active;
+}
+function leadInMessage(office, leads) {   // one alert per request: the lead, or a count
+  if (leads.length === 1) { const x = leads[0]; return { kind: "lead", title: "New lead: " + str(x.lead.name, 60), body: str(x.lead.source, 40) + " · Tap to call now", link: leadLink(office, x.id), tag: "vpex-lead-" + x.id, leadId: x.id, office: office || "" }; }
+  return { kind: "lead", title: leads.length + " new leads", body: str(leads[0].lead.source, 40) + " · " + leads.slice(0, 3).map(function (x) { return firstName(x.lead.name); }).join(", ") + (leads.length > 3 ? " and more" : "") + " · Tap to call", link: leadLink(office, leads[0].id), tag: "vpex-leads", leadId: leads[0].id, office: office || "" };
+}
+function leadInChunk(day, sizes) {   // today's web-lead record, a new one once it holds 250 leads (with long notes, still far under the 1 MB limit)
+  for (let i = 1; i < 50; i++) { const id = "w_" + day + (i > 1 ? "_" + i : ""); if ((sizes[id] || 0) < 250) return id; }
+  return "w_" + day + "_x";
+}
+
+// ---------- calendar feed (cal) ----------
+// Each login can subscribe its phone's calendar to its own follow-ups and appointments: a secret address
+// "vc_<office>_<uid>_<64 hex>" (the original team: "vc__<uid>_<64 hex>"). Only its SHA-256 is kept, in that login's own
+// record (leadChunks/r_<uid>, calFeed.h).
+function calKey(k) {
+  const m = /^vc_([a-z0-9][a-z0-9-]{0,62})?_([A-Za-z0-9]{2,128})_([0-9a-f]{64})$/.exec(String(k || "").trim());
+  return m ? { office: m[1] || "", uid: m[2], secret: m[3] } : null;
+}
+function icsText(s) { return String(s == null ? "" : s).replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n"); }
+function icsTime(ms) { return new Date(ms).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, ""); }
+function icsFold(line) {   // lines of at most 75 bytes, continued with a space
+  const b = Buffer.from(line, "utf8"); if (b.length <= 75) return line;
+  const out = []; let cur = "", n = 0;
+  for (const ch of line) { const w = Buffer.byteLength(ch); if (n + w > (out.length ? 74 : 75)) { out.push(cur); cur = ""; n = 0; } cur += ch; n += w; }
+  out.push(cur); return out.join("\r\n ");
+}
+function fmtPhone(p) { const d = String(p || "").replace(/\D/g, "").replace(/^1(?=\d{10}$)/, ""); return d.length === 10 ? "(" + d.slice(0, 3) + ") " + d.slice(3, 6) + "-" + d.slice(6) : String(p || ""); }
+// The login's open follow-ups and appointments, yesterday to 60 days ahead (routine "Try 2" redials stay out, like the alerts).
+function calEvents(office, chunks, uid, now) {
+  const out = [], from = now - 86400000, to = now + 60 * 86400000;
+  chunks.forEach(function (data) {
+    const leads = (data && data.leads) || {};
+    Object.keys(leads).forEach(function (leadId) {
+      const lead = leads[leadId] || {};
+      if (lead.retired || lead.badNumber || lead.dnc) return;
+      (Array.isArray(lead.tasks) ? lead.tasks : []).forEach(function (t) {
+        if (!t || !t.id || t.done || typeof t.dueAt !== "number" || t.dueAt < from || t.dueAt > to) return;
+        if (t.auto && t.type === "Call" && /^Try \d+/.test(str(t.note))) return;
+        if (assigneeOf(t, lead) !== uid) return;
+        const appt = isAppt(t), name = str(lead.name || "a lead", 80), step = str(t.what || "", 60);
+        out.push({ id: str(t.id, 120), at: t.dueAt, appt: appt, title: appt ? "Appointment: " + name : (step && !/^Follow-up call$/i.test(step) ? step + ": " + name : "Call " + name),
+          phone: fmtPhone(lead.phoneRaw || lead.phone), note: str(t.note, 300), link: leadLink(office, leadId) });
+      });
+    });
+  });
+  return out.sort(function (a, b) { return a.at - b.at; }).slice(0, 500);
+}
+function calIcs(events, now) {
+  const L = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//VPEX//Follow-ups//EN", "CALSCALE:GREGORIAN", "METHOD:PUBLISH", "X-WR-CALNAME:VPEX follow-ups",
+    "X-WR-CALDESC:Your follow-ups and appointments from VPEX", "X-PUBLISHED-TTL:PT15M", "REFRESH-INTERVAL;VALUE=DURATION:PT15M"];
+  events.forEach(function (e) {
+    L.push("BEGIN:VEVENT", "UID:" + icsText(e.id) + "@vpexdialer.com", "DTSTAMP:" + icsTime(now), "DTSTART:" + icsTime(e.at), "DTEND:" + icsTime(e.at + (e.appt ? 30 : 15) * 60000),
+      "SUMMARY:" + icsText(e.title), "DESCRIPTION:" + icsText([e.phone, e.note, "Open in VPEX: " + e.link].filter(Boolean).join("\n")), "URL:" + e.link);
+    if (e.appt) L.push("BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:" + icsText(e.title), "TRIGGER:-PT10M", "END:VALARM");
+    L.push("END:VEVENT");
+  });
+  L.push("END:VCALENDAR");
+  return L.map(icsFold).join("\r\n") + "\r\n";
+}
+
 module.exports = { APP_URL, STALE_MS, DROP_MS, APPT_LEAD_MS, queueId, notifyAt, assigneeOf, taskEntries, diffQueue, handoffEvents, officeOpen,
   fmtWhen, leadLink, dueMessages, handoffMessage, testMessage, fcmMessage, deadToken, officeFromEmail, safeTz, firstName,
   localParts, digestDue, localDayBounds, digestCounts, digestMessage,
   weekDue, weekLead, lastWeekBounds, weekDates, weekAdd, weekNew, weekMessage, utcDate,
   FLOOR_MAX, floorRequest, floorGate, floorRecipients, floorMessage,
-  HIT_EVENTS, HIT_INDS, HIT_ORIGINS, HIT_DAY_KEYS, hitOriginOk, capHit, hitTok, parseHit, hitKey, unHitKey, nyDate, freshOffice };
+  HIT_EVENTS, HIT_INDS, HIT_ORIGINS, HIT_DAY_KEYS, hitOriginOk, capHit, hitTok, parseHit, hitKey, unHitKey, nyDate, freshOffice,
+  LEADIN_MAX, leadInKey, sha256hex, sameHash, leadInParse, leadInClean, leadInRecipients, leadInMessage, leadInChunk, liPhone,
+  calKey, calEvents, calIcs, icsFold };
