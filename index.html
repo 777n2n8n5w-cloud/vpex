@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-02-04">
+<meta name="vpex-build" content="2027-02-05">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 /* Signature themes: six themes only the VPEX owner's own login can use (sig/*.css, sig.js).
@@ -9498,7 +9498,7 @@ html[data-motion="off"] #floorTv *, html[data-motion="off"] .tv-cele * { animati
 .cp-head b { flex: 1; font-size: 15px; } .cp-head b small { display: block; font-weight: 500; font-size: 12px; color: var(--text-dim); }
 .cp-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--text-faint); flex: none; } .cp-dot.on { background: var(--notinterested); animation: tvPulse 1.4s ease-in-out infinite; }
 .cp-head button { min-height: 44px; min-width: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-raised); color: var(--text); font: inherit; font-size: 14px; cursor: pointer; }
-.cp-body { overflow-y: auto; padding: 10px 14px 14px; display: flex; flex-direction: column; gap: 10px; }
+.cp-body { overflow-y: auto; padding: 10px 14px 14px; display: flex; flex-direction: column; gap: 10px; } .cp-body > * { flex-shrink: 0; }   /* a long panel scrolls; nothing in it gets squeezed into the next card */
 .cp-consent { font-size: 13px; color: var(--text-dim); background: var(--surface-raised); border-radius: 10px; padding: 8px 10px; }
 .cp-consent q { color: var(--text); }
 .cp-heard { font-size: 13px; color: var(--text-dim); min-height: 18px; overflow-wrap: anywhere; } .cp-heard em { color: var(--text); font-style: normal; }
@@ -9514,7 +9514,25 @@ html[data-motion="off"] #floorTv *, html[data-motion="off"] .tv-cele * { animati
 .cp-card.buy { border-color: var(--interested); background: color-mix(in srgb, var(--interested) 10%, var(--surface)); }
 .cp-msg { font-size: 14px; color: var(--notinterested); }
 .sc-bar-b.cp-on { border-color: var(--notinterested); }
-@media (max-width: 700px) { #copilot { left: 8px; right: 8px; width: auto; bottom: max(8px, env(safe-area-inset-bottom, 0px)); max-height: 46vh; } }
+@media (max-width: 700px) { #copilot { left: 8px; right: 8px; width: auto; bottom: max(8px, env(safe-area-inset-bottom, 0px)); max-height: 46vh; } #copilot.cp-tap { max-height: 72vh; } }
+/* Copilot Elite (owner only): four-step answers, tap chips, playbook picker, what wins */
+.el-badge { display: inline-block; vertical-align: 2px; margin-left: 4px; padding: 1px 7px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: .04em; background: var(--gold, #c9a227); color: #1a1405; }
+.el-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--text-dim); }
+.el-bar label { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; }
+.el-bar select { min-height: 44px; flex: 1; min-width: 0; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-raised); color: var(--text); font: inherit; font-size: 14px; padding: 0 8px; }
+.el-bar button { min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-raised); color: var(--text); font: inherit; font-size: 14px; cursor: pointer; }
+.el-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+@media (max-width: 700px) { .el-chips { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; scrollbar-width: none; } .el-chips::-webkit-scrollbar { display: none; } }
+.el-chip { flex: none; min-height: 44px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-raised); color: var(--text); font: inherit; font-size: 13px; cursor: pointer; white-space: nowrap; }
+.el-chip.buy { border-color: var(--interested); color: var(--text); background: color-mix(in srgb, var(--interested) 14%, var(--surface)); font-weight: 600; }
+.el-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.el-steps li { display: grid; grid-template-columns: 74px 1fr; gap: 8px; align-items: baseline; }
+.el-k { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--text-dim); }
+.el-steps .sc-say p { margin: 0; }
+.el-tip { margin-top: 8px; font-size: 13px; color: var(--text); background: var(--surface-raised); border-radius: 8px; padding: 6px 8px; } .el-tip b { color: var(--text-dim); font-weight: 600; }
+.el-res { border: 1px solid var(--border); border-radius: 12px; padding: 8px 12px; margin: 8px 0; } .el-res > b { display: block; font-size: 14px; margin-bottom: 4px; }
+.el-res-r { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--text-dim); padding: 3px 0; } .el-res-r span:last-child { flex: none; color: var(--text); }
+.el-res-r.lead span:first-child { color: var(--text); font-weight: 600; } .el-res-r em { font-style: normal; font-size: 11px; font-weight: 700; color: var(--interested); }
 /* ----- Info boxes in sheets (Calendar on your phone, Copilot AI) ----- */
 .li-box { border: 1px solid var(--border); border-radius: 12px; background: var(--surface-raised); padding: 10px 12px; margin: 10px 0; }
 .li-box b { display: block; font-size: 13px; color: var(--text-dim); font-weight: 600; margin-bottom: 4px; }
@@ -13234,6 +13252,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       outcomeKey: outcome, outcome: outcomeLabel(outcome), attempt: attempt, timestamp: lead.calledAt, talk: talkFor(lead.id)
     };
     if (dialed) callEntry.alt = dialed.l || "Other";
+    if (CP.elShown && CP.elShown.length && CP.elLead === lead.id && cpElite()) { callEntry.cpv = CP.elShown.slice(0, 12); CP.elShown = []; CP.elPick = {}; CP.elLead = ""; }   // Copilot Elite: what was shown on this call
     if (outcome === "interested") state.lastInterested = { id: lead.id, at: Date.now() };
     if (TEAM.on && TEAM.me) {
       callEntry.by = meRef();
@@ -14442,7 +14461,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
   }
   // The two buttons on the Dial card. Nothing shows until the office has a script.
   function scriptBarHtml() {
-    var c = scriptCfg(), cp = typeof cpSupported === "function" && cpSupported() && (DESK.on || !window.matchMedia("(pointer: coarse)").matches || window.matchMedia("(min-width: 700px)").matches);   // Copilot: computers and tablets (a phone on a call can't lend its microphone)
+    var c = scriptCfg(), cp = typeof cpSupported === "function" && (cpSupported() && (DESK.on || !window.matchMedia("(pointer: coarse)").matches || window.matchMedia("(min-width: 700px)").matches) || cpElite());   // Copilot: computers and tablets (a phone on a call can't lend its microphone); the owner's phone gets tap mode
     if (!c && !cp) return "";
     return '<div class="sc-bar">' +
       (c && c.steps.length ? '<button type="button" class="sc-bar-b" data-sc-open="script">' + scIcon("script") + '<span>Script</span></button>' : '') +
@@ -21361,16 +21380,22 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     credit: "My credit isn't great.", self: "I'll do it myself.", rent: "I rent.", roof: "My roof is old." };
   function cpMatch(text) {   // what the lead just said → { idea, o } (or a do-not-call request)
     var t = " " + String(text || "").toLowerCase().replace(/[’]/g, "'").replace(/[^a-z0-9' ]+/g, " ").replace(/\s+/g, " ") + " ", out = [];
-    CP_IDEAS.forEach(function (x) {
+    var E = elReady() ? window.VPEXElite : null, ideas = E ? CP_IDEAS.slice(0, -2).concat(E.IDEAS, CP_IDEAS.slice(-2)) : CP_IDEAS;
+    ideas.forEach(function (x) {
       if (!x[1].test(t)) return;
       if (x[0] === "dnc") { out.push({ idea: "dnc" }); return; }
       if (x[0] === "buy") { out.push({ idea: "buy" }); return; }
+      if (E && elPool(x[0]).length) { out.push({ idea: x[0], o: { id: "el-" + x[0], q: elLabel(x[0]) }, el: true }); return; }
       var best = null; cpObjs().forEach(function (m) { if (m.ideas.indexOf(x[0]) >= 0 && !best) best = m; });
       if (best) out.push({ idea: x[0], o: best.o, own: true });
       else if (CP_PLAY[x[0]]) out.push({ idea: x[0], o: { id: "play-" + x[0], q: CP_LABEL[x[0]] || x[0], a: CP_PLAY[x[0]].say } });
       else if (CP_BASE[x[0]]) out.push({ idea: x[0], o: { id: "base-" + x[0], q: CP_BASE[x[0]][0], a: CP_BASE[x[0]][1] } });
     });
     if (out.some(function (x) { return x.idea !== "buy" && x.idea !== "dnc"; })) out = out.filter(function (x) { return x.idea !== "buy"; });   // an objection first; the close comes with its answer
+    if (E) {   // the elite playbook's sharper reading wins over the general one it overlaps
+      var has = {}; out.forEach(function (x) { has[x.idea] = 1; });
+      out = out.filter(function (x) { return !(x.idea === "later" && has.busy) && !(x.idea === "think" && has.stall) && !(x.idea === "price" && has.payment) && !(x.idea === "trust" && has.guarantee); });
+    }
     if (!out.length) cpObjs().forEach(function (m) {   // no known idea: most of an objection's own words were said
       if (m.words.length < 2 || out.length) return;
       var hit = m.words.filter(function (w) { return t.indexOf(" " + w + " ") >= 0 || t.indexOf(" " + w.replace(/'/g, "") + " ") >= 0; }).length;
@@ -21387,18 +21412,129 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     var found = cpMatch(win).filter(function (m) { return m.idea !== "buy"; });
     if (final) found = found.concat(cpMatch(text).filter(function (m) { return m.idea === "buy"; }));
     var added = 0;
+    elLeadCheck();
     found.forEach(function (m) {
       var key = m.idea + (m.o ? "|" + m.o.id : "");
       if (CP.last[key] && now - CP.last[key] < 25000) return;   // the same objection once, not every second while it's in the window
       added++;
-      CP.last[key] = now;
-      CP.cards = CP.cards.filter(function (c) { return c.key !== key; });
-      CP.cards.unshift({ key: key, idea: m.idea, o: m.o, own: !!m.own, at: now, said: text });
-      CP.cards = CP.cards.slice(0, 3); CP.min = false;
+      cpAddCard(m, key, text, now);
       if (m.idea !== "dnc") cpAsk(CP.cards[0], win);
     });
     if (final && !added && !cpMatch(text).length && text.split(/\s+/).length >= 6 && now - (CP.askAt || 0) > 8000) cpAsk(null, text);   // something the playbook didn't catch
     cpDraw();
+  }
+  function cpAddCard(m, key, text, now) {
+    CP.last[key] = now;
+    CP.cards = CP.cards.filter(function (c) { return c.key !== key; });
+    var card = { key: key, idea: m.idea, o: m.o, own: !!m.own, at: now, said: text };
+    if (m.el || (m.idea === "buy" && elReady())) elAttach(card);
+    CP.cards.unshift(card);
+    CP.cards = CP.cards.slice(0, 3); CP.min = false;
+  }
+  /* ----- Copilot Elite (the VPEX owner's own login only, until he gives it to everyone) ----- */
+  // cp-elite.js holds the playbook: for each objection 2-3 answers in four short steps (name it, find out if it's the real
+  // reason, bring it back to what they want, close with two choices), written per floor, with how to say it. Copilot
+  // rotates the answers and keeps the one that wins: each call logged after a card was shown carries the answer ids
+  // (call.cpv), and "Interested" counts as a win. Under 20 calls an answer is "still testing"; after that the best one
+  // shows most of the time and the others now and then (so a better one can still take over). On a phone, where the
+  // microphone is busy with the call, the owner taps what the lead said instead.
+  var EL = { load: null, ind: "" }, EL_MIN = 20;
+  function cpElite() { try { return isOwnerMaster(); } catch (e) { return false; } }
+  function elReady() { return !!(window.VPEXElite && cpElite()); }
+  function elLoad() {
+    if (EL.load || !cpElite()) return EL.load || Promise.resolve();
+    EL.load = new Promise(function (res) {
+      if (window.VPEXElite) { res(); return; }
+      var js = document.createElement("script"); js.src = "cp-elite.js?b=" + encodeURIComponent(sigBuildTag()); js.async = true;
+      js.onload = js.onerror = function () { res(); }; document.head.appendChild(js);
+    });
+    return EL.load;
+  }
+  function elInd() { var k = EL.ind || lsGet("vpex_el_ind") || IND_KEY; return INDUSTRIES[k] ? k : IND_KEY; }
+  function elPool(idea) { var P = window.VPEXElite && window.VPEXElite.PLAYS[idea], k = elInd(); return P ? (P[k] || []).concat((P.noAll || []).indexOf(k) >= 0 ? [] : P.all || []) : []; }
+  function elLabel(idea) { var E = window.VPEXElite; return (E && E.LABEL[idea]) || CP_LABEL[idea] || idea; }
+  var elStatCache = { len: -1, at: 0, v: {} };
+  function elStats() {   // { answer id: { n: calls it was shown on, w: of those, Interested } } over the owner's own calls
+    var log = state.callLog || [];
+    if (elStatCache.len === log.length && elStatCache.ref === log) return elStatCache.v;
+    var v = {};
+    log.forEach(function (c) {
+      if (!c || !Array.isArray(c.cpv) || !myCall(c)) return;
+      var win = c.outcomeKey === "interested";
+      c.cpv.forEach(function (id) { var s = v[id] || (v[id] = { n: 0, w: 0 }); s.n++; if (win) s.w++; });
+    });
+    elStatCache = { len: log.length, ref: log, v: v };
+    return v;
+  }
+  function elChoose(list) {   // least-tried first until each has EL_MIN calls; then the best most of the time
+    if (!list.length) return null;
+    var st = elStats(), n = function (x) { return (st[x.id] || { n: 0 }).n; };
+    var testing = list.filter(function (x) { return n(x) < EL_MIN; });
+    if (testing.length) { var lo = Math.min.apply(null, testing.map(n)); testing = testing.filter(function (x) { return n(x) === lo; }); return testing[Math.floor(Math.random() * testing.length)]; }
+    if (Math.random() < 0.15) return list[Math.floor(Math.random() * list.length)];
+    var sc = function (x) { var s = st[x.id] || { n: 0, w: 0 }; return (s.w + 1) / (s.n + 2); };
+    return list.slice().sort(function (a, b) { return sc(b) - sc(a); })[0];
+  }
+  function elLeadCheck() {   // a new lead on the card: fresh picks, and what was shown belongs to the call just logged
+    var l = currentLead(), id = l ? l.id : "";
+    if (CP.elLead !== id) { CP.elLead = id; CP.elPick = {}; CP.elShown = []; }
+  }
+  function elAttach(card) {   // the answer (and close) for this objection, the same one for the whole call
+    var idea = card.idea, pick = CP.elPick || (CP.elPick = {});
+    if (!pick[idea]) pick[idea] = elChoose(elPool(idea));
+    var v = pick[idea]; if (!v) return;
+    var cl = null;
+    if (v.close === undefined) { if (!pick._close) pick._close = elChoose((window.VPEXElite.CLOSE[elInd()] || []).slice()); cl = pick._close; }
+    card.el = { v: v, close: v.close !== undefined ? v.close : cl ? cl.t : "", closeId: cl ? cl.id : "" };
+    var sh = CP.elShown || (CP.elShown = []);
+    [v.id, card.el.closeId].forEach(function (id) { if (id && sh.indexOf(id) < 0) sh.push(id); });
+  }
+  function elStatLine(id) {
+    var s = elStats()[id] || { n: 0, w: 0 };
+    return s.n < EL_MIN ? "Still testing \u00b7 " + s.n + " of " + EL_MIN + " calls" : "Wins " + Math.round(s.w / s.n * 100) + "% \u00b7 " + s.n + " calls";
+  }
+  function elCardHtml(c, i, lead) {
+    var e = c.el, v = e.v, buy = c.idea === "buy";
+    var h = '<div class="cp-card el' + (buy ? ' buy' : '') + (i ? ' old' : ' new') + '"' + (i ? '' : ' role="status"') + '><h4>' +
+      (buy ? '<b>Buying signal.</b> Close now.' : 'They said: <b>\u201c' + escapeHtml(String(c.o.q).replace(/^["\u201c\u201d]+|["\u201c\u201d]+$/g, "")) + '\u201d</b>') + '</h4><ol class="el-steps">';
+    v.steps.forEach(function (st) { h += '<li><span class="el-k">' + escapeHtml(st[0]) + '</span><div class="sc-say">' + scFillHtml(st[1], lead) + '</div></li>'; });
+    h += '</ol>';
+    if (e.close) h += '<div class="cp-lab">Then close</div><div class="sc-say cp-close">' + scFillHtml(e.close, lead) + '</div>';
+    if (v.tip) h += '<div class="el-tip"><b>How to say it:</b> ' + escapeHtml(v.tip) + '</div>';
+    return h + '<div class="cp-tag">' + escapeHtml(v.m) + ' \u00b7 ' + elStatLine(v.id) + '</div></div>';
+  }
+  var EL_TAP = { all: ["notint", "busy", "what", "later", "send", "price", "money", "think", "spouse", "already", "trust", "number", "stall"],
+    insurance: ["old"], realestate: ["self", "wait"], mca: ["credit", "payment"], auto: ["browse", "credit", "payment"], solar: ["rent", "roof", "wait"], investments: ["guarantee", "liquid", "advisor"] };
+  function elTapHtml() {
+    var ids = EL_TAP.all.concat(EL_TAP[elInd()] || []).filter(function (k) { return elPool(k).length; });
+    return '<div class="el-tap"><div class="cp-lab">Tap what they said</div><div class="el-chips">' +
+      '<button type="button" class="el-chip buy" data-el-say="buy">Ready to buy</button>' +
+      ids.map(function (k) { return '<button type="button" class="el-chip" data-el-say="' + k + '">' + escapeHtml(elLabel(k).replace(/[.?]$/, "")) + '</button>'; }).join("") + '</div></div>';
+  }
+  function elTap(idea) {
+    elLeadCheck();
+    var m = idea === "buy" ? { idea: "buy" } : { idea: idea, o: { id: "el-" + idea, q: elLabel(idea) }, el: true };
+    cpAddCard(m, idea + (m.o ? "|" + m.o.id : ""), "", Date.now());
+    cpDraw();
+    var b = document.querySelector("#copilot .cp-card"); if (b && b.scrollIntoView) b.scrollIntoView({ block: "nearest" });
+  }
+  function openElResults() {
+    var E = window.VPEXElite; if (!E) return;
+    var st = elStats(), ind = elInd(), rows = "";
+    var ideas = ["buy"].concat(EL_TAP.all, EL_TAP[ind] || [], Object.keys(E.PLAYS)).filter(function (k, i, a) { return a.indexOf(k) === i && elPool(k).length; });
+    var one = function (title, list) {
+      if (!list.length) return "";
+      var sc = function (x) { var s = st[x.id] || { n: 0, w: 0 }; return s.n ? s.w / s.n : -1; };
+      var ready = list.every(function (x) { return (st[x.id] || { n: 0 }).n >= EL_MIN; }), best = ready ? list.slice().sort(function (a, b) { return sc(b) - sc(a); })[0] : null;
+      return '<div class="el-res"><b>' + escapeHtml(title) + '</b>' + list.map(function (x) {
+        var s = st[x.id] || { n: 0, w: 0 };
+        return '<div class="el-res-r' + (best === x ? ' lead' : '') + '"><span>' + escapeHtml(x.m || x.t.slice(0, 48) + "\u2026") + (best === x ? ' <em>Leading</em>' : '') + '</span><span>' +
+          (s.n ? s.w + ' of ' + s.n + ' \u00b7 ' + Math.round(s.w / s.n * 100) + '%' : 'Not used yet') + '</span></div>';
+      }).join("") + '</div>';
+    };
+    ideas.forEach(function (k) { rows += one(k === "buy" ? "Buying signal" : elLabel(k), elPool(k)); });
+    rows += one("Closing question (" + INDUSTRIES[ind].name + ")", E.CLOSE[ind] || []);
+    featOpen('<h3>Copilot Elite: what wins</h3><p class="modal-sub">Your calls only. A win is a call logged Interested after that answer showed. Each answer gets ' + EL_MIN + ' calls before Copilot leans on the leader; it still tries the others now and then.</p>' + rows);
   }
   // Copilot AI (functions/ coach): when the office's admin has it on, Claude writes the next line from what was just said,
   // the lead's details and the office's own answer. The built-in play shows at once; the AI's answer replaces it in a second.
@@ -21428,15 +21564,17 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
   }
   function cpDraw() {
     var el = document.getElementById("copilot"); if (!el) return;
-    var lead = currentLead(), live = CP.on && !CP.err, heard = CP.heard.map(function (h) { return h.t; }).concat(CP.interim ? [CP.interim] : []).join(" ");
-    var h = '<div class="cp-head"><span class="cp-dot' + (live ? ' on' : '') + '" aria-hidden="true"></span><b>Copilot<small>' + (CP.err ? "Stopped" : live ? "Listening on this device" + (cpAiOn() ? " \u00b7 AI on" : "") : "Off") + '</small></b>' +
+    var lead = currentLead(), live = CP.on && !CP.err, heard = CP.heard.map(function (h) { return h.t; }).concat(CP.interim ? [CP.interim] : []).join(" "), elite = elReady();
+    var h = '<div class="cp-head"><span class="cp-dot' + (live && !CP.tap ? ' on' : '') + '" aria-hidden="true"></span><b>Copilot' + (elite ? ' <span class="el-badge">Elite</span>' : '') + '<small>' + (CP.err ? "Stopped" : CP.tap && CP.on ? "Tap mode \u00b7 nothing is heard or saved" : live ? "Listening on this device" + (cpAiOn() ? " \u00b7 AI on" : "") : "Off") + '</small></b>' +
       (DESK.on ? '' : '<button type="button" id="cpMin" aria-expanded="' + !CP.min + '" aria-label="' + (CP.min ? "Show Copilot" : "Shrink Copilot") + '">' + (CP.min ? "\u25b4" : "\u25be") + '</button>') +
       '<button type="button" id="cpStop">' + (CP.on ? "Stop" : "Close") + '</button></div><div class="cp-body">';
     if (CP.err) h += '<div class="cp-msg" role="alert">' + escapeHtml(CP.err) + '</div>';
-    if (live && Date.now() - CP.started < 90000) h += '<div class="cp-consent">Put the call on speaker. Start with: <q>Just so you know, I use a tool that transcribes our call to help me take notes.</q> Nothing is recorded or saved.</div>';
-    h += '<div class="cp-heard" aria-live="off">' + (heard ? '…<em>' + escapeHtml(heard.slice(-150)) + '</em>' : (live ? 'Waiting to hear the call…' : '')) + '</div>';
-    if (!CP.cards.length) h += '<div class="cp-empty">When they raise an objection, your best answer shows here.</div>';
+    if (elite) h += '<div class="el-bar"><label>Playbook <select id="elInd" aria-label="Playbook for which floor">' + Object.keys(window.VPEXElite.CLOSE).map(function (k) { return '<option value="' + k + '"' + (k === elInd() ? ' selected' : '') + '>' + escapeHtml(INDUSTRIES[k].name) + '</option>'; }).join("") + '</select></label><button type="button" id="elRes">What wins</button></div>' + (CP.tap ? elTapHtml() : '');
+    if (live && !CP.tap && Date.now() - CP.started < 90000) h += '<div class="cp-consent">Put the call on speaker. Start with: <q>Just so you know, I use a tool that transcribes our call to help me take notes.</q> Nothing is recorded or saved.</div>';
+    if (!CP.tap) h += '<div class="cp-heard" aria-live="off">' + (heard ? '…<em>' + escapeHtml(heard.slice(-150)) + '</em>' : (live ? 'Waiting to hear the call…' : '')) + '</div>';
+    if (!CP.cards.length) h += '<div class="cp-empty">' + (CP.tap ? 'Tap what they said and your best answer shows here.' : 'When they raise an objection, your best answer shows here.') + '</div>';
     CP.cards.forEach(function (c, i) {
+      if (c.el) { h += elCardHtml(c, i, lead); return; }
       if (c.idea === "dnc") { h += '<div class="cp-card dnc' + (i ? ' old' : ' new') + '" role="alert"><h4><b>They asked not to be called again.</b></h4><div class="sc-say"><p>Say: “Understood, I’ll take you off our list right now.”</p></div>' +
         (lead && !isDnc(lead) ? '<button type="button" data-cp-dnc="' + escapeHtml(lead.id) + '">Add ' + escapeHtml(firstName(lead.name)) + ' to Do Not Call</button>' : '') + '</div>'; return; }
       var play = cpPlay(c.idea && c.idea.indexOf("w:") ? c.idea : "") || { t: "", close: c.idea === "ai" ? "" : CP_CLOSE[IND_KEY] || CP_CLOSE.investments };
@@ -21446,6 +21584,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
         ((c.ai ? c.ai.close || play.close : play.close) ? '<div class="cp-lab">Then close</div><div class="sc-say cp-close">' + (c.ai && c.ai.close ? escapeHtml(c.ai.close) : scFillHtml(play.close, lead)) + '</div>' : '') +
         (c.ai ? '<div class="cp-tag">' + escapeHtml(c.ai.why || play.t || "") + ' \u00b7 Copilot AI</div>' : play.t ? '<div class="cp-tag">' + escapeHtml(play.t) + (c.own ? ' · your script’s answer' : '') + '</div>' : '') + '</div>';
     });
+    if (elite && !CP.tap) h += elTapHtml();   // listening: the answers first, the tap row under them for anything it missed
     el.innerHTML = h + '</div>';
     el.classList.toggle("cp-min", !!CP.min);
     cpPlace();
@@ -21470,20 +21609,28 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
           function () { showToast("Couldn\u2019t save. Check your connection.", { kind: "err" }); });
     });
   }
+  function cpPhone() { return !DESK.on && window.matchMedia("(pointer: coarse)").matches && !window.matchMedia("(min-width: 700px)").matches; }
   function cpStart() {
-    if (!cpSupported()) { showToast("Copilot needs Chrome, Edge or Safari on a computer or iPad."); return; }
+    var tap = cpElite() && (cpPhone() || !cpSupported());   // the owner's phone: the microphone is on the call, so he taps instead
+    if (!tap && !cpSupported()) { showToast("Copilot needs Chrome, Edge or Safari on a computer or iPad."); return; }
+    if (cpElite()) elLoad().then(function () { if (document.getElementById("copilot")) cpDraw(); });
     var el = document.getElementById("copilot");
     if (!el) {
       el = document.createElement("section"); el.id = "copilot"; el.setAttribute("aria-label", "Call copilot");
+      el.addEventListener("change", function (e) { if (e.target.id === "elInd") { EL.ind = e.target.value; lsSet("vpex_el_ind", EL.ind); CP.elPick = {}; CP.cards = []; cpDraw(); } });
       el.addEventListener("click", function (e) {
         if (e.target.closest("#cpStop")) { if (CP.on) cpStop(); else { el.hidden = true; } return; }
         if (e.target.closest("#cpMin")) { CP.min = !CP.min; cpDraw(); return; }
+        var t = e.target.closest("[data-el-say]"); if (t) { elTap(t.getAttribute("data-el-say")); return; }
+        if (e.target.closest("#elRes")) { openElResults(); return; }
         var d = e.target.closest("[data-cp-dnc]"); if (d) { var l = findLeadById(d.getAttribute("data-cp-dnc")); if (l) toggleLeadDnc(l); }
       });
       document.body.appendChild(el);
     }
-    el.hidden = false; CP.on = true; CP.err = ""; CP.cards = []; CP.heard = []; CP.interim = ""; CP.last = {}; CP.started = Date.now();
-    cpListen(); cpDraw(); render();
+    el.hidden = false; CP.on = true; CP.tap = tap; CP.err = ""; CP.cards = []; CP.heard = []; CP.interim = ""; CP.last = {}; CP.started = Date.now();
+    el.classList.toggle("cp-tap", tap);
+    if (!tap) cpListen();
+    cpDraw(); render();
   }
   function cpListen() {
     if (!CP.on) return;
