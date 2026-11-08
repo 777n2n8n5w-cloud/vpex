@@ -42,6 +42,9 @@ const panel = p => p.evaluate(() => { const el = document.getElementById('copilo
       ['the weather is nice today', 'none'],
     ];
     for (const [t, want] of cases) { const got = await m(t); check('match: "' + t + '"', want === 'none' ? !got.length : want ? got.some(g => want.test(g)) : true, got); }
+    check('match: a buying signal', (await m('ok how much does it cost per month')).join() === 'buy', await m('ok how much does it cost per month'));
+    check('match: an objection beats a buying signal in the same breath', (await m('it sounds good but the price is too high')).every(x => x !== 'buy'), await m('it sounds good but the price is too high'));
+    check('match: no office rebuttal → Copilot\'s own play', (await m('i need to think about it')).some(x => /^think:I need to think about it/.test(x)), await m('i need to think about it'));
     const all = await p.evaluate(() => window.__vpexCpMatch("i already have an advance and honestly the rates are too high"));
     check('match: two objections in one breath', all.length === 2, all);
     check('match: no page errors', !errs.length, errs);
@@ -72,12 +75,16 @@ const panel = p => p.evaluate(() => { const el = document.getElementById('copilo
     s = await panel(p);
     check(tag + ': answer card for the objection', s.cards.length === 1 && /They said:/.test(s.cards[0]), s.cards);
     check(tag + ': the answer is the office\'s rebuttal', await p.evaluate(() => { const card = document.querySelector('#copilot .cp-card .sc-say').innerText.trim().slice(0, 30); return card.length > 10; }));
+    const want = { insurance: /quote locked in/, solar: /exact numbers for your roof/ }[ind];
+    check(tag + ': then a closing question and the method', /Then close/i.test(s.cards[0]) && /\?/.test(s.cards[0].split(/then close/i)[1] || '') && /Separate price from value/.test(s.cards[0]), s.cards[0]);
     // same objection again within seconds: no duplicate card
     await p.evaluate(t => window.__say(t, true), objection); await p.waitForTimeout(100);
     s = await panel(p); check(tag + ': same objection doesn\'t stack', s.cards.length === 1, s.cards.length);
+    await p.evaluate(() => window.__say("okay so how soon can we get started", true)); await p.waitForTimeout(100);
+    s = await panel(p); check(tag + ': buying signal → close now, in this floor\'s next step with two choices', s.cards.length === 2 && /Buying signal/.test(s.cards[0]) && want.test(s.cards[0]) && / or /.test(s.cards[0]), s.cards[0]);
     // a second objection goes on top
     await p.evaluate(() => window.__say("how did you get my number anyway", true)); await p.waitForTimeout(100);
-    s = await panel(p); check(tag + ': a new objection goes on top', s.cards.length === 2 && /How did you get my number/i.test(s.cards[0]), s.cards);
+    s = await panel(p); check(tag + ': a new objection goes on top (3 at most)', s.cards.length === 3 && /How did you get my number/i.test(s.cards[0]), s.cards);
     // do not call
     await p.evaluate(() => window.__say("look just take me off your list", true)); await p.waitForTimeout(100);
     s = await panel(p);

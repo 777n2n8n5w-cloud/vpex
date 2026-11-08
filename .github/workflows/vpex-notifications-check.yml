@@ -64,17 +64,13 @@ jobs:
           # 1. The functions
           gcloud functions list --project "$PROJECT" --regions "$R" --format='value(name.basename(),state)' > /tmp/fns.txt 2>/tmp/fns.err || true
           (echo "Region $R"; cat /tmp/fns.txt /tmp/fns.err) | note "Functions"
-          for f in queueFromOffice queueFromTeam sendDue sendTest igDone hit leadIn cal; do
+          for f in queueFromOffice queueFromTeam sendDue sendTest igDone hit cal; do
             grep -q "^$f[[:space:]]*ACTIVE" /tmp/fns.txt || fail "Function $f" "$f isn't ACTIVE."
           done
           # The Instagram hand-off page's Done button: reachable from a phone, and it refuses a wrong key
           D=$(curl -s -o /dev/null -w '%{http_code}' -X POST "https://$R-$PROJECT.cloudfunctions.net/igDone?id=ci-check&k=not-a-real-key-123456")
           echo "Done button endpoint answered HTTP $D to a wrong key (403 = right)." | note "Done button"
           [ "$D" = "403" ] || fail "Done button" "igDone answered $D to a wrong key; it should be 403."
-          # Live leads in: refuses a made-up key (and writes nothing)
-          LI=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "Content-Type: application/json" -H "X-VPEX-Key: vk_ci-check_0000000000000000000000000000000000000000000000000000000000000000" --data '{"name":"CI check","phone":"2125550100"}' "https://$R-$PROJECT.cloudfunctions.net/leadIn")
-          echo "Live leads endpoint answered HTTP $LI to a made-up key (401 = right)." | note "Live leads"
-          [ "$LI" = "401" ] || fail "Live leads" "leadIn answered $LI to a made-up key; it should be 401."
           # Calendar feed: a made-up link gets nothing
           CA=$(curl -s -o /dev/null -w '%{http_code}' "https://$R-$PROJECT.cloudfunctions.net/cal?k=vc_ci-check_cicheck_0000000000000000000000000000000000000000000000000000000000000000")
           echo "Calendar feed answered HTTP $CA to a made-up link (404 = right)." | note "Calendar feed"

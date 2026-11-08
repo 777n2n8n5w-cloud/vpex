@@ -8,9 +8,9 @@
 //    last week on the floor (calls, conversations, interested, change from the week before, top caller).
 //  - igDone: the "Done" button on an Instagram hand-off page (marks that post as posted by hand; needs the page's own key).
 //  - hit: anonymous funnel counts from vpexdialer.com (page seen, demo opened, trial form, sign-up), by where people came from.
-//  - leadIn: live leads from an office's website form, Zapier, Make or Google Sheets (with the office's key) land at the top
-//    of its list, and the reps get a "New lead" alert.
 //  - cal: each login's follow-ups and appointments as a calendar feed its phone can subscribe to (a secret address).
+//  - coach: Copilot AI, the best next line for a rep on a live call (Claude; only with the ANTHROPIC_API_KEY secret and
+//    the office's Copilot AI switch on).
 // Tokens live in pushTokens/{id} (written by the app, readable only here). The queue lives in pushQueue/{id}.
 "use strict";
 
@@ -365,77 +365,6 @@ exports.hit = onRequest({ invoker: "public", cors: L.HIT_ORIGINS, maxInstances: 
   }
 });
 
-// ---------- live leads in ----------
-// POST https://<region>-<project>.cloudfunctions.net/leadIn with the office's key (header X-VPEX-Key, or ?key=, or a "key"
-// field) and one lead or up to 100: JSON or a plain web form. Fields: name (or first/last name), phone, email, state, notes,
-// list; anything else goes into the notes. The office keeps only the key's SHA-256, so the key can't be read back from the
-// database. Leads on the office's Do Not Call list or already on its list are skipped. New leads go into today's web-lead
-// record (leadChunks/w_<date>), which every phone of the office already listens to, marked to show at the top.
-const liWin = new Map();
-function liBudget(office, n, now) { const k = office || "_"; let w = liWin.get(k); if (!w || now - w.t > 60000) { w = { t: now, n: 0 }; liWin.set(k, w); } w.n += n; return w.n <= 300; }
-exports.leadIn = onRequest({ invoker: "public", cors: true, maxInstances: 3, timeoutSeconds: 30 }, async function (req, res) {
-  const now = Date.now(), out = function (code, x) { res.status(code).json(x); };
-  if (req.method !== "POST") return out(405, { ok: false, error: "Send leads with POST." });
-  const raw = req.rawBody ? req.rawBody.toString("utf8") : (typeof req.body === "string" ? req.body : JSON.stringify(req.body || {}));
-  if (raw.length > 100000) return out(413, { ok: false, error: "Too much at once. Send up to 100 leads per request." });
-  const ct = req.get("content-type") || "";
-  const items = L.leadInParse(ct, raw);
-  let key = req.get("x-vpex-key") || (req.query && req.query.key) || "";
-  if (!key && items && items.length === 1) key = items[0].key || items[0].vpex_key || "";
-  const k = L.leadInKey(key);
-  if (!k) return out(401, { ok: false, error: "Missing or wrong key. Make one in VPEX: Admin controls › Live leads." });
-  if (!items) return out(400, { ok: false, error: "No leads found. Send JSON (one lead or a list of up to 100) or a web form." });
-  if (!liBudget(k.office, items.length, now)) return out(429, { ok: false, error: "Too many leads this minute. Try again shortly." });
-  const pre = k.office ? "offices/" + k.office + "/" : "";
-  try {
-    const team = await db.doc(pre + "leadChunks/_team").get();
-    const li = team.exists ? team.get("leadIn") : null;
-    if (!li || !L.sameHash(li.h, L.sha256hex(k.secret))) return out(401, { ok: false, error: "Missing or wrong key. Make one in VPEX: Admin controls › Live leads." });
-    if (k.office) { const o = await db.doc("offices/" + k.office).get(); if (!L.officeOpen(o.exists ? o.data() : null, now)) return out(403, { ok: false, error: "This VPEX office is paused." }); }
-    const rand = function () { return require("crypto").randomBytes(5).toString("hex"); };
-    const cleaned = items.map(function (x) { return L.leadInClean(x, now, rand()); });
-    // Do Not Call and leads already on the list (by phone number)
-    const [dncSnap, chunks] = await Promise.all([db.doc(pre + "leadChunks/_dnc").get(), db.collection(pre + "leadChunks").get()]);
-    const dnc = (dncSnap.exists && dncSnap.get("nums")) || {}, have = new Set(), sizes = {};
-    chunks.docs.forEach(function (d) {
-      if (d.id.charAt(0) === "_") return;
-      const leads = d.get("leads") || {}; sizes[d.id] = Object.keys(leads).length;
-      Object.keys(leads).forEach(function (id) { const p = L.liPhone(leads[id] && leads[id].phone); if (p) { have.add(p.key); if (leads[id].dnc) dnc[p.key] = dnc[p.key] || true; } });
-    });
-    const add = [], result = { ok: true, added: 0, duplicate: 0, doNotCall: 0, invalid: 0, errors: [] };
-    cleaned.forEach(function (c, i) {
-      if (c.error) { if (c.error !== "spam") { result.invalid++; if (result.errors.length < 10) result.errors.push({ index: i, error: c.error === "phone" ? "No valid US phone number" : c.error }); } return; }
-      if (dnc[c.key]) { result.doNotCall++; return; }
-      if (have.has(c.key)) { result.duplicate++; return; }
-      have.add(c.key); add.push(c);
-    });
-    if (add.length) {
-      const ck = L.leadInChunk(L.nyDate(now).replace(/-/g, ""), sizes), leads = {};
-      add.forEach(function (c) { leads[c.id] = c.lead; });
-      await db.doc(pre + "leadChunks/" + ck).set({ leads: leads }, { merge: true });
-      await db.doc(pre + "leadChunks/_team").set({ leadIn: { last: now, n: admin.firestore.FieldValue.increment(add.length) } }, { merge: true });
-      result.added = add.length;
-      // tell the floor: the reps the list is assigned to, else everyone active
-      try {
-        const ms = await (k.office ? db.collection("offices/" + k.office + "/members") : db.collection("members")).where("active", "==", true).get();
-        const bySrc = {};
-        add.forEach(function (c) { (bySrc[c.lead.source] = bySrc[c.lead.source] || []).push(c); });
-        for (const src of Object.keys(bySrc)) {
-          const who = L.leadInRecipients(ms.docs.map(function (d) { return { uid: d.id, active: d.get("active") === true }; }), team.get("lists") || {}, src);
-          const msg = L.leadInMessage(k.office, bySrc[src]);
-          await Promise.all(who.map(function (m) { return sendTo(m.uid, [msg], 3600).catch(function () { return null; }); }));
-        }
-      } catch (e) { logger.warn("leadIn alert failed", { err: String(e) }); }
-    }
-    if (!result.errors.length) delete result.errors;
-    logger.info("leadIn", { office: k.office ? "office" : "team", got: items.length, added: result.added, dup: result.duplicate, dnc: result.doNotCall, bad: result.invalid });
-    return out(200, result);
-  } catch (e) {
-    logger.error("leadIn failed", { err: String(e) });
-    return out(500, { ok: false, error: "VPEX couldn't save the lead. Try again." });
-  }
-});
-
 // ---------- calendar feed ----------
 // GET https://<region>-<project>.cloudfunctions.net/cal?k=vc_<office>_<uid>_<secret> (webcal:// on an iPhone): that login's
 // open follow-ups and appointments as an iCalendar feed. The login keeps only the secret's SHA-256 in its own record
@@ -457,5 +386,48 @@ exports.cal = onRequest({ invoker: "public", cors: false, maxInstances: 3, timeo
   } catch (e) {
     logger.error("cal failed", { err: String(e) });
     no(500, "Try again later.");
+  }
+});
+
+// ---------- Copilot AI ----------
+// POST with the signed-in rep's Firebase ID token (Authorization: Bearer). The office's admin turns it on (leadChunks/_team
+// copilotAi: true). Nothing is stored; the few sentences go to Claude and back. 20 a minute and 400 a day per login.
+const coachUse = new Map();
+function coachBudget(uid, now) {
+  let u = coachUse.get(uid); const day = L.nyDate(now);
+  if (!u || u.day !== day) { u = { day: day, n: 0, t: now, m: 0 }; coachUse.set(uid, u); }
+  if (now - u.t > 60000) { u.t = now; u.m = 0; }
+  u.m++; u.n++; return u.m <= 20 && u.n <= 400;
+}
+exports.coach = onRequest({ invoker: "public", cors: ["https://vpexdialer.com", "https://www.vpexdialer.com"], maxInstances: 5, timeoutSeconds: 20 }, async function (req, res) {
+  const now = Date.now(), out = function (code, x) { res.status(code).json(x); };
+  if (req.method !== "POST") return out(405, { ok: false });
+  const key = process.env.ANTHROPIC_API_KEY || "";
+  if (!key) return out(503, { ok: false, error: "off" });
+  const m = /^Bearer (.{20,4000})$/.exec(req.get("authorization") || "");
+  if (!m) return out(401, { ok: false });
+  let user;
+  try { user = await admin.auth().verifyIdToken(m[1]); } catch (e) { return out(401, { ok: false }); }
+  const office = L.officeFromEmail(user.email), pre = office ? "offices/" + office + "/" : "";
+  if (!(await allowed(office, user.uid, now, null))) return out(403, { ok: false });
+  const team = await db.doc(pre + "leadChunks/_team").get().catch(function () { return null; });
+  if (!team || !team.exists || team.get("copilotAi") !== true) return out(403, { ok: false, error: "off" });
+  if (!coachBudget(user.uid, now)) return out(429, { ok: false });
+  const body = typeof req.body === "object" && req.body ? req.body : (function () { try { return JSON.parse(req.rawBody ? req.rawBody.toString("utf8") : "{}"); } catch (e) { return null; } })();
+  const x = L.coachClean(body);
+  if (!x) return out(400, { ok: false });
+  const p = L.coachPrompt(x);
+  try {
+    const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
+      body: JSON.stringify({ model: process.env.COACH_MODEL || "claude-haiku-4-5", max_tokens: 300, temperature: 0.4, system: p.system, messages: [{ role: "user", content: p.user }] }),
+      signal: AbortSignal.timeout(12000) });
+    if (!r.ok) { logger.warn("coach upstream", { status: r.status }); return out(502, { ok: false }); }
+    const j = await r.json(), text = ((j.content || []).find(function (c) { return c.type === "text"; }) || {}).text || "";
+    const a = L.coachParse(text);
+    if (!a) return out(200, { ok: true, none: true });
+    return out(200, Object.assign({ ok: true }, a));
+  } catch (e) {
+    logger.warn("coach failed", { err: String(e).slice(0, 200) });
+    return out(502, { ok: false });
   }
 });

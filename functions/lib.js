@@ -346,90 +346,12 @@ function floorMessage(office, senderName, body) {
   return { kind: "floor", title: who ? "From " + who : "From your manager", body: str(body, FLOOR_MAX), link: leadLink(office, ""), tag: "vpex-floor", leadId: "", office: office || "" };
 }
 
-// ---------- live leads in (leadIn) ----------
-// A website form, Zapier, Make or a Google Sheet posts leads to the leadIn endpoint with the office's key:
-// "vk_<office>_<64 hex>" (the original team: "vk__<64 hex>"). The office keeps only the key's SHA-256 (leadChunks/_team, leadIn.h).
-const LEADIN_MAX = 100;                 // leads in one request
-const LEADIN_STATES = { alabama: "AL", alaska: "AK", arizona: "AZ", arkansas: "AR", california: "CA", colorado: "CO", connecticut: "CT", delaware: "DE",
-  "district of columbia": "DC", "washington dc": "DC", florida: "FL", georgia: "GA", hawaii: "HI", idaho: "ID", illinois: "IL", indiana: "IN", iowa: "IA", kansas: "KS",
-  kentucky: "KY", louisiana: "LA", maine: "ME", maryland: "MD", massachusetts: "MA", michigan: "MI", minnesota: "MN", mississippi: "MS", missouri: "MO",
-  montana: "MT", nebraska: "NE", nevada: "NV", "new hampshire": "NH", "new jersey": "NJ", "new mexico": "NM", "new york": "NY", "north carolina": "NC",
-  "north dakota": "ND", ohio: "OH", oklahoma: "OK", oregon: "OR", pennsylvania: "PA", "rhode island": "RI", "south carolina": "SC", "south dakota": "SD",
-  tennessee: "TN", texas: "TX", utah: "UT", vermont: "VT", virginia: "VA", washington: "WA", "west virginia": "WV", wisconsin: "WI", wyoming: "WY" };
-const LEADIN_ABBR = new Set(Object.values(LEADIN_STATES));
-const LI_NAME = ["name", "fullname", "contactname", "leadname", "yourname", "customername"], LI_FIRST = ["firstname", "fname", "first", "givenname"], LI_LAST = ["lastname", "lname", "last", "surname", "familyname"];
-const LI_PHONE = ["phone", "phonenumber", "mobile", "mobilephone", "mobilenumber", "cell", "cellphone", "tel", "telephone", "primaryphone", "homephone", "workphone", "phone1", "yourphone"];
-const LI_EMAIL = ["email", "emailaddress", "mail", "youremail"], LI_STATE = ["state", "st", "province", "stateprovince"], LI_NOTES = ["notes", "note", "message", "comments", "comment", "question", "details", "yourmessage"];
-const LI_LIST = ["list", "leadlist", "source", "leadsource", "campaign"], LI_SKIP = ["key", "apikey", "vpexkey", "o", "office", "token", "submit", "gclid", "fbclid", "gbraid", "wbraid", "msclkid", "redirect", "next", "honeypot", "website2"];
-function liNorm(k) { return String(k == null ? "" : k).toLowerCase().replace(/[^a-z0-9]/g, ""); }
-function liVal(v) { if (Array.isArray(v)) v = v.join(", "); if (v && typeof v === "object") return ""; return String(v == null ? "" : v).replace(/[\u0000-\u001f\u007f]+/g, " ").replace(/\s+/g, " ").trim(); }
-function leadInKey(key) {
-  const m = /^vk_([a-z0-9][a-z0-9-]{0,62})?_([0-9a-f]{64})$/.exec(String(key || "").trim());
-  return m ? { office: m[1] || "", secret: m[2] } : null;
-}
+// ---------- secrets: only a SHA-256 is ever stored ----------
 function sha256hex(s) { return require("crypto").createHash("sha256").update(String(s)).digest("hex"); }
 function sameHash(a, b) {
   a = String(a || ""); b = String(b || "");
   if (a.length !== 64 || b.length !== 64) return false;
   return require("crypto").timingSafeEqual(Buffer.from(a), Buffer.from(b));
-}
-// The body as a list of plain objects: JSON (one lead or a list of them, or {leads: [...]}) or a web form (urlencoded).
-function leadInParse(contentType, raw) {
-  raw = String(raw == null ? "" : raw); const ct = String(contentType || "").toLowerCase();
-  let items = null;
-  if (/x-www-form-urlencoded/.test(ct) || (!/json/.test(ct) && /^[^{\[]/.test(raw.trim()) && /=/.test(raw))) {
-    const o = {}; new URLSearchParams(raw).forEach(function (v, k) { o[k] = o[k] === undefined ? v : o[k] + ", " + v; }); items = [o];
-  } else {
-    try { const j = JSON.parse(raw); items = Array.isArray(j) ? j : j && Array.isArray(j.leads) ? j.leads : [j]; } catch (e) { return null; }
-  }
-  items = (items || []).filter(function (x) { return x && typeof x === "object" && !Array.isArray(x); });
-  if (!items.length || items.length > LEADIN_MAX) return null;
-  return items;
-}
-function liPhone(v) {
-  const s = liVal(v).replace(/\s*(?:x|ext\.?|extension|#)\s*\d+$/i, ""), d = s.replace(/\D/g, "");
-  const ten = d.length === 10 ? d : d.length === 11 && d.charAt(0) === "1" ? d.slice(1) : "";
-  if (!ten || /^[01]/.test(ten) || /^[01]/.test(ten.slice(3))) return null;   // US numbers only: area code and exchange can't start with 0 or 1
-  return { phone: "+1" + ten, phoneRaw: "(" + ten.slice(0, 3) + ") " + ten.slice(3, 6) + "-" + ten.slice(6), key: "n" + ten };
-}
-function liLabel(k) { const t = String(k).replace(/[_\-.]+/g, " ").replace(/([a-z])([A-Z])/g, "$1 $2").replace(/\s+/g, " ").trim(); return t ? t.charAt(0).toUpperCase() + t.slice(1, 40) : ""; }
-// One posted lead → the lead record the app reads (same shape as an uploaded lead), or { error }.
-function leadInClean(obj, now, idTail) {
-  const by = {}; Object.keys(obj).forEach(function (k) { const n = liNorm(k); if (n && by[n] === undefined) by[n] = { k: k, v: liVal(obj[k]) }; });
-  const pick = function (names) { for (const n of names) if (by[n] && by[n].v) return by[n].v; return ""; };
-  const used = new Set();
-  const take = function (names) { for (const n of names) if (by[n] && by[n].v) { used.add(n); return by[n].v; } return ""; };
-  if (pick(["honeypot", "website2"])) return { error: "spam" };           // a hidden field a person never fills in
-  let name = take(LI_NAME);
-  if (!name) { const f = take(LI_FIRST), l = take(LI_LAST); name = [f, l].filter(Boolean).join(" "); }
-  const ph = liPhone(take(LI_PHONE));
-  if (!ph) return { error: "phone" };
-  let email = take(LI_EMAIL).toLowerCase(); if (email && !/^[^\s@]{1,64}@[^\s@]{1,190}\.[a-z]{2,}$/.test(email)) email = "";
-  let st = take(LI_STATE); const stU = st.toUpperCase(); st = LEADIN_ABBR.has(stU) ? stU : (LEADIN_STATES[st.toLowerCase().replace(/\./g, "")] || "");
-  const note = take(LI_NOTES), list = take(LI_LIST).replace(/[^A-Za-z0-9 &'\-]/g, "").replace(/\s+/g, " ").trim().slice(0, 40);
-  LI_SKIP.forEach(function (n) { used.add(n); });
-  const extra = [];
-  Object.keys(by).forEach(function (n) { if (used.has(n) || n.charAt(0) === "_" || /^utm/.test(n) || !by[n].v || extra.length >= 12) return; const lab = liLabel(by[n].k); if (lab) extra.push(lab + ": " + str(by[n].v, 120)); });
-  const notes = str([note, extra.join(" · ")].filter(Boolean).join(" | "), 1500);
-  const lead = { name: str(name || "Web lead", 80), phoneRaw: ph.phoneRaw, phone: ph.phone, notes: notes, stage: "New Lead", amount: 0, status: "pending", outcome: null, calledAt: null,
-    source: list || "Web leads", addedAt: now, front: true, web: { at: now }, tasks: [], texts: [] };
-  if (email) lead.email = email;
-  if (st) lead.st = st;
-  return { id: "w" + now.toString(36) + String(idTail || "").replace(/[^a-z0-9]/g, "").slice(0, 8), lead: lead, key: ph.key };
-}
-function leadInRecipients(members, lists, source) {   // the reps the list is assigned to, else everyone active on the floor
-  const active = members.filter(function (m) { return m && m.active === true && isUid(m.uid); });
-  const c = lists && lists[source], only = c && Array.isArray(c.reps) && c.reps.length ? new Set(c.reps) : null;
-  const out = only ? active.filter(function (m) { return only.has(m.uid); }) : active;
-  return out.length ? out : active;
-}
-function leadInMessage(office, leads) {   // one alert per request: the lead, or a count
-  if (leads.length === 1) { const x = leads[0]; return { kind: "lead", title: "New lead: " + str(x.lead.name, 60), body: str(x.lead.source, 40) + " · Tap to call now", link: leadLink(office, x.id), tag: "vpex-lead-" + x.id, leadId: x.id, office: office || "" }; }
-  return { kind: "lead", title: leads.length + " new leads", body: str(leads[0].lead.source, 40) + " · " + leads.slice(0, 3).map(function (x) { return firstName(x.lead.name); }).join(", ") + (leads.length > 3 ? " and more" : "") + " · Tap to call", link: leadLink(office, leads[0].id), tag: "vpex-leads", leadId: leads[0].id, office: office || "" };
-}
-function leadInChunk(day, sizes) {   // today's web-lead record, a new one once it holds 250 leads (with long notes, still far under the 1 MB limit)
-  for (let i = 1; i < 50; i++) { const id = "w_" + day + (i > 1 ? "_" + i : ""); if ((sizes[id] || 0) < 250) return id; }
-  return "w_" + day + "_x";
 }
 
 // ---------- calendar feed (cal) ----------
@@ -482,11 +404,54 @@ function calIcs(events, now) {
   return L.map(icsFold).join("\r\n") + "\r\n";
 }
 
+// ---------- Copilot AI (coach) ----------
+// The live call copilot can ask Claude for the best next line: what the lead just said (a few sentences), the floor's
+// industry, the lead's stage and answers, and the office's own rebuttal for that objection. It answers with what to say
+// and the closing question, as JSON. Honest by rule: no promised results, no made-up urgency, a clear no is respected.
+const COACH_IND = { insurance: "insurance (final expense, Medicare, life, P&C)", realestate: "real estate (listings, buyers and sellers)", mca: "business funding (merchant cash advance, working capital)",
+  auto: "auto sales", solar: "residential solar", investments: "private investments (accredited investors)" };
+function coachClean(b) {
+  if (!b || typeof b !== "object") return null;
+  const t = function (v, n) { return String(v == null ? "" : v).replace(/[\u0000-\u001f\u007f]+/g, " ").replace(/\s+/g, " ").trim().slice(0, n); };
+  const said = t(b.said, 700);
+  if (said.split(" ").length < 3) return null;
+  return { said: said, ind: COACH_IND[b.ind] ? b.ind : "investments", idea: t(b.idea, 20), first: t(b.first, 30), me: t(b.me, 30), company: t(b.company, 60),
+    stage: t(b.stage, 40), facts: t(b.facts, 300), script: t(b.script, 500), step: t(b.step, 200) };
+}
+function coachPrompt(x) {
+  const system = [
+    "You are the live closing coach inside VPEX, a power dialer. A sales rep is on a phone call right now and reads your answer while the lead talks.",
+    "Write like the best closers in history: total certainty, short spoken sentences, empathy first, then control. Use proven methods: acknowledge and agree, isolate the real objection, label the emotion, ask a calibrated question, loop back to the value, then an assumptive close with two choices (never a yes/no question).",
+    "Rules you never break: never lie or invent facts, prices, numbers or results; never promise returns, approval, savings or guarantees; never invent urgency or scarcity; if the lead clearly says no or asks not to be called, tell the rep to respect it; follow " + COACH_IND[x.ind] + " rules (for example Medicare Scope of Appointment, no guaranteed investment returns). Never mention AI.",
+    "Reply with JSON only: {\"objection\": \"<what they said, 2-6 words>\" or null, \"say\": \"<1-2 sentences the rep says next>\", \"close\": \"<one closing question with two choices, or empty>\", \"why\": \"<the method, 2-5 words>\"}. If the lead said nothing to answer (small talk, the rep talking), reply {\"none\": true}."
+  ].join("\n");
+  const user = [
+    "Industry: " + COACH_IND[x.ind],
+    x.first ? "Lead's first name: " + x.first : "", x.me ? "Rep's name: " + x.me : "", x.company ? "Company: " + x.company : "",
+    x.stage ? "Lead stage: " + x.stage : "", x.facts ? "What we know: " + x.facts : "", x.step ? "Next step the office wants: " + x.step : "",
+    x.idea ? "Objection detected: " + x.idea : "", x.script ? "The office's own answer to this objection (keep its facts, improve the delivery): " + x.script : "",
+    "Last words heard on the call (both sides, no speaker labels): \"" + x.said + "\""
+  ].filter(Boolean).join("\n");
+  return { system: system, user: user };
+}
+function coachParse(text) {
+  const m = /\{[\s\S]*\}/.exec(String(text || "")); if (!m) return null;
+  let j; try { j = JSON.parse(m[0]); } catch (e) { return null; }
+  if (!j || typeof j !== "object") return null;
+  if (j.none) return { none: true };
+  const t = function (v, n) { return String(v == null ? "" : v).replace(/\s+/g, " ").trim().slice(0, n); };
+  const say = t(j.say, 400); if (!say) return null;
+  const bad = /\bguarantee(d|s)?\b|\brisk[- ]free\b|\bcan'?t lose\b|\bdouble your money\b|\bas an ai\b/i;
+  const close = t(j.close, 300);
+  if (bad.test(say) || bad.test(close)) return null;   // never let a promise or a slip through
+  return { objection: t(j.objection, 60), say: say, close: close, why: t(j.why, 40) };
+}
+
 module.exports = { APP_URL, STALE_MS, DROP_MS, APPT_LEAD_MS, queueId, notifyAt, assigneeOf, taskEntries, diffQueue, handoffEvents, officeOpen,
   fmtWhen, leadLink, dueMessages, handoffMessage, testMessage, fcmMessage, deadToken, officeFromEmail, safeTz, firstName,
   localParts, digestDue, localDayBounds, digestCounts, digestMessage,
   weekDue, weekLead, lastWeekBounds, weekDates, weekAdd, weekNew, weekMessage, utcDate,
   FLOOR_MAX, floorRequest, floorGate, floorRecipients, floorMessage,
   HIT_EVENTS, HIT_INDS, HIT_ORIGINS, HIT_DAY_KEYS, hitOriginOk, capHit, hitTok, parseHit, hitKey, unHitKey, nyDate, freshOffice,
-  LEADIN_MAX, leadInKey, sha256hex, sameHash, leadInParse, leadInClean, leadInRecipients, leadInMessage, leadInChunk, liPhone,
-  calKey, calEvents, calIcs, icsFold };
+  sha256hex, sameHash,
+  calKey, calEvents, calIcs, icsFold, COACH_IND, coachClean, coachPrompt, coachParse };
