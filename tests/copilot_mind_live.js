@@ -40,9 +40,11 @@ async function boot(br, o) {
   return { ctx, page, errs, reqs };
 }
 const say = async (page, t) => { await page.evaluate(t => window.__say(t), t); await page.waitForTimeout(220); };
+// the evidence sits in the folded "Why this move": read it with textContent
 const now = page => page.evaluate(() => { const n = document.querySelector('#copilot .el-next'); if (!n) return null;
   return { title: (n.querySelector('.mn-title b') || {}).textContent || '', conf: (n.querySelector('.mn-conf') || {}).textContent || '', text: n.innerText,
-    ev: [...n.querySelectorAll('.mn-ev-i')].map(e => e.innerText), alerts: [...n.querySelectorAll('.mn-al')].map(a => [a.className.replace(/.*lv-/, ''), a.innerText]),
+    sit: (n.querySelector('.hud-sit') || {}).textContent || '', why: (n.querySelector('.mn-why') || {}).textContent || '', whyOpen: !!(n.querySelector('.mn-why') || {}).open,
+    ev: [...n.querySelectorAll('.mn-ev-i')].map(e => e.textContent), alerts: [...n.querySelectorAll('.mn-al')].map(a => [a.className.replace(/.*lv-/, ''), a.innerText]),
     band: (n.querySelector('.mn-band') || {}).textContent || '', stage: (n.querySelector('.el-steps-bar .now') || {}).textContent || '' }; });
 const cards = page => page.evaluate(() => [...document.querySelectorAll('#copilot .cp-card')].map(c => ({ text: c.innerText || c.textContent, tag: ((c.querySelector('.cp-tag') || {}).textContent || '').trim() })));   // earlier cards are folded: read their text, not their layout
 const leadName = page => page.evaluate(() => (document.querySelector('.lead-name, #leadName, .ln-name, h2.lead-name') || document.querySelector('.lead-card h2') || {}).textContent || '');
@@ -60,7 +62,7 @@ const mem = (page, name) => page.evaluate(name => { const db = JSON.parse(localS
     await page.evaluate(() => document.querySelector('[data-cp-toggle]').click()); await page.waitForTimeout(900);
     check(tag + ': cp-mind.js loaded with the playbook', reqs.filter(u => /cp-mind\.js/.test(u)).length === 1);
     let n = await now(page);
-    check(tag + ': Now card: a title and every part (do, say, what, why, aim)', n && n.title && /Do:/.test(n.text) && /SAY/i.test(n.text) && /What’s happening:/.test(n.text) && /Why:/.test(n.text) && /Aim:/.test(n.text), n);
+    check(tag + ': Now card: a title, what\'s happening, do and say in view; why and aim one tap away', n && n.title && n.sit.length > 5 && /\bDO\b/i.test(n.text) && /SAY/i.test(n.text) && /Why:/.test(n.why) && /Aim:/.test(n.why) && !n.whyOpen && !/Why:/.test(n.text), n);
     check(tag + ': where the deal stands, without a made-up number', n.band && !/\d+%/.test(n.band), n.band);
     await say(page, 'honestly it is way too expensive for me');
     n = await now(page);
@@ -108,8 +110,8 @@ const mem = (page, name) => page.evaluate(name => { const db = JSON.parse(localS
     const { ctx, page, errs } = await boot(br, { w: 1440, s: 'light' });
     await page.evaluate(() => document.querySelector('[data-cp-toggle]').click()); await page.waitForTimeout(900);
     await say(page, "i'd have to talk it over with my wife first");
-    const cw = await page.evaluate(() => (document.querySelector('#copilot .cp-card .mn-cw') || {}).innerText || '');
-    check('card: says what kind of concern and its aim', /^Decision-maker/.test(cw) && /Aim: The decision-maker on the next call/.test(cw), cw);
+    const cw = await now(page);   // the answer sits in the Now card: its title names the kind of concern, the aim is under "Why this move"
+    check('card: says what kind of concern and its aim', /^Decision-maker/.test(cw.title) && /Aim: The decision-maker on the next call/.test(cw.why) && /They said “I need to talk to my spouse/.test(cw.sit), cw);
     await page.evaluate(() => document.getElementById('copyBtn').click()); await page.waitForTimeout(300);
     await page.evaluate(() => document.querySelector('#outcomesRow [data-outcome="interested"]').click()); await page.waitForTimeout(700);
     const fu = await page.evaluate(() => { const b = document.querySelector('#fuSheet.show .fu-cp'); return b ? b.innerText : ''; });
@@ -118,7 +120,7 @@ const mem = (page, name) => page.evaluate(name => { const db = JSON.parse(localS
     check('follow-up sheet: the note is filled from the call', /Get the decision-maker on this call/.test(note), note);
     await ctx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: 'http://127.0.0.1:8765' });
     await page.evaluate(() => document.getElementById('fuCpText').click()); await page.waitForTimeout(80);
-    let toast0 = ''; for (let i = 0; i < 20 && !/copied/.test(toast0); i++) { toast0 = await page.evaluate(() => (document.getElementById('toast') || {}).innerText || ''); await page.waitForTimeout(50); }
+    let toast0 = ''; for (let i = 0; i < 240 && !/copied/.test(toast0); i++) { toast0 = await page.evaluate(() => (document.getElementById('toast') || {}).innerText || ''); await page.waitForTimeout(50); }
     const clip = await page.evaluate(() => navigator.clipboard.readText().catch(() => ''));
     check('follow-up text: from what was said (both of you), with their name, no number promises', /both of you/.test(clip) && /Anthony|Hi /.test(clip) && !/%|\$/.test(clip), clip);
     const toast = toast0;

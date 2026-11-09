@@ -12,6 +12,7 @@ const FAKE = () => {
   class F { constructor() { window.__sr.list.push(this); } start() { this.live = true; } abort() { this.live = false; } stop() { this.abort(); } }
   window.SpeechRecognition = window.webkitSpeechRecognition = F;
   window.__say = t => { const r = window.__sr.list[window.__sr.list.length - 1]; if (!r) return false; const res = [{ transcript: t }]; res.isFinal = true; r.onresult({ resultIndex: 0, results: [res] }); return true; };
+  window.__sayPart = t => { const r = window.__sr.list[window.__sr.list.length - 1]; if (!r) return false; const res = [{ transcript: t }]; res.isFinal = false; r.onresult({ resultIndex: 0, results: [res] }); return true; };
   try { Object.defineProperty(window, 'LanguageModel', { value: undefined, configurable: true, writable: true }); } catch (e) {}
 };
 // seed memory and qualifying answers on three leads, so the Radar has a deal at risk, one not qualified and one remembered
@@ -78,7 +79,7 @@ const sheet = page => page.evaluate(() => { const m = document.querySelector('#f
     });
     check(tag + ': after three objections the move to make is on top and in view', lay.titleVisible && lay.nowFirst && lay.scrollTop === 0, lay);
     check(tag + ': earlier answers folded into one line naming them', lay.older && !lay.older.open && lay.older.cards === 2 && /Earlier on this call: .+ · .+/.test(lay.older.sum), lay.older);
-    check(tag + ': "Why this move" open on a computer, folded on a phone', v.w > 500 ? lay.whyOpen === true : lay.whyOpen === false, lay.whyOpen);
+    check(tag + ': "Why this move" folded (one tap away), so the move and the line to say lead', lay.whyOpen === false, lay.whyOpen);
     check(tag + ': every visible control at least 44 px, no sideways scroll', lay.minBtn >= 44 && lay.ov <= 1, lay);
     if (v.w > 500) await page.screenshot({ path: (process.env.SHOTS || require('os').tmpdir()) + '/r3-panel-1440.png' });
     else await page.screenshot({ path: (process.env.SHOTS || require('os').tmpdir()) + '/r3-panel-390.png' });
@@ -125,6 +126,47 @@ const sheet = page => page.evaluate(() => { const m = document.querySelector('#f
       return { read: [0.2, 0.5, 0.85].map(x => hit(r.left + r.width * x, r.top + Math.min(r.height, 60) / 2)), cp: c.width ? hit(c.left + c.width / 2, c.top + 20) : 'hidden', desk: document.body.classList.contains('desk'), shown: [...document.querySelectorAll('.modal-overlay.show')].map(m => m.id), cpr: getComputedStyle(document.getElementById('copilot')).right }; });
     check(tag + ': Copilot never covers the profile\'s read' + (v.w > 1100 ? ', and stays in view beside it' : ''), cover.read.every(x => x === 'profile') && (!cover.desk || cover.cp === 'copilot'), cover);
     if (v.w > 500) await page.screenshot({ path: (process.env.SHOTS || require('os').tmpdir()) + '/r3-profile-1440.png' });
+    check(tag + ': no page errors', !errs.length, errs);
+    await ctx.close();
+  }
+  // the panel reads at a glance and holds still while people talk
+  {
+    const tag = 'hud';
+    const { ctx, page, errs } = await boot(br, { w: 1440, s: 'dark' });
+    await openCopilot(page);
+    const hud = () => page.evaluate(() => { const p = document.getElementById('copilot'), n = p.querySelector('.el-next'), body = p.querySelector('.cp-body'), live = p.querySelector('.hud-live');
+      const close = n.querySelector('[data-el-act="close"]'), why = n.querySelector('.mn-why');
+      return { live: live ? live.textContent : '', liveFirst: !!live && (live.compareDocumentPosition(n) & Node.DOCUMENT_POSITION_FOLLOWING) > 0, title: (n.querySelector('.mn-title b') || {}).textContent, sit: (n.querySelector('.hud-sit') || {}).textContent,
+        say: [...n.querySelectorAll('.mn-say, .hud-card')].map(x => x.innerText.replace(/\s+/g, ' ').trim()), labs: [...n.querySelectorAll('.hud-lab')].map(x => x.textContent),
+        outside: [...p.querySelectorAll('.cp-card')].filter(c => !c.closest('.el-next') && !c.closest('.el-older')).length, closeGo: !!(close && close.classList.contains('go')),
+        whyOpen: !!(why && why.open), top: body.scrollTop, still: p.classList.contains('cp-still'), menuHidden: !!(p.querySelector('.el-menu') || {}).hidden }; });
+    let h = await hud();
+    check(tag + ': first it shows it is listening, above the move', h.liveFirst && /Listening/.test(h.live), h);
+    check(tag + ': at the open, "Close now" is not the button that stands out', !h.closeGo, h);
+    // the menu closes itself once a tool is picked
+    await openRadar(page); await page.keyboard.press('Escape'); await page.waitForTimeout(250); await page.evaluate(() => document.getElementById('featModal').classList.remove('show'));
+    check(tag + ': the menu closes itself after picking a tool', (await hud()).menuHidden);
+    await page.evaluate(() => window.__say('hi bruce this is vincent calling from the firm how are you today')); await page.waitForTimeout(200);
+    await page.evaluate(() => window.__say('honestly it sounds way too expensive for me right now')); await page.waitForTimeout(250);
+    h = await hud();
+    check(tag + ': an objection: one card says what they said, the move and the answer to say (no second box)', /They said “It's too expensive/.test(h.sit) && /^Value/.test(h.title) && h.labs[0] === 'Say' && h.outside === 0, h);
+    check(tag + ': the Hearing line shows the newest words', /Hearing/.test(h.live) && /expensive for me right now$/.test(h.live.trim()), h.live);
+    // open the why, scroll down, then they keep talking: nothing moves
+    await page.evaluate(() => { const p = document.getElementById('copilot'); p.querySelector('.mn-why').open = true; p.querySelector('.cp-body').scrollTop = 120; });
+    const top0 = (await hud()).top;
+    for (const w of ['so', 'so what', 'so what kind of', 'so what kind of company']) { await page.evaluate(t => window.__sayPart(t), w); await page.waitForTimeout(60); }
+    h = await hud();
+    check(tag + ': half-said words update only the Hearing line: your place and what you opened stay put', top0 > 0 && h.top === top0 && h.whyOpen && /so what kind of company$/.test(h.live.trim()), [top0, h]);
+    await page.evaluate(() => window.__say('so what kind of company is it')); await page.waitForTimeout(250);
+    h = await hud();
+    check(tag + ': a finished sentence with nothing new keeps your place too', h.top === top0 && h.whyOpen && h.still, [top0, h]);
+    await page.evaluate(() => window.__say("i'd have to ask my wife first")); await page.waitForTimeout(250);
+    h = await hud();
+    check(tag + ': a new move goes back to the top', h.top === 0 && !h.still, h);
+    check(tag + ': a second concern: say the isolating question, then the answer', /Isolate/.test(h.title) && /^SAY Other than/.test(h.say[0]) && /^Then answer it/.test(h.labs[0]), h);
+    await page.evaluate(() => window.__say("okay so what's the minimum to get in")); await page.waitForTimeout(250);
+    h = await hud();
+    check(tag + ': a buying signal says so, and "Close now" stands out', /^Buying signal\./.test(h.sit) && h.closeGo, h);
     check(tag + ': no page errors', !errs.length, errs);
     await ctx.close();
   }

@@ -78,7 +78,7 @@ async function boot(br, o) {
 const brainBtn = async page => { if (await page.evaluate(() => { const m = document.querySelector('#copilot .el-menu'); return !!(m && m.hidden); })) await page.click('#elMenuBtn'); await page.click('#elBrain'); };   // the Brain button lives in the Copilot menu
 const say = async (page, t, ms) => { await page.evaluate(t => window.__say(t), t); await page.waitForTimeout(ms || 250); };
 const panel = page => page.evaluate(() => { const el = document.getElementById('copilot'); if (!el || el.hidden) return null;
-  return { head: el.querySelector('.cp-head').innerText, cards: [...el.querySelectorAll('.cp-card')].map(c => ({ text: c.innerText, tag: (c.querySelector('.cp-tag') || {}).innerText || '' })),
+  return { head: el.querySelector('.cp-head').innerText, cards: [...el.querySelectorAll('.cp-card')].map(c => ({ text: (c.closest('.hud') ? (c.closest('.hud').querySelector('.hud-sit') || {}).textContent + ' ' : '') + c.innerText, tag: (c.querySelector('.cp-tag') || {}).innerText || '' })),   // an answer inside the Now card reads with its "They said" line
     next: (el.querySelector('.mn-brain') || {}).innerText || '', brainTag: !!el.querySelector('.mn-brain .el-brain-tag'), checkLine: (el.querySelector('.el-check:not(.mn-brain)') || {}).innerText || '',
     stage: (el.querySelector('.el-steps-bar .now') || {}).textContent, brainBtn: !!el.querySelector('#elBrain') }; });
 const outside = reqs => reqs.filter(u => !/^(http:\/\/127\.0\.0\.1|data:|blob:)/.test(u) && !/gstatic|fonts\.|cloudfunctions/.test(u));
@@ -122,7 +122,7 @@ const outside = reqs => reqs.filter(u => !/^(http:\/\/127\.0\.0\.1|data:|blob:)/
     const sys = await page.evaluate(() => window.__brainLog.creates.map(c => c.sys).filter(Boolean).pop());
     check(tag + ': the brain knows the floor and both voices', /selling investments/.test(sys) && /REP/.test(sys) && /LEAD/.test(sys) && /Never promise returns/.test(sys), (sys || '').slice(0, 200));
     await say(page, 'my wife and i are retired and live off our savings', 300); p = await panel(page);
-    const facts = await page.evaluate(() => [...document.querySelectorAll('#copilot .mn-ev-i')].map(e => e.innerText));
+    const facts = await page.evaluate(() => [...document.querySelectorAll('#copilot .mn-ev-i')].map(e => e.textContent));   // under "Why this move"
     check(tag + ': facts the lead states → shown as "AI heard"', facts.some(f => /^AI heard/.test(f) && /Retired, living off savings/.test(f)), facts);
     // the rep's own words
     await say(page, 'I know it seems expensive, but here is the thing', 350); p = await panel(page);

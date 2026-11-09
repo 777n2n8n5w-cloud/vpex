@@ -102,9 +102,10 @@ async function boot(br, o) {
   await page.evaluate(() => document.querySelectorAll('.toast').forEach(t => t.remove()));
   return { ctx, page, errs, reqs };
 }
+// an answer inside the Now card reads with its "They said" line
 const panel = page => page.evaluate(() => {
   const el = document.getElementById('copilot'); if (!el || el.hidden) return null; const r = el.getBoundingClientRect();
-  const cards = [...el.querySelectorAll('.cp-card')].map(c => ({ el: c.classList.contains('el'), text: c.innerText, tag: (c.querySelector('.cp-tag') || {}).innerText || '', steps: c.querySelectorAll('.el-steps li').length }));
+  const cards = [...el.querySelectorAll('.cp-card')].map(c => ({ el: c.classList.contains('el'), text: (c.closest('.hud') ? (c.closest('.hud').querySelector('.hud-sit') || {}).textContent + ' ' : '') + c.innerText, tag: (c.querySelector('.cp-tag') || {}).innerText || '', steps: c.querySelectorAll('.el-steps li').length }));
   const chips = [...el.querySelectorAll('[data-el-say]')].map(b => ({ k: b.getAttribute('data-el-say'), h: b.getBoundingClientRect().height }));
   const btns = [...el.querySelectorAll('button, select')].filter(b => b.offsetParent).map(b => b.getBoundingClientRect().height);
   return { text: el.innerText, cards, chips, btns, elite: !!el.querySelector('.el-badge'), tap: el.classList.contains('cp-tap'), inView: r.left >= 0 && r.right <= innerWidth + 1 && r.top >= 0 && r.bottom <= innerHeight + 1,
@@ -136,11 +137,11 @@ const eliteReq = reqs => reqs.filter(u => /cp-elite\.js/.test(u)).length;
     check(tag + ': panel on screen, no sideways scroll', p.inView && p.sw <= p.vw, p);
     await tap(page, 'price'); p = await panel(page);
     const c0 = p.cards[0];
-    check(tag + ': tap → a four-step elite answer', c0 && c0.el && c0.steps >= 3 && /They said: “It's too expensive\.”/.test(c0.text) && /THEN CLOSE|Then close/i.test(c0.text) && /How to say it:/.test(c0.text), c0);
+    check(tag + ': tap → a four-step elite answer', c0 && c0.el && c0.steps >= 3 && /They said:? “It's too expensive\.”/.test(c0.text) && /THEN CLOSE|Then close/i.test(c0.text) && /How to say it:/.test(c0.text), c0);
     check(tag + ': still testing line', /Still testing · 0 of 20 calls/.test(c0.tag), c0.tag);
     const firstTag = c0.tag;
     await tap(page, 'think'); await tap(page, 'price'); p = await panel(page);
-    check(tag + ': same objection again → a different answer, marked', /^Again, a new answer\. They said: “It's too expensive\.”/.test(p.cards[0].text) && p.cards[0].tag.split(' · ')[0] !== firstTag.split(' · ')[0] && p.cards.length === 3, p.cards.map(c => c.text.slice(0, 50) + ' / ' + c.tag));
+    check(tag + ': same objection again → a different answer, marked', /They said:? “It's too expensive\.”/.test(p.cards[0].text) && /a new answer/i.test(p.cards[0].text) && p.cards[0].tag.split(' · ')[0] !== firstTag.split(' · ')[0] && p.cards.length === 3, p.cards.map(c => c.text.slice(0, 50) + ' / ' + c.tag));
     const nx = await page.evaluate(() => { const n = document.querySelector('#copilot .el-next'); return n && { now: (n.querySelector('.el-steps-bar .now') || {}).textContent, t: n.innerText + ' ' + [...n.querySelectorAll('.mn-ev-i')].map(e => e.textContent).join(' '), b: [...n.querySelectorAll('button')].map(b => [b.textContent, b.getBoundingClientRect().height]) }; });
     check(tag + ': same objection twice → the mind calls it a real concern, with the evidence', nx && nx.now === 'Handle' && /a real concern/.test(nx.t) && /Raised 2 times/.test(nx.t), nx);
     check(tag + ': Next move buttons: Trial close and Close now, 44 px', nx && nx.b.map(b => b[0]).join() === 'Trial close,Close now' && nx.b.every(b => b[1] >= 44), nx && nx.b);
