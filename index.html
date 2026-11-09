@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-02-12">
+<meta name="vpex-build" content="2027-02-13">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 /* Signature themes: six themes only the VPEX owner's own login can use (sig/*.css, sig.js).
@@ -12382,6 +12382,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       if (pushPromptDue()) p.push('<button class="need-pill" type="button" data-need="push">\uD83D\uDD14 Get follow-up alerts</button>');
     }
     if (TEAM.on && TEAM.me && TEAM.office) { var bp = billingPillsHtml(); if (bp) p.unshift(bp); }
+    var hp = holidayPillHtml(); if (hp) p.push(hp);
     if (spamSignal(TEAM.on && TEAM.me ? TEAM.me.uid : null)) p.push('<button class="need-pill warn" type="button" data-need="spam">\u26a0 Spam risk \u00b7 slow down</button>');
     var c = contestCfg();
     if (c && c.end && now >= c.start && now < c.end + 86400000) {
@@ -12402,6 +12403,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     else if (k === "lock") lockSetup().then(function () { render(); });
     else if (k === "spam") openCoach("me");
     else if (k === "contest") openContestBoard();
+    else if (k === "hol") holidayTap();
   });
   function wireAlerts() {
     [["overdueWarnBtn", openOverdue], ["lockReqBtn", function () { lockSetup().then(function () { render(); }); }]].forEach(function (x) {
@@ -13297,10 +13299,12 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
   function pendingLeads() {
     if (isRun()) return runLeads();
     var all = allPendingLeads();
-    var f = state.queueFilter || "all";
+    var f = state.queueFilter || "all", holSet = {};
+    if (f === "hol") holidayLeads(localDateStr(new Date(shiftDays(Date.now(), 1)))).forEach(function (l) { holSet[l.id] = 1; });
     var list = f === "all" ? all : all.filter(function (l) {
       var z = leadZone(l);
       if (f === "now") return !!z.iana && leadClock(l).ok;
+      if (f === "hol") return !!z.iana && leadClock(l).ok && holSet[l.id];
       return z.group === f;
     });
     var ql = state.queueList || "all";
@@ -13641,6 +13645,63 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     state.queueFilter = "now"; saveState(); render(); revealCard();
     showToast("Showing leads you can call now");
   });
+
+  // ---- Holiday heads-up: the day before (and the day of) a federal holiday, for leads in states that ban sales calls on it ----
+  // (AL, LA, PA, RI today). Same holiday list as usHolidays(), with names; the rule itself still comes from STATE_HOURS.
+  function holidayNames(y) {
+    var s = {};
+    function key(t) { return t.getUTCFullYear() + "-" + ("0" + (t.getUTCMonth() + 1)).slice(-2) + "-" + ("0" + t.getUTCDate()).slice(-2); }
+    function day(m, d) { return new Date(Date.UTC(y, m - 1, d)); }
+    function nth(m, wd, n) { var f = day(m, 1).getUTCDay(); return day(m, 1 + ((wd - f + 7) % 7) + (n - 1) * 7); }
+    function last(m, wd) { var e = new Date(Date.UTC(y, m, 0)); return new Date(e.getTime() - ((e.getUTCDay() - wd + 7) % 7) * 864e5); }
+    function fixed(m, d, n) { var t = day(m, d), w = t.getUTCDay(); s[key(t)] = n; if (w === 6) s[key(day(m, d - 1))] = n + " (observed)"; if (w === 0) s[key(day(m, d + 1))] = n + " (observed)"; }
+    fixed(1, 1, "New Year\u2019s Day"); fixed(6, 19, "Juneteenth"); fixed(7, 4, "Independence Day"); fixed(11, 11, "Veterans Day"); fixed(12, 25, "Christmas Day");
+    if (new Date(Date.UTC(y + 1, 0, 1)).getUTCDay() === 6) s[y + "-12-31"] = "New Year\u2019s Day (observed)";
+    [[nth(1, 1, 3), "Martin Luther King Jr. Day"], [nth(2, 1, 3), "Presidents Day"], [last(5, 1), "Memorial Day"], [nth(9, 1, 1), "Labor Day"],
+      [nth(10, 1, 2), "Columbus Day"], [nth(11, 4, 4), "Thanksgiving"]].forEach(function (x) { s[key(x[0])] = x[1]; });
+    return s;
+  }
+  // Leads waiting to be called whose state bans sales calls on that date.
+  function holidayLeads(ymd) {
+    return allPendingLeads().filter(function (l) {
+      var z = leadZone(l), r = z.iana && z.st ? stateRule(z.st, ymd) : null;
+      return !!(r && r.hol && usHolidays(Number(ymd.slice(0, 4)))[ymd]);
+    });
+  }
+  // Today's or tomorrow's holiday ban, as { when: "today"|"tomorrow", ymd, name, day, leads, states, now (callable now) } or null.
+  function holidayHeads() {
+    var t = localDateStr(new Date()), m = localDateStr(new Date(shiftDays(Date.now(), 1)));
+    var ymd = usHolidays(Number(t.slice(0, 4)))[t] ? t : usHolidays(Number(m.slice(0, 4)))[m] ? m : "";
+    if (!ymd) return null;
+    var leads = holidayLeads(ymd); if (!leads.length) return null;
+    var by = {}; leads.forEach(function (l) { var st = leadZone(l).st; by[st] = (by[st] || 0) + 1; });
+    var states = Object.keys(by).sort(function (a, b) { return by[b] - by[a] || (a < b ? -1 : 1); });
+    var d = new Date(Number(ymd.slice(0, 4)), Number(ymd.slice(5, 7)) - 1, Number(ymd.slice(8, 10)));
+    return { when: ymd === t ? "today" : "tomorrow", ymd: ymd, name: (holidayNames(d.getFullYear())[ymd] || "A federal holiday").replace(" (observed)", ""),
+      day: d.toLocaleDateString("en-US", { weekday: "short" }), leads: leads, states: states,
+      now: leads.filter(function (l) { return leadClock(l).ok; }).length };
+  }
+  function stList(a) { return a.length <= 1 ? a.join("") : a.length === 2 ? a[0] + " and " + a[1] : a.slice(0, -1).join(", ") + " and " + a[a.length - 1]; }
+  function holidayPillHtml() {
+    if ((state.queueFilter || "all") === "hol") return "";
+    var h = holidayHeads(); if (!h) return "";
+    var n = h.leads.length, ls = n + " lead" + (n === 1 ? "" : "s") + " in " + h.states.join(", ");
+    var txt = h.when === "today" ? h.name + " \u00b7 no sales calls to " + ls + " today"
+      : h.day + " is " + h.name + (h.now ? " \u00b7 call your " + (h.now === n ? "" : h.now + " of ") + ls + " today" : " \u00b7 no sales calls to " + ls + " then");
+    return '<button class="need-pill" type="button" data-need="hol" data-hol="' + h.when + '">\uD83D\uDDD3 ' + escapeHtml(txt) + '</button>';
+  }
+  function holidayTap() {
+    var h = holidayHeads(); if (!h) { render(); return; }
+    var rule = "No sales calls on " + h.name + " in " + stList(h.states) + ".";
+    if (state.awaitingOutcome) { showToast("Log the outcome for this call first"); return; }
+    if (h.when === "tomorrow" && h.now) {
+      state.queueFilter = "hol"; saveState(); render(); revealCard();
+      showToast(rule + " Showing the " + h.now + " you can call now.");
+    } else if (h.when === "today") {
+      if ((state.queueFilter || "all") !== "now") { state.queueFilter = "now"; saveState(); render(); revealCard(); }
+      showToast(rule + " Those leads open again tomorrow. Showing leads you can call now.");
+    } else showToast(rule + " Their calling hours are over for today; follow-ups set for " + h.day + " will warn you.");
+  }
 
   // ---- Clock: your date and time in the header; tap for the time in every US zone, with calling hours and who's waiting there ----
   var TZ_ROWS = [["E", "Eastern", "America/New_York"], ["C", "Central", "America/Chicago"], ["M", "Mountain", "America/Denver"], ["P", "Pacific", "America/Los_Angeles"], ["X", "Alaska", "America/Anchorage"], ["X", "Hawaii", "Pacific/Honolulu"]];
@@ -17571,6 +17632,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     var f = state.queueFilter || "all";
     var chips = [["all", "All"], ["now", "Callable now"], ["E", "Eastern"], ["C", "Central"], ["M", "Mountain"], ["P", "Pacific"], ["X", "AK / HI"], ["U", "Unknown"]];
     chips.splice(1, 0, ["hot", "Hot"], ["int", "Interested"]);
+    if (f === "hol") { chips.splice(1, 0, ["hol", "Before the holiday"]); counts.hol = pendingLeads().length; }
     counts.int = f === "int" ? runLeads("int").length : intPool.length;
     counts.hot = f === "hot" ? runLeads("hot").length : hPool.length;
     var chipHtml = chips.filter(function (c) {
@@ -17628,7 +17690,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
   }
   function qsSummary(c) {
     var f = state.queueFilter || "all", run = isRun(f), n = pendingLeads().length;
-    var who = (QS_WHO.filter(function (w) { return w[0] === f; })[0] || QS_WHO[0])[1];
+    var who = f === "hol" ? "Holiday-ban states, before the holiday" : (QS_WHO.filter(function (w) { return w[0] === f; })[0] || QS_WHO[0])[1];
     var ord = run ? "most urgent first" : ((QS_ORDER.filter(function (x) { return x[0] === (state.queueOrder || "imported"); })[0] || QS_ORDER[1])[1]).replace(/^./, function (m) { return m.toLowerCase(); });
     var ql = state.queueList || "all";
     return '<div class="qs-sum" aria-live="polite"><b>' + n + ' lead' + (n === 1 ? '' : 's') + ' to call</b><span>' + escapeHtml(who) + ' \u00b7 ' + escapeHtml(ord) +
