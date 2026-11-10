@@ -9,8 +9,6 @@
 //  - igDone: the "Done" button on an Instagram hand-off page (marks that post as posted by hand; needs the page's own key).
 //  - hit: anonymous funnel counts from vpexdialer.com (page seen, demo opened, trial form, sign-up), by where people came from.
 //  - cal: each login's follow-ups and appointments as a calendar feed its phone can subscribe to (a secret address).
-//  - coach: Copilot AI, the best next line for a rep on a live call (Claude; only with the ANTHROPIC_API_KEY secret and
-//    the office's Copilot AI switch on).
 // Tokens live in pushTokens/{id} (written by the app, readable only here). The queue lives in pushQueue/{id}.
 "use strict";
 
@@ -386,48 +384,5 @@ exports.cal = onRequest({ invoker: "public", cors: false, maxInstances: 3, timeo
   } catch (e) {
     logger.error("cal failed", { err: String(e) });
     no(500, "Try again later.");
-  }
-});
-
-// ---------- Copilot AI ----------
-// POST with the signed-in rep's Firebase ID token (Authorization: Bearer). The office's admin turns it on (leadChunks/_team
-// copilotAi: true). Nothing is stored; the few sentences go to Claude and back. 20 a minute and 400 a day per login.
-const coachUse = new Map();
-function coachBudget(uid, now) {
-  let u = coachUse.get(uid); const day = L.nyDate(now);
-  if (!u || u.day !== day) { u = { day: day, n: 0, t: now, m: 0 }; coachUse.set(uid, u); }
-  if (now - u.t > 60000) { u.t = now; u.m = 0; }
-  u.m++; u.n++; return u.m <= 20 && u.n <= 400;
-}
-exports.coach = onRequest({ invoker: "public", cors: ["https://vpexdialer.com", "https://www.vpexdialer.com"], maxInstances: 5, timeoutSeconds: 20 }, async function (req, res) {
-  const now = Date.now(), out = function (code, x) { res.status(code).json(x); };
-  if (req.method !== "POST") return out(405, { ok: false });
-  const key = process.env.ANTHROPIC_API_KEY || "";
-  if (!key) return out(503, { ok: false, error: "off" });
-  const m = /^Bearer (.{20,4000})$/.exec(req.get("authorization") || "");
-  if (!m) return out(401, { ok: false });
-  let user;
-  try { user = await admin.auth().verifyIdToken(m[1]); } catch (e) { return out(401, { ok: false }); }
-  const office = L.officeFromEmail(user.email), pre = office ? "offices/" + office + "/" : "";
-  if (!(await allowed(office, user.uid, now, null))) return out(403, { ok: false });
-  const team = await db.doc(pre + "leadChunks/_team").get().catch(function () { return null; });
-  if (!team || !team.exists || team.get("copilotAi") !== true) return out(403, { ok: false, error: "off" });
-  if (!coachBudget(user.uid, now)) return out(429, { ok: false });
-  const body = typeof req.body === "object" && req.body ? req.body : (function () { try { return JSON.parse(req.rawBody ? req.rawBody.toString("utf8") : "{}"); } catch (e) { return null; } })();
-  const x = L.coachClean(body);
-  if (!x) return out(400, { ok: false });
-  const p = L.coachPrompt(x);
-  try {
-    const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
-      body: JSON.stringify({ model: process.env.COACH_MODEL || "claude-haiku-4-5", max_tokens: 300, temperature: 0.4, system: p.system, messages: [{ role: "user", content: p.user }] }),
-      signal: AbortSignal.timeout(12000) });
-    if (!r.ok) { logger.warn("coach upstream", { status: r.status }); return out(502, { ok: false }); }
-    const j = await r.json(), text = ((j.content || []).find(function (c) { return c.type === "text"; }) || {}).text || "";
-    const a = L.coachParse(text);
-    if (!a) return out(200, { ok: true, none: true });
-    return out(200, Object.assign({ ok: true }, a));
-  } catch (e) {
-    logger.warn("coach failed", { err: String(e).slice(0, 200) });
-    return out(502, { ok: false });
   }
 });

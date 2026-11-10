@@ -128,8 +128,6 @@ jobs:
 
       - if: steps.has.outputs.go == 'yes' && steps.bill.outputs.blaze == 'yes'
         name: Find where the database lives
-        env:
-          AI_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           LOC=$(gcloud firestore databases describe --database='(default)' --project "$PROJECT" --format='value(locationId)')
           case "$LOC" in
@@ -140,8 +138,6 @@ jobs:
           esac
           echo "Database in $LOC, so the notification code runs in $R"
           echo "FN_REGION=$R" > functions/.env
-          # Copilot AI (functions/ coach): only when the ANTHROPIC_API_KEY secret is saved; never printed
-          if [ -n "$AI_KEY" ]; then printf 'ANTHROPIC_API_KEY=%s\n' "$AI_KEY" >> functions/.env; echo "Copilot AI key: saved for the functions"; else echo "Copilot AI key: not set (Copilot uses its built-in playbook)"; fi
 
       - if: steps.has.outputs.go == 'yes' && steps.bill.outputs.blaze == 'yes'
         name: Install

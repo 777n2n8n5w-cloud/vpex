@@ -404,49 +404,6 @@ function calIcs(events, now) {
   return L.map(icsFold).join("\r\n") + "\r\n";
 }
 
-// ---------- Copilot AI (coach) ----------
-// The live call copilot can ask Claude for the best next line: what the lead just said (a few sentences), the floor's
-// industry, the lead's stage and answers, and the office's own rebuttal for that objection. It answers with what to say
-// and the closing question, as JSON. Honest by rule: no promised results, no made-up urgency, a clear no is respected.
-const COACH_IND = { insurance: "insurance (final expense, Medicare, life, P&C)", realestate: "real estate (listings, buyers and sellers)", mca: "business funding (merchant cash advance, working capital)",
-  auto: "auto sales", solar: "residential solar", investments: "private investments (accredited investors)" };
-function coachClean(b) {
-  if (!b || typeof b !== "object") return null;
-  const t = function (v, n) { return String(v == null ? "" : v).replace(/[\u0000-\u001f\u007f]+/g, " ").replace(/\s+/g, " ").trim().slice(0, n); };
-  const said = t(b.said, 700);
-  if (said.split(" ").length < 3) return null;
-  return { said: said, ind: COACH_IND[b.ind] ? b.ind : "investments", idea: t(b.idea, 20), first: t(b.first, 30), me: t(b.me, 30), company: t(b.company, 60),
-    stage: t(b.stage, 40), facts: t(b.facts, 300), script: t(b.script, 500), step: t(b.step, 200) };
-}
-function coachPrompt(x) {
-  const system = [
-    "You are the live closing coach inside VPEX, a power dialer. A sales rep is on a phone call right now and reads your answer while the lead talks.",
-    "Write like the best closers in history: total certainty, short spoken sentences, empathy first, then control. Use proven methods: acknowledge and agree, isolate the real objection, label the emotion, ask a calibrated question, loop back to the value, then an assumptive close with two choices (never a yes/no question).",
-    "Rules you never break: never lie or invent facts, prices, numbers or results; never promise returns, approval, savings or guarantees; never invent urgency or scarcity; if the lead clearly says no or asks not to be called, tell the rep to respect it; follow " + COACH_IND[x.ind] + " rules (for example Medicare Scope of Appointment, no guaranteed investment returns). Never mention AI.",
-    "Reply with JSON only: {\"objection\": \"<what they said, 2-6 words>\" or null, \"say\": \"<1-2 sentences the rep says next>\", \"close\": \"<one closing question with two choices, or empty>\", \"why\": \"<the method, 2-5 words>\"}. If the lead said nothing to answer (small talk, the rep talking), reply {\"none\": true}."
-  ].join("\n");
-  const user = [
-    "Industry: " + COACH_IND[x.ind],
-    x.first ? "Lead's first name: " + x.first : "", x.me ? "Rep's name: " + x.me : "", x.company ? "Company: " + x.company : "",
-    x.stage ? "Lead stage: " + x.stage : "", x.facts ? "What we know: " + x.facts : "", x.step ? "Next step the office wants: " + x.step : "",
-    x.idea ? "Objection detected: " + x.idea : "", x.script ? "The office's own answer to this objection (keep its facts, improve the delivery): " + x.script : "",
-    "Last words heard on the call (both sides, no speaker labels): \"" + x.said + "\""
-  ].filter(Boolean).join("\n");
-  return { system: system, user: user };
-}
-function coachParse(text) {
-  const m = /\{[\s\S]*\}/.exec(String(text || "")); if (!m) return null;
-  let j; try { j = JSON.parse(m[0]); } catch (e) { return null; }
-  if (!j || typeof j !== "object") return null;
-  if (j.none) return { none: true };
-  const t = function (v, n) { return String(v == null ? "" : v).replace(/\s+/g, " ").trim().slice(0, n); };
-  const say = t(j.say, 400); if (!say) return null;
-  const bad = /\bguarantee(d|s)?\b|\brisk[- ]free\b|\bcan'?t lose\b|\bdouble your money\b|\bas an ai\b/i;
-  const close = t(j.close, 300);
-  if (bad.test(say) || bad.test(close)) return null;   // never let a promise or a slip through
-  return { objection: t(j.objection, 60), say: say, close: close, why: t(j.why, 40) };
-}
-
 module.exports = { APP_URL, STALE_MS, DROP_MS, APPT_LEAD_MS, queueId, notifyAt, assigneeOf, taskEntries, diffQueue, handoffEvents, officeOpen,
   fmtWhen, leadLink, dueMessages, handoffMessage, testMessage, fcmMessage, deadToken, officeFromEmail, safeTz, firstName,
   localParts, digestDue, localDayBounds, digestCounts, digestMessage,
@@ -454,4 +411,4 @@ module.exports = { APP_URL, STALE_MS, DROP_MS, APPT_LEAD_MS, queueId, notifyAt, 
   FLOOR_MAX, floorRequest, floorGate, floorRecipients, floorMessage,
   HIT_EVENTS, HIT_INDS, HIT_ORIGINS, HIT_DAY_KEYS, hitOriginOk, capHit, hitTok, parseHit, hitKey, unHitKey, nyDate, freshOffice,
   sha256hex, sameHash,
-  calKey, calEvents, calIcs, icsFold, COACH_IND, coachClean, coachPrompt, coachParse };
+  calKey, calEvents, calIcs, icsFold };
