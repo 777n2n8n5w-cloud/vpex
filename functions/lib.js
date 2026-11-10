@@ -422,6 +422,85 @@ function calIcs(events, now) {
   return L.map(icsFold).join("\r\n") + "\r\n";
 }
 
+// ---------- booking links ----------
+// A rep texts a lead vb_<office>_<leadId>_<secret>. The lead's record keeps only the secret's SHA-256 (lead.book.h)
+// and what the app worked out when the link was made: the lead's time zone (lz) and calling window for each day
+// (win: { "YYYY-MM-DD": [openMin, closeMin] }, from the same state rules the dialer uses), and the rep's time zone,
+// hours and days (rtz, hrs, days). Offered times sit inside both; the one the lead picks becomes the rep's follow-up.
+const BOOK_STEP = 30 * 60000, BOOK_DAYS = 7, BOOK_NOTICE = 2 * 3600000, BOOK_TTL = 14 * 86400000, BOOK_GAP = 30 * 60000;
+function bookKey(k) {
+  const m = /^vb_([a-z0-9][a-z0-9-]{0,62})?_([A-Za-z0-9]{2,64})_([0-9a-f]{64})$/.exec(String(k || "").trim());
+  return m ? { office: m[1] || "", leadId: m[2], secret: m[3] } : null;
+}
+const zfmt = {};
+function okTz(tz) { tz = str(tz, 64); if (!tz) return ""; try { zParts(0, tz); return tz; } catch (e) { return ""; } }
+function zParts(ms, tz) {
+  const f = zfmt[tz] || (zfmt[tz] = new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", weekday: "short" }));
+  const p = {}; f.formatToParts(new Date(ms)).forEach(function (x) { p[x.type] = x.value; });
+  return { ymd: p.year + "-" + p.month + "-" + p.day, wd: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(p.weekday), min: Number(p.hour) * 60 + Number(p.minute) };
+}
+function bookLive(book, now) {
+  return !!(book && typeof book === "object" && typeof book.h === "string" && book.h.length === 64 && !book.off &&
+    typeof book.exp === "number" && book.exp > now && book.by && typeof book.by.uid === "string" && /^[A-Za-z0-9]{2,128}$/.test(book.by.uid));
+}
+function bookRange(v) { return Array.isArray(v) && v.length === 2 && v.every(function (x) { return typeof x === "number" && x >= 0 && x <= 1440; }) && v[0] < v[1] ? v : null; }
+// Times the lead can pick: every half hour from 2 hours out to 7 days out, inside the lead's calling window that day,
+// inside the rep's hours and days, and at least 30 minutes from the rep's other booked calls and appointments.
+function bookSlots(book, now, busy) {
+  const lz = okTz(book && book.lz), rz = okTz(book && book.rtz) || lz, hrs = bookRange(book && book.hrs) || [540, 1080];
+  const days = Array.isArray(book && book.days) && book.days.length ? book.days : [1, 2, 3, 4, 5], win = (book && book.win) || {};
+  if (!lz) return [];
+  const out = [], end = Math.min(now + BOOK_DAYS * 86400000, (book.exp || 0) + 86400000);
+  busy = (busy || []).filter(function (b) { return typeof b === "number"; });
+  for (let t = Math.ceil((now + BOOK_NOTICE) / BOOK_STEP) * BOOK_STEP; t <= end && out.length < 200; t += BOOK_STEP) {
+    const l = zParts(t, lz), w = bookRange(win[l.ymd]);
+    if (!w || l.min < w[0] || l.min + 30 > w[1]) continue;
+    const r = zParts(t, rz);
+    if (days.indexOf(r.wd) < 0 || r.min < hrs[0] || r.min + 30 > hrs[1]) continue;
+    if (busy.some(function (b) { return Math.abs(b - t) < BOOK_GAP; })) continue;
+    out.push(t);
+  }
+  return out;
+}
+// The rep's other booked calls and appointments (open, still ahead), from every record in the office.
+function bookBusy(chunks, uid, now, skipLeadId) {
+  const out = [];
+  chunks.forEach(function (data) {
+    const leads = (data && data.leads) || {};
+    Object.keys(leads).forEach(function (id) {
+      const lead = leads[id] || {};
+      if (id === skipLeadId) return;
+      (Array.isArray(lead.tasks) ? lead.tasks : []).forEach(function (t) {
+        if (!t || t.done || typeof t.dueAt !== "number" || t.dueAt < now - BOOK_GAP || !(t.booked || isAppt(t))) return;
+        if (assigneeOf(t, lead) === uid) out.push(t.dueAt);
+      });
+    });
+  });
+  return out;
+}
+function bookView(lead, book, co, slots, now) {
+  return { first: firstName(lead.name) || "there", rep: firstName(book.by && book.by.name) || "", co: str(co || book.co || "", 80),
+    slots: slots, picked: typeof book.picked === "number" && book.picked > now ? book.picked : null, exp: book.exp };
+}
+// The lead's record with the booked call in it. Picking again moves the same call rather than adding another.
+function bookApply(lead, leadId, at, now) {
+  const book = lead.book, tag = /^[a-z0-9]{6,32}$/.test(str(book.tag)) ? book.tag : book.h.slice(0, 16), rz = okTz(book.rtz) || okTz(book.lz) || "America/New_York";
+  const keep = (Array.isArray(lead.tasks) ? lead.tasks : []).filter(function (t) { return !(t && t.bookH === tag && !t.done); });
+  const task = { id: "bk" + now.toString(36) + Math.random().toString(36).slice(2, 6), leadId: leadId, leadName: str(lead.name, 120), type: "Call", priority: "high",
+    assignee: { uid: book.by.uid, name: str(book.by.name, 80) }, due: zParts(at, rz).ymd, dueAt: at, what: "Booked call",
+    note: "They picked this time from your booking link", pinned: true, done: false, auto: false, booked: now, bookH: tag, createdAt: now };
+  return Object.assign({}, lead, { tasks: keep.concat([task]), book: Object.assign({}, book, { picked: at, pickedAt: now }) });
+}
+function bookWhen(at, tz) {
+  try { return new Date(at).toLocaleString("en-US", { timeZone: tz || "America/New_York", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }); }
+  catch (e) { return new Date(at).toISOString(); }
+}
+function bookMessage(office, leadId, lead, at, tz, moved) {
+  const who = firstName(lead.name) || "A lead";
+  return { kind: "book", title: who + (moved ? " moved their call" : " booked a call"), body: bookWhen(at, tz) + " your time. It’s in your Tasks.",
+    link: leadLink(office, leadId), tag: "vpex-book-" + str(leadId, 60), leadId: str(leadId, 80), office: office || "" };
+}
+
 module.exports = { APP_URL, STALE_MS, DROP_MS, APPT_LEAD_MS, queueId, notifyAt, assigneeOf, taskEntries, diffQueue, handoffEvents, officeOpen,
   fmtWhen, leadLink, dueMessages, handoffMessage, testMessage, fcmMessage, deadToken, officeFromEmail, safeTz, firstName,
   localParts, digestDue, localDayBounds, digestCounts, digestMessage,
@@ -429,4 +508,4 @@ module.exports = { APP_URL, STALE_MS, DROP_MS, APPT_LEAD_MS, queueId, notifyAt, 
   FLOOR_MAX, floorRequest, floorGate, floorRecipients, floorMessage,
   HIT_EVENTS, HIT_INDS, HIT_ORIGINS, HIT_DAY_KEYS, hitOriginOk, capHit, hitTok, parseHit, hitKey, unHitKey, nyDate, freshOffice,
   sha256hex, sameHash,
-  calKey, calEvents, calIcs, icsFold, CONSENT_METHODS, parseConsent, RETAIN };
+  calKey, calEvents, calIcs, icsFold, bookKey, zParts, bookLive, bookSlots, bookBusy, bookView, bookApply, bookWhen, bookMessage, BOOK_TTL, CONSENT_METHODS, parseConsent, RETAIN };

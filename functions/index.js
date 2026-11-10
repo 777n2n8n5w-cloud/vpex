@@ -429,3 +429,64 @@ exports.cal = onRequest({ invoker: "public", cors: false, maxInstances: 3, timeo
     no(500, "Try again later.");
   }
 });
+
+// ---------- booking links ----------
+// GET  .../book?k=vb_<office>_<leadId>_<secret>  → the times the lead can pick (JSON), for vpexdialer.com/book/
+// POST .../book {k, at}                           → books that time: a follow-up for the rep in the lead's record, and a push.
+// Wrong, expired or turned-off links all answer 404, so a link says nothing about whether a lead exists.
+let bookWindow = 0, bookCount = 0;
+const bookPer = new Map();
+exports.book = onRequest({ invoker: "public", cors: L.HIT_ORIGINS, maxInstances: 3, timeoutSeconds: 30 }, async function (req, res) {
+  const now = Date.now();
+  res.set("Cache-Control", "no-store");
+  if (req.method !== "GET" && req.method !== "POST") { res.status(405).json({ error: "method" }); return; }
+  if (now - bookWindow > 60000) { bookWindow = now; bookCount = 0; bookPer.clear(); }
+  if (++bookCount > 600) { res.status(429).json({ error: "busy" }); return; }
+  let body = {};
+  if (req.method === "POST") {
+    const raw = req.rawBody ? req.rawBody.toString("utf8") : (typeof req.body === "string" ? req.body : JSON.stringify(req.body || {}));
+    if (raw.length > 500) { res.status(400).json({ error: "bad" }); return; }
+    try { body = JSON.parse(raw) || {}; } catch (e) { res.status(400).json({ error: "bad" }); return; }
+  }
+  const k = L.bookKey(req.method === "POST" ? body.k : (req.query && req.query.k));
+  const gone = function () { res.status(404).json({ error: "gone" }); };
+  if (!k) return gone();
+  const n = (bookPer.get(k.leadId) || 0) + 1; bookPer.set(k.leadId, n);
+  if (n > 30) { res.status(429).json({ error: "busy" }); return; }
+  const pre = k.office ? "offices/" + k.office + "/" : "";
+  try {
+    const qs = await db.collection(pre + "leadChunks").get();
+    const docs = qs.docs.filter(function (d) { return d.id.charAt(0) !== "_"; });
+    const home = docs.find(function (d) { const ls = d.get("leads"); return ls && Object.prototype.hasOwnProperty.call(ls, k.leadId); });
+    if (!home) return gone();
+    const lead = home.get("leads")[k.leadId] || {}, book = lead.book;
+    if (!L.bookLive(book, now) || !L.sameHash(book.h, L.sha256hex(k.secret))) return gone();
+    if (lead.dnc || lead.retired || lead.badNumber) return gone();
+    if (!(await allowed(k.office, book.by.uid, now, null))) return gone();
+    let co = "";
+    if (k.office) { const o = await db.doc("offices/" + k.office).get(); co = o.exists ? (o.get("name") || "") : ""; }
+    const busy = L.bookBusy(docs.map(function (d) { return d.data(); }), book.by.uid, now, k.leadId);
+    const slots = L.bookSlots(book, now, busy);
+    if (req.method === "GET") { res.status(200).json(L.bookView(lead, book, co, slots, now)); return; }
+
+    const at = Number(body.at);
+    if (slots.indexOf(at) < 0) { res.status(409).json({ error: "taken", view: L.bookView(lead, book, co, slots, now) }); return; }
+    const ref = home.ref, field = new admin.firestore.FieldPath("leads", k.leadId);
+    let moved = false;
+    const ok = await db.runTransaction(async function (tx) {
+      const snap = await tx.get(ref), cur = snap.exists ? (snap.get("leads") || {})[k.leadId] : null;
+      if (!cur || !L.bookLive(cur.book, now) || cur.book.h !== book.h) return false;
+      moved = typeof cur.book.picked === "number" && cur.book.picked > now;
+      tx.update(ref, field, L.bookApply(cur, k.leadId, at, now));
+      return true;
+    });
+    if (!ok) return gone();
+    const tz = (await tzFor(book.by.uid)) || book.rtz;
+    const r = await sendTo(book.by.uid, [L.bookMessage(k.office, k.leadId, lead, at, tz, moved)], 86400).catch(function () { return { sent: 0 }; });
+    logger.info("booking", { office: k.office ? "office" : "team", moved: moved, sent: r.sent });
+    res.status(200).json(Object.assign(L.bookView(Object.assign({}, lead, { book: Object.assign({}, book, { picked: at }) }), Object.assign({}, book, { picked: at }), co, slots, now), { ok: true }));
+  } catch (e) {
+    logger.error("book failed", { err: String(e).slice(0, 200) });
+    res.status(500).json({ error: "later" });
+  }
+});

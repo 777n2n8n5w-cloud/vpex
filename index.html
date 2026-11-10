@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-02-16">
+<meta name="vpex-build" content="2027-02-17">
 <!-- Scripts only from this site and Google's Firebase library; no plugins; no <base> or form hijacking. Inline scripts stay
      allowed because the app is one file. (GitHub Pages can't send headers, so this is the strongest policy a page can set.) -->
 <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://www.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self'">
@@ -7662,6 +7662,13 @@ window.VPEX_SIG = [
   .sb-sub { font-size: 12px; color: var(--text-faint); margin-top: 5px; line-height: 1.4; }
   .sb-days { padding-top: 0; margin-bottom: 10px; }
   .ans-list { display: flex; flex-direction: column; gap: 6px; }
+  .aw-sum { font-size: 13px; color: var(--text-dim); margin: 2px 0 8px; }
+  .aw-sum b { color: var(--text); }
+  .aw-grid { display: grid; grid-template-columns: 30px repeat(13, 1fr); gap: 3px; align-items: center; }
+  .aw-h, .aw-d { font-size: 10.5px; color: var(--text-faint); text-align: center; white-space: nowrap; }
+  .aw-d { text-align: left; color: var(--text-dim); font-weight: 600; }
+  .aw-c { height: 18px; border-radius: 4px; background: color-mix(in srgb, var(--accent) var(--aw), color-mix(in srgb, var(--text) 6%, transparent)); }
+  .aw-c.few { opacity: .35; }
   .ans-row { display: grid; grid-template-columns: 46px 1fr 78px; gap: 8px; align-items: center; font-size: 12.5px; }
   .ans-h { color: var(--text-dim); font-weight: 600; }
   .ans-bar { height: 10px; border-radius: 5px; background: var(--border); overflow: hidden; }
@@ -8061,6 +8068,41 @@ window.VPEX_SIG = [
     border-radius: 999px; padding: 6px 12px; min-height: 34px; cursor: pointer; white-space: nowrap; }
   .tz-go:disabled { color: var(--text-faint); cursor: default; }
   .tz-note { font-size: 12px; color: var(--text-faint); margin-top: 12px; line-height: 1.45; }
+  /* Booking links: let the lead pick a time */
+  .lp-book { display: flex; align-items: center; gap: 12px; width: 100%; margin: 10px 0 0; padding: 11px 14px; text-align: left; font: inherit; color: var(--text); cursor: pointer;
+    border: 1px dashed color-mix(in srgb, var(--accent) 45%, var(--border)); border-radius: var(--radius-m, 12px); background: color-mix(in srgb, var(--accent) 5%, transparent); }
+  .lp-book.ok { border-style: solid; border-color: color-mix(in srgb, var(--interested) 55%, var(--border)); background: color-mix(in srgb, var(--interested) 8%, transparent); }
+  .lp-book.wait { border-style: solid; }
+  .lp-book-ic { flex: none; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+  .lp-book.ok .lp-book-ic { color: var(--interested); background: color-mix(in srgb, var(--interested) 14%, transparent); }
+  .lp-book-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .lp-book-t b { font-size: 14.5px; }
+  .lp-book-t small { font-size: 12.5px; color: var(--text-dim); }
+  .lp-book-go { flex: none; font-size: 22px; color: var(--text-faint); line-height: 1; }
+  .fu-booklink { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin: 4px 0 0; padding: 10px; border: 0; background: none;
+    color: var(--accent); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; min-height: 44px; }
+  .bk-status { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: center; padding: 11px 14px; margin: 12px 0 2px; border-radius: var(--radius-m, 12px);
+    border: 1px solid var(--border); background: var(--surface); }
+  .bk-status b { color: var(--text); font-size: 14.5px; }
+  .bk-status span { grid-column: 1; font-size: 12.5px; color: var(--text-dim); }
+  .bk-status.ok { border-color: color-mix(in srgb, var(--interested) 55%, var(--border)); }
+  .bk-off { grid-column: 2; grid-row: 1 / span 2; border: 1px solid var(--border); background: none; color: var(--text-dim); font: inherit; font-size: 13px; font-weight: 600; border-radius: 999px; padding: 6px 12px; min-height: 34px; cursor: pointer; }
+  .bk-sec { margin-top: 16px; }
+  .bk-k { display: block; font-size: 12.5px; font-weight: 700; color: var(--text-dim); margin-bottom: 8px; }
+  .bk-hrs { display: flex; align-items: center; gap: 10px; }
+  .bk-hrs select { flex: 1; min-width: 0; min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font: inherit; font-size: 15px; }
+  .bk-hrs span { color: var(--text-dim); font-size: 14px; }
+  .bk-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 10px; }
+  .bk-day { min-height: 40px; border-radius: 10px; border: 1px solid var(--border); background: none; color: var(--text-dim); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; padding: 0; }
+  .bk-day.on { background: var(--accent-fill, var(--accent)); border-color: transparent; color: var(--accent-text, #fff); }
+  .bk-prev { margin: 12px 0 0; font-size: 13.5px; line-height: 1.45; color: var(--text-dim); }
+  .bk-prev b { color: var(--text); }
+  .bk-prev.none { color: var(--notinterested); }
+  #bkMsg { width: 100%; box-sizing: border-box; min-height: 84px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font: inherit; font-size: 15px; line-height: 1.4; resize: vertical; }
+  .bk-note { margin: 6px 0 0; font-size: 12px; color: var(--text-faint); }
+  .bk-note.warn { color: var(--callback); font-size: 13px; }
+  #bkSend[aria-disabled="true"], #bkSend.is-off { opacity: .55; }
+  #bkSend { display: flex; align-items: center; justify-content: center; text-align: center; text-decoration: none; line-height: 1.2; }
   .lp-stat-over b { color: var(--notinterested); }
   .pipe-filters { margin: 2px 0 12px; flex-wrap: wrap; overflow: visible; row-gap: 8px; } .pipe-filters .pf-over.active { background: var(--notinterested); border-color: var(--notinterested); color: #fff; }
   .pipe-summary .warn[role="button"] { cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
@@ -12519,7 +12561,8 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       '<input type="text" id="fuNote" class="fu-note" maxlength="200" autocomplete="off" placeholder="What to open with next time (optional)" value="' + escapeHtml(FU.note) + '" aria-label="Note for the next call">' +
       '</div></div>' +
       '<div class="modal-actions fu-acts"><button type="button" class="btn-secondary" id="fuKeep" aria-label="' + (mv ? 'Cancel, keep ' : 'Skip, keep ') + escapeHtml(fmtWhen(FU.sug)) + '">' + (mv ? 'Cancel' : 'Skip') + '</button>' +
-        '<button type="button" class="btn-primary" id="fuBook"' + (past || bad ? ' disabled' : '') + '>' + (mv ? 'Move to ' : 'Book ') + escapeHtml(fuDayLabel(localDateStr(new Date(FU.at)))) + ' ' + escapeHtml(fuTime(FU.at)) + '</button></div>';
+        '<button type="button" class="btn-primary" id="fuBook"' + (past || bad ? ' disabled' : '') + '>' + (mv ? 'Move to ' : 'Book ') + escapeHtml(fuDayLabel(localDateStr(new Date(FU.at)))) + ' ' + escapeHtml(fuTime(FU.at)) + '</button></div>' +
+      (mv || lead.dnc || !(lead.phone || lead.phoneRaw) ? '' : '<button type="button" class="fu-booklink" data-book-lead="' + lead.id + '">' + calIconSvg() + '<span>Or text ' + first + ' a link to pick a time</span></button>');
     var kb = document.getElementById("fuKeep"); if (kb && set) { kb.textContent = "Cancel"; kb.setAttribute("aria-label", "Cancel"); }
     if (reveal && FU.cal) { var c = document.getElementById("fuCal"); if (c && c.scrollIntoView) c.scrollIntoView({ block: "nearest" }); }
   }
@@ -13191,7 +13234,8 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     if (!z.iana) return 0.2;
     var c = leadClock(l);
     if (!c.ok) return 0;
-    return hourScore(c.t.hour);
+    var h = c.t.hour, d = zoneDow(z.iana);
+    return hourScore(h, d) * leadTimeFactor(l, h, z.iana);
   }
   function smartSort(list) {
     var a = list.map(function (l, i) { return { l: l, s: callScore(l), i: i, k: nxxOf(l) }; })
@@ -13655,6 +13699,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
   }
   function render() {
     migrateHot(); syncSettingsBits(); flowState(); scRefresh(); contactMigrate(); sigOwnerBits();
+    try { bookArrivals(); } catch (e) {}
     var total = totalCount();
     var done = doneCount();
     var lead = currentLead();
@@ -14183,6 +14228,11 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
   }
   if (window.__mockListenerCount) window.__mockFillText = function (name) { return fillTemplate(textSettings().noAnswerTpl, { name: name }); };   // test bench only
   if (window.__mockListenerCount) {   // test bench only
+    window.__mockPushCalls = function (list) { list.forEach(function (c) { state.callLog.push(c); }); answerCache.key = ""; render(); return state.callLog.length; };
+    window.__mockModel = function () { var m = answerModel(); return JSON.parse(JSON.stringify({ learned: m.learned, n: m.n, dscore: m.dscore, score: m.score })); };
+    window.__mockBest = function (id, hrs) { var l = findLeadById(id), z = leadZone(l); return { iana: z.iana, score: callScore(l), best: leadBestTime(l), f: (hrs || []).map(function (h) { return leadTimeFactor(l, h, z.iana); }), where: leadWhereWhenHtml(l) }; };
+    window.__mockScore = function (v) { openScoreboard(v); };
+    window.__mockSmart = function (ids) { return smartSort(ids.map(findLeadById)).map(function (l) { return l.id; }); };
     window.__mockCallLog = function () { return state.callLog.map(function (c) { return [c.id, c.timestamp, c.leadId, c.by ? c.by.uid : ""]; }); };
     window.__mockLeadCalls = function (id) { return { n: callsForLead(id).length, last: (lastCallFor(id) || {}).id || null, streak: noContactStreak(id) }; };
     window.__mockRemoveLead = function (id) { state.leads = state.leads.filter(function (l) { return l.id !== id; }); state.tasks = state.tasks.filter(function (t) { return t.leadId !== id; }); saveState(); };
@@ -15277,7 +15327,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
               "copy-btn lp-text", messageIconSvg())) +
         '<button class="copy-btn info-btn" id="lpInfo" title="Send info" aria-label="Send info">' + sendIconSvg() + '</button>' +
       '</div>' +
-      lpNextHtml(lead) +
+      lpNextHtml(lead) + lpBookHtml(lead) +
       '<div class="lp-stats">' +
         '<div><b>' + calls.length + '</b><span>Calls</span></div>' +
         '<div><b>' + escapeHtml(last ? outcomeLabel(last.outcomeKey, last.outcome) : "\u2014") + '</b><span>' + (last ? escapeHtml(agoStr(last.timestamp)) : "Not called") + '</span></div>' +
@@ -15357,6 +15407,13 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     });
     document.getElementById("leadModal").classList.add("show");
     body.scrollTop = 0;
+  }
+  function calIconSvg() { return '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M9 15l2 2 4-4"/></svg>'; }
+  function lpBookHtml(lead) {
+    if (lead.dnc || !(lead.phone || lead.phoneRaw)) return "";
+    var p = bookPicked(lead), live = bookLive(lead), f = escapeHtml(firstName(lead.name) || "them");
+    var sub = p ? "Booked for " + escapeHtml(whenLc(p)) + " from your link" : live ? "Link sent " + escapeHtml(new Date(lead.book.at).toLocaleDateString("en-US", { month: "short", day: "numeric" })) + " · waiting for " + f + " to pick" : "Text " + f + " times to choose from";
+    return '<button type="button" class="lp-book' + (p ? ' ok' : live ? ' wait' : '') + '" data-book-lead="' + lead.id + '"><span class="lp-book-ic">' + calIconSvg() + '</span><span class="lp-book-t"><b>Let ' + f + ' pick a time</b><small>' + sub + '</small></span><span class="lp-book-go" aria-hidden="true">›</span></button>';
   }
   function lpNextHtml(lead) {
     var n = nextInfo(lead);
@@ -17394,6 +17451,11 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     return r;
   }
 
+  function bestHint(l) {
+    var b = leadBestTime(l);
+    if (!b || (b.today && b.h === (leadClock(l).t || {}).hour)) return '';
+    return ' \u00b7 best ' + escapeHtml(b.label);
+  }
   function leadWhereWhenHtml(l) {
     var z = leadZone(l);
     if (!z.iana) return '<div class="lead-where unknown"><span class="lw-dot"></span>Location unknown \u2014 check their local time</div>';
@@ -17401,7 +17463,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     return '<div class="lead-where ' + (c.ok ? "ok" : "late") + '"><span class="lw-dot"></span>' +
       z.st + ' \u00b7 ' + escapeHtml(t.label) + ' ' + escapeHtml(t.abbr) +
       (c.ok ? ' local' : ' \u00b7 ' + escapeHtml(c.why)) +
-      (c.ok && callScore(l) >= 0.9 ? ' \u00b7 \u2605 prime hour' : '') + '</div>';
+      (c.ok && callScore(l) >= 0.9 ? ' \u00b7 \u2605 prime hour' : c.ok ? bestHint(l) : '') + '</div>';
   }
 
   function localDateStr(d) {
@@ -17532,7 +17594,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     ["X", "Alaska / Hawaii", "Only leads in these time zones"], ["U", "Time zone unknown", "No state or area code to place them"]
   ];
   var QS_ORDER = [
-    ["smart", "Best time to answer", "Whoever is most likely to pick up right now comes first. It re-ranks after every call.", 1],
+    ["smart", "Best time to answer", "Whoever is most likely to pick up right now comes first, by the day and hour where they are and their own past calls. It re-ranks after every call.", 1],
     ["imported", "As imported", "The order your list was uploaded in"],
     ["east", "East \u2192 West", "Eastern first, then across the country"],
     ["west", "West \u2192 East", "Pacific first; good late in your day"],
@@ -19307,7 +19369,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
   // leadChunks/r_<uid>, field prefs (the record reps can already write; no rule change). The newest copy wins: a new
   // phone, the Home Screen app (iPhone keeps it apart from Safari) or a phone that cleared its storage gets them back.
   // Only these keys travel; work in progress (current lead, open call, runs) stays on the device.
-  var PREF_KEYS = ["dailyGoal", "textSettings", "queueFilter", "queueOrder", "queueList", "autoAdvance", "manualDial", "showUpNext", "scriptAuto", "historyFilter", "dealTarget", "tourDone"];
+  var PREF_KEYS = ["bookHours", "dailyGoal", "textSettings", "queueFilter", "queueOrder", "queueList", "autoAdvance", "manualDial", "showUpNext", "scriptAuto", "historyFilter", "dealTarget", "tourDone"];
   var PREFS = { seen: false, timer: null, applying: false };
   function prefsOn() { return !!(TEAM.on && TEAM.me && TEAM.db && !DEMO); }
   function prefsLocalKey() { return "vpex_prefs_" + (TEAM.office || "_") + "_" + TEAM.me.uid; }
@@ -19377,7 +19439,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
   }
 
   /** ---------- Scoreboard, daily recap, answer-time learning, lead recycling ---------- **/
-  var RECYCLE_MIN_DAYS = 60, RECYCLE_MAX_DAYS = 90, RECYCLE_MAX = 2, LEARN_MIN_CALLS = 150, LEARN_PRIOR = 25;
+  var RECYCLE_MIN_DAYS = 60, RECYCLE_MAX_DAYS = 90, RECYCLE_MAX = 2, LEARN_MIN_CALLS = 150, LEARN_PRIOR = 25, LEARN_DAY_PRIOR = 12;
   var scoreView = "today", recapDay = 0, answerCache = { key: "", model: null };
 
   function dayStart(offsetDays) { var d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + (offsetDays || 0)); return d.getTime(); }
@@ -19543,16 +19605,16 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     var hc = answerModel.hours;
     state.leads.forEach(function (l) { byId[l.id] = l; });
     for (h = 8; h <= 20; h++) { calls[h] = 0; reached[h] = 0; }
+    var dc = [], dr = [], d;
+    for (d = 0; d < 7; d++) { dc[d] = {}; dr[d] = {}; for (h = 8; h <= 20; h++) { dc[d][h] = 0; dr[d][h] = 0; } }
     state.callLog.forEach(function (c) {
       if (c.outcomeKey === "badnum") return;
       var l = byId[c.leadId]; if (!l) return;
       var z = leadZone(l); if (!z.iana) return;
-      var hit = hc && hc.get(c), hr;
-      if (hit && hit.z === z.iana) hr = hit.h;
-      else { hr = zonedParts(new Date(c.timestamp).getTime(), z.iana).h; if (hc) hc.set(c, { z: z.iana, h: hr }); }
+      var at = callLocal(c, z.iana), hr = at.h;
       if (hr < 8 || hr > 20) return;
-      calls[hr]++; n++;
-      if (CONTACT_OUTCOMES[c.outcomeKey]) { reached[hr]++; nr++; }
+      calls[hr]++; n++; dc[at.d][hr]++;
+      if (CONTACT_OUTCOMES[c.outcomeKey]) { reached[hr]++; nr++; dr[at.d][hr]++; }
     });
     var base = n ? nr / n : 0.2, avg = 0, rate = {}, max = 0, score = {};
     for (h = 8; h <= 20; h++) avg += (HOUR_SCORE[h] || 0.3) / 13;
@@ -19562,19 +19624,69 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       if (rate[h] > max) max = rate[h];
     }
     for (h = 8; h <= 20; h++) score[h] = max ? rate[h] / max : 0;
-    var model = { learned: n >= LEARN_MIN_CALLS, n: n, base: base, calls: calls, reached: reached, rate: rate, score: score };
+    // Day and hour together (Monday mornings aren't Thursday afternoons), each leaning on that hour's rate until it has calls.
+    var drate = [], dscore = [], dmax = 0;
+    for (d = 0; d < 7; d++) { drate[d] = {}; for (h = 8; h <= 20; h++) { drate[d][h] = (dr[d][h] + LEARN_DAY_PRIOR * rate[h]) / (dc[d][h] + LEARN_DAY_PRIOR); if (drate[d][h] > dmax) dmax = drate[d][h]; } }
+    for (d = 0; d < 7; d++) { dscore[d] = {}; for (h = 8; h <= 20; h++) dscore[d][h] = dmax ? drate[d][h] / dmax : 0; }
+    var model = { learned: n >= LEARN_MIN_CALLS, n: n, base: base, calls: calls, reached: reached, rate: rate, score: score, dcalls: dc, drate: drate, dscore: dscore };
     answerCache = { key: key, model: model };
     return model;
   }
-  function hourScore(h) {
+  function hourScore(h, d) {
     var m = answerModel();
+    if (m.learned && d != null && m.dscore[d] && m.dscore[d][h] !== undefined) return m.dscore[d][h];
     if (m.learned && m.score[h] !== undefined) return m.score[h];
     return HOUR_SCORE[h] || 0.3;
+  }
+  var dowCache = { m: -1, v: {} };
+  function zoneDow(iana) {
+    var m = Math.floor(Date.now() / 60000);
+    if (dowCache.m !== m) dowCache = { m: m, v: {} };
+    return dowCache.v[iana] != null ? dowCache.v[iana] : (dowCache.v[iana] = zonedParts(Date.now(), iana).dow);
+  }
+  // A call's local hour and weekday for the lead (cached on the call record).
+  function callLocal(c, iana) {
+    var hc = answerModel.hours, hit = hc && hc.get(c);
+    if (hit && hit.z === iana && hit.d != null) return hit;
+    var p = zonedParts(new Date(c.timestamp).getTime(), iana), r = { z: iana, h: p.h, d: p.dow };
+    if (hc) hc.set(c, r);
+    return r;
+  }
+  // This lead's own history: an hour they picked up at before counts for more; a part of the day where they've
+  // let it ring counts for less, so the next try lands at a different time (morning, midday, afternoon, evening).
+  function partOfDay(h) { return h < 12 ? 0 : h < 15 ? 1 : h < 18 ? 2 : 3; }
+  function leadTimeFactor(l, h, iana) {
+    if (!answerModel.hours) answerModel.hours = typeof WeakMap === "function" ? new WeakMap() : null;
+    var cs = leadCalls(l.id), f = 1, up = 1, down = 1;
+    if (!cs || !cs.length) return 1;
+    for (var i = 0; i < cs.length; i++) {
+      var c = cs[i]; if (c.outcomeKey === "badnum") continue;
+      var hh = callLocal(c, iana).h;
+      if (CONTACT_OUTCOMES[c.outcomeKey]) { if (Math.abs(hh - h) <= 1) up = Math.min(1.5, up * 1.25); }
+      else if (c.outcomeKey === "noanswer" || c.outcomeKey === "voicemail") { if (partOfDay(hh) === partOfDay(h)) down = Math.max(0.55, down * 0.85); }
+    }
+    return f * up * down;
+  }
+  // When this lead is most likely to answer over the next day or so, inside their calling hours: { h, label } or null.
+  function leadBestTime(l) {
+    var z = leadZone(l); if (!z.iana) return null;
+    var now = Date.now(), best = null;
+    for (var k = 0; k < 30; k++) {
+      var t = Math.ceil(now / 36e5) * 36e5 + k * 36e5, p = zonedParts(t, z.iana);
+      if (p.h < 8 || p.h > 20) continue;
+      var w = dayWindow(z.st, { ymd: p.y + "-" + String(p.m + 1).padStart(2, "0") + "-" + String(p.d).padStart(2, "0"), wd: p.dow });
+      if (w.closed || p.h < w.open || p.h + 1 > w.close) continue;
+      var sc = hourScore(p.h, p.dow) * leadTimeFactor(l, p.h, z.iana);
+      if (!best || sc > best.sc + 0.02) best = { t: t, sc: sc, h: p.h, dow: p.dow, today: p.d === zonedParts(now, z.iana).d };
+    }
+    if (!best) return null;
+    best.label = (best.today ? "" : ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][best.dow] + " ") + hourLabel(best.h) + "\u2013" + hourLabel(best.h + 1);
+    return best;
   }
   function smartNoteText(prime) {
     var m = answerModel();
     return m.learned
-      ? "\u2605 Ranked by when <em>your</em> investors actually pick up, learned from " + m.n + " calls and updated as you go. <strong>" + prime + "</strong> of your leads are in a strong hour right now."
+      ? "\u2605 Ranked by when <em>your</em> investors actually pick up, by day and hour, learned from " + m.n + " calls and updated as you go. Someone who let it ring this morning comes up later in the day. <strong>" + prime + "</strong> of your leads are in a strong hour right now."
       : "\u2605 Leads at their best local hour come first. Sales-call studies show 10\u201311 AM and 4\u20135 PM in the prospect\u2019s own time answer best, with lunch the weakest. After " + LEARN_MIN_CALLS + " calls (" + m.n + " so far) this switches to your own answer data. <strong>" + prime + "</strong> of your leads are in a prime hour right now.";
   }
   function answersHtml() {
@@ -19588,8 +19700,28 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     return '<p class="modal-sub">' + (m.learned
       ? 'Your team\u2019s answer rate by the investor\u2019s local time, from ' + m.n + ' calls. Smart order now uses this.'
       : 'Answer rate by the investor\u2019s local time. Smart order switches to your own data after ' + LEARN_MIN_CALLS + ' calls \u2014 ' + m.n + ' so far. Until then, hours with few calls lean on sales research.') + '</p>' +
-      '<div class="ans-list">' + rows + '</div><p class="tx-help" style="margin-top:10px">Right number: answer rate \u00b7 calls made in that hour.</p>';
+      weekHtml(m) + '<div class="ans-list">' + rows + '</div><p class="tx-help" style="margin-top:10px">Right number: answer rate \u00b7 calls made in that hour.</p>';
+  }  // Day by hour: where the floor's calls get picked up (the lead's own day and hour). Darker = more pick up.
+  function weekHtml(m) {
+    if (!m.dcalls || m.n < 40) return '<p class="tx-help" style="margin:0 0 12px">A day-by-hour map fills in here after 40 calls (' + m.n + ' so far).</p>';
+    var DI = [1, 2, 3, 4, 5, 6, 0], DN = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], top = 0, picks = [], h, cells = "";
+    DI.forEach(function (d) { for (h = 8; h <= 20; h++) if (m.drate[d][h] > top) top = m.drate[d][h]; });
+    cells += '<span></span>';
+    for (h = 8; h <= 20; h++) cells += '<span class="aw-h">' + (h % 2 ? '' : (h % 12 || 12) + (h < 12 ? 'a' : 'p')) + '</span>';
+    DI.forEach(function (d, i) {
+      cells += '<span class="aw-d">' + DN[i] + '</span>';
+      for (h = 8; h <= 20; h++) {
+        var n = m.dcalls[d][h], r = m.drate[d][h], pct = Math.round(r * 100);
+        if (n >= 8) picks.push({ d: DN[i], h: h, r: r });
+        cells += '<span class="aw-c' + (n < 3 ? ' few' : '') + '" style="--aw:' + (top ? Math.round(r / top * 100) : 0) + '%" title="' + DN[i] + ' ' + hourLabel(h) + ': ' + pct + '% pick up · ' + n + ' calls"></span>';
+      }
+    });
+    picks.sort(function (a, b) { return b.r - a.r; });
+    var best = picks.slice(0, 3).map(function (x) { return x.d + ' ' + hourLabel(x.h) + ' (' + Math.round(x.r * 100) + '%)'; }).join(', ');
+    return '<div class="aw-sum">' + (best ? '<b>Best:</b> ' + escapeHtml(best) : 'Not enough calls in any one day and hour yet.') + '</div><div class="aw-grid" role="img" aria-label="Pick-up rate by day and hour">' + cells + '</div>' +
+      '<p class="tx-help" style="margin:6px 0 14px">Their day and hour. Darker is more pick up; faded squares have fewer than 3 calls.</p>';
   }
+
 
   // Leads not reached after 6 tries rest 60\u201390 days, then come back for a fresh try (twice at most).
   function recycleSweep() {
@@ -21363,6 +21495,152 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     (document.getElementById("calOff") || document.createElement("i")).addEventListener("click", function () {
       showConfirm("Turn off your calendar link? Calendars that use it stop updating.", function () { CALF.link = ""; calSave(null).then(function () { featClose(); showToast("Calendar link turned off"); }, function () { showToast("Couldn’t save. Check your connection.", { kind: "err" }); }); }, "Turn off");
     });
+  }
+
+  /* ----- Booking links (functions/ book) ----- */
+  // "Let them pick a time": the rep texts the lead a link (vpexdialer.com/book/) with times inside the lead's calling
+  // hours (the same state rules the dialer uses, worked out here) and the rep's own hours. The time they pick comes back
+  // as a follow-up they picked (pinned), with a push to the rep. The lead's record keeps only the link secret's SHA-256.
+  var BOOK_URL = "https://us-central1-dovetail-f863c.cloudfunctions.net/book", BOOK_PAGE = "https://vpexdialer.com/book/#";
+  var BK = { leadId: null, secret: "", hash: null, msg: null };
+  var BK_DAYS = [[1, "Mon"], [2, "Tue"], [3, "Wed"], [4, "Thu"], [5, "Fri"], [6, "Sat"], [0, "Sun"]];
+  function bookAllowed() { return !!(TEAM.on && TEAM.me && !CUSTOMER.firebase); }
+  function myTzName() { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || "America/New_York"; } catch (e) { return "America/New_York"; } }
+  function bookHours() {
+    var b = state.bookHours || {};
+    return { s: typeof b.s === "number" ? b.s : 540, e: typeof b.e === "number" ? b.e : 1080, days: Array.isArray(b.days) && b.days.length ? b.days.slice() : [1, 2, 3, 4, 5] };
+  }
+  function ymdOf(p) { return p.y + "-" + String(p.m + 1).padStart(2, "0") + "-" + String(p.d).padStart(2, "0"); }
+  // The lead's calling window for each of the next 3 weeks, in their own time (holidays and Sunday bans closed).
+  function bookWin(lead) {
+    var z = leadZone(lead), tz = z.iana || myTzName(), out = {}, now = Date.now();
+    for (var i = 0; i < 22; i++) {
+      var p = zonedParts(now + i * 864e5, tz), ymd = ymdOf(p);
+      if (out[ymd] !== undefined) continue;
+      var w = z.iana ? dayWindow(z.st, { ymd: ymd, wd: p.dow }) : { open: 8, close: 21 };
+      out[ymd] = w.closed ? null : [Math.round(w.open * 60), Math.round(w.close * 60)];
+    }
+    return { tz: tz, win: out };
+  }
+  // The same times the booking page will offer (without your other booked calls, which the server leaves out).
+  function bookPreview(lead, hrs) {
+    var bw = bookWin(lead), rz = myTzName(), now = Date.now(), step = 18e5, out = [];
+    for (var t = Math.ceil((now + 72e5) / step) * step; t <= now + 7 * 864e5; t += step) {
+      var l = zonedParts(t, bw.tz), w = bw.win[ymdOf(l)], lm = l.h * 60 + l.mi;
+      if (!w || lm < w[0] || lm + 30 > w[1]) continue;
+      var r = zonedParts(t, rz), rm = r.h * 60 + r.mi;
+      if (hrs.days.indexOf(r.dow) < 0 || rm < hrs.s || rm + 30 > hrs.e) continue;
+      out.push(t);
+    }
+    return out;
+  }
+  function bookLive(lead) { var b = lead && lead.book; return !!(b && b.h && !b.off && b.exp > Date.now()); }
+  function whenLc(ts) { return fmtWhen(ts).replace(/^(Today|Tomorrow)\b/, function (w) { return w.toLowerCase(); }); }
+  function bookPicked(lead) { var b = lead && lead.book; return b && typeof b.picked === "number" && b.picked > Date.now() ? b.picked : 0; }
+  function bookLink(lead) { return BOOK_PAGE + "vb_" + (TEAM.office || "") + "_" + lead.id + "_" + BK.secret; }
+  function bookMsgDefault(lead) {
+    var me = firstName(((textSettings().myName || "") + "").trim() || (TEAM.me && TEAM.me.name) || ""), co = currentCompany();
+    return "Hi " + textFirstName(lead.name) + (me ? ", it’s " + me + (co ? " with " + co : "") : "") + ". Here are some times I can call you. Pick whichever works best:";
+  }
+  function hmLabel(m) { var h = Math.floor(m / 60), mi = m % 60; return (h % 12 || 12) + (mi ? ":" + String(mi).padStart(2, "0") : "") + (h < 12 || h === 24 ? " AM" : " PM"); }
+  function openBookSheet(leadId) {
+    var lead = findLeadById(leadId); if (!lead) return;
+    if (BK.leadId !== leadId || !BK.secret) {
+      var raw = new Uint8Array(32); crypto.getRandomValues(raw);
+      BK = { leadId: leadId, secret: hexOf(raw), hash: null, msg: null };
+      var mine = BK;
+      crypto.subtle.digest("SHA-256", new TextEncoder().encode(BK.secret)).then(function (h) { mine.hash = hexOf(h); var b = document.getElementById("bkSend"); if (b) b.removeAttribute("aria-disabled"); });
+    }
+    renderBookSheet();
+  }
+  function renderBookSheet() {
+    var lead = findLeadById(BK.leadId); if (!lead) return;
+    var first = escapeHtml(firstName(lead.name) || "them"), hrs = bookHours(), slots = bookPreview(lead, hrs), z = leadZone(lead);
+    var msg = BK.msg == null ? bookMsgDefault(lead) : BK.msg, body = msg + " " + bookLink(lead), picked = bookPicked(lead), live = bookLive(lead);
+    var h = '<h3>Let ' + first + ' pick a time</h3><p class="modal-sub">' + first + ' gets a link with times inside ' + (z.iana ? 'their calling hours' : 'calling hours') +
+      ' and yours. The time they pick lands in your Tasks, and your phone tells you.</p>';
+    if (picked) h += '<div class="bk-status ok"><b>Booked for ' + escapeHtml(whenLc(picked)) + '</b><span>' + first + ' picked it from your link. Sending a new link lets them move it.</span></div>';
+    else if (live) h += '<div class="bk-status"><b>Link sent ' + escapeHtml(new Date(lead.book.at).toLocaleDateString("en-US", { month: "short", day: "numeric" })) + '</b><span>' + first +
+      ' hasn’t picked a time yet. A new link replaces this one.</span><button type="button" class="bk-off" id="bkOff">Turn off link</button></div>';
+    var opt = function (from, to, sel) { var o = ""; for (var m = from; m <= to; m += 30) o += '<option value="' + m + '"' + (m === sel ? ' selected' : '') + '>' + hmLabel(m) + '</option>'; return o; };
+    h += '<div class="bk-sec"><div class="bk-k">Your hours</div><div class="bk-hrs"><select id="bkS" aria-label="From">' + opt(360, 1260, hrs.s) + '</select><span>to</span><select id="bkE" aria-label="Until">' + opt(420, 1320, hrs.e) + '</select></div>' +
+      '<div class="bk-days" role="group" aria-label="Days">' + BK_DAYS.map(function (d) { return '<button type="button" class="bk-day' + (hrs.days.indexOf(d[0]) > -1 ? ' on' : '') + '" data-bk-day="' + d[0] + '" aria-pressed="' + (hrs.days.indexOf(d[0]) > -1) + '">' + d[1] + '</button>'; }).join("") + '</div>' +
+      '<p class="bk-prev' + (slots.length ? '' : ' none') + '" id="bkPrev">' + (slots.length
+        ? first + ' will see <b>' + slots.length + ' times</b> over the next 7 days. First: ' + escapeHtml(fmtWhen(slots[0])) + (z.iana ? ' (' + escapeHtml(theirTime(slots[0], lead)) + ' for them)' : '') + '.'
+        : 'No times fit both your hours and ' + first + '’s calling hours this week. Widen your hours or add a day.') + '</p></div>' +
+      '<div class="bk-sec"><label class="bk-k" for="bkMsg">Text</label><textarea id="bkMsg" rows="3" maxlength="300">' + escapeHtml(msg) + '</textarea><p class="bk-note">The link goes at the end. It works for 14 days.</p></div>';
+    if (lead.noText) h += '<p class="bk-note warn">' + first + ' asked not to get texts. Copy the link to send it another way.</p>';
+    h += '<div class="modal-actions">' + (lead.noText || !(lead.phone || lead.phoneRaw) ? '' :
+      textLinkHtml(lead, "book", body, "btn-primary" + (slots.length ? '' : ' is-off'), 'Text it to ' + first, "bkSend")) +
+      '<button type="button" class="btn-secondary" id="bkCopy"' + (slots.length ? '' : ' disabled') + '>Copy link</button></div>';
+    featOpen(h);
+    var send = document.getElementById("bkSend");
+    if (send && !BK.hash) send.setAttribute("aria-disabled", "true");
+  }
+  function bookCommit(lead) {
+    if (!BK.hash) return false;
+    var hrs = bookHours(), bw = bookWin(lead), old = lead.book || {}, now = Date.now();
+    if (old.h === BK.hash && !old.off) return true;
+    lead.book = { h: BK.hash, tag: /^[a-z0-9]{6,32}$/.test(old.tag || "") ? old.tag : BK.secret.slice(0, 12), at: now, exp: now + 14 * 864e5,
+      by: meRef() || { uid: "me", name: "" }, lz: bw.tz, rtz: myTzName(), hrs: [hrs.s, hrs.e], days: hrs.days, win: bw.win, co: currentCompany() || "" };
+    if (old.picked) { lead.book.picked = old.picked; lead.book.pickedAt = old.pickedAt; }
+    saveState();
+    return true;
+  }
+  function bookSetHours(patch) {
+    state.bookHours = Object.assign(bookHours(), patch);
+    if (state.bookHours.e <= state.bookHours.s) state.bookHours.e = Math.min(1320, state.bookHours.s + 60);
+    saveState(); BK.msg = (document.getElementById("bkMsg") || {}).value; renderBookSheet();
+  }
+  document.addEventListener("click", function (e) {
+    var t = e.target && e.target.closest ? e.target : null; if (!t) return;
+    var open = t.closest("[data-book-lead]");
+    if (open) { e.preventDefault(); var fs = document.getElementById("fuSheet"); if (fs && fs.classList.contains("show")) fs.classList.remove("show"); closeLeadProfile(true); openBookSheet(open.getAttribute("data-book-lead")); return; }
+    if (!document.querySelector("#featModalBody #bkMsg")) return;
+    var lead = findLeadById(BK.leadId); if (!lead) return;
+    var day = t.closest("[data-bk-day]");
+    if (day) { var d = Number(day.getAttribute("data-bk-day")), hrs = bookHours(), i = hrs.days.indexOf(d); if (i > -1) { if (hrs.days.length > 1) hrs.days.splice(i, 1); } else hrs.days.push(d); bookSetHours({ days: hrs.days }); return; }
+    if (t.closest("#bkSend")) {
+      if (!bookPreview(lead, bookHours()).length || !bookCommit(lead)) { e.preventDefault(); e.stopPropagation(); showToast(BK.hash ? "No times to offer this week. Widen your hours first." : "One moment, making the link…"); return; }
+      setTimeout(function () { featClose(); render(); }, 400);
+      return;
+    }
+    if (t.closest("#bkCopy")) {
+      if (!bookCommit(lead)) { showToast("One moment, making the link…"); return; }
+      clipCopy(bookLink(lead), function () { showToast("Booking link copied. It works for 14 days"); });
+      return;
+    }
+    if (t.closest("#bkOff")) {
+      showConfirm("Turn off this booking link? " + firstName(lead.name) + " won’t be able to pick a time with it.", function () {
+        lead.book = Object.assign({}, lead.book, { off: true }); saveState(); featClose(); showToast("Booking link turned off"); render();
+      });
+    }
+  });
+  document.addEventListener("change", function (e) {
+    if (!e.target || (e.target.id !== "bkS" && e.target.id !== "bkE")) return;
+    bookSetHours(e.target.id === "bkS" ? { s: Number(e.target.value) } : { e: Number(e.target.value) });
+  });
+  document.addEventListener("input", function (e) {
+    if (!e.target || e.target.id !== "bkMsg") return;
+    var lead = findLeadById(BK.leadId), a = document.getElementById("bkSend"); BK.msg = e.target.value;
+    if (lead && a) a.setAttribute("href", smsHref(lead, BK.msg + " " + bookLink(lead)));
+  });
+  // A booking that came in (from the server, on any device): say so once, with a way to the lead.
+  function bookArrivals() {
+    if (!TEAM.on || !TEAM.ready) return;
+    var now = Date.now();
+    if (typeof state.bookSeen !== "number") { state.bookSeen = now; saveState(); return; }   // a new device starts from now
+    var since = state.bookSeen, top = since, hit = null;
+    for (var i = 0; i < state.tasks.length; i++) {
+      var t = state.tasks[i];
+      if (!t.booked || t.done || t.booked <= since || !myTask(t)) continue;
+      if (t.booked > top) { top = t.booked; hit = t; }
+    }
+    if (!hit) return;
+    state.bookSeen = top; saveState();
+    if (now - hit.booked > 864e5) return;
+    var l = findLeadById(hit.leadId); if (!l) return;
+    showToast(firstName(l.name) + " booked a call for " + whenLc(hit.dueAt), { action: { label: "View", fn: function () { openLeadProfile(l.id); } } });
   }
 
   /* ----- Floor TV ----- */
