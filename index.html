@@ -8079,8 +8079,10 @@ window.VPEX_SIG = [
   .lp-book-t b { font-size: 14.5px; }
   .lp-book-t small { font-size: 12.5px; color: var(--text-dim); }
   .lp-book-go { flex: none; font-size: 22px; color: var(--text-faint); line-height: 1; }
-  .fu-booklink { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin: 4px 0 0; padding: 10px; border: 0; background: none;
-    color: var(--accent); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; min-height: 44px; }
+  .fu-when { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .fu-booklink { display: inline-flex; align-items: center; gap: 6px; margin: -12px -8px -12px auto; padding: 12px 8px; border: 0; background: none; text-transform: none; letter-spacing: 0;
+    color: var(--accent); font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; }
+  .fu-booklink svg { width: 16px; height: 16px; }
   .bk-status { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: center; padding: 11px 14px; margin: 12px 0 2px; border-radius: var(--radius-m, 12px);
     border: 1px solid var(--border); background: var(--surface); }
   .bk-status b { color: var(--text); font-size: 14.5px; }
@@ -12502,6 +12504,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     var box = document.getElementById("fuBody"), lead = FU && findLeadById(FU.leadId);
     if (!box || !lead) return;
     var first = escapeHtml(textFirstName(lead.name)), cb = FU.kind === "callback", mv = FU.kind === "move", set = FU.kind === "set";
+    var bl = mv || lead.dnc || !(lead.phone || lead.phoneRaw) ? '' : '<button type="button" class="fu-booklink" data-book-lead="' + lead.id + '">' + calIconSvg() + '<span>Let ' + first + ' pick</span></button>';
     var whats = nextSteps().slice(); if (FU.what && whats.indexOf(FU.what) === -1) whats.unshift(FU.what);
     var days = fuDays(lead);
     var moreOn = days.indexOf(FU.day) === -1;   // picked from the calendar
@@ -12527,7 +12530,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       '<div class="fu-cols"><div class="fu-col">' +
       (cb ? '' : '<div class="fu-label">Next step</div><div class="fu-row fu-whats" role="group" aria-label="Next step">' + whats.map(function (w) {
         return '<button type="button" class="fu-chip' + (w === FU.what ? ' on' : '') + '" data-fu-what="' + escapeHtml(w) + '" aria-pressed="' + (w === FU.what) + '">' + escapeHtml(w) + '</button>';
-      }).join("") + '</div><div class="fu-label">When</div>') +
+      }).join("") + '</div>') + (cb && !bl ? '' : '<div class="fu-label fu-when">' + (cb ? '' : 'When') + bl + '</div>') +
       (quick.length ? '<div class="fu-row fu-quick" role="group" aria-label="Quick picks">' + quick.map(function (q) {
         return '<button type="button" class="fu-chip fu-q' + (q.ts === FU.at ? ' on' : '') + '" data-fu-at="' + q.ts + '" data-fu-q="1" aria-pressed="' + (q.ts === FU.at) + '"><b>' + q.label + '</b><small>' + escapeHtml(fuTime(q.ts)) + '</small></button>';
       }).join("") + '</div>' : '') +
@@ -12561,8 +12564,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       '<input type="text" id="fuNote" class="fu-note" maxlength="200" autocomplete="off" placeholder="What to open with next time (optional)" value="' + escapeHtml(FU.note) + '" aria-label="Note for the next call">' +
       '</div></div>' +
       '<div class="modal-actions fu-acts"><button type="button" class="btn-secondary" id="fuKeep" aria-label="' + (mv ? 'Cancel, keep ' : 'Skip, keep ') + escapeHtml(fmtWhen(FU.sug)) + '">' + (mv ? 'Cancel' : 'Skip') + '</button>' +
-        '<button type="button" class="btn-primary" id="fuBook"' + (past || bad ? ' disabled' : '') + '>' + (mv ? 'Move to ' : 'Book ') + escapeHtml(fuDayLabel(localDateStr(new Date(FU.at)))) + ' ' + escapeHtml(fuTime(FU.at)) + '</button></div>' +
-      (mv || lead.dnc || !(lead.phone || lead.phoneRaw) ? '' : '<button type="button" class="fu-booklink" data-book-lead="' + lead.id + '">' + calIconSvg() + '<span>Or text ' + first + ' a link to pick a time</span></button>');
+        '<button type="button" class="btn-primary" id="fuBook"' + (past || bad ? ' disabled' : '') + '>' + (mv ? 'Move to ' : 'Book ') + escapeHtml(fuDayLabel(localDateStr(new Date(FU.at)))) + ' ' + escapeHtml(fuTime(FU.at)) + '</button></div>';
     var kb = document.getElementById("fuKeep"); if (kb && set) { kb.textContent = "Cancel"; kb.setAttribute("aria-label", "Cancel"); }
     if (reveal && FU.cal) { var c = document.getElementById("fuCal"); if (c && c.scrollIntoView) c.scrollIntoView({ block: "nearest" }); }
   }
