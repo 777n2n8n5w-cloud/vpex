@@ -11,9 +11,12 @@
 <meta name="theme-color" content="#0D1224">
 <link rel="icon" href="/vpex-icon-64.png">
 <link rel="apple-touch-icon" href="/vpex-icon-180.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet">
+<link rel="preconnect" data-consent-href="https://fonts.googleapis.com">
+<link rel="preconnect" data-consent-href="https://fonts.gstatic.com" crossorigin>
+<link data-consent-href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet">
+<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<script src="/consent.js"></script>
 <style>
   :root {
     --bg: #0D1224; --surface: #141B34; --raised: #1B2344; --border: #283258; --text: #EDF0FB; --dim: #A2AACB;
@@ -93,7 +96,7 @@
     <button class="more" id="more" type="button" hidden>Show older posts</button>
   </section>
 
-  <footer>Questions? <a href="mailto:support@vpexdialer.com">support@vpexdialer.com</a><br>VPEX Dialer · <a href="/" data-n="bio-home">vpexdialer.com</a></footer>
+  <footer>Questions? <a href="mailto:support@vpexdialer.com">support@vpexdialer.com</a><br>VPEX Dialer · <a href="/" data-n="bio-home">vpexdialer.com</a><br><a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a> · <a href="/cookies/">Cookies</a> · <a href="/cookies/#settings" data-cookie-settings>Cookie settings</a></footer>
 </main>
 <script>
 (function () {
@@ -104,8 +107,9 @@
   var HIT = "https://us-central1-dovetail-f863c.cloudfunctions.net/hit", on = /(^|\.)vpexdialer\.com$/.test(location.hostname);
   try { if (!on && /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && localStorage.getItem("vpex_hit_test")) { on = true; HIT = localStorage.getItem("vpex_hit_test"); } } catch (e) {}
   var mobile = /Mobi|iPhone|iPad|Android/i.test(navigator.userAgent || "") ? "m" : "d";
+  function stats() { return !window.VPEXConsent || window.VPEXConsent.allowed("stats"); }   // counts only with consent (consent.js)
   function hit(e, n, c, i) {
-    if (!on) return;
+    if (!on || !stats()) return;
     var body = JSON.stringify({ e: e, s: SRC, m: "bio", c: c || "", n: n || "", i: i || "", d: mobile });
     try { if (navigator.sendBeacon && navigator.sendBeacon(HIT, body)) return; } catch (x) {}
     try { fetch(HIT, { method: "POST", body: body, mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain" } }).catch(function () {}); } catch (x) {}
@@ -124,7 +128,8 @@
     a.addEventListener("click", function () { hit("bio_tap", n, c, go.indexOf("demo:") === 0 ? go.slice(5) : ""); });
   }
   document.querySelectorAll("a[data-n]").forEach(function (a) { if (!a.hasAttribute("data-go")) a.setAttribute("data-go", "home"); wire(a); });
-  try { if (!sessionStorage.getItem("vpex_bio_view")) { sessionStorage.setItem("vpex_bio_view", "1"); hit("bio_view"); } } catch (e) { hit("bio_view"); }
+  function view() { if (!stats()) return false; try { if (!sessionStorage.getItem("vpex_bio_view")) { sessionStorage.setItem("vpex_bio_view", "1"); hit("bio_view"); } } catch (e) { hit("bio_view"); } return true; }
+  if (!view() && window.VPEXConsent) window.VPEXConsent.onChange(function (c) { if (c.stats) view(); });
 
   var ICON = { reel: '<svg class="kind" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8 5.5v13c0 .8.9 1.3 1.6.8l10-6.5c.6-.4.6-1.2 0-1.6l-10-6.5C8.9 4.2 8 4.7 8 5.5z"/></svg>',
     carousel: '<svg class="kind" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M7 3h11a3 3 0 0 1 3 3v11M3 8a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/></svg>' };

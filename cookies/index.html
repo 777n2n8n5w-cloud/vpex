@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cookie Policy · VPEX</title>
+<meta name="description" content="What VPEX stores on your device, which items are optional, and how to change or withdraw your choices.">
+<link rel="canonical" href="https://vpexdialer.com/cookies/">
+<link rel="icon" href="/vpex-icon-64.png">
+<link rel="apple-touch-icon" href="/vpex-icon-180.png">
+<link rel="preconnect" data-consent-href="https://fonts.googleapis.com">
+<link rel="preconnect" data-consent-href="https://fonts.gstatic.com" crossorigin>
+<link data-consent-href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet">
+<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<script src="/consent.js"></script>
+<style>
+  :root { --bg: #0D1224; --surface: #141B34; --border: #283258; --text: #EDF0FB; --dim: #A2AACB; --gold: #E8B94A; --focus: #E8B94A; color-scheme: dark; }
+  @media (prefers-color-scheme: light) { :root { --bg: #ECEFF7; --surface: #FFFFFF; --border: #D4DAEB; --text: #11172E; --dim: #4F5A7C; color-scheme: light; } }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: calc(14px + env(safe-area-inset-top, 0px)) 16px calc(48px + env(safe-area-inset-bottom, 0px)); }
+  a { color: inherit; text-underline-offset: 2px; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 6px; }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .wm { display: inline-flex; align-items: center; min-height: 44px; font-weight: 850; font-stretch: 120%; font-size: 20px; text-decoration: none; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 18px 0 0; }
+  .tabs a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--border); text-decoration: none; font-weight: 650; font-size: 14.5px; }
+  .tabs a[aria-current] { background: var(--gold); color: #111827; border-color: var(--gold); }
+  h1 { font-size: clamp(30px, 8vw, 44px); line-height: 1.05; letter-spacing: -0.02em; font-weight: 850; margin: 22px 0 6px; }
+  .eff { color: var(--dim); font-size: 14px; margin: 0 0 18px; }
+  h2 { font-size: 21px; line-height: 1.25; font-weight: 800; margin: 34px 0 8px; scroll-margin-top: 12px; }
+  h3 { font-size: 16.5px; font-weight: 750; margin: 20px 0 4px; }
+  p, li { max-width: 44em; }
+  ul { padding-left: 22px; } li { margin: 0 0 6px; }
+  .sum { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; }
+  .sum p { margin: 0 0 8px; } .sum p:last-child { margin: 0; }
+  .toc { columns: 2 220px; font-size: 14.5px; padding-left: 20px; }
+  .toc a { display: inline-block; padding: 6px 0; }
+  .tw { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 8px -16px; padding: 0 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 560px; }
+  th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--dim); }
+  td code { font-size: 12.5px; overflow-wrap: anywhere; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 18px; border-radius: 12px; border: 0; background: var(--gold); color: #111827; font: inherit; font-weight: 800; cursor: pointer; }
+  .receipt { font-size: 14px; color: var(--dim); }
+  footer { margin-top: 48px; font-size: 13.5px; color: var(--dim); display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  footer a { display: inline-flex; align-items: center; min-height: 44px; }
+  @media print { .tabs, footer, .btn { display: none; } body { background: #fff; color: #000; } }
+</style>
+</head>
+<body>
+<main>
+  <div class="top"><a class="wm" href="/">VPEX</a></div>
+  <nav class="tabs" aria-label="Legal pages"><a href="/privacy/">Privacy Policy</a><a href="/terms/">Terms of Service</a><a href="/cookies/" aria-current="page">Cookie Policy</a></nav>
+  <h1>Cookie Policy</h1>
+  <p class="eff">Effective November 10, 2026. Questions: <a href="mailto:support@vpexdialer.com">support@vpexdialer.com</a></p>
+  <div class="sum">
+    <p><b>The short version.</b> vpexdialer.com doesn’t set HTTP cookies and uses no advertising or cross-site tracking. It stores some information on your device (in your browser’s local storage) so the site and app work. Three optional items, Google Fonts, visit statistics and campaign attribution, only run with your choice.</p>
+  </div>
+  <h2 id="settings">Your choices</h2>
+  <p id="cookieNow" class="receipt">Your current choices appear here when the page has loaded.</p>
+  <p><button class="btn" type="button" data-cookie-settings>Open cookie settings</button></p>
+  <p>Outside the United States, nothing optional runs until you choose. In the US, the optional items are on unless you turn them off, and we treat your browser’s Global Privacy Control signal as a request to turn off statistics and attribution. We ask again after 12 months, or when this policy changes. Your choice applies to vpexdialer.com in this browser. Clearing your browser’s site data resets it.</p>
+
+  <h2 id="what">What we store and why</h2>
+  <h3>Essential (always on)</h3>
+  <p>These are needed for something you asked for, like signing in, using the demo or keeping your settings. They can’t be turned off here; you can clear them in your browser, but VPEX may stop working properly.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Name</th><th>Purpose</th><th>How long</th></tr></thead>
+    <tbody>
+      <tr><td><code>firebaseLocalStorageDb</code> (IndexedDB)</td><td>Keeps you signed in (Google Firebase Authentication)</td><td>Until you sign out</td></tr>
+      <tr><td>Firestore cache (IndexedDB)</td><td>Your office’s data for offline use and speed, when signed in</td><td>Wiped when you sign out</td></tr>
+      <tr><td><code>vpex_consent</code></td><td>Remembers your cookie choices, the date and a random ID</td><td>12 months</td></tr>
+      <tr><td><code>vpex_office</code>, <code>vpex_join</code></td><td>The office you sign in to; a team invite you opened</td><td>Until changed</td></tr>
+      <tr><td><code>vpex_team_*</code>, <code>dovetail_team_*</code>, <code>vpex_prefs_*</code></td><td>Your settings in the app (goals, views, sorting)</td><td>Until you clear them</td></tr>
+      <tr><td><code>dovetail_suite_state_v1</code></td><td>Your leads and calls when you use VPEX without a team account (stored only on this device)</td><td>Until you clear them</td></tr>
+      <tr><td><code>dovetail_dialer_theme_v1</code>, <code>dovetail_motion</code></td><td>Your look and motion settings</td><td>Until changed</td></tr>
+      <tr><td><code>dovetail_demo*</code>, <code>vpex_demo_*</code></td><td>The demo office you opened and your progress in it</td><td>Until you leave the demo</td></tr>
+      <tr><td><code>vpex_company</code>, <code>vpex_industry</code>, <code>vpex_signup_email</code>, <code>vpex_buy_now</code>, <code>vpex_paid_at</code></td><td>What you typed into the trial form, and checkout progress, so it isn’t lost</td><td>Until sign-up or checkout finishes</td></tr>
+      <tr><td><code>vpex_push*</code>, <code>vpex_files</code>, <code>vpex_hist_*</code>, <code>vpex_floor_*</code>, <code>vpex_desk_scope</code>, <code>vpex_setup_*</code>, <code>vpex_contact_asked_*</code>, <code>vpex_oc_seen</code>, <code>vpex_support</code></td><td>Notification settings, files waiting to upload, and which tips and messages you’ve already seen</td><td>Until you clear them</td></tr>
+      <tr><td><code>dovetail_update*</code>, <code>vpex_reloaded</code>, <code>dovetail_signout_log</code>, <code>dovetail_nt_last</code>, <code>dovetail_lock_*</code>, <code>vpex_wipe_cache</code>, <code>vpex_signout_msg</code> (session)</td><td>App updates, sign-out messages, the screen lock and finishing the offline-data wipe</td><td>Until no longer needed</td></tr>
+      <tr><td>Service worker</td><td>Phone notifications, if you turn them on</td><td>Until you turn them off</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Optional</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Choice</th><th>What it does</th><th>Stored on your device</th></tr></thead>
+    <tbody>
+      <tr><td>External fonts</td><td>Loads the site’s typefaces from Google Fonts. Your browser sends your IP address and browser details to Google; see <a href="https://policies.google.com/privacy" rel="noopener">Google’s Privacy Policy</a>. If this is off, your device’s fonts are used.</td><td>Nothing from VPEX (your browser may cache the fonts)</td></tr>
+      <tr><td>Visit statistics</td><td>Sends one anonymous count per step (page seen, demo opened, first demo call, trial form opened, sign-up, app opened from the Home Screen, Instagram link page). Each count includes the link or site that sent you, the demo industry, and whether you’re on a phone or computer. No name, IP address or ID is kept.</td><td><code>vpex_hit_*</code> and <code>vpex_bio_view</code> (session only, so a step is counted once per visit); <code>vpex_hit_home</code></td></tr>
+      <tr><td>Campaign attribution</td><td>Remembers which link or post brought you, so a sign-up within 30 days is credited to it.</td><td><code>vpex_attr</code>, for 30 days</td></tr>
+    </tbody>
+  </table></div>
+  <p>Turning a choice off deletes what it stored. Fonts that have already loaded stay until you open the next page.</p>
+
+  <h2 id="third">Third-party sites</h2>
+  <p>When you pay, you’re taken to Stripe’s checkout or billing portal on stripe.com, which uses its own cookies under <a href="https://stripe.com/privacy" rel="noopener">Stripe’s Privacy Policy</a>. Links to Instagram, Facebook and other sites are governed by those sites’ policies.</p>
+
+  <h2 id="records">Records of your choices</h2>
+  <p>Each time you make a choice, a record goes to our server with a random ID, the policy version, what you chose, how you chose it (for example “Accept all”, “Reject all”, saved settings, withdrawn, or Global Privacy Control), whether your region asks for consent first, and phone or computer. It doesn’t include your IP address or anything else that identifies you. We keep these records for 3 years to show what was chosen. Your consent ID is shown above, so you can refer to it in a request.</p>
+
+  <h2 id="more">More</h2>
+  <p>See the <a href="/privacy/">Privacy Policy</a> for your rights, or email <a href="mailto:support@vpexdialer.com">support@vpexdialer.com</a>.</p>
+  <footer><a href="/">vpexdialer.com</a><a href="mailto:support@vpexdialer.com">support@vpexdialer.com</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="/cookies/">Cookies</a><a href="/cookies/#settings" data-cookie-settings>Cookie settings</a></footer>
+</main>
+<script>
+(function () {
+  var C = window.VPEXConsent, box = document.getElementById("cookieNow");
+  function show() {
+    if (!C || !box) return;
+    var c = C.choices(), r = C.get(), on = function (k) { return c[k] ? "on" : "off"; };
+    box.textContent = "External fonts: " + on("fonts") + " \u00b7 Visit statistics: " + on("stats") + " \u00b7 Campaign attribution: " + on("attribution") +
+      (r ? ". Chosen " + new Date(r.t).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) + " (consent ID " + r.id + ", policy " + r.v + ")." : ". You haven\u2019t made a choice yet" + (C.region === "optout" ? ", so the US defaults apply." : ", so nothing optional is running."));
+  }
+  if (C) { C.onChange(show); show(); if (location.hash === "#settings") C.open(); window.addEventListener("hashchange", function () { if (location.hash === "#settings") C.open(); }); }
+})();
+</script>
+</body>
+</html>

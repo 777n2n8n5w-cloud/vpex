@@ -64,7 +64,7 @@ jobs:
           # 1. The functions
           gcloud functions list --project "$PROJECT" --regions "$R" --format='value(name.basename(),state)' > /tmp/fns.txt 2>/tmp/fns.err || true
           (echo "Region $R"; cat /tmp/fns.txt /tmp/fns.err) | note "Functions"
-          for f in queueFromOffice queueFromTeam sendDue sendTest igDone hit cal; do
+          for f in queueFromOffice queueFromTeam sendDue sendTest igDone hit cal consent; do
             grep -q "^$f[[:space:]]*ACTIVE" /tmp/fns.txt || fail "Function $f" "$f isn't ACTIVE."
           done
           # The Instagram hand-off page's Done button: reachable from a phone, and it refuses a wrong key

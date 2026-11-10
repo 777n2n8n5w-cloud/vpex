@@ -119,9 +119,12 @@ def page(k):
 <meta name="theme-color" content="#0D1224">
 <link rel="icon" href="/vpex-icon-64.png">
 <link rel="apple-touch-icon" href="/vpex-icon-180.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet">
+<link rel="preconnect" data-consent-href="https://fonts.googleapis.com">
+<link rel="preconnect" data-consent-href="https://fonts.gstatic.com" crossorigin>
+<link data-consent-href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet">
+<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<script src="/consent.js"></script>
 {STYLE}
 </head>
 <body>
@@ -152,7 +155,7 @@ def page(k):
     </div>
   </section>{other_line}
 
-  <footer><a href="{U}footer">vpexdialer.com</a><a href="/calling-hours/">Calling hours by state</a><a href="/phoneburner-alternative/">VPEX vs PhoneBurner</a><a href="/batchdialer-alternative/">VPEX vs BatchDialer</a><a href="/mojo-dialer-alternative/">VPEX vs Mojo</a><a href="mailto:support@vpexdialer.com">support@vpexdialer.com</a></footer>
+  <footer><a href="{U}footer">vpexdialer.com</a><a href="/calling-hours/">Calling hours by state</a><a href="/phoneburner-alternative/">VPEX vs PhoneBurner</a><a href="/batchdialer-alternative/">VPEX vs BatchDialer</a><a href="/mojo-dialer-alternative/">VPEX vs Mojo</a><a href="mailto:support@vpexdialer.com">support@vpexdialer.com</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="/cookies/">Cookies</a><a href="/cookies/#settings" data-cookie-settings>Cookie settings</a></footer>
 </main>
 </body>
 </html>

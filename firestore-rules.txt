@@ -48,8 +48,11 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
     // ---- Notifications: each phone saves its own push token; only VPEX's server reads them ----
-    match /pushTokens/{id} {
-      allow create, update: if signedIn() && id.size() <= 64
+    // A token record belongs to the login that made it. Another login can only take it over by proving it holds the
+    // phone's own token (the record's id is a hash of it, so knowing the id isn't enough): a shared phone moves to whoever
+    // signs in on it, but nobody can point someone else's phone at their own login or rewrite their record.
+    function okToken(id) {
+      return signedIn() && id.size() <= 64
         && request.resource.data.keys().hasOnly(['uid', 'office', 'token', 'ua', 'tz', 'at'])
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.token is string && request.resource.data.token.size() > 0 && request.resource.data.token.size() <= 4096
@@ -57,6 +60,10 @@ service cloud.firestore {
         && request.resource.data.ua is string && request.resource.data.ua.size() <= 40
         && request.resource.data.tz is string && request.resource.data.tz.size() <= 64
         && request.resource.data.at is int;
+    }
+    match /pushTokens/{id} {
+      allow create: if okToken(id);
+      allow update: if okToken(id) && (resource.data.uid == request.auth.uid || request.resource.data.token == resource.data.token);
       allow delete: if signedIn() && resource.data.uid == request.auth.uid;
     }
     // "Send a test" in the app: a request the server answers and removes

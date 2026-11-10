@@ -317,6 +317,24 @@ function nyDate(ms) { return new Intl.DateTimeFormat("en-CA", { timeZone: "Ameri
 // A sign-up is credited to where the visitor came from only if that office was really just created.
 function freshOffice(d, now) { return !!(d && typeof d.createdAt === "number" && now - d.createdAt >= -60000 && now - d.createdAt < 3 * 3600000); }
 
+// ---------- consent records (the cookie banner on vpexdialer.com) ----------
+// Proof of each choice a visitor makes about optional cookies: a random id the browser made for itself, the policy
+// version shown, what was chosen and how. No IP address, no name, nothing that points to a person.
+var CONSENT_METHODS = ["accept_all", "reject_all", "save", "withdraw", "gpc"];
+var CONSENT_REGIONS = ["optin", "optout"];
+function parseConsent(body) {
+  var o;
+  try { o = typeof body === "string" ? JSON.parse(body) : body; } catch (e) { return null; }
+  if (!o || typeof o !== "object" || Array.isArray(o)) return null;
+  if (typeof o.id !== "string" || !/^[A-Za-z0-9_-]{16,40}$/.test(o.id)) return null;
+  if (typeof o.v !== "string" || !/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(o.v)) return null;
+  if (CONSENT_METHODS.indexOf(o.m) < 0 || typeof o.s !== "boolean" || typeof o.t !== "boolean" || typeof o.f !== "boolean") return null;
+  // s: visit statistics, t: campaign attribution, f: external fonts (true = allowed)
+  return { id: o.id, v: o.v, s: o.s, t: o.t, f: o.f, m: o.m, r: CONSENT_REGIONS.indexOf(o.r) >= 0 ? o.r : "", g: o.g === true, d: o.d === "m" || o.d === "d" ? o.d : "" };
+}
+// How long things are kept (the Privacy Policy says the same): consent proof 3 years; delivery markers 30 days.
+var RETAIN = { consent: 3 * 365 * DAY_MS, pushSent: 30 * DAY_MS, pushMeta: 14 * DAY_MS };
+
 // ---------- "Message your floor": an admin or manager sends one short message to the reps' phones ----------
 var FLOOR_MAX = 180, FLOOR_GAP_MS = 20000, FLOOR_DAY_MAX = 60;
 // The request the app writes (pushFloor/{uid_time}); null when anything is off.
@@ -411,4 +429,4 @@ module.exports = { APP_URL, STALE_MS, DROP_MS, APPT_LEAD_MS, queueId, notifyAt, 
   FLOOR_MAX, floorRequest, floorGate, floorRecipients, floorMessage,
   HIT_EVENTS, HIT_INDS, HIT_ORIGINS, HIT_DAY_KEYS, hitOriginOk, capHit, hitTok, parseHit, hitKey, unHitKey, nyDate, freshOffice,
   sha256hex, sameHash,
-  calKey, calEvents, calIcs, icsFold };
+  calKey, calEvents, calIcs, icsFold, CONSENT_METHODS, parseConsent, RETAIN };

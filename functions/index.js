@@ -9,6 +9,7 @@
 //  - igDone: the "Done" button on an Instagram hand-off page (marks that post as posted by hand; needs the page's own key).
 //  - hit: anonymous funnel counts from vpexdialer.com (page seen, demo opened, trial form, sign-up), by where people came from.
 //  - cal: each login's follow-ups and appointments as a calendar feed its phone can subscribe to (a secret address).
+//  - consent: proof of each cookie choice made on vpexdialer.com (random id, policy version, choice; no IP, nothing personal).
 // Tokens live in pushTokens/{id} (written by the app, readable only here). The queue lives in pushQueue/{id}.
 "use strict";
 
@@ -113,9 +114,12 @@ exports.queueFromTeam = onDocumentWritten({ document: "leadChunks/{chunk}", retr
 });
 
 // Follow-ups that existed before notifications were turned on get queued once, on the first run.
+let backfillSeen = false;   // per server instance: once the flag exists, stop touching it (it used to cost a write attempt a minute)
 async function backfillOnce(now) {
+  if (backfillSeen) return;
   const flag = db.doc("pushMeta/backfill");
-  try { await flag.create({ startedAt: now }); } catch (e) { return; }
+  try { await flag.create({ startedAt: now }); } catch (e) { backfillSeen = true; return; }
+  backfillSeen = true;
   let n = 0;
   const scan = async function (office, col) {
     const qs = await col.get();
@@ -165,8 +169,24 @@ exports.sendDue = onSchedule({ schedule: "every 1 minutes", timeZone: "Etc/UTC",
   if (t.getUTCHours() === 8 && t.getUTCMinutes() === 0) {
     const old = await db.collection("pushTokens").where("at", "<", now - 120 * 86400000).limit(300).get();
     await Promise.all(old.docs.map(function (d) { return d.ref.delete().catch(function () {}); }));
+    await retention(now);
   }
 });
+
+// Keep only what's needed (the Privacy Policy's retention section): handoff markers 30 days, once-a-day send marks and
+// rate-limit gates 14 days, cookie-consent proof 3 years. A few hundred at a time, once a day, so it never runs long.
+async function retention(now) {
+  const sweep = async function (col, field, before) {
+    try {
+      const qs = await db.collection(col).where(field, "<", before).limit(300).get();
+      await Promise.all(qs.docs.map(function (d) { return d.ref.delete().catch(function () {}); }));
+      return qs.size;
+    } catch (e) { logger.warn("retention sweep failed", { col, err: String(e).slice(0, 200) }); return 0; }
+  };
+  const n = { pushSent: await sweep("pushSent", "at", now - L.RETAIN.pushSent), pushMeta: await sweep("pushMeta", "at", now - L.RETAIN.pushMeta),
+    consent: await sweep("consentLog", "at", now - L.RETAIN.consent) };
+  logger.info("retention", n);
+}
 
 // "Send a test" in the app writes pushTests/{id}; this sends it to that person's phones and removes the request.
 const TEST_DELAY_MS = Number(process.env.TEST_DELAY_MS || 5000);
@@ -359,6 +379,29 @@ exports.hit = onRequest({ invoker: "public", cors: L.HIT_ORIGINS, maxInstances: 
     res.status(204).end();
   } catch (e) {
     logger.warn("hit failed", { err: String(e) });
+    res.status(500).end();
+  }
+});
+
+// ---------- cookie consent records ----------
+// The banner on vpexdialer.com posts each choice here (accept all, reject all, saved preferences, withdrawn, or the
+// browser's Global Privacy Control). Stored as consentLog/{id}_{time}: the proof a regulator can ask for. Nobody reads
+// it from the app (the database rules have no rule for it); deleted after 3 years by the daily retention sweep.
+let consentWindow = 0, consentCount = 0;
+exports.consent = onRequest({ invoker: "public", cors: L.HIT_ORIGINS, maxInstances: 2, timeoutSeconds: 10 }, async function (req, res) {
+  const now = Date.now();
+  if (req.method !== "POST") { res.status(405).end(); return; }
+  if (!L.hitOriginOk(req.get("origin") || "")) { res.status(403).end(); return; }
+  if (now - consentWindow > 60000) { consentWindow = now; consentCount = 0; }
+  if (++consentCount > 600) { res.status(429).end(); return; }
+  const raw = req.rawBody ? req.rawBody.toString("utf8") : (typeof req.body === "string" ? req.body : JSON.stringify(req.body || {}));
+  const c = raw.length <= 600 ? L.parseConsent(raw) : null;
+  if (!c) { res.status(400).end(); return; }
+  try {
+    await db.doc("consentLog/" + c.id + "_" + now).set(Object.assign({ at: now }, c));
+    res.status(204).end();
+  } catch (e) {
+    logger.warn("consent failed", { err: String(e).slice(0, 200) });
     res.status(500).end();
   }
 });

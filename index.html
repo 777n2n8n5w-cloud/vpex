@@ -3,7 +3,13 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-02-14">
+<meta name="vpex-build" content="2027-02-15">
+<!-- Scripts only from this site and Google's Firebase library; no plugins; no <base> or form hijacking. Inline scripts stay
+     allowed because the app is one file. (GitHub Pages can't send headers, so this is the strongest policy a page can set.) -->
+<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://www.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<!-- Cookie and tracking consent: loads first so nothing optional (Google Fonts, visit counts) runs before a choice. -->
+<script src="consent.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
 /* Signature themes: six themes only the VPEX owner's own login can use (sig/*.css, sig.js).
@@ -37,7 +43,7 @@ window.VPEX_SIG = [
     if (!m) return;
     var d = document.documentElement, b = ((document.querySelector('meta[name="vpex-build"]') || {}).content) || "";
     d.setAttribute("data-theme", t); d.classList.add("sig");
-    document.write('<link rel="stylesheet" id="sigCss" href="sig.css?b=' + b + '"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?' + m.gf + '&display=swap">');
+    document.write('<link rel="stylesheet" id="sigCss" href="sig.css?b=' + b + '">' + (window.VPEXConsent && !window.VPEXConsent.allowed("fonts") ? '' : '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?' + m.gf + '&display=swap">'));
   } catch (e) {}
 })();
 </script>
@@ -88,9 +94,11 @@ window.VPEX_SIG = [
 <meta http-equiv="Pragma" content="no-cache">
 <meta name="theme-color" content="#12151A" id="themeColorMeta">
 <meta http-equiv="Expires" content="0">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
+<link rel="preconnect" data-consent-href="https://fonts.googleapis.com">
+<link rel="preconnect" data-consent-href="https://fonts.gstatic.com" crossorigin>
+<link data-consent-href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
+<script>/* Google Fonts only with consent (consent.js). A copy without consent.js (a customer's own server) loads them as before. */
+(function () { if (window.VPEXConsent) { window.VPEXConsent.activateFonts(); return; } var l = document.querySelectorAll("link[data-consent-href]"); for (var i = 0; i < l.length; i++) l[i].href = l[i].getAttribute("data-consent-href"); })();</script>
 <style>
   :root {
     --interested: #6FA085;
@@ -9490,6 +9498,14 @@ body.tv-open { overflow: hidden; }
 }
 @media (prefers-reduced-motion: reduce) { #floorTv *, .tv-cele * { animation: none !important; transition: none !important; } .tv-conf { display: none; } }
 html[data-motion="off"] #floorTv *, html[data-motion="off"] .tv-cele * { animation: none !important; transition: none !important; }
+/* ----- Legal links (sales page, sign-in, paused screen, Settings) ----- */
+.legal-foot { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; margin: 14px auto 0; padding: 0 12px; font-size: 13px; }
+.legal-foot a, .legal-foot button { color: var(--text-dim, inherit); text-decoration: underline; text-underline-offset: 2px; background: none; border: 0; padding: 10px 2px; min-height: 44px; font: inherit; cursor: pointer; display: inline-flex; align-items: center; }
+.legal-foot a:hover, .legal-foot button:hover { color: var(--text, inherit); }
+.set-legal { justify-content: flex-start; padding: 0; margin-top: 6px; }
+.legal-agree { font-size: 12.5px; line-height: 1.45; color: var(--text-dim, inherit); margin: 12px 0 8px; }
+.legal-agree a { color: inherit; text-decoration: underline; }
+.lp-renew { max-width: 34em; }
 /* ----- Info boxes in sheets (Calendar on your phone) ----- */
 .li-box { border: 1px solid var(--border); border-radius: 12px; background: var(--surface-raised); padding: 10px 12px; margin: 10px 0; }
 .li-box b { display: block; font-size: 13px; color: var(--text-dim); font-weight: 600; margin-bottom: 4px; }
@@ -10046,9 +10062,11 @@ html[data-motion="off"] .modal-overlay { transition: none; }
     <p class="ps-text" id="psText"></p>
     <button class="btn-primary" id="psPay" type="button">Add payment</button>
     <div class="auth-hint" id="psPrice" style="text-align:center"></div>
+    <p class="legal-agree" style="text-align:center">Billed monthly by Stripe for each active rep. Renews automatically until you cancel; cancel any time. <a href="/terms/#billing" target="_blank" rel="noopener">Billing terms</a></p>
     <button class="btn-secondary ps-btn" id="psExport" type="button">Download my data</button>
     <button class="auth-link" id="psOut" type="button">Sign out</button>
     <a class="auth-support" href="mailto:support@vpexdialer.com?subject=VPEX%20account">Need help? support@vpexdialer.com</a>
+    <nav class="legal-foot" aria-label="Legal"><a href="/privacy/">Privacy Policy</a><a href="/terms/">Terms of Service</a><a href="/cookies/">Cookie Policy</a><button type="button" data-cookie-settings>Cookie settings</button></nav>
   </div>
 </div>
 <div class="auth-screen" id="authScreen" style="display:none">
@@ -10169,6 +10187,7 @@ html[data-motion="off"] .modal-overlay { transition: none; }
         <div class="hero-price lp-price">
           <div class="lp-price-top"><b>$49</b><span>per rep<br>per month</span></div>
           <p class="lp-price-note">Add or turn off reps any time, and your bill follows.</p>
+          <p class="lp-fine lp-renew">After the free trial, VPEX is a monthly subscription billed by Stripe for each active rep. It renews every month until you cancel, which you can do any time in Billing; it stops at the end of the month you’ve paid for. Prices are in US dollars, plus any applicable tax. <a class="lp-inlink" href="/terms/#billing">Billing terms</a></p>
           <ul class="lp-incl"><li>Power dialer and follow-ups</li><li>Shared list and live scoreboard</li><li>Setter-to-closer handoffs</li><li>Contests and the sales coach</li><li>List upload with Do Not Call skip</li><li>All 107 looks</li></ul>
           <button class="btn-primary lp-cta" type="button" data-lp-cta>Start my free trial</button>
           <p class="lp-fine">7 days free. No card to start.</p>
@@ -10204,6 +10223,7 @@ html[data-motion="off"] .modal-overlay { transition: none; }
       <input id="suPw" type="password" autocomplete="new-password">
       <label for="suPw2">Confirm password</label>
       <input id="suPw2" type="password" autocomplete="new-password">
+      <p class="legal-agree">By tapping Start my free trial, you agree to the <a href="/terms/" target="_blank" rel="noopener">Terms of Service</a> (including your responsibilities for calling rules) and confirm you’ve read the <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a>.</p>
       <button class="btn-primary" id="suGo">Start my free trial</button>
       <div class="auth-hint" style="text-align:center;margin-top:10px">7 days free. No card needed. Your reps call from their own phones.</div>
       <button class="btn-secondary su-buy" id="suBuy" type="button">Already sold? Buy now</button>
@@ -10229,6 +10249,7 @@ html[data-motion="off"] .modal-overlay { transition: none; }
       <input id="jnPw" type="password" autocomplete="new-password">
       <label for="jnPw2">Confirm password</label>
       <input id="jnPw2" type="password" autocomplete="new-password">
+      <p class="legal-agree">By joining, you agree to the <a href="/terms/" target="_blank" rel="noopener">Terms of Service</a> and confirm you’ve read the <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a>.</p>
       <button class="btn-primary" id="jnGo">Join the team</button>
       <button class="auth-link" id="jnBack" type="button">I already have a login</button>
     </div>
@@ -10253,6 +10274,7 @@ html[data-motion="off"] .modal-overlay { transition: none; }
       <div class="auth-note" id="authBuild"></div>
     </div>
     <a class="auth-support" href="mailto:support@vpexdialer.com">Questions? support@vpexdialer.com</a>
+    <nav class="legal-foot" aria-label="Legal"><a href="/privacy/">Privacy Policy</a><a href="/terms/">Terms of Service</a><a href="/cookies/">Cookie Policy</a><button type="button" data-cookie-settings>Cookie settings</button></nav>
   </div>
   <div class="lp-dock" id="lpDock"><button class="btn-primary" type="button" data-lp-cta tabindex="-1">Start my free trial</button><span>7 days free.<br>No card.</span></div>
 </div>
@@ -10403,6 +10425,7 @@ html[data-motion="off"] .modal-overlay { transition: none; }
       <div class="set-foot">
         <div id="setBuild">Updates install automatically after midnight.</div>
         <div id="updNote"></div>
+        <nav class="legal-foot set-legal" aria-label="Legal"><a href="/privacy/" target="_blank" rel="noopener">Privacy</a><a href="/terms/" target="_blank" rel="noopener">Terms</a><a href="/cookies/" target="_blank" rel="noopener">Cookies</a><button type="button" data-cookie-settings>Cookie settings</button><a href="mailto:support@vpexdialer.com?subject=Privacy%20request">Privacy request</a></nav>
       </div>
     </div>
     <div class="hub-view set-view" data-set-view="account" hidden style="--hc:var(--callback)">
@@ -10676,6 +10699,8 @@ html[data-motion="off"] .modal-overlay { transition: none; }
   // no cookies, no names, numbers or addresses. Only on vpexdialer.com, never in customer copies. Where the visit came from
   // (the utm_* tags on a post's link, or the site that sent them) is remembered on this phone for 30 days, so a sign-up
   // two days after tapping a post still counts for that post. The tags are then removed from the address bar.
+  // Consent (consent.js): counts are sent only with "Visit statistics" allowed (until then they wait on this page, and go
+  // if the visitor allows them); the 30-day memory is kept only with "Campaign attribution" allowed.
   var vpexHit = (function () {
     var url = "https://us-central1-dovetail-f863c.cloudfunctions.net/hit", on = false, attr = null, now = Date.now();
     try {
@@ -10691,12 +10716,13 @@ html[data-motion="off"] .modal-overlay { transition: none; }
       for (var i = 0; i < known.length; i++) if (known[i][0].test(h)) return known[i][1];
       return h.replace(/[^a-z0-9]+/g, "-").slice(0, 24);
     }
+    var C = window.VPEXConsent, ok = function (k) { return !C || C.allowed(k); }, waiting = [];
     try {
       var q = new URLSearchParams(location.search), src = q.get("utm_source");
       if (src) attr = { s: src, m: q.get("utm_medium") || "", c: q.get("utm_campaign") || "", n: q.get("utm_content") || "", t: now };
       else { var site = fromSite(); if (site) attr = { s: site, m: "referral", c: "", n: "", t: now }; }
-      if (attr) window.localStorage.setItem("vpex_attr", JSON.stringify(attr));
-      else { var old = JSON.parse(window.localStorage.getItem("vpex_attr") || "null"); if (old && now - old.t < 30 * 86400000) attr = old; }
+      if (attr) { if (ok("attribution")) window.localStorage.setItem("vpex_attr", JSON.stringify(attr)); }
+      else if (ok("attribution")) { var old = JSON.parse(window.localStorage.getItem("vpex_attr") || "null"); if (old && now - old.t < 30 * 86400000) attr = old; }
       if (src) {
         ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "utm_id"].forEach(function (k) { q.delete(k); });
         var rest = q.toString(); history.replaceState(null, "", location.pathname + (rest ? "?" + rest : "") + location.hash);
@@ -10705,6 +10731,7 @@ html[data-motion="off"] .modal-overlay { transition: none; }
     function send(e, extra) {
       if (!on) return false;
       extra = extra || {};
+      if (!ok("stats")) { if (waiting.length < 20) waiting.push([e, extra]); return false; }
       var key = "vpex_hit_" + e + (extra.i && e !== "visit" ? "_" + extra.i : "");
       try { if (e !== "signup") { if (window.sessionStorage.getItem(key)) return false; window.sessionStorage.setItem(key, "1"); } } catch (x) {}
       var a = attr || {}, body = JSON.stringify({ e: e, s: a.s || "direct", m: a.m || "", c: a.c || "", n: a.n || "", i: extra.i || "", o: extra.o || "",
@@ -10715,8 +10742,12 @@ html[data-motion="off"] .modal-overlay { transition: none; }
     }
     try {   // first time this phone opens VPEX from its Home Screen (the web app's "download")
       var home = window.navigator.standalone || (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
-      if (on && home && !window.localStorage.getItem("vpex_hit_home")) { window.localStorage.setItem("vpex_hit_home", "1"); setTimeout(function () { send("home_screen"); }, 0); }
+      if (on && home && ok("stats") && !window.localStorage.getItem("vpex_hit_home")) { window.localStorage.setItem("vpex_hit_home", "1"); setTimeout(function () { send("home_screen"); }, 0); }
     } catch (e) {}
+    if (C) C.onChange(function (c) {   // allowed later on this page: what happened so far is counted now; attribution saved now
+      if (c.attribution && attr) { try { window.localStorage.setItem("vpex_attr", JSON.stringify(attr)); } catch (e) {} }
+      if (c.stats) { var w = waiting; waiting = []; w.forEach(function (x) { send(x[0], x[1]); }); } else waiting = [];
+    });
     return send;
   })();
   // Offices. Every office is its own walled-off space in the one shared database (offices/{office}/...),
@@ -11698,12 +11729,15 @@ html[data-motion="off"] .modal-overlay { transition: none; }
   }
 
   // Each theme's typeface loads only while that theme is in use (or its card is on screen in the picker).
-  var gfLoaded = {};
+  var gfLoaded = {}, gfWaiting = {};
   function loadGF(q) {
-    if (!q || gfLoaded[q]) return; gfLoaded[q] = 1;
+    if (!q || gfLoaded[q]) return;
+    if (window.VPEXConsent && !window.VPEXConsent.allowed("fonts")) { gfWaiting[q] = 1; return; }   // Google Fonts only with consent; the device's fonts meanwhile
+    gfLoaded[q] = 1;
     var l = document.createElement("link"); l.rel = "stylesheet"; l.href = "https://fonts.googleapis.com/css2?" + q + "&display=swap";
     document.head.appendChild(l);
   }
+  if (window.VPEXConsent) window.VPEXConsent.onChange(function (c) { if (c.fonts) Object.keys(gfWaiting).forEach(function (q) { delete gfWaiting[q]; loadGF(q); }); });
   function themeById(id) {
     for (var i = 0; i < THEMES.length; i++) if (THEMES[i].id === id) return THEMES[i];
     for (var j = 0; j < SIG_THEMES.length; j++) if (SIG_THEMES[j].id === id) return SIG_THEMES[j];
@@ -14711,7 +14745,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     return LF_EXT[e] || "";
   }
   function lfOkType(t) {
-    return /^image\//.test(t) || /^(application\/(pdf|msword|vnd\.ms-excel|rtf)|application\/vnd\.openxmlformats-officedocument\.(wordprocessingml\.document|spreadsheetml\.sheet)|text\/(csv|plain|rtf))$/.test(t);
+    return (/^image\//.test(t) && !/svg|xml/.test(t)) || /^(application\/(pdf|msword|vnd\.ms-excel|rtf)|application\/vnd\.openxmlformats-officedocument\.(wordprocessingml\.document|spreadsheetml\.sheet)|text\/(csv|plain|rtf))$/.test(t);
   }
   function lfIsImg(f) { return /^image\//.test(f.t || f.type || ""); }
   function lfKind(f) {
@@ -17867,7 +17901,11 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       TEAM.auth = TEAM.app.auth();
       TEAM.db = TEAM.app.firestore();
       try { TEAM.db.settings({ cacheSizeBytes: 100 * 1048576 }); } catch (e) {}
-      try { TEAM.db.enablePersistence({ synchronizeTabs: true }).catch(function () {}); } catch (e) {}
+      var wipe = false; try { wipe = window.localStorage.getItem("vpex_wipe_cache") === "1"; } catch (e) {}
+      var persist = function () { try { TEAM.db.enablePersistence({ synchronizeTabs: true }).catch(function () {}); } catch (e) {} };
+      if (wipe && typeof TEAM.db.clearPersistence === "function") {   // a sign-out couldn't wipe the cached leads (another tab had them open): do it now, before anything loads
+        try { TEAM.db.clearPersistence().then(function () { try { window.localStorage.removeItem("vpex_wipe_cache"); } catch (e) {} }, function () {}).then(persist); } catch (e) { persist(); }
+      } else persist();
     } catch (e) {
       showAuthScreen("Couldn\u2019t reach the team server. Check your connection and reload.");
       return;
@@ -17882,6 +17920,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
   }
 
   function showAuthScreen(msg, connecting) {
+    if (!msg) { try { msg = window.sessionStorage.getItem("vpex_signout_msg") || ""; if (msg && !connecting) window.sessionStorage.removeItem("vpex_signout_msg"); } catch (e) {} }   // why the last sign-out happened, across the reload that wiped the device
     var s = document.getElementById("authScreen");
     s.style.display = "";
     document.getElementById("authMsg").textContent = msg || "";
@@ -18087,7 +18126,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       box.innerHTML = '<div class="pw-out" style="border-color:var(--notinterested)">' + escapeHtml((e && e.message) || "Couldn\u2019t reset it.") + '</div>';
     });
   }
-  function inviteCode() { var a = "abcdefghjkmnpqrstuvwxyz23456789", o = ""; for (var i = 0; i < 10; i++) o += a[Math.floor(Math.random() * a.length)]; return o; }
+  function inviteCode() { var a = "abcdefghjkmnpqrstuvwxyz23456789", o = "", r = new Uint32Array(10); try { crypto.getRandomValues(r); } catch (e) { for (var j = 0; j < 10; j++) r[j] = Math.floor(Math.random() * 4294967296); } for (var i = 0; i < 10; i++) o += a[r[i] % a.length]; return o; }   // crypto-random: an invite is a key to the office
   function authFail(id, t) { var m = document.getElementById("authMsg"); m.textContent = t; m.style.display = ""; var b = document.getElementById(id); if (b) { b.disabled = false; b.textContent = b.getAttribute("data-label") || b.textContent; } }
   async function dropUser(user) { try { await user.delete(); } catch (e) { try { await TEAM.auth.signOut(); } catch (e2) {} } }
   // Start free trial: the admin login, the office record, then straight into the app
@@ -18209,7 +18248,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
         return '<div class="bl-total"><span>' + n + ' active login' + (n === 1 ? '' : 's') + ' \u00d7 $' + p + '</span><b>$' + (n * p).toLocaleString() + ' / month</b></div>' +
           '<p class="oc-note">Every active login counts as a rep. Add or turn off reps in Team &amp; access and your bill updates automatically; Stripe charges or credits the difference for the rest of the month.</p>'; })() +
       (showPay && activeSeats() > 1 ? '<p class="oc-note">If checkout shows fewer reps than you have, VPEX corrects it the moment you pay and Stripe charges the difference.</p>' : '') +
-      (showPay ? '<button class="btn-primary" id="blPay" type="button" style="width:100%;margin-top:14px">Add payment</button>' : '') +
+      (showPay ? '<button class="btn-primary" id="blPay" type="button" style="width:100%;margin-top:14px">Add payment</button><p class="oc-note">Billed monthly by Stripe for each active rep. Renews automatically every month until you cancel; cancel any time in Manage billing or by emailing support, and it stops at the end of the month you\u2019ve paid for. <a href="/terms/#billing" target="_blank" rel="noopener">Billing terms</a></p>' : '') +
       (autoBilled(d) && d.payFailed ? '<button class="btn-primary" id="blFix" type="button" style="width:100%;margin-top:14px">Update card</button>' : '') +
       (function () { var c = myContact(); if (!TEAM.office || !c.known) return '';
         return '<div class="bl-contact"><div><b>Billing contact</b>' + (c.phone || c.email ? escapeHtml([c.phone, c.email].filter(Boolean).join(" \u00b7 ")) : 'None yet \u00b7 add one so VPEX can reach you') + '</div><button class="btn-secondary" id="blContact" type="button">' + (c.phone || c.email ? 'Edit' : 'Add') + '</button></div>'; })() +
@@ -18414,6 +18453,16 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     document.getElementById("authPw").value = "";
     document.getElementById("authPw2").value = "";
     try { await TEAM.auth.signOut(); } catch (e) {}
+    // The office's leads are cached on this device for offline use. Signing out wipes that copy, so the next person on a
+    // shared or lost phone or computer can't dig it out of the browser. Firestore can only be cleared once it's shut down,
+    // so the page reloads afterwards (the message, if any, is shown again after the reload).
+    if (!DEMO && !MOCKBENCH && !(TEAM.auth && TEAM.auth.currentUser) && TEAM.db && typeof TEAM.db.terminate === "function" && typeof TEAM.db.clearPersistence === "function") {
+      try { window.localStorage.setItem("vpex_wipe_cache", "1"); } catch (e) {}
+      try { await TEAM.db.terminate(); await TEAM.db.clearPersistence(); window.localStorage.removeItem("vpex_wipe_cache"); } catch (e) {}   // another tab still open: wiped on the next start
+      try { window.sessionStorage.setItem("vpex_signout_msg", msg || ""); } catch (e) {}
+      location.reload();
+      return;
+    }
     TEAM.signingOut = false;
     render();
     showAuthScreen(msg || "");
@@ -23667,7 +23716,8 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       var vb = document.getElementById("heroVidBtn");
       function vidBtn() { var v = document.getElementById("heroVid"); if (!vb) return; if (!v || v.tagName !== "VIDEO") { vb.style.display = "none"; return; }
         vb.classList.toggle("paused", !!v.paused); vb.setAttribute("aria-label", v.paused ? "Play the tour" : "Pause the tour"); }
-      try { if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) { TEAM.heroPaused = true; var v0 = document.getElementById("heroVid"); if (v0) { v0.removeAttribute("autoplay"); v0.pause(); } } } catch (e) {}
+      try { if ((window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) || (navigator.connection && navigator.connection.saveData)) { TEAM.heroPaused = true;   // reduced motion or Data Saver: no 2.7 MB tour unless they tap play
+        var v0 = document.getElementById("heroVid"); if (v0) { v0.removeAttribute("autoplay"); v0.pause(); } } } catch (e) {}
       if (vb) vb.addEventListener("click", function () { var v = document.getElementById("heroVid"); if (!v || v.tagName !== "VIDEO") return;
         if (v.paused) { TEAM.heroPaused = false; var pp = v.play(); if (pp && pp.catch) pp.catch(function () {}); } else { TEAM.heroPaused = true; v.pause(); } setTimeout(vidBtn, 60); });
       var hv0 = document.getElementById("heroVid"); if (hv0) { hv0.addEventListener("play", vidBtn); hv0.addEventListener("pause", vidBtn); hv0.addEventListener("error", function () { setTimeout(vidBtn, 0); }); }

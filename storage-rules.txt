@@ -8,9 +8,10 @@ service firebase.storage {
       return signedIn() && request.auth.token.email == 'vincent@dovetail-f863c.firebaseapp.com';
     }
     // A new file: a photo or an office document, 20 MB at most, labelled with who added it and which lead it's for.
+    // Photos are listed by type: an SVG "image" can carry a script, so it's refused like a web page.
     function okFile(lead) {
       return request.resource.size > 0 && request.resource.size <= 20 * 1024 * 1024
-        && request.resource.contentType.matches('image/[a-z0-9.+-]+|application/pdf|application/msword|application/vnd[.]ms-excel|application/rtf|application/vnd[.]openxmlformats-officedocument[.](wordprocessingml[.]document|spreadsheetml[.]sheet)|text/(csv|plain|rtf)')
+        && request.resource.contentType.matches('image/(png|jpeg|gif|webp|heic|heif|avif|bmp|tiff)|application/pdf|application/msword|application/vnd[.]ms-excel|application/rtf|application/vnd[.]openxmlformats-officedocument[.](wordprocessingml[.]document|spreadsheetml[.]sheet)|text/(csv|plain|rtf)')
         && request.resource.metadata.uid == request.auth.uid
         && request.resource.metadata.lead == lead;
     }

@@ -1,0 +1,25 @@
+# GitHub Pages publishes this repository as vpexdialer.com. Only the website itself should be reachable there:
+# everything below is source, tooling, tests or internal material, and is left out of the published site.
+# (Files and folders starting with "." or "_" are left out automatically.) Folders keep their trailing "/": Jekyll matches
+# an entry by prefix, so a bare "sig" would also drop the live sig.css and sig.js.
+exclude:
+  - tests/
+  - tools/
+  - studio/
+  - instagram/
+  - instagram-bot/
+  - scripts/
+  - functions/
+  - vx/
+  - sig/
+  - "*.py"
+  - "*.txt.bak"
+  - firestore-rules.txt
+  - storage-rules.txt
+  - firebase.json
+  - Gemfile
+  - Gemfile.lock
+  - node_modules/
+  - vendor/
+include:
+  - robots.txt

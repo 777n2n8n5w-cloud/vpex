@@ -9,6 +9,9 @@
 <meta name="theme-color" content="#0D1224">
 <link rel="icon" href="/vpex-icon-64.png">
 <link rel="apple-touch-icon" href="/vpex-icon-180.png">
+<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<script src="/consent.js"></script>
 <script>
 // Old, shortened or mistyped addresses go straight to the right page (keeping any ?utm tags), before anything is drawn.
 (function () {
@@ -74,7 +77,7 @@
   function count(moved) {
     var HIT = "https://us-central1-dovetail-f863c.cloudfunctions.net/hit", on = /(^|\.)vpexdialer\.com$/.test(location.hostname);
     try { if (!on && /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && localStorage.getItem("vpex_hit_test")) { on = true; HIT = localStorage.getItem("vpex_hit_test"); } } catch (e) {}
-    if (!on) return;
+    if (!on || (window.VPEXConsent && !window.VPEXConsent.allowed("stats"))) return;   // only with consent to visit statistics (consent.js)
     var p = location.pathname; try { p = decodeURIComponent(p); } catch (e) {}
     p = p.toLowerCase().split("/").map(function (x) { return x.indexOf("@") >= 0 ? "email" : x.replace(/\d{5,}/g, "n"); }).join("/").replace(/^\/+|\/+$/g, "").slice(0, 60) || "-";
     var body = JSON.stringify({ e: "lost", s: src.s || "direct", m: moved ? "moved" : "404", c: p, n: "", i: "", d: /Mobi|iPhone|iPad|Android/i.test(navigator.userAgent || "") ? "m" : "d" });
@@ -163,7 +166,7 @@
     <a href="/mojo-dialer-alternative/">Mojo Dialer</a>
   </nav>
 
-  <footer><a href="/">vpexdialer.com</a><a href="mailto:support@vpexdialer.com">support@vpexdialer.com</a></footer>
+  <footer><a href="/">vpexdialer.com</a><a href="mailto:support@vpexdialer.com">support@vpexdialer.com</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="/cookies/">Cookies</a><a href="/cookies/#settings" data-cookie-settings>Cookie settings</a></footer>
 </main>
 <script>
   // Links to the app pages keep the outside source this visitor came from (see vpex404Tag above).
