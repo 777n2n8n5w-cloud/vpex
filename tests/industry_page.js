@@ -61,7 +61,7 @@ const PAGES = [
   const br = await chromium.launch();
   for (const P of PAGES) for (const c of CONFIGS) {
     const N = P.k + ' ' + c.n;
-    const ctx = await br.newContext({ viewport: { width: c.w, height: c.h }, colorScheme: c.s, isMobile: c.w < 500, hasTouch: c.w < 500 });
+    const ctx = await br.newContext({ viewport: { width: c.w, height: c.h }, colorScheme: c.s, isMobile: c.w < 500, hasTouch: c.w < 500, timezoneId: 'America/New_York' });   // US visitor: attribution on by default (consent.js)
     const page = await ctx.newPage(); const errs = []; page.on('pageerror', e => errs.push(e.message)); await page.route(/fonts\.g/, r => r.abort());
     const t0 = Date.now(); await page.goto(ROOT + P.dir + '/', { waitUntil: 'load' }); const lt = Date.now() - t0;
     check(N + ': loads under 3 s', lt < 3000, lt);

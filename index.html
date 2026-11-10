@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-02-15">
+<meta name="vpex-build" content="2027-02-16">
 <!-- Scripts only from this site and Google's Firebase library; no plugins; no <base> or form hijacking. Inline scripts stay
      allowed because the app is one file. (GitHub Pages can't send headers, so this is the strongest policy a page can set.) -->
 <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://www.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self'">
@@ -7455,6 +7455,13 @@ window.VPEX_SIG = [
   .lp-dock span { flex: none; font-size: 12px; line-height: 1.3; font-weight: 600; color: var(--text-dim); }
 
   @media (prefers-reduced-motion: reduce) { .lp-tag { animation: none; } #authScreen.landing .lp-dock { transition: none; } }
+  /* while the privacy notice (consent.js) sits at the bottom, --vc-h is its height: the trial bar, the follow-up/trial card
+     and computer toasts stay above it, and pages scroll their last lines clear of it */
+  html.vc-on #authScreen.landing .lp-dock { bottom: var(--vc-h); }
+  html.vc-on #authScreen.landing .lp-dock:not(.on) { transform: translateY(calc(110% + var(--vc-h))); }
+  html.vc-on #authScreen.landing { padding-bottom: calc(var(--vc-h) + 24px); }
+  html.vc-on .text-prompt { bottom: calc(var(--vc-h) + 8px); }
+  html.vc-on body.desk .toast { bottom: calc(var(--vc-h) + 12px); }
   @media (max-width: 899px) { .lp-tag { display: none; } .lp-reel { width: min(76%, 300px); } }   /* on a phone the tour gets the full stage; nothing covers its words */
   @media (min-width: 900px) {
     #authScreen.landing { padding-left: 40px; padding-right: 40px; padding-bottom: 60px; }

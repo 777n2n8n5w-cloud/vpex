@@ -126,7 +126,16 @@
     ".vc-sw i:after{content:'';position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .15s}" +
     ".vc-sw input:checked+i{background:#16a34a}.vc-sw input:checked+i:after{transform:translateX(20px)}.vc-sw input:focus-visible+i{outline:3px solid var(--vc-focus);outline-offset:2px}" +
     ".vc-note{font-size:12.5px;color:var(--vc-dim);margin:10px 0 0}" +
-    "@media (prefers-reduced-motion:reduce){.vc-sw i,.vc-sw i:after{transition:none}}";
+    "@media (prefers-reduced-motion:reduce){.vc-sw i,.vc-sw i:after{transition:none}}" +
+    // US notice (opt-out region): the same choices in about half the height, so it doesn't sit on the page's own buttons.
+    ".vc-bar.vc-compact{padding:12px 14px;border-radius:14px}" +
+    ".vc-compact h2{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}" +
+    ".vc-bar.vc-compact p{font-size:13px;line-height:1.4;margin:0 0 10px}" +
+    ".vc-compact .vc-row{flex-wrap:nowrap;gap:6px}.vc-compact .vc-row button{flex:1 1 0;min-width:0;padding:0 8px;font-size:14px}" +
+    "@media (min-width:900px){.vc-bar.vc-compact{display:flex;align-items:center;gap:16px;max-width:980px}.vc-bar.vc-compact p{margin:0;flex:1}" +
+    ".vc-compact .vc-row{flex:none}.vc-compact .vc-row button{flex:none;padding:0 16px}}" +
+    // While the bar shows, pages can keep their own bottom buttons above it (--vc-h = its height + gap) and scroll past it.
+    "html.vc-on body{padding-bottom:var(--vc-h,0px)}";
   var root = null, bar = null, scrim = null, lastFocus = null;
   function el(tag, attrs, html) { var e = document.createElement(tag); for (var k in attrs || {}) e.setAttribute(k, attrs[k]); if (html != null) e.innerHTML = html; return e; }
   function ensureRoot() {
@@ -138,18 +147,32 @@
   function intro() {
     return REGION === "optin"
       ? "We’d like to load Google’s fonts and count visits anonymously. Nothing optional runs until you choose. Your choice applies to vpexdialer.com on this device."
-      : "We load Google’s fonts and count visits anonymously (no ads, no selling, no cross-site tracking). You can turn any of it off." + (GPC ? " Your browser’s Global Privacy Control is on, so statistics and attribution are already off." : "");
+      : "VPEX loads Google’s fonts and counts visits anonymously. No ads, no selling, no cross-site tracking." + (GPC ? " Your browser’s Global Privacy Control is on, so statistics and attribution are already off." : "");
   }
   function showBanner() {
     if (!document.body) { document.addEventListener("DOMContentLoaded", showBanner); return; }
     if (bar || current() || AUTOMATED) return;
     ensureRoot();
-    bar = el("section", { "class": "vc-bar", role: "region", "aria-label": "Cookie choices", id: "vcBar" },
+    bar = el("section", { "class": "vc-bar" + (REGION === "optout" ? " vc-compact" : ""), role: "region", "aria-label": "Cookie choices", id: "vcBar" },
       '<h2 id="vcBarH">Your privacy choices</h2><p>' + intro() + ' <a href="/cookies/">Cookie Policy</a> · <a href="/privacy/">Privacy Policy</a></p>' +
       '<div class="vc-row"><button type="button" class="vc-main" data-vc="accept">Accept all</button><button type="button" class="vc-main" data-vc="reject">Reject all</button><button type="button" data-vc="choose">Choose</button></div>');
     root.appendChild(bar);
+    space();
+    if (window.ResizeObserver) { ro = new ResizeObserver(space); ro.observe(bar); } else window.addEventListener("resize", space);
   }
-  function hideBanner() { if (bar && bar.parentNode) bar.parentNode.removeChild(bar); bar = null; }
+  var ro = null;
+  function space() {   // --vc-h on <html>: the bar's height plus its gap to the bottom edge (0 when no bar)
+    var de = document.documentElement, h = 0;
+    if (bar && bar.parentNode) { var r = bar.getBoundingClientRect(); h = Math.max(0, Math.ceil(window.innerHeight - r.top)); }
+    if (h) { de.style.setProperty("--vc-h", h + "px"); de.classList.add("vc-on"); }
+    else { de.style.removeProperty("--vc-h"); de.classList.remove("vc-on"); }
+  }
+  function hideBanner() {
+    if (bar && bar.parentNode) bar.parentNode.removeChild(bar);
+    bar = null;
+    if (ro) { ro.disconnect(); ro = null; }
+    space();
+  }
   function open() {
     if (!document.body) { document.addEventListener("DOMContentLoaded", open); return; }
     ensureRoot();

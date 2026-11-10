@@ -50,7 +50,7 @@ const server = http.createServer((req, res) => {
     ['/phoneburner', '/phoneburner-alternative/'], ['/mojo', '/mojo-dialer-alternative/'], ['/batchdialer/', '/batchdialer-alternative/'],
   ];
   {
-    const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+    const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, timezoneId: 'America/New_York' });
     const page = await ctx.newPage(); const errs = []; page.on('pageerror', e => errs.push(e.message));
     await page.route(block, r => r.abort());
     const bad = [];
@@ -90,7 +90,7 @@ const server = http.createServer((req, res) => {
   // 3. The page itself, at phone and computer sizes, dark and light
   const CONF = [{ n: '390 dark', w: 390, h: 844, s: 'dark', m: true }, { n: '390 light', w: 390, h: 844, s: 'light', m: true }, { n: '320 light', w: 320, h: 640, s: 'light', m: true }, { n: '1280 dark', w: 1280, h: 860, s: 'dark', m: false }];
   for (const c of CONF) {
-    const ctx = await br.newContext({ viewport: { width: c.w, height: c.h }, colorScheme: c.s, isMobile: c.m, hasTouch: c.m });
+    const ctx = await br.newContext({ viewport: { width: c.w, height: c.h }, colorScheme: c.s, isMobile: c.m, hasTouch: c.m, timezoneId: 'America/New_York' });
     const page = await ctx.newPage(); const errs = []; page.on('pageerror', e => errs.push(e.message));
     await page.route(block, r => r.abort());
     const t0 = Date.now();
@@ -126,7 +126,7 @@ const server = http.createServer((req, res) => {
   }
   // 4. Counting (functions/ "hit", step "lost") and passing an outside source on to the app pages
   {
-    const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+    const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, timezoneId: 'America/New_York' });
     await ctx.addInitScript(() => { try { localStorage.setItem('vpex_hit_test', location.origin + '/__hit'); } catch (e) {} });
     const page = await ctx.newPage(); const errs = []; page.on('pageerror', e => errs.push(e.message));
     await page.route(block, r => r.abort());
@@ -169,7 +169,7 @@ const server = http.createServer((req, res) => {
     check('no page errors (counting)', !errs.length, errs);
     await ctx.close();
     // Counting is off unless the page is on vpexdialer.com (or a test turns it on)
-    const c2 = await br.newContext(); const p2 = await c2.newPage(); await p2.route(block, r => r.abort());
+    const c2 = await br.newContext({ timezoneId: 'America/New_York' }); const p2 = await c2.newPage(); await p2.route(block, r => r.abort());
     HITS.length = 0; await p2.goto(BASE + '/nothing-here'); await p2.waitForTimeout(400);
     check('count: off on other hosts', !HITS.length, HITS);
     await c2.close();

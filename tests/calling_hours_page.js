@@ -103,7 +103,7 @@ const legal = /Based on published state rules as of [A-Z][a-z]+ \d{4}\. Not lega
   }
   // 3. Links out carry the source; a demo link lands in the demo with "calling-hours" remembered for sign-up credit
   {
-    const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+    const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, timezoneId: 'America/New_York' });   // a US visitor: attribution on by default (consent.js)
     const page = await ctx.newPage(); const errs = []; page.on('pageerror', e => errs.push(e.message));
     await page.route(/gstatic\.com\/firebasejs|fonts\.googleapis|cloudfunctions/, r => r.abort());
     await page.goto(BASE + 'calling-hours/'); await page.waitForTimeout(300);

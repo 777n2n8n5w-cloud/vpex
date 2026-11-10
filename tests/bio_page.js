@@ -8,7 +8,7 @@ let pass = 0, fail = 0; const check = (n, ok, i) => { if (ok) pass++; else { fai
 const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 400.0.0';
 const NOW = new Date('2026-10-24T16:00:00-04:00');   // a Saturday afternoon in week 4b
 async function mk(br, c) {
-  const ctx = await br.newContext({ viewport: { width: c.w, height: 844 }, colorScheme: c.s, isMobile: c.w < 500, hasTouch: c.w < 500, userAgent: c.w < 500 ? IPHONE : undefined });
+  const ctx = await br.newContext({ viewport: { width: c.w, height: 844 }, colorScheme: c.s, isMobile: c.w < 500, hasTouch: c.w < 500, timezoneId: 'America/New_York', userAgent: c.w < 500 ? IPHONE : undefined });
   await ctx.addInitScript(u => { try { localStorage.setItem('vpex_hit_test', u); } catch (e) {} }, HIT);
   const p = await ctx.newPage(); const errs = [], hits = [];
   await p.clock.install({ time: NOW });

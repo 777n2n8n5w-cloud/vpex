@@ -6,7 +6,7 @@ const BASE = (process.env.BASE || 'http://127.0.0.1:8765/index.html'), OUT = (pr
 const HIT = 'http://127.0.0.1:8765/__hit';
 let pass = 0, fail = 0; const check = (n, ok, i) => { if (ok) pass++; else { fail++; console.log('FAIL', n, i === undefined ? '' : JSON.stringify(i)); } };
 async function mk(br, opt = {}) {
-  const ctx = await br.newContext({ viewport: { width: opt.w || 390, height: 844 }, isMobile: (opt.w || 390) < 500, hasTouch: (opt.w || 390) < 500,
+  const ctx = await br.newContext({ viewport: { width: opt.w || 390, height: 844 }, isMobile: (opt.w || 390) < 500, hasTouch: (opt.w || 390) < 500, timezoneId: opt.tz || 'America/New_York',   // US visitor: counts on by default (consent.js)
     userAgent: opt.ua || 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1', colorScheme: 'dark' });
   if (opt.test !== false) await ctx.addInitScript(u => { try { if (!localStorage.getItem('vpex_hit_test')) localStorage.setItem('vpex_hit_test', u); } catch (e) {} }, HIT);
   if (opt.init) await ctx.addInitScript(opt.init);
