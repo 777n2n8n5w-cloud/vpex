@@ -220,6 +220,13 @@ check('push: moved says so', /moved their call/.test(L.bookMessage('acme', 'l1',
     check(c.n + ' page: no errors', !berrs.length, berrs);
     await bctx.close();
   }
+  {
+    const html = require('fs').readFileSync(__dirname + '/../book/index.html', 'utf8');
+    check('link preview: a title that says what it is', /<title>Pick a time for your call<\/title>/.test(html) && /<meta property="og:title" content="Pick a time for your call">/.test(html));
+    check('link preview: an icon for Messages (apple-touch-icon, 180 px PNG)', /<link rel="apple-touch-icon" href="\/book\/book-icon-180\.png">/.test(html));
+    const png = require('fs').readFileSync(__dirname + '/../book/book-icon-180.png');
+    check('link preview: the icon file is a 180 x 180 PNG', png.slice(1, 4).toString() === 'PNG' && png.readUInt32BE(16) === 180 && png.readUInt32BE(20) === 180);
+  }
   check('robots.txt keeps booking pages out of search', /Disallow: \/book\//.test(require('fs').readFileSync(__dirname + '/../robots.txt', 'utf8')));
   await br.close();
   console.log('book_link: ' + pass + ' passed, ' + fail + ' failed');

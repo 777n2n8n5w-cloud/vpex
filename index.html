@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-02-17">
+<meta name="vpex-build" content="2027-02-18">
 <!-- Scripts only from this site and Google's Firebase library; no plugins; no <base> or form hijacking. Inline scripts stay
      allowed because the app is one file. (GitHub Pages can't send headers, so this is the strongest policy a page can set.) -->
 <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://www.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self'">
@@ -21542,7 +21542,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
   function bookLink(lead) { return BOOK_PAGE + "vb_" + (TEAM.office || "") + "_" + lead.id + "_" + BK.secret; }
   function bookMsgDefault(lead) {
     var me = firstName(((textSettings().myName || "") + "").trim() || (TEAM.me && TEAM.me.name) || ""), co = currentCompany();
-    return "Hi " + textFirstName(lead.name) + (me ? ", it’s " + me + (co ? " with " + co : "") : "") + ". Here are some times I can call you. Pick whichever works best:";
+    return "Hi " + textFirstName(lead.name) + (me ? ", it’s " + me + (co ? " with " + co : "") : "") + ". Here are some times I can call you. Tap the link to pick the one that works best:";
   }
   function hmLabel(m) { var h = Math.floor(m / 60), mi = m % 60; return (h % 12 || 12) + (mi ? ":" + String(mi).padStart(2, "0") : "") + (h < 12 || h === 24 ? " AM" : " PM"); }
   function openBookSheet(leadId) {
