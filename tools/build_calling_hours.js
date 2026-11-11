@@ -27,6 +27,8 @@ function legalFrom(src) {
   if (!m) throw new Error('compliance line not found in index.html');
   return m[0];
 }
+// Hand-written explainer pages (not built here), linked from their state's facts box and listed in the sitemap.
+const EXPLAIN = { PA: ['/calling-hours/pennsylvania/2026-law-changes/', 'What changed in Pennsylvania on Oct 18, 2026 →'] };
 const slug = st => NAMES[st].toLowerCase().replace(/[^a-z]+/g, '-');
 const ZONE_WORD = { 'America/New_York': 'Eastern', 'America/Chicago': 'Central', 'America/Denver': 'Mountain', 'America/Phoenix': 'Mountain (Arizona doesn’t change clocks)',
   'America/Los_Angeles': 'Pacific', 'America/Anchorage': 'Alaska', 'Pacific/Honolulu': 'Hawaii (no daylight saving)' };
@@ -78,7 +80,8 @@ function build(only) {
       row('Federal holidays', r.hol ? 'No sales calls (including the weekday a holiday is observed on)' : 'Normal hours') +
       row('Calls per person', r.max3 ? 'No more than 3 in 24 hours' : 'No state limit in VPEX’s rules') +
       row('Time zone', (ZONE_WORD[z.iana] || z.iana) + (SPLIT[st] ? '. Note: ' + SPLIT[st] + '.' : '')) +
-      '</dl>\n    <p class="fine">' + summary(st) + ' Rules that only cover autodialers or prerecorded messages aren’t included. ' + legal + '</p>\n  </section>\n';
+      '</dl>\n    <p class="fine">' + summary(st) + ' Rules that only cover autodialers or prerecorded messages aren’t included. ' + legal + '</p>\n' +
+      (EXPLAIN[st] ? '    <a class="more" href="' + EXPLAIN[st][0] + '">' + EXPLAIN[st][1] + '</a>\n' : '') + '  </section>\n';
   }
   function page(st) {
     const n = st && NAMES[st];
@@ -113,7 +116,7 @@ function buildAll() {
   return out;
 }
 function siteUrls() {
-  return ['/', '/phoneburner-alternative/', '/batchdialer-alternative/', '/mojo-dialer-alternative/', '/power-dialer-for-insurance-agents/', '/power-dialer-for-real-estate-agents/', '/power-dialer-for-business-funding/', '/power-dialer-for-auto-sales/', '/power-dialer-for-solar-sales/', '/calling-hours/'].concat(Object.keys(NAMES).sort((a, b) => NAMES[a].localeCompare(NAMES[b])).map(st => '/calling-hours/' + slug(st) + '/'));
+  return ['/', '/phoneburner-alternative/', '/batchdialer-alternative/', '/mojo-dialer-alternative/', '/power-dialer-for-insurance-agents/', '/power-dialer-for-real-estate-agents/', '/power-dialer-for-business-funding/', '/power-dialer-for-auto-sales/', '/power-dialer-for-solar-sales/', '/calling-hours/'].concat(Object.keys(EXPLAIN).map(st => EXPLAIN[st][0]), Object.keys(NAMES).sort((a, b) => NAMES[a].localeCompare(NAMES[b])).map(st => '/calling-hours/' + slug(st) + '/'));
 }
 function sitemap() {
   const urls = siteUrls();
