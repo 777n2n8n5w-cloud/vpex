@@ -8069,16 +8069,24 @@ window.VPEX_SIG = [
   .tz-go:disabled { color: var(--text-faint); cursor: default; }
   .tz-note { font-size: 12px; color: var(--text-faint); margin-top: 12px; line-height: 1.45; }
   /* Booking links: let the lead pick a time */
-  .lp-book { display: flex; align-items: center; gap: 12px; width: 100%; margin: 10px 0 0; padding: 11px 14px; text-align: left; font: inherit; color: var(--text); cursor: pointer;
-    border: 1px dashed color-mix(in srgb, var(--accent) 45%, var(--border)); border-radius: var(--radius-m, 12px); background: color-mix(in srgb, var(--accent) 5%, transparent); }
-  .lp-book.ok { border-style: solid; border-color: color-mix(in srgb, var(--interested) 55%, var(--border)); background: color-mix(in srgb, var(--interested) 8%, transparent); }
-  .lp-book.wait { border-style: solid; }
-  .lp-book-ic { flex: none; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
-  .lp-book.ok .lp-book-ic { color: var(--interested); background: color-mix(in srgb, var(--interested) 14%, transparent); }
-  .lp-book-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-  .lp-book-t b { font-size: 14.5px; }
-  .lp-book-t small { font-size: 12.5px; color: var(--text-dim); }
-  .lp-book-go { flex: none; font-size: 22px; color: var(--text-faint); line-height: 1; }
+  .lp-book { display: flex; align-items: center; justify-content: center; gap: 9px; width: 100%; min-height: 50px; margin: 10px 0 0; padding: 0 16px; font: inherit; font-size: 15.5px; font-weight: 700; cursor: pointer;
+    color: var(--accent); border: 1.5px solid color-mix(in srgb, var(--accent) 55%, transparent); border-radius: var(--radius-m, 12px); background: color-mix(in srgb, var(--accent) 9%, transparent); }
+  .lp-book:active { background: color-mix(in srgb, var(--accent) 16%, transparent); }
+  .lp-book svg { width: 20px; height: 20px; flex: none; }
+  .lp-book-sub { margin: 6px 0 0; text-align: center; font-size: 12.5px; color: var(--text-dim); }
+  .lp-book-sub.ok { color: var(--interested); font-weight: 600; }
+  .bk-phone { margin: 14px 0 0; padding: 16px 14px; border-radius: 16px; background: color-mix(in srgb, var(--text) 5%, var(--surface)); display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+  .bk-bubble { max-width: 86%; padding: 9px 13px; border-radius: 18px 18px 4px 18px; background: #2f7bff; color: #fff; font-size: 14.5px; line-height: 1.35; cursor: text; white-space: pre-wrap; word-break: break-word; }
+  .bk-card { width: 70%; max-width: 250px; border-radius: 16px; overflow: hidden; background: color-mix(in srgb, var(--text) 10%, var(--surface)); }
+  .bk-card img { display: block; width: 100%; height: auto; aspect-ratio: 1200 / 630; }
+  .bk-card div { padding: 7px 11px 9px; display: flex; flex-direction: column; }
+  .bk-card b { font-size: 13px; color: var(--text); }
+  .bk-card span { font-size: 11.5px; color: var(--text-faint); }
+  .bk-send { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 54px; margin-top: 14px; font-size: 17px; font-weight: 700; text-decoration: none; border-radius: var(--radius-m, 12px); }
+  .bk-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 6px; margin-top: 10px; }
+  .bk-link { border: 0; background: none; color: var(--accent); font: inherit; font-size: 13.5px; font-weight: 600; padding: 8px 8px; min-height: 36px; cursor: pointer; }
+  .bk-link:disabled { color: var(--text-faint); }
+  .bk-edit { margin-top: 12px; }
   .fu-when { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
   .fu-booklink { display: inline-flex; align-items: center; gap: 6px; margin: -12px -8px -12px auto; padding: 12px 8px; border: 0; background: none; text-transform: none; letter-spacing: 0;
     color: var(--accent); font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; }
@@ -8089,7 +8097,7 @@ window.VPEX_SIG = [
   .bk-status span { grid-column: 1; font-size: 12.5px; color: var(--text-dim); }
   .bk-status.ok { border-color: color-mix(in srgb, var(--interested) 55%, var(--border)); }
   .bk-off { grid-column: 2; grid-row: 1 / span 2; border: 1px solid var(--border); background: none; color: var(--text-dim); font: inherit; font-size: 13px; font-weight: 600; border-radius: 999px; padding: 6px 12px; min-height: 34px; cursor: pointer; }
-  .bk-sec { margin-top: 16px; }
+  .bk-sec { margin-top: 10px; padding-top: 12px; border-top: 1px solid var(--border); }
   .bk-k { display: block; font-size: 12.5px; font-weight: 700; color: var(--text-dim); margin-bottom: 8px; }
   .bk-hrs { display: flex; align-items: center; gap: 10px; }
   .bk-hrs select { flex: 1; min-width: 0; min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font: inherit; font-size: 15px; }
@@ -8097,14 +8105,13 @@ window.VPEX_SIG = [
   .bk-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 10px; }
   .bk-day { min-height: 40px; border-radius: 10px; border: 1px solid var(--border); background: none; color: var(--text-dim); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; padding: 0; }
   .bk-day.on { background: var(--accent-fill, var(--accent)); border-color: transparent; color: var(--accent-text, #fff); }
-  .bk-prev { margin: 12px 0 0; font-size: 13.5px; line-height: 1.45; color: var(--text-dim); }
+  .bk-prev { margin: 10px 0 0; text-align: center; font-size: 13px; line-height: 1.45; color: var(--text-dim); }
   .bk-prev b { color: var(--text); }
   .bk-prev.none { color: var(--notinterested); }
   #bkMsg { width: 100%; box-sizing: border-box; min-height: 84px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font: inherit; font-size: 15px; line-height: 1.4; resize: vertical; }
   .bk-note { margin: 6px 0 0; font-size: 12px; color: var(--text-faint); }
   .bk-note.warn { color: var(--callback); font-size: 13px; }
   #bkSend[aria-disabled="true"], #bkSend.is-off { opacity: .55; }
-  #bkSend { display: flex; align-items: center; justify-content: center; text-align: center; text-decoration: none; line-height: 1.2; }
   .lp-stat-over b { color: var(--notinterested); }
   .pipe-filters { margin: 2px 0 12px; flex-wrap: wrap; overflow: visible; row-gap: 8px; } .pipe-filters .pf-over.active { background: var(--notinterested); border-color: var(--notinterested); color: #fff; }
   .pipe-summary .warn[role="button"] { cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
@@ -15414,9 +15421,11 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
   function lpBookHtml(lead) {
     if (lead.dnc || !(lead.phone || lead.phoneRaw)) return "";
     var p = bookPicked(lead), live = bookLive(lead), f = escapeHtml(firstName(lead.name) || "them");
-    var sub = p ? "Booked for " + escapeHtml(whenLc(p)) + " from your link" : live ? "Link sent " + escapeHtml(new Date(lead.book.at).toLocaleDateString("en-US", { month: "short", day: "numeric" })) + " · waiting for " + f + " to pick" : "Text " + f + " times to choose from";
-    return '<button type="button" class="lp-book' + (p ? ' ok' : live ? ' wait' : '') + '" data-book-lead="' + lead.id + '"><span class="lp-book-ic">' + calIconSvg() + '</span><span class="lp-book-t"><b>Let ' + f + ' pick a time</b><small>' + sub + '</small></span><span class="lp-book-go" aria-hidden="true">›</span></button>';
+    var sub = p ? f + " booked " + escapeHtml(whenLc(p)) : live ? "Sent " + escapeHtml(new Date(lead.book.at).toLocaleDateString("en-US", { month: "short", day: "numeric" })) + " · waiting for " + f + " to pick" : "";
+    return '<button type="button" class="lp-book' + (p ? ' ok' : live ? ' wait' : '') + '" data-book-lead="' + lead.id + '">' + calIconSvg() + '<span>' + (p || live ? 'Send a new booking link' : 'Send booking link') + '</span></button>' +
+      (sub ? '<p class="lp-book-sub' + (p ? ' ok' : '') + '">' + sub + '</p>' : '');
   }
+
   function lpNextHtml(lead) {
     var n = nextInfo(lead);
     if (!n.t) return n.st === "none" ? '<button type="button" class="lp-next nx-none" data-set-next="' + lead.id + '"><span class="lp-next-k">Next step</span><b>None set</b><span>Set what happens next with ' + escapeHtml(firstName(lead.name)) + ' and when</span><span class="lp-next-go">Set next step</span></button>' : '';
@@ -21549,7 +21558,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     var lead = findLeadById(leadId); if (!lead) return;
     if (BK.leadId !== leadId || !BK.secret) {
       var raw = new Uint8Array(32); crypto.getRandomValues(raw);
-      BK = { leadId: leadId, secret: hexOf(raw), hash: null, msg: null };
+      BK = { leadId: leadId, secret: hexOf(raw), hash: null, msg: null, hours: false, edit: false };
       var mine = BK;
       crypto.subtle.digest("SHA-256", new TextEncoder().encode(BK.secret)).then(function (h) { mine.hash = hexOf(h); var b = document.getElementById("bkSend"); if (b) b.removeAttribute("aria-disabled"); });
     }
@@ -21559,26 +21568,36 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     var lead = findLeadById(BK.leadId); if (!lead) return;
     var first = escapeHtml(firstName(lead.name) || "them"), hrs = bookHours(), slots = bookPreview(lead, hrs), z = leadZone(lead);
     var msg = BK.msg == null ? bookMsgDefault(lead) : BK.msg, body = msg + " " + bookLink(lead), picked = bookPicked(lead), live = bookLive(lead);
-    var h = '<h3>Let ' + first + ' pick a time</h3><p class="modal-sub">' + first + ' gets a link with times inside ' + (z.iana ? 'their calling hours' : 'calling hours') +
-      ' and yours. The time they pick lands in your Tasks, and your phone tells you.</p>';
-    if (picked) h += '<div class="bk-status ok"><b>Booked for ' + escapeHtml(whenLc(picked)) + '</b><span>' + first + ' picked it from your link. Sending a new link lets them move it.</span></div>';
+    var canText = !lead.noText && !!(lead.phone || lead.phoneRaw);
+    var days = BK_DAYS.filter(function (d) { return hrs.days.indexOf(d[0]) > -1; }).map(function (d) { return d[1]; });
+    var dayTxt = days.join(",") === "Mon,Tue,Wed,Thu,Fri" ? "Mon–Fri" : days.join(",") === "Mon,Tue,Wed,Thu,Fri,Sat" ? "Mon–Sat" : days.length === 7 ? "Every day" : days.join(", ");
+    var h = '<div id="bkSheet"><h3>Send ' + first + ' a booking link</h3><p class="modal-sub">' + first + ' taps it, picks a time, and it lands in your Tasks.</p>';
+    if (picked) h += '<div class="bk-status ok"><b>Booked for ' + escapeHtml(whenLc(picked)) + '</b><span>' + first + ' picked it from your link. A new link lets them move it.</span></div>';
     else if (live) h += '<div class="bk-status"><b>Link sent ' + escapeHtml(new Date(lead.book.at).toLocaleDateString("en-US", { month: "short", day: "numeric" })) + '</b><span>' + first +
-      ' hasn’t picked a time yet. A new link replaces this one.</span><button type="button" class="bk-off" id="bkOff">Turn off link</button></div>';
-    var opt = function (from, to, sel) { var o = ""; for (var m = from; m <= to; m += 30) o += '<option value="' + m + '"' + (m === sel ? ' selected' : '') + '>' + hmLabel(m) + '</option>'; return o; };
-    h += '<div class="bk-sec"><div class="bk-k">Your hours</div><div class="bk-hrs"><select id="bkS" aria-label="From">' + opt(360, 1260, hrs.s) + '</select><span>to</span><select id="bkE" aria-label="Until">' + opt(420, 1320, hrs.e) + '</select></div>' +
-      '<div class="bk-days" role="group" aria-label="Days">' + BK_DAYS.map(function (d) { return '<button type="button" class="bk-day' + (hrs.days.indexOf(d[0]) > -1 ? ' on' : '') + '" data-bk-day="' + d[0] + '" aria-pressed="' + (hrs.days.indexOf(d[0]) > -1) + '">' + d[1] + '</button>'; }).join("") + '</div>' +
-      '<p class="bk-prev' + (slots.length ? '' : ' none') + '" id="bkPrev">' + (slots.length
-        ? first + ' will see <b>' + slots.length + ' times</b> over the next 7 days. First: ' + escapeHtml(fmtWhen(slots[0])) + (z.iana ? ' (' + escapeHtml(theirTime(slots[0], lead)) + ' for them)' : '') + '.'
-        : 'No times fit both your hours and ' + first + '’s calling hours this week. Widen your hours or add a day.') + '</p></div>' +
-      '<div class="bk-sec"><label class="bk-k" for="bkMsg">Text</label><textarea id="bkMsg" rows="3" maxlength="300">' + escapeHtml(msg) + '</textarea><p class="bk-note">The link goes at the end. It works for 14 days.</p></div>';
+      ' hasn’t picked a time yet. Sending again replaces it.</span><button type="button" class="bk-off" id="bkOff">Turn off</button></div>';
+    // What they get: the text and the link card, as Messages shows it.
+    h += '<div class="bk-phone" aria-label="What ' + first + ' gets"><div class="bk-bubble" id="bkBubble">' + escapeHtml(msg) + '</div>' +
+      '<div class="bk-card"><img src="book/book-card.jpg" alt="" width="1200" height="630"><div><b>Pick a time for your call</b><span>vpexdialer.com</span></div></div></div>';
+    h += '<div class="bk-edit" id="bkEditBox"' + (BK.edit ? '' : ' hidden') + '><label class="bk-k" for="bkMsg">Your text</label><textarea id="bkMsg" rows="3" maxlength="300">' + escapeHtml(msg) + '</textarea><p class="bk-note">The link goes at the end.</p></div>';
     if (lead.noText) h += '<p class="bk-note warn">' + first + ' asked not to get texts. Copy the link to send it another way.</p>';
-    h += '<div class="modal-actions">' + (lead.noText || !(lead.phone || lead.phoneRaw) ? '' :
-      textLinkHtml(lead, "book", body, "btn-primary" + (slots.length ? '' : ' is-off'), 'Text it to ' + first, "bkSend")) +
-      '<button type="button" class="btn-secondary" id="bkCopy"' + (slots.length ? '' : ' disabled') + '>Copy link</button></div>';
+    h += canText ? textLinkHtml(lead, "book", body, "btn-primary bk-send" + (slots.length ? '' : ' is-off'),
+        '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg>Send to ' + first, "bkSend")
+      : '<button type="button" class="btn-primary bk-send" id="bkCopy"' + (slots.length ? '' : ' disabled') + '>Copy link</button>';
+    h += '<p class="bk-prev' + (slots.length ? '' : ' none') + '" id="bkPrev">' + (slots.length
+        ? first + ' will see <b>' + slots.length + ' times</b> this week, starting ' + escapeHtml(whenLc(slots[0])) + '.'
+        : 'No times fit your hours and ' + first + '’s calling hours this week. Change your hours below.') + '</p>';
+    h += '<div class="bk-links"><button type="button" class="bk-link" id="bkHoursT" aria-expanded="' + !!BK.hours + '">Your hours: ' + escapeHtml(dayTxt) + ', ' + hmLabel(hrs.s) + '–' + hmLabel(hrs.e) + '</button>' +
+      '<button type="button" class="bk-link" id="bkEditT" aria-expanded="' + !!BK.edit + '">' + (BK.edit ? 'Done editing' : 'Edit text') + '</button>' +
+      (canText ? '<button type="button" class="bk-link" id="bkCopy"' + (slots.length ? '' : ' disabled') + '>Copy link</button>' : '') + '</div>';
+    var opt = function (from, to, sel) { var o = ""; for (var m = from; m <= to; m += 30) o += '<option value="' + m + '"' + (m === sel ? ' selected' : '') + '>' + hmLabel(m) + '</option>'; return o; };
+    h += '<div class="bk-sec" id="bkHoursBox"' + (BK.hours ? '' : ' hidden') + '><div class="bk-hrs"><select id="bkS" aria-label="From">' + opt(360, 1260, hrs.s) + '</select><span>to</span><select id="bkE" aria-label="Until">' + opt(420, 1320, hrs.e) + '</select></div>' +
+      '<div class="bk-days" role="group" aria-label="Days">' + BK_DAYS.map(function (d) { return '<button type="button" class="bk-day' + (hrs.days.indexOf(d[0]) > -1 ? ' on' : '') + '" data-bk-day="' + d[0] + '" aria-pressed="' + (hrs.days.indexOf(d[0]) > -1) + '">' + d[1] + '</button>'; }).join("") + '</div>' +
+      '<p class="bk-note">Times offered are inside your hours and ' + (z.iana ? 'their state’s calling hours' : 'calling hours') + ', and skip calls you already have booked. Links work for 14 days.</p></div></div>';
     featOpen(h);
     var send = document.getElementById("bkSend");
     if (send && !BK.hash) send.setAttribute("aria-disabled", "true");
   }
+
   function bookCommit(lead) {
     if (!BK.hash) return false;
     var hrs = bookHours(), bw = bookWin(lead), old = lead.book || {}, now = Date.now();
@@ -21598,8 +21617,10 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     var t = e.target && e.target.closest ? e.target : null; if (!t) return;
     var open = t.closest("[data-book-lead]");
     if (open) { e.preventDefault(); var fs = document.getElementById("fuSheet"); if (fs && fs.classList.contains("show")) fs.classList.remove("show"); closeLeadProfile(true); openBookSheet(open.getAttribute("data-book-lead")); return; }
-    if (!document.querySelector("#featModalBody #bkMsg")) return;
+    if (!document.querySelector("#featModalBody #bkSheet")) return;
     var lead = findLeadById(BK.leadId); if (!lead) return;
+    if (t.closest("#bkHoursT")) { BK.hours = !BK.hours; renderBookSheet(); return; }
+    if (t.closest("#bkEditT") || t.closest("#bkBubble")) { var ta = document.getElementById("bkMsg"); if (ta) BK.msg = ta.value; BK.edit = !BK.edit || !!t.closest("#bkBubble"); renderBookSheet(); if (BK.edit) { var x = document.getElementById("bkMsg"); if (x) { x.focus(); x.setSelectionRange(x.value.length, x.value.length); } } return; }
     var day = t.closest("[data-bk-day]");
     if (day) { var d = Number(day.getAttribute("data-bk-day")), hrs = bookHours(), i = hrs.days.indexOf(d); if (i > -1) { if (hrs.days.length > 1) hrs.days.splice(i, 1); } else hrs.days.push(d); bookSetHours({ days: hrs.days }); return; }
     if (t.closest("#bkSend")) {
@@ -21625,6 +21646,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
   document.addEventListener("input", function (e) {
     if (!e.target || e.target.id !== "bkMsg") return;
     var lead = findLeadById(BK.leadId), a = document.getElementById("bkSend"); BK.msg = e.target.value;
+    var bb = document.getElementById("bkBubble"); if (bb) bb.textContent = BK.msg;
     if (lead && a) a.setAttribute("href", smsHref(lead, BK.msg + " " + bookLink(lead)));
   });
   // A booking that came in (from the server, on any device): say so once, with a way to the lead.

@@ -126,19 +126,25 @@ check('push: moved says so', /moved their call/.test(L.bookMessage('acme', 'l1',
   const target = await page.evaluate(() => { const ls = window.__mockLeads(); for (const l of ls) { const f = window.__mockLeadFull(l.id)[0]; if (f && (f.phone || f.phoneRaw) && !f.dnc && /^(CA|TX|NY|FL|IL|AZ|WA|OH|GA)$/.test(f.st || '')) return { id: f.id, name: f.name, st: f.st }; } return null; });
   check('app: a lead to try it on', !!target, target);
   await page.goto(BASE + 'index.html?open=' + target.id); await page.waitForTimeout(3000);
-  const row = await page.evaluate(() => { const b = document.querySelector('#leadModalBody .lp-book'); return b ? b.innerText.replace(/\s+/g, ' ') : null; });
-  check('app: the profile offers "Let them pick a time"', /^Let \S+ pick a time Text \S+ times to choose from/.test(row || ''), row);
+  const row = await page.evaluate(() => { const b = document.querySelector('#leadModalBody .lp-book'); return b ? b.innerText.replace(/\s+/g, ' ').trim() : null; });
+  check('app: the profile has a plain "Send booking link" button', row === 'Send booking link', row);
   await page.evaluate(() => document.querySelector('#leadModalBody .lp-book').click()); await page.waitForTimeout(400);
   const sh = await page.evaluate(() => ({ t: document.getElementById('featModalBody').innerText.replace(/\s+/g, ' '), s: document.getElementById('bkS').value, e: document.getElementById('bkE').value,
     days: [...document.querySelectorAll('.bk-day.on')].map(b => b.innerText).join(','), href: (document.getElementById('bkSend') || {}).href || '', prof: document.getElementById('leadModal').classList.contains('show') }));
-  check('app: the sheet opens over a closed profile, with your hours (9 AM–6 PM, weekdays)', !sh.prof && /Let \S+ pick a time/.test(sh.t) && sh.s === '540' && sh.e === '1080' && sh.days === 'Mon,Tue,Wed,Thu,Fri', sh);
-  check('app: says how many times they\'ll see', /will see \d+ times over the next 7 days/.test(sh.t), sh.t);
+  check('app: the sheet opens over a closed profile, with your hours (9 AM–6 PM, weekdays)', !sh.prof && /Send \S+ a booking link/.test(sh.t) && /Your hours: Mon\u2013Fri, 9 AM\u20136 PM/.test(sh.t) && sh.s === '540' && sh.e === '1080' && sh.days === 'Mon,Tue,Wed,Thu,Fri', sh);
+  check('app: says how many times they\'ll see', /will see \d+ times this week, starting /.test(sh.t), sh.t);
+  const simple = await page.evaluate(() => ({ send: (document.getElementById('bkSend') || {}).innerText, big: document.getElementById('bkSend').getBoundingClientRect().height, card: !!document.querySelector('.bk-card img'), bubble: document.getElementById('bkBubble').innerText,
+    hidden: document.getElementById('bkHoursBox').hidden && document.getElementById('bkEditBox').hidden }));
+  check('app: one big Send button, a preview of the text and link card, the rest tucked away', /^Send to \S+$/.test(simple.send.trim()) && simple.big >= 50 && simple.card && /^Hi /.test(simple.bubble) && simple.hidden, simple);
+  await page.evaluate(() => document.getElementById('bkHoursT').click()); await page.waitForTimeout(200);
   check('app: the text has the link at the end', /^sms:/.test(sh.href) && /vpexdialer\.com%2Fbook%2F%23vb__/.test(sh.href), sh.href.slice(0, 220));
   await page.evaluate(() => { const b = [...document.querySelectorAll('.bk-day')].find(x => x.innerText === 'Sat'); b.click(); }); await page.waitForTimeout(200);
   await page.selectOption('#bkE', '1200'); await page.waitForTimeout(200);
   const sh2 = await page.evaluate(() => ({ days: [...document.querySelectorAll('.bk-day.on')].map(b => b.innerText).join(','), e: document.getElementById('bkE').value, n: (document.getElementById('bkPrev').innerText.match(/(\d+) times/) || [])[1] }));
   check('app: adding Saturday and a later end time widens the offer', sh2.days.includes('Sat') && sh2.e === '1200' && Number(sh2.n) > 0, sh2);
+  await page.evaluate(() => document.getElementById('bkEditT').click()); await page.waitForTimeout(200);
   await page.fill('#bkMsg', 'Hey, pick a time:'); await page.waitForTimeout(100);
+  check('app: editing the text updates the preview', await page.evaluate(() => document.getElementById('bkBubble').innerText) === 'Hey, pick a time:');
   await page.evaluate(() => document.getElementById('bkSend').click()); await page.waitForTimeout(800);
   const href = await page.evaluate(() => window.__smsHref || '');
   const body = decodeURIComponent(href.split(/[&?]body=/)[1] || ''), link = (body.match(/https:\/\/vpexdialer\.com\/book\/#(\S+)/) || [])[1] || '';
@@ -166,9 +172,9 @@ check('push: moved says so', /moved their call/.test(L.bookMessage('acme', 'l1',
   const toast = await page.evaluate(() => document.getElementById('toast').innerText);
   check('app: the booking shows up with a toast', new RegExp('^' + target.name.split(' ')[0] + ' booked a call for ').test(toast), toast);
   await page.goto(BASE + 'index.html?open=' + target.id); await page.waitForTimeout(3000);
-  const pr = await page.evaluate(() => ({ next: (document.querySelector('#leadModalBody .lp-next') || {}).innerText || '', book: (document.querySelector('#leadModalBody .lp-book') || {}).innerText || '' }));
+  const pr = await page.evaluate(() => ({ next: (document.querySelector('#leadModalBody .lp-next') || {}).innerText || '', book: (document.querySelector('#leadModalBody .lp-book-sub') || {}).innerText || '' }));
   check('app: the profile\'s next step is the booked call', /Booked call/.test(pr.next), pr.next);
-  check('app: the booking row says booked from your link', /Booked for .* from your link/.test(pr.book.replace(/\s+/g, ' ')), pr.book);
+  check('app: under the button it says they booked', new RegExp('^' + target.name.split(' ')[0] + ' booked ').test(pr.book), pr.book);
   check('app: no page errors', !errs.length, errs);
   await ctx.close();
 
