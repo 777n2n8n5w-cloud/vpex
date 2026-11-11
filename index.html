@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-02-19">
+<meta name="vpex-build" content="2027-02-20">
 <!-- Scripts only from this site and Google's Firebase library; no plugins; no <base> or form hijacking. Inline scripts stay
      allowed because the app is one file. (GitHub Pages can't send headers, so this is the strongest policy a page can set.) -->
 <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://www.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self'">
@@ -7973,6 +7973,7 @@ window.VPEX_SIG = [
   .kp-top { position: relative; width: 100%; min-height: 58px; display: flex; align-items: center; }
   .kp-num { width: 100%; box-sizing: border-box; text-align: center; font-size: 32px !important; font-weight: 500; letter-spacing: 0.5px; padding: 8px 46px !important;
     border: none !important; background: none !important; box-shadow: none !important; color: var(--text); outline: none; caret-color: var(--accent); }
+  .kp-num.long { font-size: 26px !important; letter-spacing: 0; }
   .kp-del { position: absolute; right: 2px; top: 50%; transform: translateY(-50%); width: 42px; height: 42px; display: flex; align-items: center; justify-content: center;
     background: none; border: none; color: var(--text-dim); cursor: pointer; padding: 0; }
   .kp-del svg { width: 26px; height: 26px; }
@@ -22413,18 +22414,32 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       b.addEventListener("click", function () { if (kpRaw.length < 16) kpRaw += b.getAttribute("data-k"); kpDraw(); });
     });
     document.getElementById("kpDel").addEventListener("click", function () { kpRaw = kpRaw.slice(0, -1); kpDraw(); });
-    inp.addEventListener("input", function () { kpRaw = inp.value.replace(/[^\d*#+]/g, "").slice(0, 16); kpDraw(); });
+    inp.addEventListener("input", function () { kpRaw = kpClean(inp.value); kpDraw(); });
     kpDraw();
+  }
+  // Pasted or typed numbers: "+1 (732) 555-0142" (how iPhone copies from Contacts and Messages) dials like 732 555 0142;
+  // an extension ("ext 2", "x2") is dropped so the main line rings.
+  function kpClean(v) {
+    var d = splitExt(String(v || "")).main.replace(/[^\d*#+]/g, "");
+    if (/^\+?1\d{10}$/.test(d)) d = d.slice(-10);
+    return d.slice(0, 16);
+  }
+  function kpWhy(raw) {
+    if (!raw || /[*#]/.test(raw)) return "";
+    var d = raw.replace(/\D/g, "");
+    if (raw.charAt(0) === "+") return "VPEX calls US numbers. Enter the area code and number.";
+    if (d.length > 11 || (d.length === 11 && d.charAt(0) !== "1")) return "That’s " + d.length + " digits. A US number has 10.";
+    return "";
   }
   function kpDraw() {
     var inp = document.getElementById("kpNum"), info = document.getElementById("kpInfo"), go = document.getElementById("kpGo");
     if (!inp || !go) return;
-    inp.value = kpFormat(kpRaw);
+    inp.value = kpFormat(kpRaw); inp.classList.toggle("long", inp.value.length > 14);
     document.getElementById("kpDel").style.visibility = kpRaw ? "visible" : "hidden";
     var off = '<span class="kp-call off" aria-hidden="true">' + KP_PHONE + '</span>';
     var ok = /^\d+$/.test(kpRaw) && fullPhone(kpRaw), norm = ok ? normalizePhone(kpRaw) : "";
     var match = ok ? state.leads.filter(function (l) { return l.phone === norm; })[0] : null;
-    if (!ok) { info.innerHTML = ""; go.innerHTML = off; return; }
+    if (!ok) { var why = kpWhy(kpRaw); info.innerHTML = why ? '<span class="kp-warn">' + escapeHtml(why) + '</span>' : ""; go.innerHTML = off; return; }
     if (dncNums()[dncKey(norm)] || (match && isDnc(match))) {
       info.innerHTML = '<span class="kp-warn">On your team\u2019s Do Not Call list</span>'; go.innerHTML = off; return;
     }
