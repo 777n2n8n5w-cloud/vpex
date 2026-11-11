@@ -6,8 +6,8 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src https://us-central1-dovetail-f863c.cloudfunctions.net; img-src 'self' data:; base-uri 'none'; form-action 'none'">
-<meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#101418" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f5f8ff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b1222" media="(prefers-color-scheme: dark)">
 <title>Pick a time for your call</title>
 <meta property="og:title" content="Pick a time for your call">
 <meta property="og:description" content="Tap to choose when you’d like to get the call. It takes a few seconds.">
@@ -23,12 +23,12 @@
 <link rel="icon" type="image/png" sizes="512x512" href="/book/book-icon-512.png">
 <style>
   :root {
-    --bg: #f6f7f9; --card: #ffffff; --ink: #151a21; --dim: #5a6370; --faint: #8b94a1; --line: #e3e6eb;
-    --teal: #0e6b63; --teal-ink: #ffffff; --teal-soft: #e3f1ef; --warn: #a8461f;
+    --bg: #f5f8ff; --card: #ffffff; --ink: #0f1a33; --dim: #4f5d78; --faint: #8592ab; --line: #dfe6f3;
+    --teal: #1d5cf0; --teal-ink: #ffffff; --teal-soft: #e6eeff; --warn: #a8461f;
     --r: 14px;
   }
   @media (prefers-color-scheme: dark) {
-    :root { --bg: #101418; --card: #171c22; --ink: #eef1f4; --dim: #a3acb8; --faint: #77808c; --line: #2a313a; --teal: #43b3a7; --teal-ink: #08201d; --teal-soft: #15302d; --warn: #f08a5d; }
+    :root { --bg: #0b1222; --card: #121b30; --ink: #eef3ff; --dim: #a6b3cc; --faint: #75829c; --line: #26324c; --teal: #5b93ff; --teal-ink: #ffffff; --teal-soft: #17295a; --warn: #f08a5d; }
   }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
@@ -44,7 +44,7 @@
   .day b { display: block; font-size: 13px; font-weight: 600; color: var(--dim); }
   .day span { display: block; font-size: 22px; font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; }
   .day small { display: block; font-size: 11.5px; color: var(--faint); }
-  .day[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+  .day[aria-pressed="true"] { background: var(--teal); border-color: var(--teal); color: var(--teal-ink); }
   .day[aria-pressed="true"] b, .day[aria-pressed="true"] small { color: inherit; opacity: .75; }
   .dayname { margin: 22px 0 10px; font-size: 15px; font-weight: 600; color: var(--dim); }
   .slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
