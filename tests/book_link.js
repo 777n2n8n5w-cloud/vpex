@@ -224,6 +224,9 @@ check('push: moved says so', /moved their call/.test(L.bookMessage('acme', 'l1',
     const html = require('fs').readFileSync(__dirname + '/../book/index.html', 'utf8');
     check('link preview: a title that says what it is', /<title>Pick a time for your call<\/title>/.test(html) && /<meta property="og:title" content="Pick a time for your call">/.test(html));
     check('link preview: an icon for Messages (apple-touch-icon, 180 px PNG)', /<link rel="apple-touch-icon" href="\/book\/book-icon-180\.png">/.test(html));
+    check('link preview: a large picture card (1200 x 630) so it stands out', /<meta property="og:image" content="https:\/\/vpexdialer\.com\/book\/book-card\.jpg">/.test(html) && /og:image:width" content="1200"/.test(html) && /og:image:height" content="630"/.test(html));
+    const jpg = require('fs').readFileSync(__dirname + '/../book/book-card.jpg');
+    check('link preview: the picture is a small JPEG (under 150 KB)', jpg[0] === 0xFF && jpg[1] === 0xD8 && jpg.length < 150000, jpg.length);
     const png = require('fs').readFileSync(__dirname + '/../book/book-icon-180.png');
     check('link preview: the icon file is a 180 x 180 PNG', png.slice(1, 4).toString() === 'PNG' && png.readUInt32BE(16) === 180 && png.readUInt32BE(20) === 180);
   }
