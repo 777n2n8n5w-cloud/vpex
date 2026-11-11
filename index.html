@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-02-18">
+<meta name="vpex-build" content="2027-02-19">
 <!-- Scripts only from this site and Google's Firebase library; no plugins; no <base> or form hijacking. Inline scripts stay
      allowed because the app is one file. (GitHub Pages can't send headers, so this is the strongest policy a page can set.) -->
 <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://www.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self'">
@@ -7192,7 +7192,8 @@ window.VPEX_SIG = [
   .lead-prog-face::after { content: ""; position: absolute; left: 0; right: 0; top: -7px; bottom: -7px; }   /* 44 px to tap */
   .lp-src { font-size: 12px; color: var(--text-faint); margin: -6px 0 10px; }
   #submitUpload:disabled { opacity: 0.5; }
-  @media (max-width: 360px) { .save-pill.ok { font-size: 0; gap: 0; } }   /* small phones: a dot when all is well; warnings always spelled out */
+  @media (max-width: 360px) { .save-pill.ok:not(.live-save) { font-size: 0; gap: 0; } }
+  .modal-sub .live-save { display: flex; margin-top: 6px; font-size: 12px; white-space: normal; }   /* small phones: a dot when all is well; warnings always spelled out */
 
   /* ---- Theme details ---- */
   body { background-color: var(--bg); background-image: var(--bg-image, none); background-attachment: fixed;
@@ -11160,7 +11161,8 @@ html[data-motion="off"] .modal-overlay { transition: none; }
       function sameKeys(a, b) { var ka = Object.keys(a || {}).sort(), kb = Object.keys(b || {}).sort(); return ka.join("|") === kb.join("|"); }
       function superset(nw, old) { var n = nw || {}; return Object.keys(old || {}).every(function (k) { return k in n; }); }
       function write(app, path, fn, op) {
-        return Promise.resolve().then(function () {
+        // window.__mockLatency (ms): a slow connection, the server's answer comes that much later
+        return (window.__mockLatency ? new Promise(function (r) { setTimeout(r, window.__mockLatency); }) : Promise.resolve()).then(function () {
           if (window.__offline) throw err("unavailable");
           if (!allowed(app, path, op || "write")) throw err("permission-denied");
           var db = load(FS), before = clone(db[path]); fn(db); var after = db[path];
@@ -11454,7 +11456,7 @@ html[data-motion="off"] .modal-overlay { transition: none; }
   }
   function qfFormHtml(lead) {
     var q = lead.qf || {};
-    return '<div class="qf-form">' + qFields().map(function (f) {
+    return '<div class="qf-form" data-qf-lead="' + escapeHtml(lead.id) + '">' + qFields().map(function (f) {
       var v = q[f.k] || "";
       if (f.c) {
         var opts = f.c.slice(); if (v && opts.indexOf(v) === -1) opts.push(v);
@@ -11488,7 +11490,7 @@ html[data-motion="off"] .modal-overlay { transition: none; }
   }
   function openQualify(lead) {
     var F = qFields(), q = lead.qf || {}, n = F.filter(function (f) { return q[f.k]; }).length;
-    var b = featOpen('<h3>Qualify ' + escapeHtml(firstName(lead.name)) + '</h3><p class="modal-sub">Ask as you talk. Every answer saves as you tap, and the whole team sees it.</p>' +
+    var b = featOpen('<h3>Qualify ' + escapeHtml(firstName(lead.name)) + '</h3><p class="modal-sub">Ask as you talk. Every answer saves as you tap.' + liveSaveHtml() + '</p>' +
       qfFormHtml(lead) + '<div class="modal-actions"><button class="btn-primary" type="button" id="qfDone" style="width:100%">Done</button></div>');
     var box = b && b.querySelector ? b : document.getElementById("featModalBody");
     wireQf(box, lead, null);
@@ -11573,13 +11575,18 @@ html[data-motion="off"] .modal-overlay { transition: none; }
   var localTimer = null;
   var LEAD_GROUP = 100, LOG_GROUP = 200;
 
-  function saveState() {
+  // A tap (an answer, a tick, an outcome, a stage) is sent the moment it's made; typing waits for a short pause so a
+  // word goes out as one save, not one per letter. Every change made in the same tap goes out together.
+  function tapSave() { var e = window.event; return !!e && /^(click|change|submit|pointerup|touchend)$/.test(e.type); }
+  var TYPE_PAUSE = 300;
+  function saveState(now) {
     state.savedAt = Date.now();
     if (TEAM.on && TEAM.me) presenceSync();
     clearTimeout(localTimer);
     localTimer = setTimeout(writeLocalNow, 120);
-    if (cloud.ready) scheduleCloud(2500);
-    if (TEAM.on && TEAM.me) { teamScheduleFlush(); prefsSoon(); }
+    var fast = now === true || tapSave();
+    if (cloud.ready) scheduleCloud(fast ? 300 : 2500);
+    if (TEAM.on && TEAM.me) { teamScheduleFlush(fast ? 0 : TYPE_PAUSE); prefsSoon(); }
   }
 
   function writeLocalNow() {
@@ -11591,12 +11598,16 @@ html[data-motion="off"] .modal-overlay { transition: none; }
   function flushSave() {
     if (localTimer) writeLocalNow();
     if (cloud.ready && cloud.timer) { clearTimeout(cloud.timer); cloud.timer = null; pushCloud(); }
+    // Home button, lock, app switch: the phone may freeze the page any moment, so what's waiting goes out now
+    if (TEAM.on && TEAM.me && TEAM.flushTimer) { clearTimeout(TEAM.flushTimer); TEAM.flushTimer = null; teamFlush(); }
+    if (TEAM.on && TEAM.me && typeof PREFS !== "undefined" && PREFS.timer) { try { prefsPush(); } catch (e) {} }
   }
 
   function setSaveStatus(st) {
     var stWas = cloud.status;
     cloud.status = st;
     if (stWas !== st && DESK && DESK.on) Promise.resolve().then(deskRenderLive);
+    if (stWas !== st) liveSavePaint();
     var el = document.getElementById("savePill");
     if (!el) return;
     var map = {
@@ -11613,6 +11624,42 @@ html[data-motion="off"] .modal-overlay { transition: none; }
     el.textContent = m[0];
     el.title = st === "synced" ? "Saved to your account \u2014 it follows you to any device" :
       (st === "local" ? "Saved in this browser only" : "");
+  }
+
+  // The save line inside a sheet (Qualify): says in plain words that the tap is saved and the team has it.
+  var LIVE_SAVE = {
+    synced: ["Saved \u00b7 on all your devices", "ok"], teamsynced: ["Saved \u00b7 your team sees it", "ok"],
+    syncing: ["Saving\u2026", "dim"], connecting: ["Syncing\u2026", "dim"],
+    teamoffline: ["Saved on this phone \u00b7 sends when the signal\u2019s back", "warn"], error: ["Saved on this phone \u00b7 sends when the signal\u2019s back", "warn"],
+    local: ["Saved on this device", "warn"]
+  };
+  function liveSaveHtml() { var m = LIVE_SAVE[cloud.status] || LIVE_SAVE.local; return '<span class="save-pill live-save ' + m[1] + '" data-live-save role="status" aria-live="polite">' + m[0] + '</span>'; }
+  function liveSavePaint() {
+    if (!LIVE_SAVE) return;
+    var m = LIVE_SAVE[cloud.status] || LIVE_SAVE.local;
+    document.querySelectorAll("[data-live-save]").forEach(function (x) { if (x.textContent !== m[0]) { x.textContent = m[0]; x.className = "save-pill live-save " + m[1]; } });
+  }
+  // Another screen changed a lead that's open here (the rep's computer while they tap on the phone, or a manager):
+  // open Qualify answers and checklists follow along without a re-render, leaving alone whatever is being typed.
+  function liveSheetsRefresh() {
+    document.querySelectorAll(".qf-form[data-qf-lead]").forEach(function (box) {
+      var lead = findLeadById(box.getAttribute("data-qf-lead")); if (!lead) return;
+      var q = lead.qf || {};
+      box.querySelectorAll("[data-qf-v]").forEach(function (b) {
+        var on = q[b.getAttribute("data-qf-k")] === b.getAttribute("data-qf-v");
+        if (b.classList.contains("on") !== on) { b.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on)); }
+      });
+      box.querySelectorAll("[data-qf-in]").forEach(function (i) { var v = q[i.getAttribute("data-qf-in")] || ""; if (i !== document.activeElement && i.value !== v) i.value = v; });
+    });
+    document.querySelectorAll(".lead-prog[data-prog-lead]").forEach(function (box) {
+      var lead = findLeadById(box.getAttribute("data-prog-lead")); if (!lead) return;
+      var p = lead.prog || {};
+      box.querySelectorAll("input[data-prog]").forEach(function (cb) {
+        var on = !!p[cb.getAttribute("data-prog")];
+        if (cb.checked !== on) { cb.checked = on; var lab = cb.closest(".lead-prog-step"); if (lab) lab.classList.toggle("on", on); }
+      });
+      var cnt = box.querySelector(".lead-prog-n"); if (cnt) cnt.textContent = progCount(lead) + " of " + progSteps().length;
+    });
   }
 
   function scheduleCloud(ms) {
@@ -18880,7 +18927,11 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       var pl = teamPayload(lead, ts, xs);
       TEAM.lastSent[id] = stableJson(pl); TEAM.fastSig[id] = JSON.stringify(pl);
       TEAM.lastCk[id] = r.ck;
-      (local ? keep : fresh).push(lead);
+      // Update the phone's copy in place rather than swapping in a new object: an open sheet (Qualify, follow-up,
+      // checklist, profile) holds this lead, and a swap left it writing to a copy nobody saved, so taps went missing
+      // whenever anyone (a teammate, or this rep on another screen) saved a lead in the same record.
+      if (local) { Object.keys(local).forEach(function (k) { if (!(k in lead)) delete local[k]; }); Object.assign(local, lead); keep.push(local); }
+      else fresh.push(lead);
       take(ts, xs);
     });
     state.leads.forEach(function (l) {
@@ -18906,6 +18957,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     clearTimeout(teamRenderSoon.t);
     teamRenderSoon.t = setTimeout(function () {
       if (!TEAM.me) return;
+      try { liveSheetsRefresh(); } catch (e) {}
       var ae = document.activeElement;
       if (ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) { TEAM.renderPending = true; if (DESK && DESK.on) deskRenderLive(); return; }
       render();
@@ -18916,7 +18968,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
       if (sm && sm.classList.contains("show")) renderScoreboard();
       var cm = document.getElementById("coachModal");
       if (cm && cm.classList.contains("show")) renderCoach();
-    }, 150);
+    }, 60);
   }
   document.addEventListener("focusout", function () {
     if (TEAM.renderPending) { TEAM.renderPending = false; setTimeout(teamRenderSoon, 80); }
@@ -18990,10 +19042,16 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     TEAM.chunkSizes[ck] = 1;
     return ck;
   }
-  async function teamFlush() {
-    if (!TEAM.on || !TEAM.me || !TEAM.ready) return;
-    if (TEAM.rebalancing) { setTimeout(teamFlush, 800); return; }   // a record split is moving leads; save right after
-    if (TEAM.flushing) { TEAM.again = true; return; }
+  // Saving to the team. Each change is handed to the database the moment it's ready and counts as sent right away;
+  // the next change doesn't wait for the server to answer the last one (on a weak signal that wait was most of the
+  // delay, and while it lasted newer changes sat only in memory). The database keeps one phone's saves in order and
+  // holds them on the phone until they reach the server. If the server turns a save down, those leads are sent again.
+  TEAM.inflight = 0; TEAM.pend = []; TEAM.delPending = {}; TEAM.sendErr = false; TEAM.rejectQ = [];
+  function teamFlush() {
+    if (!TEAM.on || !TEAM.me || !TEAM.ready) return Promise.resolve();
+    if (TEAM.rebalancing) { setTimeout(teamFlush, 800); return teamPendingDone(); }   // a record split is moving leads; save right after
+    if (TEAM.flushing) { TEAM.again = true; return teamPendingDone(); }
+    clearTimeout(TEAM.flushTimer); TEAM.flushTimer = null;
     TEAM.flushing = true;
     var byChunk = {}, sent = {}, sentFast = {}, dels = {};
     try {
@@ -19010,40 +19068,68 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
         sent[l.id] = js;
       });
       if (isAdmin()) Object.keys(TEAM.lastSent).forEach(function (id) {
-        if (present[id] || !TEAM.lastCk[id]) return;
+        if (present[id] || !TEAM.lastCk[id] || TEAM.delPending[id]) return;
         (byChunk[TEAM.lastCk[id]] = byChunk[TEAM.lastCk[id]] || {})["leads." + fp(id)] = firebase.firestore.FieldValue.delete();
         dels[id] = true;
       });
-      var cks = Object.keys(byChunk);
-      if (!cks.length) return;
-      setSaveStatus("syncing");
-      var rejected = [];
-      for (var i = 0; i < cks.length; i++) {
-        var ck = cks[i], upd = byChunk[ck], ref = chunkRef(ck);
-        try { await ref.update(upd); }
-        catch (e) {
-          if (e && e.code === "permission-denied") { rejected.push({ ck: ck, ids: Object.keys(upd).map(function (k) { return k.slice(6).replace(/`/g, ""); }) }); continue; }
-          if (!(e && e.code === "not-found")) throw e;
-          var obj = { leads: {} };
-          Object.keys(upd).forEach(function (k) { var id = k.slice(6).replace(/`/g, ""); if (!dels[id]) obj.leads[id] = upd[k]; });
-          await ref.set(obj, { merge: true });
-        }
-        Object.keys(upd).forEach(function (k) {
-          var id = k.slice(6).replace(/`/g, "");
-          if (dels[id]) { delete TEAM.lastSent[id]; delete TEAM.fastSig[id]; delete TEAM.lastCk[id]; }
-          else if (sent[id]) { TEAM.lastSent[id] = sent[id]; TEAM.fastSig[id] = sentFast[id]; TEAM.lastCk[id] = ck; }
-        });
-      }
-      if (rejected.length) teamReconcileRejected(rejected);
-      else setSaveStatus("teamsynced");
+      Object.keys(byChunk).forEach(function (ck) { teamSend(ck, byChunk[ck], sent, sentFast, dels); });
     } catch (e) {
-      if (e && e.code === "permission-denied") teamVerifyAccess("save");
-      else { setSaveStatus("teamoffline"); teamScheduleFlush(5000); }
+      setSaveStatus("teamoffline"); teamScheduleFlush(2000);
     } finally {
       TEAM.flushing = false;
-      if (TEAM.again) { TEAM.again = false; teamScheduleFlush(200); }
+      if (TEAM.again) { TEAM.again = false; teamScheduleFlush(0); }
     }
+    return teamPendingDone();
   }
+  // Resolves once every save handed over so far has been answered (sign-out and app updates wait on this).
+  function teamPendingDone() { return Promise.all(TEAM.pend.slice()).then(function () {}, function () {}); }
+  function teamSend(ck, upd, sent, sentFast, dels) {
+    var ref = chunkRef(ck), ids = Object.keys(upd).map(function (k) { return k.slice(6).replace(/`/g, ""); });
+    ids.forEach(function (id) {
+      if (dels[id]) { TEAM.delPending[id] = true; return; }
+      TEAM.lastSent[id] = sent[id]; TEAM.fastSig[id] = sentFast[id]; TEAM.lastCk[id] = ck;   // our own echo isn't a conflict
+    });
+    TEAM.inflight++;
+    if (TEAM.inflight === 1) {
+      setSaveStatus("syncing");
+      clearTimeout(TEAM.slowTimer);   // no answer for a few seconds: it's held on the phone and goes when the signal's back
+      TEAM.slowTimer = setTimeout(function () { if (TEAM.inflight) setSaveStatus("teamoffline"); }, 4000);
+    }
+    var p = ref.update(upd).catch(function (e) {
+      if (!(e && e.code === "not-found")) throw e;
+      var obj = { leads: {} };   // a new record (first lead in it): make it
+      ids.forEach(function (id) { if (!dels[id]) obj.leads[id] = upd["leads." + fp(id)]; });
+      return ref.set(obj, { merge: true });
+    }).then(function () {
+      TEAM.sendErr = false;
+      ids.forEach(function (id) { if (dels[id]) { delete TEAM.delPending[id]; delete TEAM.lastSent[id]; delete TEAM.fastSig[id]; delete TEAM.lastCk[id]; } });
+    }, function (e) {
+      ids.forEach(function (id) {
+        if (dels[id]) { delete TEAM.delPending[id]; return; }
+        // not saved: send it again with the next save (unless something newer already went out)
+        if (TEAM.lastSent[id] === sent[id]) { TEAM.lastSent[id] = "__unsent__"; delete TEAM.fastSig[id]; }
+      });
+      if (e && e.code === "permission-denied") {
+        TEAM.rejectQ.push({ ck: ck, ids: ids });
+        clearTimeout(TEAM.rejectTimer);
+        TEAM.rejectTimer = setTimeout(function () { var q = TEAM.rejectQ; TEAM.rejectQ = []; if (q.length) teamReconcileRejected(q); }, 50);
+        return;
+      }
+      TEAM.sendErr = true;
+      teamScheduleFlush(navigator.onLine === false ? 15000 : 2000);   // the "online" event brings it forward
+    }).then(function () {
+      TEAM.pend = TEAM.pend.filter(function (x) { return x !== p; });
+      if (--TEAM.inflight > 0) return;
+      clearTimeout(TEAM.slowTimer);
+      setSaveStatus(TEAM.sendErr || TEAM.rejectQ.length ? "teamoffline" : "teamsynced");
+    });
+    TEAM.pend.push(p);
+    return p;
+  }
+  window.addEventListener("online", function () {
+    if (!TEAM.on || !TEAM.me) return;
+    teamScheduleFlush(0); teamRetryCalls();
+  });
 
   /* ----- lead locks: nobody gets a lead someone else is on ----- */
   function teamReleaseClaim() {
