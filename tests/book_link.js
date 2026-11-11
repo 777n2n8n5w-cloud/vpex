@@ -15,6 +15,7 @@ const SECRET = crypto.randomBytes(32).toString('hex'), H = 3600000, M = 60000;
 // ---- 1. the key ----
 check('key: office, lead and secret', (k => k && k.office === 'acme' && k.leadId === 'lmh2x9abc' && k.secret === SECRET)(L.bookKey('vb_acme_lmh2x9abc_' + SECRET)));
 check('key: the original team', (k => k && k.office === '' && k.leadId === 'l1')(L.bookKey('vb__l1_' + SECRET)));
+check('key: a lead id with _ or - still parses', (k => k && k.office === 'acme' && k.leadId === 'imp_42-x')(L.bookKey('vb_acme_imp_42-x_' + SECRET)) && (k => k && k.office === '' && k.leadId === 'a_b')(L.bookKey('vb__a_b_' + SECRET)));
 check('key: junk refused', !L.bookKey('') && !L.bookKey('vc_acme_l1_' + SECRET) && !L.bookKey('vb_acme_l/1_' + SECRET) && !L.bookKey('vb_acme_l1_' + SECRET.slice(1)) && !L.bookKey('vb_ACME_l1_' + SECRET));
 
 // ---- 2. the times offered ----
@@ -58,7 +59,7 @@ check('push: moved says so', /moved their call/.test(L.bookMessage('acme', 'l1',
   const col = (p) => ({ get: async () => { const docs = Object.keys(store).filter(k => k.startsWith(p + '/') && k.slice(p.length + 1).indexOf('/') < 0).map(snap); return { docs, empty: !docs.length, size: docs.length }; },
     where: (f, op, v) => { const c = col(p), g = c.get; c.get = async () => { const r = await g(); r.docs = r.docs.filter(d => d.get(f) === v); r.empty = !r.docs.length; r.size = r.docs.length; return r; }; c.limit = () => c; return c; }, limit: () => col(p) });
   class FieldPath { constructor(...a) { this.a = a; } }
-  const tx = { get: (r) => r.get(), update: (r, fp, v) => { let o = store[r.path]; for (let i = 0; i < fp.a.length - 1; i++) o = o[fp.a[i]]; o[fp.a[fp.a.length - 1]] = JSON.parse(JSON.stringify(v)); } };
+  const tx = { get: (r) => r.get(), set: (r, v) => { store[r.path] = JSON.parse(JSON.stringify(v)); }, update: (r, fp, v) => { let o = store[r.path]; for (let i = 0; i < fp.a.length - 1; i++) o = o[fp.a[i]]; o[fp.a[fp.a.length - 1]] = JSON.parse(JSON.stringify(v)); } };
   const fakeDb = { doc: docRef, collection: col, runTransaction: async (fn) => fn(tx) };
   const fakeAdmin = { initializeApp() {}, firestore: Object.assign(() => fakeDb, { FieldValue: {}, FieldPath }), messaging: () => ({ sendEach: async (b) => { sent.push(...b); return { responses: b.map(() => ({ success: true })) }; } }) };
   const stubs = { 'firebase-admin': fakeAdmin, 'firebase-functions/v2/firestore': { onDocumentWritten: () => () => {}, onDocumentCreated: () => () => {} },
@@ -93,6 +94,8 @@ check('push: moved says so', /moved their call/.test(L.bookMessage('acme', 'l1',
   const l1 = store['offices/acme/leadChunks/c001'].leads.l1, bk = l1.tasks.filter(t => t.booked);
   check('server: booking answers ok with the picked time', r.code === 200 && r.body.ok === true && r.body.picked === slots[0], r);
   check('server: the follow-up is in the lead\'s record, for the rep, and the link is marked', bk.length === 1 && bk[0].dueAt === slots[0] && bk[0].assignee.uid === 'rep222xyz' && l1.book.picked === slots[0] && l1.tasks.length === 2);
+  const led = store['offices/acme/leadChunks/_book'];
+  check('server: the booking ledger has it (task, rep, time)', led && led.b && led.b.l1 && led.b.l1.at === slots[0] && led.b.l1.u === 'rep222xyz' && led.b.l1.t.dueAt === slots[0] && led.b.l1.t.booked > 0, led);
   check('server: the other lead in the record is untouched', store['offices/acme/leadChunks/c001'].leads.l2.tasks.length === 1 && store['offices/acme/leadChunks/c001'].leads.l2.name === 'Other');
   check('server: the rep\'s phone hears it, in the phone\'s time zone', sent.length === 1 && sent[0].token === 'tok-abc' && /Pat booked a call/.test(sent[0].webpush.notification.title) && /^Tue, Nov 10, 4:00\sPM your time/.test(sent[0].webpush.notification.body), sent[0] && sent[0].webpush.notification);
   r = await call('GET', { k: K });
@@ -100,6 +103,19 @@ check('push: moved says so', /moved their call/.test(L.bookMessage('acme', 'l1',
   clock = NOW + 5 * M; r = await call('POST', {}, { k: K, at: slots[6] });
   check('server: picking again moves the call (one booked call), push says moved', r.code === 200 && store['offices/acme/leadChunks/c001'].leads.l1.tasks.filter(t => t.booked && !t.done).length === 1 &&
     store['offices/acme/leadChunks/c001'].leads.l1.tasks.find(t => t.booked).dueAt === slots[6] && /moved their call/.test(sent[1].webpush.notification.title));
+  // two leads, one slot: the second one is told it's taken
+  {
+    fresh();
+    const S2 = crypto.randomBytes(32).toString('hex');
+    store['offices/acme/leadChunks/c001'].leads.l3 = { name: 'Quinn Diaz', tasks: [], book: Object.assign({}, book, { h: L.sha256hex(S2), tag: 'zzz999yyy888' }) };
+    const g3 = await call('GET', { k: 'vb_acme_l3_' + S2 });
+    const r1 = await call('POST', {}, { k: K, at: slots[2] });
+    const r2 = await call('POST', {}, { k: 'vb_acme_l3_' + S2, at: slots[2] });
+    const l3 = store['offices/acme/leadChunks/c001'].leads.l3;
+    check('server: two leads can\'t book the same time (second gets "taken" and fresh times without it)', g3.body.slots.includes(slots[2]) && r1.code === 200 && r2.code === 409 && !r2.body.view.slots.includes(slots[2]) && !(l3.tasks || []).some(t => t.booked), [r1.code, r2.code]);
+    const g4 = await call('GET', { k: 'vb_acme_l3_' + S2 });
+    check('server: and that time is no longer offered to the other lead', g4.code === 200 && !g4.body.slots.includes(slots[2]));
+  }
   clock = NOW;
   for (const [n, f] of [['an expired link', () => { store['offices/acme/leadChunks/c001'].leads.l1.book.exp = NOW - 1; }], ['a turned-off link', () => { store['offices/acme/leadChunks/c001'].leads.l1.book.off = true; }],
     ['a Do Not Call lead', () => { store['offices/acme/leadChunks/c001'].leads.l1.dnc = { at: 1 }; }], ['a turned-off rep', () => { store['offices/acme/members/rep222xyz'].active = false; }],
@@ -175,6 +191,27 @@ check('push: moved says so', /moved their call/.test(L.bookMessage('acme', 'l1',
   const pr = await page.evaluate(() => ({ next: (document.querySelector('#leadModalBody .lp-next') || {}).innerText || '', book: (document.querySelector('#leadModalBody .lp-book-sub') || {}).innerText || '' }));
   check('app: the profile\'s next step is the booked call', /Booked call/.test(pr.next), pr.next);
   check('app: under the button it says they booked', new RegExp('^' + target.name.split(' ')[0] + ' booked ').test(pr.book), pr.book);
+  // Self-healing: the lead moves the call, but a phone saved an older copy of the lead over it. Only the booking ledger
+  // has the move; the app must put the moved call back in the lead's record (and keep just one booked call).
+  {
+    const before = await page.evaluate(() => JSON.parse(localStorage.getItem('__mockfs')));
+    Object.keys(store).forEach(k => delete store[k]); Object.keys(before).forEach(k => { store[k] = before[k]; }); sent.length = 0;
+    Date.now = () => NOW + 4 * M;
+    const g2 = await call('GET', { k: link }), moveAt = g2.body.slots[6];
+    const p2 = await call('POST', {}, { k: link, at: moveAt });
+    Date.now = realNow;
+    check('server: the move is booked and in the ledger', p2.code === 200 && store['leadChunks/_book'].b[target.id].at === moveAt, p2.code);
+    await page.evaluate(([led]) => { const db = JSON.parse(localStorage.getItem('__mockfs')); db['leadChunks/_book'] = led; localStorage.setItem('__mockfs', JSON.stringify(db)); window.dispatchEvent(new StorageEvent('storage', { key: '__mockfs' })); }, [store['leadChunks/_book']]);
+    await page.waitForTimeout(2500);
+    const after = await page.evaluate(id => { const db = JSON.parse(localStorage.getItem('__mockfs')); const k = Object.keys(db).find(k => /^leadChunks\/[^_]/.test(k) && db[k].leads && db[k].leads[id]); const l = db[k].leads[id];
+      return { open: (l.tasks || []).filter(t => t.booked && !t.done).map(t => t.dueAt), picked: l.book && l.book.picked }; }, target.id);
+    check('app: a booking lost to an older save is put back from the ledger (one booked call, at the new time)', after.open.length === 1 && after.open[0] === moveAt && after.picked === moveAt, after);
+    await page.waitForTimeout(500);
+    const again = await page.evaluate(() => { window.dispatchEvent(new StorageEvent('storage', { key: '__mockfs' })); return true; });
+    await page.waitForTimeout(1200);
+    const after2 = await page.evaluate(id => { const db = JSON.parse(localStorage.getItem('__mockfs')); const k = Object.keys(db).find(k => /^leadChunks\/[^_]/.test(k) && db[k].leads && db[k].leads[id]); return (db[k].leads[id].tasks || []).filter(t => t.booked && !t.done).length; }, target.id);
+    check('app: and only once', again && after2 === 1, after2);
+  }
   check('app: no page errors', !errs.length, errs);
   await ctx.close();
 
@@ -201,11 +238,14 @@ check('push: moved says so', /moved their call/.test(L.bookMessage('acme', 'l1',
     await bp.evaluate(() => document.querySelectorAll('.day')[1].click()); await bp.waitForTimeout(150);
     const d2 = await bp.evaluate(() => ({ name: document.getElementById('dayname').innerText, first: document.querySelector('.slot').innerText }));
     check(c.n + ' page: another day shows its own times', /^Thursday, November 12$/.test(d2.name) && d2.first === '8:00 AM', d2);
+    const grp = await bp.evaluate(() => ({ heads: [...document.querySelectorAll('.grp h2')].map(h => h.innerText.trim()), count: document.getElementById('daycount').innerText }));
+    check(c.n + ' page: times grouped by part of the day (9–6 Eastern is morning and afternoon in California), with a count', grp.heads.join(',') === 'Morning,Afternoon' && /^\d+ times$/.test(grp.count), grp);
     await bp.evaluate(() => document.querySelectorAll('.slot')[2].click()); await bp.waitForTimeout(150);
     const pick = await bp.evaluate(() => ({ p: document.getElementById('pick').innerText, go: document.getElementById('go').disabled, sel: document.querySelector('.slot[aria-pressed="true"]').innerText }));
     check(c.n + ' page: picking a time reads it back and turns Book on', pick.p === 'Thursday, November 12 at 9:00 AM' && !pick.go && pick.sel === '9:00 AM', pick);
     await bp.evaluate(() => document.getElementById('go').click()); await bp.waitForTimeout(600);
     const done = await bp.evaluate(() => ({ h1: document.getElementById('h1').innerText, when: (document.querySelector('.when b') || {}).innerText, cal: (document.getElementById('cal') || {}).href || '', bar: document.getElementById('bar').hidden }));
+    check(c.n + ' page: the booked screen shows a check mark', await bp.evaluate(() => !document.getElementById('okMark').hidden && getComputedStyle(document.getElementById('okMark')).display !== 'none'));
     check(c.n + ' page: booked, with the time and an Add to calendar file', done.h1 === 'You’re booked' && done.when === 'Thursday, November 12 at 9:00 AM' && /^data:text\/calendar/.test(done.cal) && decodeURIComponent(done.cal).includes('DTSTART:20261112T170000Z') && done.bar, done);
     const bk2 = store['offices/acme/leadChunks/c001'].leads.l1.tasks.filter(t => t.booked);
     check(c.n + ' page: the rep\'s follow-up is booked for that time', bk2.length === 1 && bk2[0].dueAt === Date.UTC(2026, 10, 12, 17, 0) && sent.length === 1);
@@ -217,8 +257,8 @@ check('push: moved says so', /moved their call/.test(L.bookMessage('acme', 'l1',
     check(c.n + ' page: moved, still one booked call', store['offices/acme/leadChunks/c001'].leads.l1.tasks.filter(t => t.booked && !t.done).length === 1 && await bp.evaluate(() => document.getElementById('h1').innerText === 'You’re booked'));
     store['offices/acme/leadChunks/c001'].leads.l1.book.off = true;
     await bp.reload(); await bp.waitForTimeout(700);
-    const gn = await bp.evaluate(() => ({ h1: document.getElementById('h1').innerText, sub: document.getElementById('sub').innerText }));
-    check(c.n + ' page: a turned-off link says it has expired and what to do', gn.h1 === 'This link has expired' && /Reply to the text/.test(gn.sub), gn);
+    const gn = await bp.evaluate(() => ({ h1: document.getElementById('h1').innerText, body: document.getElementById('app').innerText }));
+    check(c.n + ' page: a turned-off link says it has expired and what to do', gn.h1 === 'This link has expired' && /Reply to the text/.test(gn.body), gn);
     await bp.goto(BASE + 'book/'); await bp.waitForTimeout(300);
     check(c.n + ' page: no key, no request, a plain message', /incomplete/.test(await bp.evaluate(() => document.getElementById('sub').innerText)));
     const meta = await bp.evaluate(() => ({ robots: document.querySelector('meta[name=robots]').content, csp: document.querySelector('meta[http-equiv="Content-Security-Policy"]').content, text: document.body.innerText }));

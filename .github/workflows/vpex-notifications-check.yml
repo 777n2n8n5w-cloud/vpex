@@ -64,7 +64,7 @@ jobs:
           # 1. The functions
           gcloud functions list --project "$PROJECT" --regions "$R" --format='value(name.basename(),state)' > /tmp/fns.txt 2>/tmp/fns.err || true
           (echo "Region $R"; cat /tmp/fns.txt /tmp/fns.err) | note "Functions"
-          for f in queueFromOffice queueFromTeam sendDue sendTest igDone hit cal consent; do
+          for f in queueFromOffice queueFromTeam sendDue sendTest igDone hit cal consent book; do
             grep -q "^$f[[:space:]]*ACTIVE" /tmp/fns.txt || fail "Function $f" "$f isn't ACTIVE."
           done
           # The Instagram hand-off page's Done button: reachable from a phone, and it refuses a wrong key
@@ -75,6 +75,15 @@ jobs:
           CA=$(curl -s -o /dev/null -w '%{http_code}' "https://$R-$PROJECT.cloudfunctions.net/cal?k=vc_ci-check_cicheck_0000000000000000000000000000000000000000000000000000000000000000")
           echo "Calendar feed answered HTTP $CA to a made-up link (404 = right)." | note "Calendar feed"
           [ "$CA" = "404" ] || fail "Calendar feed" "cal answered $CA to a made-up link; it should be 404."
+          # Booking links: a made-up link gets nothing, the browser may only call it from vpexdialer.com, and the page and its picture load
+          BK=$(curl -s -o /dev/null -w '%{http_code}' "https://$R-$PROJECT.cloudfunctions.net/book?k=vb_ci-check_cicheck_0000000000000000000000000000000000000000000000000000000000000000")
+          BC=$(curl -s -o /dev/null -D - -X OPTIONS -H "Origin: https://vpexdialer.com" -H "Access-Control-Request-Method: POST" "https://$R-$PROJECT.cloudfunctions.net/book" | tr -d '\r' | grep -i '^access-control-allow-origin:' | awk '{print $2}')
+          BP=$(curl -s -L "https://vpexdialer.com/book/" | grep -c "Pick a time for your call" || true)
+          BI=$(curl -s -o /dev/null -w '%{http_code}' "https://vpexdialer.com/book/book-card.jpg")
+          echo "Booking: made-up link $BK (404 = right), browser access for $BC, page found $BP, picture $BI." | note "Booking links"
+          [ "$BK" = "404" ] || fail "Booking links" "book answered $BK to a made-up link; it should be 404."
+          [ "$BC" = "https://vpexdialer.com" ] || fail "Booking links" "book doesn't allow vpexdialer.com in a browser (got '$BC'); the booking page couldn't load times."
+          [ "$BP" -ge 1 ] && [ "$BI" = "200" ] || fail "Booking page" "vpexdialer.com/book/ or its preview picture didn't load (page match $BP, picture HTTP $BI)."
           # The site's anonymous growth counter: takes a beacon from vpexdialer.com, refuses junk and other sites.
           # The test beacon uses source "ci-check", which the learning step and the scorecard leave out.
           H1=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "Origin: https://vpexdialer.com" -H "Content-Type: text/plain" --data '{"e":"visit","s":"ci-check"}' "https://$R-$PROJECT.cloudfunctions.net/hit")

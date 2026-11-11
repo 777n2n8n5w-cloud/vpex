@@ -465,22 +465,29 @@ exports.book = onRequest({ invoker: "public", cors: L.HIT_ORIGINS, maxInstances:
     if (!(await allowed(k.office, book.by.uid, now, null))) return gone();
     let co = "";
     if (k.office) { const o = await db.doc("offices/" + k.office).get(); co = o.exists ? (o.get("name") || "") : ""; }
-    const busy = L.bookBusy(docs.map(function (d) { return d.data(); }), book.by.uid, now, k.leadId);
+    const ledDoc = qs.docs.find(function (d) { return d.id === "_book"; }), led = (ledDoc && ledDoc.get("b")) || {};
+    const busy = L.bookBusy(docs.map(function (d) { return d.data(); }), book.by.uid, now, k.leadId).concat(L.bookLedgerBusy(led, book.by.uid, now, k.leadId));
     const slots = L.bookSlots(book, now, busy);
     if (req.method === "GET") { res.status(200).json(L.bookView(lead, book, co, slots, now)); return; }
 
     const at = Number(body.at);
     if (slots.indexOf(at) < 0) { res.status(409).json({ error: "taken", view: L.bookView(lead, book, co, slots, now) }); return; }
-    const ref = home.ref, field = new admin.firestore.FieldPath("leads", k.leadId);
+    const ref = home.ref, field = new admin.firestore.FieldPath("leads", k.leadId), ledRef = db.doc(pre + "leadChunks/_book");
     let moved = false;
-    const ok = await db.runTransaction(async function (tx) {
-      const snap = await tx.get(ref), cur = snap.exists ? (snap.get("leads") || {})[k.leadId] : null;
-      if (!cur || !L.bookLive(cur.book, now) || cur.book.h !== book.h) return false;
+    const out = await db.runTransaction(async function (tx) {
+      const snap = await tx.get(ref), lsnap = await tx.get(ledRef), cur = snap.exists ? (snap.get("leads") || {})[k.leadId] : null;
+      if (!cur || !L.bookLive(cur.book, now) || cur.book.h !== book.h) return "gone";
+      const b = (lsnap.exists && lsnap.get("b")) || {};
+      if (L.bookClash(b, k.leadId, book.by.uid, at, now)) return "taken";          // another lead took this time a moment ago
       moved = typeof cur.book.picked === "number" && cur.book.picked > now;
-      tx.update(ref, field, L.bookApply(cur, k.leadId, at, now));
-      return true;
+      const next = L.bookApply(cur, k.leadId, at, now), task = next.tasks[next.tasks.length - 1];
+      const nb = L.bookPrune(b, now); nb[k.leadId] = { t: task, u: book.by.uid, at: at, h: task.bookH, ts: now };
+      tx.update(ref, field, next);
+      tx.set(ledRef, { b: nb });
+      return "ok";
     });
-    if (!ok) return gone();
+    if (out === "gone") return gone();
+    if (out === "taken") { res.status(409).json({ error: "taken", view: L.bookView(lead, book, co, slots.filter(function (t) { return t !== at; }), now) }); return; }
     const tz = (await tzFor(book.by.uid)) || book.rtz;
     const r = await sendTo(book.by.uid, [L.bookMessage(k.office, k.leadId, lead, at, tz, moved)], 86400).catch(function () { return { sent: 0 }; });
     logger.info("booking", { office: k.office ? "office" : "team", moved: moved, sent: r.sent });

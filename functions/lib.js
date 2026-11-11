@@ -429,7 +429,7 @@ function calIcs(events, now) {
 // hours and days (rtz, hrs, days). Offered times sit inside both; the one the lead picks becomes the rep's follow-up.
 const BOOK_STEP = 30 * 60000, BOOK_DAYS = 7, BOOK_NOTICE = 2 * 3600000, BOOK_TTL = 14 * 86400000, BOOK_GAP = 30 * 60000;
 function bookKey(k) {
-  const m = /^vb_([a-z0-9][a-z0-9-]{0,62})?_([A-Za-z0-9]{2,64})_([0-9a-f]{64})$/.exec(String(k || "").trim());
+  const m = /^vb_([a-z0-9][a-z0-9-]{0,62})?_([A-Za-z0-9_-]{2,64})_([0-9a-f]{64})$/.exec(String(k || "").trim());   // office has no "_", the secret is fixed-length, so a lead id may hold "_"
   return m ? { office: m[1] || "", leadId: m[2], secret: m[3] } : null;
 }
 const zfmt = {};
@@ -478,6 +478,23 @@ function bookBusy(chunks, uid, now, skipLeadId) {
   });
   return out;
 }
+// The booking ledger (leadChunks/_book): one entry per lead, { t: the booked follow-up, u: rep uid, at, h: tag, ts }.
+// It's written in the same transaction as the lead's record, so it holds every booking even if a phone later saves an
+// older copy of that lead (the app puts a missing booking back from here), and it's how two leads can't take one slot.
+const BOOK_KEEP = 45 * 86400000;
+function bookPrune(led, now) {
+  const out = {};
+  Object.keys(led || {}).forEach(function (id) { const r = led[id]; if (r && typeof r.at === "number" && r.at > now - BOOK_KEEP && Object.keys(out).length < 4000) out[id] = r; });
+  return out;
+}
+function bookLedgerBusy(led, uid, now, skipLeadId) {
+  const out = [];
+  Object.keys(led || {}).forEach(function (id) { const r = led[id]; if (id !== skipLeadId && r && r.u === uid && typeof r.at === "number" && r.at > now - BOOK_GAP) out.push(r.at); });
+  return out;
+}
+function bookClash(led, leadId, uid, at, now) {
+  return bookLedgerBusy(led, uid, now, leadId).some(function (b) { return Math.abs(b - at) < BOOK_GAP; });
+}
 function bookView(lead, book, co, slots, now) {
   return { first: firstName(lead.name) || "there", rep: firstName(book.by && book.by.name) || "", co: str(co || book.co || "", 80),
     slots: slots, picked: typeof book.picked === "number" && book.picked > now ? book.picked : null, exp: book.exp };
@@ -508,4 +525,4 @@ module.exports = { APP_URL, STALE_MS, DROP_MS, APPT_LEAD_MS, queueId, notifyAt, 
   FLOOR_MAX, floorRequest, floorGate, floorRecipients, floorMessage,
   HIT_EVENTS, HIT_INDS, HIT_ORIGINS, HIT_DAY_KEYS, hitOriginOk, capHit, hitTok, parseHit, hitKey, unHitKey, nyDate, freshOffice,
   sha256hex, sameHash,
-  calKey, calEvents, calIcs, icsFold, bookKey, zParts, bookLive, bookSlots, bookBusy, bookView, bookApply, bookWhen, bookMessage, BOOK_TTL, CONSENT_METHODS, parseConsent, RETAIN };
+  calKey, calEvents, calIcs, icsFold, bookKey, zParts, bookLive, bookSlots, bookBusy, bookPrune, bookLedgerBusy, bookClash, bookView, bookApply, bookWhen, bookMessage, BOOK_TTL, CONSENT_METHODS, parseConsent, RETAIN };

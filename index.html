@@ -12511,7 +12511,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     var box = document.getElementById("fuBody"), lead = FU && findLeadById(FU.leadId);
     if (!box || !lead) return;
     var first = escapeHtml(textFirstName(lead.name)), cb = FU.kind === "callback", mv = FU.kind === "move", set = FU.kind === "set";
-    var bl = mv || lead.dnc || !(lead.phone || lead.phoneRaw) ? '' : '<button type="button" class="fu-booklink" data-book-lead="' + lead.id + '">' + calIconSvg() + '<span>Let ' + first + ' pick</span></button>';
+    var bl = mv || lead.dnc || !(lead.phone || lead.phoneRaw) || !bookIdOk(lead) ? '' : '<button type="button" class="fu-booklink" data-book-lead="' + lead.id + '">' + calIconSvg() + '<span>Let ' + first + ' pick</span></button>';
     var whats = nextSteps().slice(); if (FU.what && whats.indexOf(FU.what) === -1) whats.unshift(FU.what);
     var days = fuDays(lead);
     var moreOn = days.indexOf(FU.day) === -1;   // picked from the calendar
@@ -15419,7 +15419,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
   }
   function calIconSvg() { return '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M9 15l2 2 4-4"/></svg>'; }
   function lpBookHtml(lead) {
-    if (lead.dnc || !(lead.phone || lead.phoneRaw)) return "";
+    if (lead.dnc || !(lead.phone || lead.phoneRaw) || !bookIdOk(lead)) return "";
     var p = bookPicked(lead), live = bookLive(lead), f = escapeHtml(firstName(lead.name) || "them");
     var sub = p ? f + " booked " + escapeHtml(whenLc(p)) : live ? "Sent " + escapeHtml(new Date(lead.book.at).toLocaleDateString("en-US", { month: "short", day: "numeric" })) + " · waiting for " + f + " to pick" : "";
     return '<button type="button" class="lp-book' + (p ? ' ok' : live ? ' wait' : '') + '" data-book-lead="' + lead.id + '">' + calIconSvg() + '<span>' + (p || live ? 'Send a new booking link' : 'Send booking link') + '</span></button>' +
@@ -18838,7 +18838,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     TEAM.chunkBytesDirty = TEAM.chunkBytesDirty || {};
     Object.keys(cache).forEach(function (ck) {
       var data = cache[ck];
-      if (ck.charAt(0) === "_") { if (changed[ck]) { if (ck === "_team") TEAM.infoCfg = data; if (ck === "_dnc") TEAM.dnc = data.nums || {}; } return; }
+      if (ck.charAt(0) === "_") { if (changed[ck]) { if (ck === "_team") TEAM.infoCfg = data; if (ck === "_dnc") TEAM.dnc = data.nums || {}; if (ck === "_book") TEAM.bookLedger = data.b || {}; } return; }
       var leads = data.leads || {};
       sizes[ck] = Object.keys(leads).length;
       if (changed[ck]) TEAM.chunkBytesDirty[ck] = true;
@@ -18895,6 +18895,7 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     state.completedStack = (state.completedStack || []).filter(function (id) { return !!remote[id] || !!localById[id]; });
     var fromCache = !!(qs.metadata && qs.metadata.fromCache);
     if (!TEAM.ready) TEAM.ready = true;
+    try { bookReconcile(); } catch (e) {}
     recycleSweep();
     if (!fromCache && !TEAM.migrationChecked) { TEAM.migrationChecked = true; teamOfferMigration(qs.empty); }
     setSaveStatus(fromCache ? "teamoffline" : "teamsynced");
@@ -21649,6 +21650,28 @@ var VX_KIT = {"flow":"studio","flowlight":"studio","midnight":"ledger","daylight
     var bb = document.getElementById("bkBubble"); if (bb) bb.textContent = BK.msg;
     if (lead && a) a.setAttribute("href", smsHref(lead, BK.msg + " " + bookLink(lead)));
   });
+  // A booking is written to the lead's record and to the booking ledger together. If a phone saved an older copy of the
+  // lead over it (it was mid-edit when the booking landed), the booking would be gone from the record: put it back.
+  // The rep's own phones do it at once; an admin's after 10 minutes, in case the rep isn't signed in anywhere.
+  function bookReconcile() {
+    var led = TEAM.bookLedger; if (!led || !TEAM.me) return;
+    var now = Date.now(), byId = {}, fixed = 0;
+    state.leads.forEach(function (l) { byId[l.id] = l; });
+    Object.keys(led).forEach(function (id) {
+      var r = led[id], l = byId[id];
+      if (!r || !r.t || !l || typeof r.ts !== "number" || typeof r.at !== "number" || r.at < now - 12 * 36e5) return;
+      if (l.book && (l.book.pickedAt || 0) >= r.ts) return;
+      if (r.u !== TEAM.me.uid && !(isAdmin() && now - r.ts > 10 * 60000)) return;
+      if (!state.tasks.some(function (t) { return t.id === r.t.id; })) {
+        state.tasks = state.tasks.filter(function (t) { return !(t.leadId === id && !t.done && t.bookH && t.bookH === r.h); });
+        state.tasks.push(Object.assign({}, r.t, { leadId: id }));
+      }
+      l.book = Object.assign({}, l.book || {}, { picked: r.at, pickedAt: r.ts });
+      fixed++;
+    });
+    if (fixed) saveState();
+  }
+  function bookIdOk(lead) { return !!lead && /^[A-Za-z0-9_-]{2,64}$/.test(lead.id || ""); }
   // A booking that came in (from the server, on any device): say so once, with a way to the lead.
   function bookArrivals() {
     if (!TEAM.on || !TEAM.ready) return;
