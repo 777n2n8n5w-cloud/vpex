@@ -90,7 +90,9 @@ jobs:
   # changes no limit, gap or backoff: the run it starts is the same run the schedule would start.
   relay:
     needs: bot
-    if: always() && (github.event_name == 'schedule' && github.event.schedule == '4,19,34,49 * * * *' || github.event_name == 'workflow_dispatch' && inputs.mode == 'run')
+    # Any scheduled run (the 15-minute one, the morning learn, the Monday scorecard) can restart the chain, so one lost
+    # relay doesn't leave the next post waiting for GitHub's next (often hours-late) schedule run.
+    if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' && inputs.mode == 'run')
     runs-on: ubuntu-24.04
     timeout-minutes: 355
     permissions:
@@ -120,6 +122,23 @@ jobs:
           done
           wait=$((secs + 90))
           echo "::notice title=Relay::Starting a run in $((wait / 60)) minutes, at the next planned post."
-          sleep "$wait"
-          gh api -X POST "repos/$REPO/actions/workflows/vpex-instagram.yml/dispatches" -f ref=main -f "inputs[mode]=run" >/dev/null
+          # If GitHub stops this runner while it sleeps (it did on Nov 11, exit 143 after 30 min), hand the chain on at
+          # once: start the same normal run now. It posts only what's due (gaps and backoff unchanged) and its own relay
+          # then sleeps until the next planned post. One start at most per relay.
+          started=0
+          start_run() {
+            [ "$started" = 1 ] && return 0
+            started=1
+            gh api -X POST "repos/$REPO/actions/workflows/vpex-instagram.yml/dispatches" -f ref=main -f "inputs[mode]=run" >/dev/null
+          }
+          on_stop() {
+            echo "::warning title=Relay::This runner was stopped while waiting; started a run now so the next relay takes over."
+            kill "$sp" 2>/dev/null; start_run; exit 0
+          }
+          trap on_stop TERM INT HUP
+          sleep "$wait" &
+          sp=$!
+          wait "$sp"
+          trap - TERM INT HUP
+          start_run
           echo "Started a run."

@@ -539,6 +539,38 @@ check("cancel-in-progress: false" in wf and "group: vpex-instagram\n" in wf and 
       and "inputs[mode]=run" in wf and "actions: write" in wf.split("relay:")[1] and "actions: write" not in wf.split("relay:")[0],
       "workflow: relay waits at most 5 h 45 min, starts a normal run, only it may start runs, the bot lane is unchanged")
 
+# The relay's own shell script, run with stand-ins for gh, python and the clock (no GitHub, no Meta).
+import re as _re, signal as _signal, time as _time
+_m = _re.search(r"- name: Start a run at the next planned post\n(?:.*\n)*?        run: \|\n((?:          .*\n|\n)+)", wf)
+relay_sh = "\n".join(l[10:] for l in _m.group(1).splitlines()) if _m else ""
+_rif = _re.search(r"  relay:\n(?:.*\n)*?    if: (.*)\n", wf)
+check(_rif and _rif.group(1) == "always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' && inputs.mode == 'run')",
+      "workflow: every scheduled run (15-minute, learn, scorecard) and a dispatched run may start the relay", _rif.group(1) if _rif else "")
+RD = os.path.join(TMP, "relay"); os.makedirs(os.path.join(RD, "bin"), exist_ok=True)
+open(os.path.join(RD, "relay.sh"), "w").write(relay_sh)
+open(os.path.join(RD, "bin", "gh"), "w").write('#!/bin/bash\necho "gh $*" >> "$LOG"\nif [[ "$*" == *"status=in_progress"* ]]; then echo "${OTHERS:-}"; elif [[ "$*" == *"/jobs"* ]]; then echo 99; fi\n')
+open(os.path.join(RD, "bin", "python"), "w").write('#!/bin/bash\necho "$SECS"\n')
+for _f in ("gh", "python"): os.chmod(os.path.join(RD, "bin", _f), 0o755)
+def relay(secs, others="", term_after=None):
+    log = os.path.join(RD, "log"); open(log, "w").close()
+    env = dict(os.environ, PATH=os.path.join(RD, "bin") + ":" + os.environ["PATH"], LOG=log, SECS=str(secs), OTHERS=others,
+               REPO="o/r", RUN_ID="1", GH_TOKEN="x")
+    pr = subprocess.Popen(["bash", os.path.join(RD, "relay.sh")], env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    if term_after is not None:
+        _time.sleep(term_after); pr.send_signal(_signal.SIGTERM)
+    out, _ = pr.communicate(timeout=30)
+    return pr.returncode, out, open(log).read().count("/dispatches")
+rc, out, n = relay(-88)
+check(rc == 0 and n == 1 and "Started a run." in out, "relay: sleeps until the post, then starts exactly one run", out)
+rc, out, n = relay(600, term_after=1.5)
+check(rc == 0 and n == 1 and "stopped while waiting" in out, "relay: a runner stopped mid-sleep starts the next run at once (once), not a red run", out)
+rc, out, n = relay(600, others="5")
+check(rc == 0 and n == 0 and "already waiting" in out, "relay: another relay sleeping means no second one", out)
+rc, out, n = relay(30000)
+check(rc == 0 and n == 0, "relay: nothing within 5 h 45 min means no run started", out)
+rc, out, n = relay("none")
+check(rc == 0 and n == 0, "relay: paused means no run started", out)
+
 shutil.rmtree(TMP, ignore_errors=True)
 print("bot: %d passed, %d failed" % (F["p"], F["f"]))
 sys.exit(1 if F["f"] else 0)
