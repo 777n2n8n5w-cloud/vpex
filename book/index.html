@@ -149,6 +149,7 @@
     if (!V) return;
     $("co").textContent = V.co || " ";
     if (V.picked && !V.changing) return renderDone();
+    if (V.left === 0) { hero("Let\u2019s find a time together", "Reply to " + (V.rep || "our") + (V.rep ? "\u2019s" : "") + " text with a time that works, and they\u2019ll set it up."); clearBody(); return; }
     var g = groups();
     hero("Pick a time for " + (V.rep || "us") + " to call you", "Hi " + V.first + ". Tap a time that works. Times are in your time zone" + (tz ? " (" + tz + ")" : "") + ".");
     $("note").hidden = true;
@@ -192,12 +193,13 @@
     hero("You’re booked", (V.rep || "We") + " will call you then. Nothing else to do.", true);
     $("slots").innerHTML = '<div class="when"><b>' + esc(full(V.picked)) + '</b><span>Your time' + (tz ? " (" + esc(tz) + ")" : "") + '</span></div>' +
       '<div class="acts"><a class="sec primary" id="cal" download="call.ics" href="' + ics(V.picked) + '">' + ICON.cal + 'Add to my calendar</a>' +
+      (V.left === 0 ? '</div><p class="tip">Need a different time? Reply to ' + esc(V.rep || "us") + '\u2019s text and they\u2019ll sort it out.</p>' :
       '<button type="button" class="sec" id="change">Pick a different time</button></div>' +
-      '<p class="tip">Plans change? Open this same link any time before the call to move it.</p>';
+      '<p class="tip">Plans change? Open this same link any time before the call to move it.</p>');
   }
   function load() {
     if (!/^vb_/.test(key)) { gone("This link looks incomplete. Open it straight from the text you got."); return; }
-    fetch(FN + "?k=" + encodeURIComponent(key), { cache: "no-store" }).then(function (r) {
+    fetch(FN, { method: "POST", cache: "no-store", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ k: key }) }).then(function (r) {
       if (r.status === 404) { gone(); return null; }
       if (!r.ok) throw new Error(r.status);
       return r.json();
@@ -222,6 +224,7 @@
         if (x.s === 200) { V = x.j; V.changing = false; at = null; render(); window.scrollTo(0, 0); return; }
         if (x.s === 404) { gone(); return; }
         if (x.s === 409 && x.j && x.j.view) { V = Object.assign(x.j.view, { changing: V.changing }); at = null; render(); $("note").hidden = false; $("note").textContent = "That time was just taken. Please pick another."; return; }
+        if (x.s === 429 && x.j && x.j.view) { V = Object.assign(x.j.view, { changing: false }); at = null; render(); window.scrollTo(0, 0); return; }
         throw new Error(x.s);
       }).catch(function () { busy = false; render(); $("note").hidden = false; $("note").textContent = "Couldn’t book that. Check your connection and tap Book again."; });
     }

@@ -468,8 +468,10 @@ exports.book = onRequest({ invoker: "public", cors: L.HIT_ORIGINS, maxInstances:
     const ledDoc = qs.docs.find(function (d) { return d.id === "_book"; }), led = (ledDoc && ledDoc.get("b")) || {};
     const busy = L.bookBusy(docs.map(function (d) { return d.data(); }), book.by.uid, now, k.leadId).concat(L.bookLedgerBusy(led, book.by.uid, now, k.leadId));
     const slots = L.bookSlots(book, now, busy);
-    if (req.method === "GET") { res.status(200).json(L.bookView(lead, book, co, slots, now)); return; }
+    // The page asks for its times by POST with no "at", so the key travels in the body, never in a URL that request logs keep.
+    if (req.method === "GET" || body.at === undefined) { res.status(200).json(L.bookView(lead, book, co, slots, now)); return; }
 
+    if ((Number(book.n) || 0) >= L.BOOK_PICKS) { res.status(429).json({ error: "limit", view: L.bookView(lead, book, co, slots, now) }); return; }
     const at = Number(body.at);
     if (slots.indexOf(at) < 0) { res.status(409).json({ error: "taken", view: L.bookView(lead, book, co, slots, now) }); return; }
     const ref = home.ref, field = new admin.firestore.FieldPath("leads", k.leadId), ledRef = db.doc(pre + "leadChunks/_book");
@@ -477,6 +479,7 @@ exports.book = onRequest({ invoker: "public", cors: L.HIT_ORIGINS, maxInstances:
     const out = await db.runTransaction(async function (tx) {
       const snap = await tx.get(ref), lsnap = await tx.get(ledRef), cur = snap.exists ? (snap.get("leads") || {})[k.leadId] : null;
       if (!cur || !L.bookLive(cur.book, now) || cur.book.h !== book.h) return "gone";
+      if ((Number(cur.book.n) || 0) >= L.BOOK_PICKS) return "limit";                 // changed enough times: the rep takes it from here
       const b = (lsnap.exists && lsnap.get("b")) || {};
       if (L.bookClash(b, k.leadId, book.by.uid, at, now)) return "taken";          // another lead took this time a moment ago
       moved = typeof cur.book.picked === "number" && cur.book.picked > now;
@@ -487,11 +490,13 @@ exports.book = onRequest({ invoker: "public", cors: L.HIT_ORIGINS, maxInstances:
       return "ok";
     });
     if (out === "gone") return gone();
+    if (out === "limit") { res.status(429).json({ error: "limit", view: L.bookView(lead, book, co, slots, now) }); return; }
     if (out === "taken") { res.status(409).json({ error: "taken", view: L.bookView(lead, book, co, slots.filter(function (t) { return t !== at; }), now) }); return; }
     const tz = (await tzFor(book.by.uid)) || book.rtz;
     const r = await sendTo(book.by.uid, [L.bookMessage(k.office, k.leadId, lead, at, tz, moved)], 86400).catch(function () { return { sent: 0 }; });
     logger.info("booking", { office: k.office ? "office" : "team", moved: moved, sent: r.sent });
-    res.status(200).json(Object.assign(L.bookView(Object.assign({}, lead, { book: Object.assign({}, book, { picked: at }) }), Object.assign({}, book, { picked: at }), co, slots, now), { ok: true }));
+    const nb2 = Object.assign({}, book, { picked: at, n: (Number(book.n) || 0) + 1 });
+    res.status(200).json(Object.assign(L.bookView({ name: lead.name, tasks: [] }, nb2, co, slots, now), { ok: true }));
   } catch (e) {
     logger.error("book failed", { err: String(e).slice(0, 200) });
     res.status(500).json({ error: "later" });

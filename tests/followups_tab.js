@@ -75,8 +75,8 @@ async function toastWith(page, re) {   // other toasts (a badge, a goal) can be 
     check(c.n + ' the fix moves it inside their hours', !(await ev(page, () => document.getElementById('fuBook').disabled)));
     // quick pick: In 1 hour
     await tap(page, '[data-fu-q]');
-    g = await ev(page, () => ({ b: document.getElementById('fuBook').textContent, sum: document.querySelector('.fu-sum b').textContent }));
-    check(c.n + ' "In 1 hour" books today at 4:35 PM in one tap', /Today 4:35 PM/.test(g.b), g);
+    g = await ev(page, () => ({ b: document.getElementById('fuBook').textContent, sum: document.querySelector('.fu-sum').textContent }));
+    check(c.n + ' "In 1 hour" books today at 4:35 PM in one tap (saved, nothing to confirm)', /Nov 5 at 4:35 PM/.test(g.sum) && /Saved/.test(g.sum) && g.b === 'Done', g);
     // keyboard on a computer: Tab reaches the parts and Enter books
     await tap(page, '#fuBook'); await page.waitForTimeout(300);
     check(c.n + ' booked and closed', !(await ev(page, () => document.getElementById('fuSheet').classList.contains('show'))));
@@ -103,7 +103,7 @@ async function toastWith(page, re) {   // other toasts (a badge, a goal) can be 
     const movedTo = await ev(page, () => document.getElementById('fuBook').textContent);
     await tap(page, '#fuBook'); await page.waitForTimeout(300);
     const row = await ev(page, n => { const it = [...document.querySelectorAll('.task-item')].find(x => x.querySelector('.task-lead-name').textContent === n); return it ? it.querySelector('.task-due').textContent : ''; }, name);
-    check(c.n + ' the moved follow-up shows its new time', /^Move to /.test(movedTo) && row && !/Overdue/.test(row), { movedTo, row });
+    check(c.n + ' the moved follow-up shows its new time (saved on the tap)', movedTo === 'Done' && row && !/Overdue/.test(row), { movedTo, row });
     // Mark done + Undo
     const before = await ev(page, () => document.querySelectorAll('.task-item:not(:has(.task-check.done))').length);
     await tap(page, '.task-item .task-check');

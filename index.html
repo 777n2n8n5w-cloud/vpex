@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-02-21">
+<meta name="vpex-build" content="2027-02-22">
 <!-- Scripts only from this site and Google's Firebase library; no plugins; no <base> or form hijacking. Inline scripts stay
      allowed because the app is one file. (GitHub Pages can't send headers, so this is the strongest policy a page can set.) -->
 <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://www.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self'">
@@ -7000,6 +7000,11 @@ window.VPEX_SIG = [
   .fu-sum { margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: var(--surface-raised); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--text-dim); }
   .fu-sum b { color: var(--text); font-size: 15px; }
   .fu-sum.bad { border-color: var(--notinterested); }
+  .fu-sum.saved { border-color: color-mix(in srgb, var(--interested) 55%, var(--border)); }
+  .fu-saved { display: inline-flex; align-items: center; gap: 5px; color: var(--interested); font-weight: 650; }
+  .fu-saved i { font-style: normal; }
+  .fu-chip.fu-taken { opacity: 0.55; cursor: not-allowed; text-decoration: line-through; text-decoration-thickness: 1px; }
+  .fu-chip.fu-taken small { text-decoration: none; display: inline-block; }
   .fu-sum .link-btn { background: none; border: 0; padding: 0; color: var(--accent); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; }
   .fu-note { margin-top: 14px; }
   .modal input.fu-note { font-size: 16px; }
@@ -12638,6 +12643,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     var lead = findLeadById(o.leadId); if (!lead) return;
     var t = o.taskId ? state.tasks.filter(function (x) { return x.id === o.taskId; })[0] : null;
     var sug = t && t.dueAt && t.dueAt > Date.now() ? t.dueAt : slotAt(lead, 1, 10);
+    if (slotTaken(sug, lead.id, t ? t.id : null)) sug = fuFreeFrom(lead, sug, t ? t.id : null) || sug;
     var mv = o.kind === "move";
     FU = { leadId: lead.id, taskId: t ? t.id : null, kind: o.kind || "interested", sug: sug, at: sug, day: localDateStr(new Date(sug)),
       stage: lead.stage && lead.stage !== "New Lead" ? lead.stage : "Qualified", note: mv && t && t.note && (t.pinned || !t.auto) && !/^They picked this time/.test(t.note) ? t.note : "", text: o.text || null, custom: false,
@@ -12648,6 +12654,16 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       renderFollowSheet(true);
       var b = document.getElementById("fuBook"); if (b) b.focus({ preventScroll: true });
     }, 60);
+  }
+  // The first open half hour at or after ts (inside their calling hours, not taken), up to three weeks out.
+  function fuFreeFrom(lead, ts, skipId) {
+    var d = new Date(ts); d.setHours(12, 0, 0, 0);
+    for (var i = 0; i < 21; i++) {
+      var hit = fuSlotsRaw(lead, localDateStr(d)).filter(function (x) { return x.ts >= ts && !slotTaken(x.ts, lead.id, skipId); })[0];
+      if (hit) return hit.ts;
+      d.setDate(d.getDate() + 1);
+    }
+    return 0;
   }
   function fuTheir(ts, lead) {   // "9 AM TX" when their clock differs from yours
     var z = leadZone(lead); if (!z.iana) return "";
@@ -12664,14 +12680,14 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     var moreOn = days.indexOf(FU.day) === -1;   // picked from the calendar
     var slots = fuSlots(lead, FU.day), clk = leadZone(lead).iana ? leadClock(lead) : null;
     var tt = theirTime(FU.at, lead), chk = slotCheck(lead, FU.at), bad = chk ? !chk.ok : !fuSlotOk(lead, FU.at);
-    var past = FU.at < Date.now();
+    var past = FU.at < Date.now(), taken = !past && !bad ? slotTaken(FU.at, lead.id, FU.taskId) : null, saved = FU.saved === FU.at && !taken;
     var dateLong = new Date(FU.at).toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" });
     // "Call me back in an hour": one tap, rounded to the next 5 minutes, only when it's inside their calling hours.
     var quick = [[60, "In 1 hour"], [120, "In 2 hours"], [180, "In 3 hours"], [7 * 1440, "In a week"]].map(function (q) {
       var ts = Math.ceil((Date.now() + q[0] * 60000) / 300000) * 300000;
       if (q[0] === 7 * 1440) { var s = new Date(FU.sug); ts = new Date(s.getFullYear(), s.getMonth(), s.getDate() + 7, s.getHours(), s.getMinutes()).getTime(); }
       return { ts: ts, label: q[1] };
-    }).filter(function (q) { return fuSlotOk(lead, q.ts); });
+    }).filter(function (q) { return fuSlotOk(lead, q.ts) && !slotTaken(q.ts, lead.id, FU.taskId); });
     var byPart = { am: [], pm: [], eve: [] };
     slots.forEach(function (s) { byPart[fuPart(s.ts)].push(s); });
     var part = FU.part && byPart[FU.part].length ? FU.part : byPart[fuPart(FU.at)].length ? fuPart(FU.at) : (byPart.pm.length ? "pm" : byPart.am.length ? "am" : "eve");
@@ -12702,13 +12718,17 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
         return '<button type="button" role="tab" class="fu-part' + (x[0] === part ? ' on' : '') + '" data-fu-part="' + x[0] + '" aria-selected="' + (x[0] === part) + '"' + (n ? '' : ' disabled') + '>' + x[1] + (n ? '' : ' \u00b7 none') + '</button>';
       }).join("") + '</div>' +
       '<div class="fu-times" role="group" aria-label="' + escapeHtml(FU_PARTS.filter(function (x) { return x[0] === part; })[0][1]) + ' times">' + byPart[part].map(function (s) {
-        var their = fuTheir(s.ts, lead);
+        var their = fuTheir(s.ts, lead), tk = slotTaken(s.ts, lead.id, FU.taskId);
+        if (tk) return '<button type="button" class="fu-chip fu-t fu-taken" disabled aria-label="' + escapeHtml(fuTime(s.ts)) + ', taken by your follow-up with ' + escapeHtml(tk.leadName || "another lead") + '">' +
+          '<b>' + escapeHtml(fuTime(s.ts)) + '</b><small>Taken</small></button>';
         return '<button type="button" class="fu-chip fu-t' + (s.ts === FU.at ? ' on' : '') + (s.best ? ' best' : '') + '" data-fu-at="' + s.ts + '" aria-pressed="' + (s.ts === FU.at) + '"' + (s.best ? ' title="Best time to reach ' + first + '"' : '') + '>' +
           '<b>' + escapeHtml(fuTime(s.ts)) + '</b>' + (their ? '<small>' + escapeHtml(their) + '</small>' : '') + '</button>';
       }).join("") + '</div>' : '<p class="fu-empty">No calling hours left that day. Pick another day.</p>') +
       '<label class="fu-exact"><span>Or type a time</span><input type="time" id="fuTimeIn" step="300" value="' + pad2(new Date(FU.at).getHours()) + ':' + pad2(new Date(FU.at).getMinutes()) + '"></label>' +
-      '<div class="fu-sum' + (bad || past ? ' bad' : '') + '" aria-live="polite"><b>' + escapeHtml(dateLong) + ' at ' + escapeHtml(fuTime(FU.at)) + '</b>' +
+      '<div class="fu-sum' + (bad || past || taken ? ' bad' : saved ? ' saved' : '') + '" aria-live="polite"><b>' + escapeHtml(dateLong) + ' at ' + escapeHtml(fuTime(FU.at)) + '</b>' +
         (tt ? '<span>' + escapeHtml(tt) + ' for ' + first + '</span>' : '') +
+        (saved ? '<span class="fu-saved"><i aria-hidden="true">\u2713</i> Saved</span>' : '') +
+        (taken ? '<span>Your follow-up with ' + escapeHtml(taken.leadName || "another lead") + ' is at ' + escapeHtml(fuTime(taskDueTs(taken))) + '. Pick another time.</span>' : '') +
         (past ? '<span>That time has passed. Pick a later one.</span>' : bad ? '<span>Outside their calling hours (' + escapeHtml(chk && chk.why || "8 AM–9 PM") + ').' +
           (chk && chk.fix ? ' <button type="button" class="link-btn" id="fuFix" data-at="' + chk.fix + '">Move to ' + escapeHtml(fmtWhen(chk.fix)) + '</button>' : '') + '</span>' : '') + '</div>' +
       (cb || mv ? '' : '<div class="fu-label">Where are they now?</div><div class="fu-row fu-stages" role="group" aria-label="Deal stage">' + FU_STAGES.map(function (s) {
@@ -12717,8 +12737,8 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       (cb || mv ? '' : progHtml(lead)) +
       '<input type="text" id="fuNote" class="fu-note" maxlength="200" autocomplete="off" placeholder="What to open with next time (optional)" value="' + escapeHtml(FU.note) + '" aria-label="Note for the next call">' +
       '</div></div>' +
-      '<div class="modal-actions fu-acts"><button type="button" class="btn-secondary" id="fuKeep" aria-label="' + (mv ? 'Cancel, keep ' : 'Skip, keep ') + escapeHtml(fmtWhen(FU.sug)) + '">' + (mv ? 'Cancel' : 'Skip') + '</button>' +
-        '<button type="button" class="btn-primary" id="fuBook"' + (past || bad ? ' disabled' : '') + '>' + (mv ? 'Move to ' : 'Book ') + escapeHtml(fuDayLabel(localDateStr(new Date(FU.at)))) + ' ' + escapeHtml(fuTime(FU.at)) + '</button></div>';
+      '<div class="modal-actions fu-acts">' + (FU.saved ? '' : '<button type="button" class="btn-secondary" id="fuKeep" aria-label="' + (mv ? 'Cancel, keep ' : 'Skip, keep ') + escapeHtml(fmtWhen(FU.sug)) + '">' + (mv ? 'Cancel' : 'Skip') + '</button>') +
+        '<button type="button" class="btn-primary" id="fuBook"' + (past || bad || taken ? ' disabled' : '') + '>' + (saved ? 'Done' : (mv ? 'Move to ' : 'Book ') + escapeHtml(fuDayLabel(localDateStr(new Date(FU.at)))) + ' ' + escapeHtml(fuTime(FU.at))) + '</button></div>';
     var kb = document.getElementById("fuKeep"); if (kb && set) { kb.textContent = "Cancel"; kb.setAttribute("aria-label", "Cancel"); }
     if (reveal && FU.cal) { var c = document.getElementById("fuCal"); if (c && c.scrollIntoView) c.scrollIntoView({ block: "nearest" }); }
   }
@@ -12734,44 +12754,67 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     }
     saveState(); render(); renderTextPrompt();
   }
+  // What stops a time from being saved: it has passed, it's outside their calling hours, or another of your follow-ups has it.
+  function fuProblem(lead) {
+    if (FU.at < Date.now()) return { k: "past" };
+    var chk = slotCheck(lead, FU.at);
+    if (chk ? !chk.ok : !fuSlotOk(lead, FU.at)) return { k: "hours", chk: chk };
+    var tk = slotTaken(FU.at, lead.id, FU.taskId);
+    return tk ? { k: "taken", t: tk } : null;
+  }
+  // Picking a time saves it at once: the follow-up is booked the moment it's tapped, and every later tap on the sheet
+  // (another time, the next step, where they stand, the note) updates the same follow-up. Nothing to confirm.
+  function fuCommit() {
+    if (!FU) return false;
+    var lead = findLeadById(FU.leadId); if (!lead || fuProblem(lead)) return false;
+    var t = FU.taskId ? state.tasks.filter(function (x) { return x.id === FU.taskId && !x.done; })[0] : null, note = FU.note.trim();
+    if (FU.kind === "move" && !t) return false;
+    if (!t) {   // a next step set by hand, or a lead the follow-up rules had parked: a time they agreed to is a real next step
+      lead.stalled = null; lead.stallWhy = null; lead.touchAt = Date.now();
+      if (FU.kind !== "set") lead.touches = Math.min(lead.touches || 0, 1);
+      t = addAutoTask(lead, FU.kind === "callback" ? "Call" : "Follow-up", "High", FU.at, "");
+      if (FU.kind === "set") t.auto = false;
+    }
+    t.dueAt = FU.at; t.due = localDateStr(new Date(FU.at));
+    if (FU.kind === "set") { t.what = FU.what; t.note = note; }
+    else if (FU.kind === "move") { if (note) t.note = note; if (FU.whatSet) t.what = FU.what; }
+    else {
+      t.pinned = true; t.what = FU.kind === "callback" ? "Call back" : FU.what;
+      t.note = note || (t.booked ? t.note : FU.kind === "callback" ? "They picked this time" : "They picked this time \u2014 move them forward");
+    }
+    if (FU.kind !== "callback" && FU.kind !== "move" && FU.stage && FU.stage !== lead.stage) setStage(lead, FU.stage);
+    FU.taskId = t.id; FU.saved = FU.at;
+    supersedeOthers(lead.id, t.id);
+    saveState();
+    return true;
+  }
+  // Closing the sheet keeps what was saved; with nothing picked, the suggested follow-up stays as it was.
+  function fuFinish() {
+    if (!FU) return;
+    var lead = findLeadById(FU.leadId);
+    if (FU.saved && lead) {
+      fuCommit();
+      var tt = theirTime(FU.saved, lead), tail = tt ? " \u00b7 " + tt + " for " + firstName(lead.name) : "";
+      showToast((FU.kind === "move" ? "Moved to " : (FU.kind === "callback" ? "Callback" : FU.what) + " booked ") + fmtWhen(FU.saved) + tail);
+    } else if (FU.taskId && FU.kind !== "move" && FU.kind !== "set") {
+      var kt = state.tasks.filter(function (x) { return x.id === FU.taskId; })[0];
+      if (kt && FU.note.trim()) kt.note = FU.note.trim();
+      if (kt && FU.whatSet) kt.what = FU.what;
+    }
+    closeFollowSheet();
+  }
+  // The main button: books the time shown (one tap) or, once a time is saved, closes the sheet.
   function bookFollowSheet() {
     if (!FU) return;
     var lead = findLeadById(FU.leadId); if (!lead) { closeFollowSheet(); return; }
-    if (FU.at < Date.now()) { showToast("That time has passed. Pick a later one."); return; }
-    var t = FU.taskId ? state.tasks.filter(function (x) { return x.id === FU.taskId && !x.done; })[0] : null;
-    if (FU.kind === "set") {   // a next step the rep sets from the pipeline or a profile: theirs, so the automatic rules leave it alone
-      lead.stalled = null; lead.stallWhy = null; lead.touchAt = Date.now();
-      t = addAutoTask(lead, "Follow-up", "High", FU.at, FU.note.trim()); t.auto = false; t.what = FU.what;
-      if (FU.stage && FU.stage !== lead.stage) setStage(lead, FU.stage);
-      var st2 = theirTime(FU.at, lead);
-      showToast(FU.what + " set for " + fmtWhen(FU.at) + (st2 ? " \u00b7 " + st2 + " for " + firstName(lead.name) : ""));
-      closeFollowSheet(); return;
-    }
-    if (!t) {   // parked by the follow-up rules, so nothing was scheduled: a time they agreed to is a real next step
-      lead.stalled = null; lead.stallWhy = null; lead.touches = Math.min(lead.touches || 0, 1); lead.touchAt = Date.now();
-      t = addAutoTask(lead, FU.kind === "callback" ? "Call" : "Follow-up", "High", FU.at, "");
-    }
-    if (FU.kind === "move") {   // a rep moving a follow-up: the time changes; whether the lead picked it doesn't
-      t.dueAt = FU.at; t.due = localDateStr(new Date(FU.at));
-      if (FU.note.trim()) t.note = FU.note.trim();
-      if (FU.whatSet) t.what = FU.what;
-      var tm = theirTime(FU.at, lead);
-      showToast("Moved to " + fmtWhen(FU.at) + (tm ? " \u00b7 " + tm + " for " + firstName(lead.name) : ""));
-      closeFollowSheet(); return;
-    }
-    t.dueAt = FU.at; t.due = localDateStr(new Date(FU.at)); t.pinned = true; t.what = FU.kind === "callback" ? "Call back" : FU.what;
-    if (FU.note.trim()) t.note = FU.note.trim();
-    else if (FU.kind === "callback") t.note = "They picked this time";
-    else t.note = "They picked this time — move them forward";
-    if (FU.kind !== "callback" && FU.stage && FU.stage !== lead.stage) setStage(lead, FU.stage);
-    var tt = theirTime(FU.at, lead);
-    showToast((FU.kind === "callback" ? "Callback" : FU.what) + " booked " + fmtWhen(FU.at) + (tt ? " · " + tt + " for " + firstName(lead.name) : ""));
-    closeFollowSheet();
+    if (FU.saved === FU.at || fuCommit()) { fuFinish(); return; }
+    var pr = fuProblem(lead);
+    showToast(!pr ? "Couldn\u2019t save that time" : pr.k === "past" ? "That time has passed. Pick a later one." : pr.k === "taken" ? "That time is taken. Pick another." : "Outside their calling hours. Pick another time.");
   }
   document.addEventListener("click", function (e) {
     if (!FU || !e.target.closest) return;
     var m = document.getElementById("fuSheet");
-    if (e.target === m) { closeFollowSheet(); return; }
+    if (e.target === m) { fuFinish(); return; }
     var lead = findLeadById(FU.leadId); if (!lead) return;
     var d = e.target.closest("[data-fu-day]"), a = e.target.closest("[data-fu-at]"), s = e.target.closest("[data-fu-stage]"), fx = e.target.closest("#fuFix");
     var pt = e.target.closest("[data-fu-part]"), mo = e.target.closest("#fuMore"), cn = e.target.closest("[data-fu-cal]");
@@ -12784,27 +12827,25 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       if (fromCal) FU.cal = false;
       var sl = fuSlots(lead, FU.day), cur = new Date(FU.at), p = FU.day.split("-");
       var same = new Date(+p[0], +p[1] - 1, +p[2], cur.getHours(), cur.getMinutes()).getTime();
+      sl = sl.filter(function (x) { return !slotTaken(x.ts, lead.id, FU.taskId); });
       FU.at = sl.some(function (x) { return x.ts === same; }) ? same : sl.length ? (sl.filter(function (x) { return x.best; })[0] || sl[0]).ts : same;
-      renderFollowSheet(); focusFu(fromCal ? "#fuMore" : '[data-fu-day="' + FU.day + '"]'); return;
+      fuCommit(); renderFollowSheet(); focusFu(fromCal ? "#fuMore" : '[data-fu-day="' + FU.day + '"]'); return;
     }
     if (a) {
       FU.at = +a.getAttribute("data-fu-at");
       if (a.hasAttribute("data-fu-q")) { FU.day = localDateStr(new Date(FU.at)); FU.part = null; }
-      renderFollowSheet(); focusFu((a.hasAttribute("data-fu-q") ? '[data-fu-q]' : '') + '[data-fu-at="' + FU.at + '"]'); return;
+      fuCommit(); renderFollowSheet(); focusFu((a.hasAttribute("data-fu-q") ? '[data-fu-q]' : '') + '[data-fu-at="' + FU.at + '"]'); return;
     }
-    if (s) { FU.stage = s.getAttribute("data-fu-stage"); renderFollowSheet(); focusFu('[data-fu-stage="' + FU.stage + '"]'); return; }
+    if (s) { FU.stage = s.getAttribute("data-fu-stage"); if (FU.saved) fuCommit(); else if (FU.stage !== lead.stage) { setStage(lead, FU.stage); saveState(); } renderFollowSheet(); focusFu('[data-fu-stage="' + FU.stage + '"]'); return; }
     var wh = e.target.closest("[data-fu-what]");
-    if (wh) { FU.what = wh.getAttribute("data-fu-what"); FU.whatSet = true; renderFollowSheet(); focusFu('[data-fu-what="' + cssAttr(FU.what) + '"]'); return; }
-    if (fx) { FU.at = +fx.getAttribute("data-at"); FU.day = localDateStr(new Date(FU.at)); FU.part = null; renderFollowSheet(); focusFu("#fuBook"); return; }
+    if (wh) { FU.what = wh.getAttribute("data-fu-what"); FU.whatSet = true; if (FU.saved) fuCommit(); renderFollowSheet(); focusFu('[data-fu-what="' + cssAttr(FU.what) + '"]'); return; }
+    if (fx) { FU.at = +fx.getAttribute("data-at"); FU.day = localDateStr(new Date(FU.at)); FU.part = null; fuCommit(); renderFollowSheet(); focusFu("#fuBook"); return; }
     if (e.target.closest("#fuBook")) { bookFollowSheet(); return; }
-    if (e.target.closest("#fuKeep") || e.target.closest("#fuX")) {
-      if (FU.taskId && FU.kind !== "move" && FU.kind !== "set") { var kt = state.tasks.filter(function (x) { return x.id === FU.taskId; })[0]; if (kt && FU.note.trim()) kt.note = FU.note.trim(); if (kt && FU.whatSet) kt.what = FU.what; }
-      closeFollowSheet();
-    }
+    if (e.target.closest("#fuKeep") || e.target.closest("#fuX")) fuFinish();
   });
   document.addEventListener("input", function (e) {
     if (!FU) return;
-    if (e.target.id === "fuNote") FU.note = e.target.value;
+    if (e.target.id === "fuNote") { FU.note = e.target.value; if (FU.saved) { clearTimeout(FU.noteT); FU.noteT = setTimeout(fuCommit, 600); } }
   });
   document.addEventListener("change", function (e) {
     if (!FU) return;
@@ -12812,12 +12853,12 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     if (e.target.id === "fuTimeIn" && e.target.value) {
       p = FU.day.split("-"); q = e.target.value.split(":");
       FU.at = new Date(+p[0], +p[1] - 1, +p[2], +q[0], +q[1]).getTime(); FU.part = null;
-      renderFollowSheet(); focusFu("#fuTimeIn");
+      fuCommit(); renderFollowSheet(); focusFu("#fuTimeIn");
     }
   });
   document.addEventListener("keydown", function (e) {
     if (!FU) return;
-    if (e.key === "Escape") { e.stopPropagation(); closeFollowSheet(); }
+    if (e.key === "Escape") { e.stopPropagation(); fuFinish(); }
     else if (e.key === "Enter" && e.target && (e.target.id === "fuNote" || e.target.id === "fuBook")) { e.preventDefault(); bookFollowSheet(); }
   }, true);
 
@@ -13240,7 +13281,8 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
 
   /** ---------- Core queue logic ---------- **/
   function allPendingLeads() {
-    return state.leads.filter(function (l) { return l.status === "pending" && !claimedByOther(l) && inPrefWindow(l) && !isDnc(l) && listAllowed(l); });
+    var now = Date.now();
+    return state.leads.filter(function (l) { return l.status === "pending" && !claimedByOther(l) && inPrefWindow(l) && !isDnc(l) && listAllowed(l) && !heldBy(l, now); });
   }
 
   // ---- Interested run: be fed every lead who said yes, the most urgent first ----
@@ -13271,11 +13313,8 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     if (e && e.yes) return !(e.no && e.no > e.yes);
     return l.outcome === "interested" || stageRank(l.stage) >= 1;
   }
-  // The open follow-up the lead picked themselves, when it's still more than 15 minutes away: the run leaves them be until then.
-  function bookedLater(l, now) {
-    var t = openTasksFor(l.id)[0];
-    return t && t.pinned && taskDueTs(t) > (now || Date.now()) + 900000 ? t : null;
-  }
+  // An arranged follow-up still ahead (see heldBy): the run leaves them be until then.
+  function bookedLater(l, now) { return heldBy(l, now); }
   // Where an interested lead stands: "ready" (in the run), "parked", "booked", "teammate", "bad", "retired", "queue"; null = not interested.
   function intState(l, now) {
     if (!saidYes(l)) return null;
@@ -13325,7 +13364,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
   function isRun(f) { f = f === undefined ? state.queueFilter : f; return f === "int" || f === "hot"; }
   function hotPool() {
     return state.leads.filter(function (l) {
-      return hotOn(l) && !l.retired && !l.badNumber && !isDnc(l) && !claimedByOther(l) && l.stage !== "Committed" && l.stage !== "Closed Lost";
+      return hotOn(l) && !l.retired && !l.badNumber && !isDnc(l) && !claimedByOther(l) && l.stage !== "Committed" && l.stage !== "Closed Lost" && !heldBy(l);
     });
   }
   function runPool(f) { return (f || state.queueFilter) === "hot" ? hotPool() : interestedPool(); }
@@ -13468,8 +13507,8 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     // A parked lead the rep chose to call again from the interested run gets a fresh count of follow-ups.
     if (lead.stalled && state.queueFilter === "int" && state.intParked) { lead.stalled = null; lead.stallWhy = null; lead.touches = 0; lead.touchAt = Date.now(); lead.exhausted = false; lead.restUntil = null; }
     var followMsg = applyFollowupRules(lead, outcome, focusTaskId);
-    var newest = null;
-    state.tasks.forEach(function (t) { if (!t.done && t.auto && t.leadId === lead.id && (!newest || (t.createdAt || 0) >= (newest.createdAt || 0))) newest = t; });
+    var newest = heldBy(lead);   // an early call: the booked follow-up is the one to keep or move
+    if (!newest) state.tasks.forEach(function (t) { if (!t.done && t.auto && t.leadId === lead.id && (!newest || (t.createdAt || 0) >= (newest.createdAt || 0))) newest = t; });
     state.lastFollow = (outcome === "callback" || outcome === "interested") && newest ? { taskId: newest.id, leadId: lead.id, kind: outcome } : null;
     var offer = maybeOfferText(lead, outcome);
     pendingText = offer && !offer.skipped ? offer : null;
@@ -14147,10 +14186,39 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     return (taskIdx.map.get(id) || []).filter(function (t) { return !t.done && t.leadId === id; })
       .sort(function (a, b) { return taskDueTs(a) - taskDueTs(b); });
   }
+  // An arranged follow-up: a time agreed with the lead or set by hand (the follow-up sheet, Move, Set next step, the
+  // booking link, an appointment), as opposed to an automatic retry. Until it's due (5 minutes early at most) it holds the
+  // lead out of the dial list, every run and every nudge; calling them sooner takes a deliberate "Call anyway".
+  // No two of a rep's arranged follow-ups share a half hour.
+  var HOLD_EARLY = 5 * 60000, SLOT_GAP = 30 * 60000;
+  function arrangedTask(t) { return !!t && !t.done && !!t.leadId && !!(t.pinned || t.booked || t.auto === false || /^Appointment/.test(t.note || "")); }
+  function heldBy(l, now) {
+    if (!l) return null;
+    var a = openTasksFor(l.id).filter(arrangedTask)[0], ts = a ? taskDueTs(a) : 0;   // the soonest one decides
+    return a && ts !== Infinity && ts > (now || Date.now()) + HOLD_EARLY ? a : null;
+  }
+  // Another of your arranged follow-ups within half an hour of ts (not this lead's, which a new time replaces).
+  function slotTaken(ts, leadId, skipId) {
+    var ts2 = state.tasks, hit = null;
+    for (var i = 0; i < ts2.length && !hit; i++) {
+      var t = ts2[i];
+      if (t.leadId !== leadId && t.id !== skipId && arrangedTask(t) && myTask(t) && Math.abs(taskDueTs(t) - ts) < SLOT_GAP) hit = t;
+    }
+    return hit;
+  }
+  // A new agreed time replaces the lead's other open calls and follow-ups (appointments stay): one follow-up per lead.
+  function supersedeOthers(leadId, keepId) {
+    var now = Date.now(), n = 0;
+    state.tasks.forEach(function (t) {
+      if (t.done || t.leadId !== leadId || t.id === keepId || /^Appointment/.test(t.note || "")) return;
+      t.done = true; t.doneAt = now; t.superseded = now; n++;
+    });
+    return n;
+  }
   function dueTasks() {
     var now = Date.now();
     var m = leadMap();
-    return state.tasks.filter(function (t) { return !t.done && t.leadId && taskDueTs(t) <= now && myTask(t) && !isDnc(m[t.leadId]) && (t.pinned || inPrefWindow(m[t.leadId])); })
+    return state.tasks.filter(function (t) { return !t.done && t.leadId && taskDueTs(t) <= now && myTask(t) && !isDnc(m[t.leadId]) && (t.pinned || inPrefWindow(m[t.leadId])) && !heldBy(m[t.leadId], now); })
       .map(function (t) { var l = m[t.leadId]; return { t: t, ok: !l || !leadZone(l).iana || leadClock(l).ok }; })
       .sort(function (x, y) {
         if (x.ok !== y.ok) return x.ok ? -1 : 1;                              // ones you can call right now, before ones outside their calling hours
@@ -14256,12 +14324,14 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
   // Runs after every logged call. Closes the call tasks this call answered,
   // then schedules the next step from the outcome.
   function applyFollowupRules(lead, outcome, focusTaskId) {
-    var now = Date.now();
+    var now = Date.now(), keepBooked = outcome !== "notinterested" && outcome !== "badnum";
     state.tasks.forEach(function (t) {
       if (t.done || t.leadId !== lead.id) return;
+      if (keepBooked && arrangedTask(t) && taskDueTs(t) > now + HOLD_EARLY) return;   // calling early (even from its own row) doesn't cancel the time you agreed
       if (t.auto || t.id === focusTaskId || t.type === "Call") { t.done = true; t.doneAt = now; }
     });
-    var t, cfg = fuCfg();
+    var t, cfg = fuCfg(), held = keepBooked ? heldBy(lead, now) : null;
+    if (held && outcome !== "interested" && outcome !== "callback") return "booked follow-up stays " + fmtWhen(taskDueTs(held));
     if (outcome === "voicemail" || outcome === "noanswer") {
       var n = noContactStreak(lead.id);
       if (n >= cfg.tries) {
@@ -14292,6 +14362,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       }
       lead.stalled = null; lead.stallWhy = null;
     }
+    if (held) return "";   // Interested or Callback on an early call: the sheet opens on the booked follow-up to keep or move it
     if (outcome === "interested") {
       var tc = lead.touches || 0;
       t = addAutoTask(lead, "Follow-up", "High", slotAt(lead, [1, 2, 3][Math.min(tc, 2)], 10),
@@ -14381,6 +14452,12 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       return n || officeTitle(TEAM.office);
     }
     return COMPANY;
+  }
+  if (window.__mockListenerCount || DEMO) {   // test bench and demo offices (sample data) only: read-only views for tests/followup_lock.js
+    window.__fuTasks = function (id) { return JSON.parse(JSON.stringify(state.tasks.filter(function (t) { return t.leadId === id; }))); };
+    window.__fuLists = function () { var ids = function (a) { return a.map(function (l) { return l.id; }); };
+      return { pending: ids(allPendingLeads()), int: ids(interestedPool(true)), hot: ids(hotPool()), due: dueTasks().map(function (t) { return t.leadId; }), held: state.leads.filter(function (l) { return heldBy(l); }).map(function (l) { return l.id; }) }; };
+    window.__fuCurrent = function () { var l = currentLead(); return l ? { id: l.id, name: l.name } : null; };
   }
   if (window.__mockListenerCount) window.__mockFillText = function (name) { return fillTemplate(textSettings().noAnswerTpl, { name: name }); };   // test bench only
   if (window.__mockListenerCount) {   // test bench only
@@ -20760,6 +20837,15 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
           " Sales calls outside these hours can break telemarketing rules. Call now only if they asked you to.", true, { wait: true, num: num });
         return false;
       }
+      // A follow-up you arranged is still ahead: never by accident, only on purpose.
+      var held = heldBy(lead, now);
+      if (held) {
+        e.preventDefault();
+        var hAt = taskDueTs(held), hTheir = theirTime(hAt, lead), hFirst = textFirstName(lead.name);
+        showGateSheet(lead, "Call " + hFirst + " before your booked time?", "Your " + taskWhat(held).toLowerCase() + " with " + hFirst + " is booked for " + fmtWhen(hAt) +
+          (hTheir ? " (" + hTheir + " for " + hFirst + ")" : "") + ". Call now only if you need to reach them before then. The booked time stays.", true, { wait: true, num: num });
+        return false;
+      }
       var why = redialReason(lead, now);
       if (why) { e.preventDefault(); showGateSheet(lead, "Call " + textFirstName(lead.name) + " again?", why, true, { num: num }); return false; }
     }
@@ -21053,7 +21139,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
   function warmLead(l) { return !!l && l.stage !== "Closed Lost" && l.stage !== "Committed" && (l.outcome === "interested" || l.outcome === "callback" || (!!l.stage && l.stage !== "New Lead")); }
   function overdueWarm() {
     var now = Date.now(), m = leadMap();
-    return state.tasks.filter(function (t) { return !t.done && t.leadId && warmLead(m[t.leadId]) && taskDueTs(t) < now - 86400000; })
+    return state.tasks.filter(function (t) { return !t.done && t.leadId && warmLead(m[t.leadId]) && taskDueTs(t) < now - 86400000 && !heldBy(m[t.leadId], now); })
       .map(function (t) { return { t: t, l: m[t.leadId], a: assigneeOf(t), late: Math.floor((now - taskDueTs(t)) / 3600000) }; })
       .sort(function (x, y) { return y.late - x.late; });
   }
@@ -21728,13 +21814,19 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       if (!w || lm < w[0] || lm + 30 > w[1]) continue;
       var r = zonedParts(t, rz), rm = r.h * 60 + r.mi;
       if (hrs.days.indexOf(r.dow) < 0 || rm < hrs.s || rm + 30 > hrs.e) continue;
+      if (slotTaken(t, lead.id, null)) continue;   // the link never offers a half hour you've already given someone
       out.push(t);
     }
     return out;
   }
   function bookLive(lead) { var b = lead && lead.book; return !!(b && b.h && !b.off && b.exp > Date.now()); }
   function whenLc(ts) { return fmtWhen(ts).replace(/^(Today|Tomorrow)\b/, function (w) { return w.toLowerCase(); }); }
-  function bookPicked(lead) { var b = lead && lead.book; return b && typeof b.picked === "number" && b.picked > Date.now() ? b.picked : 0; }
+  function bookPicked(lead) {
+    var b = lead && lead.book; if (!b) return 0;
+    var mine = state.tasks.filter(function (t) { return t.leadId === lead.id && t.bookH && (t.bookH === b.tag || (b.h && t.bookH === b.h.slice(0, 16))); });
+    if (mine.length) { var o = mine.filter(function (t) { return !t.done; })[0]; return o && taskDueTs(o) > Date.now() ? taskDueTs(o) : 0; }
+    return typeof b.picked === "number" && b.picked > Date.now() ? b.picked : 0;
+  }
   function bookLink(lead) { return BOOK_PAGE + "vb_" + (TEAM.office || "") + "_" + lead.id + "_" + BK.secret; }
   function bookMsgDefault(lead) {
     var me = firstName(((textSettings().myName || "") + "").trim() || (TEAM.me && TEAM.me.name) || ""), co = currentCompany();
@@ -21851,6 +21943,8 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       if (!state.tasks.some(function (t) { return t.id === r.t.id; })) {
         state.tasks = state.tasks.filter(function (t) { return !(t.leadId === id && !t.done && t.bookH && t.bookH === r.h); });
         state.tasks.push(Object.assign({}, r.t, { leadId: id }));
+        // the lead's pick replaces follow-ups made before it (a time agreed in the app after the pick stays)
+        state.tasks.forEach(function (t) { if (!t.done && t.leadId === id && t.id !== r.t.id && (t.createdAt || 0) < r.ts && !/^Appointment/.test(t.note || "")) { t.done = true; t.doneAt = now; t.superseded = now; } });
       }
       l.book = Object.assign({}, l.book || {}, { picked: r.at, pickedAt: r.ts });
       fixed++;

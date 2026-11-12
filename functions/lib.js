@@ -427,7 +427,11 @@ function calIcs(events, now) {
 // and what the app worked out when the link was made: the lead's time zone (lz) and calling window for each day
 // (win: { "YYYY-MM-DD": [openMin, closeMin] }, from the same state rules the dialer uses), and the rep's time zone,
 // hours and days (rtz, hrs, days). Offered times sit inside both; the one the lead picks becomes the rep's follow-up.
-const BOOK_STEP = 30 * 60000, BOOK_DAYS = 7, BOOK_NOTICE = 2 * 3600000, BOOK_TTL = 14 * 86400000, BOOK_GAP = 30 * 60000;
+const BOOK_STEP = 30 * 60000, BOOK_DAYS = 7, BOOK_NOTICE = 2 * 3600000, BOOK_TTL = 14 * 86400000, BOOK_GAP = 30 * 60000, BOOK_PICKS = 6;
+// A follow-up the rep and the lead agreed on (picked from a link, booked or moved in the app, set by hand) or an appointment:
+// it holds its half hour, so a booking link never offers it to anyone else. Automatic retries don't hold time.
+function arranged(t) { return !!(t && (t.booked || t.pinned || t.auto === false || isAppt(t))); }
+function bookTag(book) { return /^[a-z0-9]{6,32}$/.test(str(book && book.tag)) ? book.tag : str(book && book.h).slice(0, 16); }
 function bookKey(k) {
   const m = /^vb_([a-z0-9][a-z0-9-]{0,62})?_([A-Za-z0-9_-]{2,64})_([0-9a-f]{64})$/.exec(String(k || "").trim());   // office has no "_", the secret is fixed-length, so a lead id may hold "_"
   return m ? { office: m[1] || "", leadId: m[2], secret: m[3] } : null;
@@ -471,7 +475,7 @@ function bookBusy(chunks, uid, now, skipLeadId) {
       const lead = leads[id] || {};
       if (id === skipLeadId) return;
       (Array.isArray(lead.tasks) ? lead.tasks : []).forEach(function (t) {
-        if (!t || t.done || typeof t.dueAt !== "number" || t.dueAt < now - BOOK_GAP || !(t.booked || isAppt(t))) return;
+        if (!t || t.done || typeof t.dueAt !== "number" || t.dueAt < now - BOOK_GAP || !arranged(t)) return;
         if (assigneeOf(t, lead) === uid) out.push(t.dueAt);
       });
     });
@@ -496,17 +500,25 @@ function bookClash(led, leadId, uid, at, now) {
   return bookLedgerBusy(led, uid, now, leadId).some(function (b) { return Math.abs(b - at) < BOOK_GAP; });
 }
 function bookView(lead, book, co, slots, now) {
+  const tag = bookTag(book), own = (Array.isArray(lead.tasks) ? lead.tasks : []).filter(function (t) { return t && t.bookH === tag; });
+  const open = own.filter(function (t) { return !t.done && typeof t.dueAt === "number"; })[0];
+  // The booked call as it stands on the rep's side: moved there, the new time; done or replaced, nothing to show.
+  const picked = own.length ? (open && open.dueAt > now ? open.dueAt : null) : (typeof book.picked === "number" && book.picked > now ? book.picked : null);
   return { first: firstName(lead.name) || "there", rep: firstName(book.by && book.by.name) || "", co: str(co || book.co || "", 80),
-    slots: slots, picked: typeof book.picked === "number" && book.picked > now ? book.picked : null, exp: book.exp };
+    slots: slots, picked: picked, exp: book.exp, left: Math.max(0, BOOK_PICKS - (Number(book.n) || 0)) };
 }
 // The lead's record with the booked call in it. Picking again moves the same call rather than adding another.
 function bookApply(lead, leadId, at, now) {
-  const book = lead.book, tag = /^[a-z0-9]{6,32}$/.test(str(book.tag)) ? book.tag : book.h.slice(0, 16), rz = okTz(book.rtz) || okTz(book.lz) || "America/New_York";
-  const keep = (Array.isArray(lead.tasks) ? lead.tasks : []).filter(function (t) { return !(t && t.bookH === tag && !t.done); });
+  const book = lead.book, tag = bookTag(book), rz = okTz(book.rtz) || okTz(book.lz) || "America/New_York";
+  // One follow-up per lead: the time they just picked replaces their earlier pick and any other open call or follow-up
+  // (closed as superseded, so the rep's list never shows two). Appointments stay.
+  const keep = (Array.isArray(lead.tasks) ? lead.tasks : []).filter(function (t) { return !(t && t.bookH === tag && !t.done); }).map(function (t) {
+    return t && !t.done && !isAppt(t) ? Object.assign({}, t, { done: true, doneAt: now, superseded: now }) : t;
+  });
   const task = { id: "bk" + now.toString(36) + Math.random().toString(36).slice(2, 6), leadId: leadId, leadName: str(lead.name, 120), type: "Call", priority: "high",
     assignee: { uid: book.by.uid, name: str(book.by.name, 80) }, due: zParts(at, rz).ymd, dueAt: at, what: "Booked call",
     note: "They picked this time from your booking link", pinned: true, done: false, auto: false, booked: now, bookH: tag, createdAt: now };
-  return Object.assign({}, lead, { tasks: keep.concat([task]), book: Object.assign({}, book, { picked: at, pickedAt: now }) });
+  return Object.assign({}, lead, { tasks: keep.concat([task]), book: Object.assign({}, book, { picked: at, pickedAt: now, n: (Number(book.n) || 0) + 1 }) });
 }
 function bookWhen(at, tz) {
   try { return new Date(at).toLocaleString("en-US", { timeZone: tz || "America/New_York", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }); }
@@ -525,4 +537,4 @@ module.exports = { APP_URL, STALE_MS, DROP_MS, APPT_LEAD_MS, queueId, notifyAt, 
   FLOOR_MAX, floorRequest, floorGate, floorRecipients, floorMessage,
   HIT_EVENTS, HIT_INDS, HIT_ORIGINS, HIT_DAY_KEYS, hitOriginOk, capHit, hitTok, parseHit, hitKey, unHitKey, nyDate, freshOffice,
   sha256hex, sameHash,
-  calKey, calEvents, calIcs, icsFold, bookKey, zParts, bookLive, bookSlots, bookBusy, bookPrune, bookLedgerBusy, bookClash, bookView, bookApply, bookWhen, bookMessage, BOOK_TTL, CONSENT_METHODS, parseConsent, RETAIN };
+  calKey, calEvents, calIcs, icsFold, bookKey, zParts, bookLive, bookSlots, bookBusy, bookPrune, bookLedgerBusy, bookClash, bookView, bookApply, bookWhen, bookMessage, BOOK_TTL, BOOK_PICKS, arranged, CONSENT_METHODS, parseConsent, RETAIN };
