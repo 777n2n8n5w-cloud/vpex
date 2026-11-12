@@ -9,3 +9,5 @@ bundled and redistributed under the same license.
 
 Rebuild: fontTools `pyftsubset "MonaSans[wdth,wght].ttf" --flavor=woff2` with the Latin unicode range and the
 `tnum, pnum, case, frac, numr, dnom, sups, subs, ordn, ss01–ss08` features, then rename the name table to VPEX Sans.
+Two adjustments for VPEX: the tabular zero has no slash (money, not code), and the default line box is
++900 / -230 (1.13 em, was 1.41) so buttons and labels keep the proportions the app was laid out with.
