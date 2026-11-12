@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-02-24">
+<meta name="vpex-build" content="2027-02-25">
 <!-- Scripts only from this site and Google's Firebase library; no plugins; no <base> or form hijacking. Inline scripts stay
      allowed because the app is one file. (GitHub Pages can't send headers, so this is the strongest policy a page can set.) -->
 <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://www.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self'">
@@ -13910,7 +13910,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     var lead = currentLead();
 
     document.getElementById("headerSub").textContent =
-      total === 0 ? "No leads loaded" : ((function (n) { return n + (n === 1 ? " call today" : " calls today"); })(callsToday()) + " · " + done + "/" + total + " worked");
+      total === 0 ? "No leads loaded" : ((function (n) { return n + (n === 1 ? " call today" : " calls today"); })(callsTodayLive()) + " · " + done + "/" + total + " worked");
     if (TEAM.on && TEAM.me) document.getElementById("headerSub").textContent = firstName(TEAM.me.name) + " \u00b7 " + document.getElementById("headerSub").textContent;
     if (total > 0 && (state.activeView || "dial") === "dial") document.getElementById("headerSub").textContent = TEAM.on && TEAM.me ? firstName(TEAM.me.name) : "";
     var lcp = document.getElementById("locChip"), myLoc = TEAM.on && TEAM.me ? repLoc(TEAM.me.uid) : "";
@@ -13970,7 +13970,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       document.getElementById("progTotal").textContent = total;
       document.getElementById("progPct").textContent = pct + "%";
       document.getElementById("barFill").style.width = pct + "%";
-      var tc = callsToday(), goal = Number(state.dailyGoal) || 0;
+      var tc = callsTodayLive(), goal = Number(state.dailyGoal) || 0;   // counts the call the moment you tap Call
       document.getElementById("todayNum").textContent = tc;
       document.getElementById("todayGoalLbl").textContent = goal ? ("Goal " + goal + " \u270E") : "Set a goal \u270E";
       document.getElementById("todayFill").style.width = (goal ? Math.min(100, Math.round((tc / goal) * 100)) : 0) + "%";
@@ -14468,6 +14468,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     window.__fuLists = function () { var ids = function (a) { return a.map(function (l) { return l.id; }); };
       return { pending: ids(allPendingLeads()), int: ids(interestedPool(true)), hot: ids(hotPool()), due: dueTasks().map(function (t) { return t.leadId; }), held: state.leads.filter(function (l) { return heldBy(l); }).map(function (l) { return l.id; }) }; };
     window.__fuCurrent = function () { var l = currentLead(); return l ? { id: l.id, name: l.name } : null; };
+    window.__scoreRows = function () { var d = new Date(); d.setHours(0, 0, 0, 0); return repStats(d.getTime(), d.getTime() + 86400000, "").map(function (r) { return { uid: r.uid, calls: r.calls }; }); };
   }
   if (window.__mockListenerCount) window.__mockFillText = function (name) { return fillTemplate(textSettings().noAnswerTpl, { name: name }); };   // test bench only
   if (window.__mockListenerCount) {   // test bench only
@@ -16922,7 +16923,8 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
         h += '</ul>';
       }
     }
-    h += '<div class="dl-kpis">' + kpi(n.calls, n.calls === 1 ? "call" : "calls") + kpi(n.talk, "talked", "talk") + kpi(n.interested, "interested", "int") + kpi(n.callback, n.callback === 1 ? "callback" : "callbacks", "cb") + '</div>';
+    var nLive = n.calls + onc.filter(function (x) { var mp = callsTodayMap()[x.uid]; return (x.p.at || 0) > ((mp && mp.last) || 0) && new Date(x.p.at).toDateString() === today; }).length;
+    h += '<div class="dl-kpis">' + kpi(nLive, nLive === 1 ? "call" : "calls") + kpi(n.talk, "talked", "talk") + kpi(n.interested, "interested", "int") + kpi(n.callback, n.callback === 1 ? "callback" : "callbacks", "cb") + '</div>';
     if (n.calls) h += '<div class="dl-rate">Reached ' + Math.round(n.talk * 100 / n.calls) + '% · ' + n.vm + ' voicemail' + (n.vm === 1 ? "" : "s") + '</div>';
     h += '<div class="dl-sec">Latest calls</div>';
     if (!calls.length) h += '<div class="dl-empty">No calls yet today. Dial from your phone or right here; each call lands in this list the moment it’s logged.</div>';
@@ -17715,6 +17717,29 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
   }
 
+  // Calls today, counted the moment a call is placed: the logged calls plus the one on the line right now (this phone's
+  // open call, or the office's live "on a call" record, which every login sees within a second), and never twice: once
+  // the outcome is logged the live call is the logged one.
+  function callsTodayMap() {   // uid -> { n: logged today, last: newest logged ms }
+    var today = new Date().toDateString(), out = {}, me = TEAM.me ? TEAM.me.uid : "_me";
+    for (var i = state.callLog.length - 1; i >= 0; i--) {
+      var c = state.callLog[i]; if (new Date(c.timestamp).toDateString() !== today) continue;
+      var u = c.by && c.by.uid ? c.by.uid : (!TEAM.on ? me : ""); if (!u) continue;
+      var o = out[u] || (out[u] = { n: 0, last: 0 }); o.n++; o.last = Math.max(o.last, Date.parse(c.timestamp) || 0);
+    }
+    return out;
+  }
+  function liveCallStart(uid) {   // when uid's call on the line now started (0 = not on a call)
+    var me = !TEAM.me || uid === TEAM.me.uid, today = new Date().toDateString();
+    var at = me && state.awaitingOutcome ? (state.liveAt || Date.now()) : 0;
+    if (!at && TEAM.on) { var p = presenceNow().filter(function (x) { return x.uid === uid; })[0]; at = p ? (p.p.at || 0) : 0; }
+    return at && new Date(at).toDateString() === today ? at : 0;
+  }
+  function callsTodayLive(uid, map) {
+    uid = uid || (TEAM.me ? TEAM.me.uid : "_me");
+    var o = (map || callsTodayMap())[uid] || { n: 0, last: 0 }, at = liveCallStart(uid);
+    return o.n + (at && at > o.last ? 1 : 0);
+  }
   function callsToday() {
     var today = new Date().toDateString(), n = 0;
     for (var i = state.callLog.length - 1; i >= 0; i--) {
@@ -18138,6 +18163,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
   var lastHiddenAt = 0;
   document.addEventListener("visibilitychange", function () {
     if (document.hidden) { lastHiddenAt = Date.now(); return; }
+    if (TEAM.on && TEAM.me) { try { teamWatchDays(); teamActListen(); } catch (e) {} teamRenderSoon(); }
     if (TEAM.on && TEAM.me && lastHiddenAt && Date.now() - lastHiddenAt > 20 * 60 * 1000) {
       var u = TEAM.auth.currentUser;
       if (u) u.getIdToken(true).then(teamRestartListeners, function () {});
@@ -19140,13 +19166,14 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     teamRenderSoon();
   }
 
+  function todayCountPatch() { var n = document.getElementById("todayNum"); if (n && state && state.callLog) { var v = String(callsTodayLive()); if (n.textContent !== v) n.textContent = v; } }
   function teamRenderSoon() {
     clearTimeout(teamRenderSoon.t);
     teamRenderSoon.t = setTimeout(function () {
       if (!TEAM.me) return;
       try { liveSheetsRefresh(); } catch (e) {}
       var ae = document.activeElement;
-      if (ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) { TEAM.renderPending = true; if (DESK && DESK.on) deskRenderLive(); return; }
+      if (ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) { TEAM.renderPending = true; if (DESK && DESK.on) deskRenderLive(); tmStatsPatch(); todayCountPatch(); return; }
       render();
       if (teamModalOpen()) renderTeamPanel();
       if (document.getElementById("flTrack")) floorRenderTrack();
@@ -19440,15 +19467,29 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     for (var j = 0; j < 10; j++) out += a.charAt(r[j] % a.length);
     return out;
   }
+  // "Active 2m ago · 12 calls today · on a call with Joseph Maher": live from the office's call and activity records.
+  function tmStat(m, cmap) {
+    var n = callsTodayLive(m.uid, cmap), p = TEAM.on ? presenceNow().filter(function (x) { return x.uid === m.uid; })[0] : null, on = "";
+    if (p) on = ' \u00b7 <b class="tm-oncall">on a call with ' + escapeHtml(p.p.name || "a lead") + '</b>';
+    else state.leads.some(function (l) { if (l.claim && l.claim.uid === m.uid && Date.now() - (l.claim.at || 0) < CLAIM_TTL && l.status === "pending") { on = ' \u00b7 on ' + escapeHtml(l.name); return true; } return false; });
+    return (m.lastSeen ? 'Active ' + escapeHtml(agoStr(new Date(m.lastSeen).toISOString())) : 'Hasn\u2019t signed in yet') + ' \u00b7 ' + n + (n === 1 ? ' call today' : ' calls today') + on;
+  }
+  // While you type in the panel (adding a rep), the counts still move: only the status lines are rewritten.
+  function tmStatsPatch() {
+    if (!teamModalOpen()) return;
+    var cmap = callsTodayMap();
+    document.querySelectorAll("#teamModalBody [data-tm-stat]").forEach(function (el) {
+      var m = TEAM.members[el.getAttribute("data-tm-stat")]; if (!m) return;
+      var h = tmStat(m, cmap); if (el.innerHTML !== h) el.innerHTML = h;
+    });
+  }
   function renderTeamPanel() {
     var body = document.getElementById("teamModalBody");
     if (!body) return;
     var keepInputs = {};
     ["tmName", "tmUser", "tmPw"].forEach(function (id) { var el = document.getElementById(id); if (el) keepInputs[id] = el.value; });
     var created = document.getElementById("tmCreated") ? document.getElementById("tmCreated").innerHTML : "";
-    var today = new Date().toDateString(), callsBy = {}, onLead = {};
-    state.callLog.forEach(function (c) { if (c.by && new Date(c.timestamp).toDateString() === today) callsBy[c.by.uid] = (callsBy[c.by.uid] || 0) + 1; });
-    state.leads.forEach(function (l) { if (l.claim && Date.now() - (l.claim.at || 0) < CLAIM_TTL && l.status === "pending") onLead[l.claim.uid] = l.name; });
+    var cmap = callsTodayMap();
     var list = Object.keys(TEAM.members).map(function (k) { return TEAM.members[k]; }).sort(function (a, b) {
       return ((a.role === "admin" ? 0 : 1) - (b.role === "admin" ? 0 : 1)) || String(a.name).localeCompare(String(b.name));
     });
@@ -19457,8 +19498,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       return '<div class="tm-row' + (m.active ? '' : ' off') + '">' +
         '<div class="tm-main"><b>' + escapeHtml(m.name || m.username) + '</b>' +
           '<span>' + escapeHtml(m.username) + ' \u00b7 ' + ({ admin: "Admin", manager: "Manager" }[m.role] || "Rep") + (m.closer ? " \u00b7 Closer" : "") + (m.active ? '' : ' \u00b7 <em>access off</em>') + '</span>' +
-          '<span>' + (m.lastSeen ? 'Active ' + escapeHtml(agoStr(new Date(m.lastSeen).toISOString())) : 'Hasn\u2019t signed in yet') +
-            ' \u00b7 ' + (callsBy[m.uid] || 0) + ' calls today' + (onLead[m.uid] ? ' \u00b7 on ' + escapeHtml(onLead[m.uid]) : '') + '</span>' +
+          '<span data-tm-stat="' + m.uid + '">' + tmStat(m, cmap) + '</span>' +
           (m.active ? '<label class="tm-closer"><input type="checkbox" data-tm-closer="' + m.uid + '"' + (m.closer ? ' checked' : '') + '> Closer (takes handoffs)</label>' : '') +
           (m.active && isAdmin() ? '<label class="tm-loc">Works from <select data-tm-loc="' + m.uid + '" aria-label="Where ' + escapeHtml(m.name || m.username) + ' works"><option value="">Not set</option>' +
             Object.keys(LOCS).map(function (k) { return '<option value="' + k + '"' + (repLoc(m.uid) === k ? ' selected' : '') + '>' + LOCS[k] + '</option>'; }).join("") + '</select></label>' : '') + '</div>' +
@@ -19775,6 +19815,8 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       if (!r.first || ts < r.first) r.first = ts;
       if (ts > r.last) r.last = ts;
     });
+    // the call each person is on right now counts the moment it's placed (once logged, it's the logged one)
+    Object.keys(by).forEach(function (k) { var r = by[k], at = k === "_none" ? 0 : liveCallStart(k); if (at && at >= from && at < to && at > r.last) { r.calls++; if (!r.first) r.first = at; } });
     state.leads.forEach(function (l) {
       if (!l.owner || !l.stage || l.stage === "New Lead" || l.stage === "Closed Lost") return;
       var r = row(l.owner);
@@ -22018,6 +22060,12 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     calls.forEach(function (c) {
       var k = c.by ? c.by.uid : "me", r = reps[k] || (reps[k] = { name: c.by ? c.by.name : "You", calls: 0, talk: 0, int: 0 });
       r.calls++; if (CONTACT_OUTCOMES[c.outcomeKey]) { n.talk++; r.talk++; } if (c.outcomeKey === "interested") { n.int++; r.int++; }
+    });
+    // calls on the line right now count the moment they're placed (floor: everyone's; otherwise yours)
+    var lastBy = {}; calls.forEach(function (c) { var k = c.by ? c.by.uid : (TEAM.me ? TEAM.me.uid : "_me"), ts = new Date(c.timestamp).getTime(); if (!(lastBy[k] >= ts)) lastBy[k] = ts; });
+    (TEAM.on ? Object.keys(TEAM.members || {}) : ["_me"]).forEach(function (k) {
+      if (!floor && TEAM.me && k !== TEAM.me.uid) return;
+      var at = liveCallStart(k); if (at && at >= t0 && at > (lastBy[k] || 0)) { n.calls++; var r = reps[k]; if (r) r.calls++; }
     });
     var won = [];
     state.leads.forEach(function (l) {
