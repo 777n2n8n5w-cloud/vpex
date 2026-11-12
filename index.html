@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-02-23">
+<meta name="vpex-build" content="2027-02-24">
 <!-- Scripts only from this site and Google's Firebase library; no plugins; no <base> or form hijacking. Inline scripts stay
      allowed because the app is one file. (GitHub Pages can't send headers, so this is the strongest policy a page can set.) -->
 <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://www.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self'">
@@ -19542,7 +19542,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       b.addEventListener("click", function () {
         var id = b.getAttribute("data-tm-remove"), m = TEAM.members[id];
         if (!m) return;
-        showConfirm("Remove " + m.name + "? They lose access immediately. Their leads and follow-ups move to you.", function () {
+        showConfirm("Remove " + m.name + "? They lose access immediately and their login is deleted, so the username can be used again. Their leads and follow-ups move to you.", function () {
           var me = meRef();
           state.leads.forEach(function (l) {
             if (l.owner && l.owner.uid === id) l.owner = me;
@@ -19553,11 +19553,22 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
           saveState();
           teamScheduleFlush(0);
           tcol("members").doc(id).delete().then(function () {
+            freeLogin({ uid: id }).catch(function () {});   // their sign-in account goes too, so the username is free again
             return rotateInvite().then(function (ok) { showToast(m.name + " was removed" + (ok === true ? ". Your invite link changed too, so old links stop working." : ok === false ? ". Reset the invite link in Team & access so an old link can\u2019t bring them back." : "")); });
           }).catch(function () { showToast("Couldn\u2019t remove them. Check your connection."); });
         }, "Remove");
       });
     });
+  }
+  // Deletes the sign-in account of someone no longer on the team (functions/ freeLogin checks you're this office's admin,
+  // that it's this office's login and that they're off the team), so their username can be used again from scratch.
+  var FREE_URL = "https://us-central1-dovetail-f863c.cloudfunctions.net/freeLogin";
+  async function freeLogin(what) {
+    if (CUSTOMER.firebase || DEMO || !TEAM.auth || !TEAM.auth.currentUser) return { ok: false, error: "unavailable" };
+    var tok = await TEAM.auth.currentUser.getIdToken();
+    var r = await fetch(FREE_URL, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + tok }, body: JSON.stringify(Object.assign({ office: TEAM.office || "" }, what)) });
+    var j = {}; try { j = await r.json(); } catch (e) {}
+    return r.ok ? { ok: true } : { ok: false, error: j.error || String(r.status) };
   }
   async function teamAddRep() {
     var name = document.getElementById("tmName").value.trim();
@@ -19575,7 +19586,15 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       var sec = (firebase.apps || []).filter(function (a) { return a.name === "rep-creator"; })[0] || firebase.initializeApp(FIREBASE_CONFIG, "rep-creator");
       var sa = sec.auth();
       try { await sa.setPersistence(firebase.auth.Auth.Persistence.NONE); } catch (e) {}
-      var cred = await sa.createUserWithEmailAndPassword(emailFor(user), pw);
+      var cred;
+      try { cred = await sa.createUserWithEmailAndPassword(emailFor(user), pw); }
+      catch (e1) {
+        if (!/email-already-in-use/.test((e1 && e1.code) || "")) throw e1;
+        // Someone removed earlier may still hold it: free their old login (never anyone on the team), then create it new.
+        var fr = await freeLogin({ username: user }).catch(function () { return { ok: false }; });
+        if (!fr.ok) { var e2 = new Error("taken"); e2.code = fr.error === "in-use" ? "vpex/in-use" : "auth/email-already-in-use"; throw e2; }
+        cred = await sa.createUserWithEmailAndPassword(emailFor(user), pw);
+      }
       var newUid = cred.user.uid;
       try { await sa.signOut(); } catch (e) {}
       await tcol("members").doc(newUid).set({ username: user, name: name, role: "rep", active: true, createdAt: Date.now(), createdBy: TEAM.me.uid, lastSeen: 0 });
@@ -19592,7 +19611,8 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       renderTeamPanelKeep();
     } catch (e) {
       var c = (e && e.code) || "";
-      err.textContent = /email-already-in-use/.test(c) ? "That username is already taken (or was used before). Pick another."
+      err.textContent = /vpex\/in-use/.test(c) ? "Someone on your team already uses that username. Pick another."
+        : /email-already-in-use/.test(c) ? "That username is still held by an old login and couldn\u2019t be freed. Try again in a minute, or pick another."
         : /weak-password/.test(c) ? "Pick a longer password." : "Couldn\u2019t create the login (" + (c || "error") + ").";
     } finally {
       btn.disabled = false; btn.textContent = "Create login";

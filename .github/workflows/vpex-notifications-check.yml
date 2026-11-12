@@ -70,7 +70,7 @@ jobs:
           # 1. The functions
           gcloud functions list --project "$PROJECT" --regions "$R" --format='value(name.basename(),state)' > /tmp/fns.txt 2>/tmp/fns.err || true
           (echo "Region $R"; cat /tmp/fns.txt /tmp/fns.err) | note "Functions"
-          for f in queueFromOffice queueFromTeam sendDue sendTest igDone hit cal consent book; do
+          for f in queueFromOffice queueFromTeam sendDue sendTest igDone hit cal consent book freeLogin; do
             grep -q "^$f[[:space:]]*ACTIVE" /tmp/fns.txt || fail "Function $f" "$f isn't ACTIVE."
           done
           # The Instagram hand-off page's Done button: reachable from a phone, and it refuses a wrong key
@@ -87,6 +87,10 @@ jobs:
           BP=$(curl -s -L "https://vpexdialer.com/book/" | grep -c "Pick a time for your call" || true)
           BI=$(curl -s -o /dev/null -w '%{http_code}' "https://vpexdialer.com/book/book-card.jpg")
           echo "Booking: made-up link $BK (404 = right), browser access for $BC, page found $BP, picture $BI." | note "Booking links"
+          # Freeing a removed person's username: refused without a signed-in admin
+          FL=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "Content-Type: application/json" -d '{"office":"ci-check","username":"nobody"}' "https://$R-$PROJECT.cloudfunctions.net/freeLogin")
+          echo "Free a username: answered HTTP $FL with no sign-in (401 = right)." | note "Free a username"
+          [ "$FL" = "401" ] || fail "Free a username" "freeLogin answered $FL with no sign-in; it should be 401."
           [ "$BK" = "404" ] || fail "Booking links" "book answered $BK to a made-up link; it should be 404."
           [ "$BC" = "https://vpexdialer.com" ] || fail "Booking links" "book doesn't allow vpexdialer.com in a browser (got '$BC'); the booking page couldn't load times."
           [ "$BP" -ge 1 ] && [ "$BI" = "200" ] || fail "Booking page" "vpexdialer.com/book/ or its preview picture didn't load (page match $BP, picture HTTP $BI)."

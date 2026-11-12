@@ -175,6 +175,21 @@ function officeFromEmail(email) {
   return m ? m[1] : "";
 }
 
+// ---------- freeing a removed person's username ----------
+// A login is username@<office>.vpex.app (VPEX's original team: username@<project>.firebaseapp.com). Removing someone used to
+// leave that sign-in account behind, so the username stayed taken. freeLogin deletes it once the person is off the team.
+function loginEmail(username, office, project) {
+  const u = str(username).trim().toLowerCase();
+  if (!/^[a-z0-9._-]{3,30}$/.test(u)) return "";
+  return u + "@" + (office ? office + ".vpex.app" : str(project) + ".firebaseapp.com");
+}
+// The account belongs to this office (and only this office): its email's domain is the office's own.
+function loginInOffice(email, office, project) {
+  const e = str(email).toLowerCase();
+  if (office) return officeFromEmail(e) === office;
+  return !!project && e.slice(-(project.length + 17)) === "@" + project + ".firebaseapp.com";
+}
+
 // ---------- morning summary ----------
 var DIGEST_HOUR = 8;       // weekdays, in the 8 o'clock hour of the rep's own time zone (the clock runs at half past)
 function localParts(ts, tz) {
@@ -530,7 +545,8 @@ function bookMessage(office, leadId, lead, at, tz, moved) {
     link: leadLink(office, leadId), tag: "vpex-book-" + str(leadId, 60), leadId: str(leadId, 80), office: office || "" };
 }
 
-module.exports = { APP_URL, STALE_MS, DROP_MS, APPT_LEAD_MS, queueId, notifyAt, assigneeOf, taskEntries, diffQueue, handoffEvents, officeOpen,
+module.exports = {
+  loginEmail, loginInOffice, APP_URL, STALE_MS, DROP_MS, APPT_LEAD_MS, queueId, notifyAt, assigneeOf, taskEntries, diffQueue, handoffEvents, officeOpen,
   fmtWhen, leadLink, dueMessages, handoffMessage, testMessage, fcmMessage, deadToken, officeFromEmail, safeTz, firstName,
   localParts, digestDue, localDayBounds, digestCounts, digestMessage,
   weekDue, weekLead, lastWeekBounds, weekDates, weekAdd, weekNew, weekMessage, utcDate,

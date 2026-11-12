@@ -10,6 +10,8 @@
 //  - hit: anonymous funnel counts from vpexdialer.com (page seen, demo opened, trial form, sign-up), by where people came from.
 //  - cal: each login's follow-ups and appointments as a calendar feed its phone can subscribe to (a secret address).
 //  - consent: proof of each cookie choice made on vpexdialer.com (random id, policy version, choice; no IP, nothing personal).
+//  - freeLogin: an office admin's request to delete the sign-in account of someone already removed from the team, so their
+//    username can be used again with nothing linking the new login to the old one.
 // Tokens live in pushTokens/{id} (written by the app, readable only here). The queue lives in pushQueue/{id}.
 "use strict";
 
@@ -500,5 +502,47 @@ exports.book = onRequest({ invoker: "public", cors: L.HIT_ORIGINS, maxInstances:
   } catch (e) {
     logger.error("book failed", { err: String(e).slice(0, 200) });
     res.status(500).json({ error: "later" });
+  }
+});
+
+// ---------- freeLogin ----------
+// POST { office, uid } after Remove, or { office, username } when Add a rep finds the username still held by an old account.
+// Signed-in office admins only (Authorization: Bearer <ID token>); only accounts of their own office; never anyone still on
+// the team, never themselves, never VPEX's owner. Deletes the sign-in account and its phones' notification tokens.
+exports.freeLogin = onRequest({ invoker: "public", cors: L.HIT_ORIGINS, maxInstances: 2, timeoutSeconds: 20 }, async function (req, res) {
+  if (req.method !== "POST") { res.status(405).json({ error: "method" }); return; }
+  const raw = typeof req.body === "string" ? req.body : JSON.stringify(req.body || {});
+  if (raw.length > 400) { res.status(413).json({ error: "size" }); return; }
+  let body = {}; try { body = typeof req.body === "string" ? JSON.parse(req.body || "{}") : (req.body || {}); } catch (e) { res.status(400).json({ error: "bad" }); return; }
+  const project = process.env.GCLOUD_PROJECT || "dovetail-f863c";
+  const office = /^[a-z0-9][a-z0-9-]{2,31}$/.test(String(body.office || "")) ? String(body.office) : "";
+  if (body.office && !office) { res.status(400).json({ error: "office" }); return; }
+  const m = /^Bearer (.{20,4096})$/.exec(String(req.get("Authorization") || ""));
+  if (!m) { res.status(401).json({ error: "sign-in" }); return; }
+  let caller;
+  try { caller = await admin.auth().verifyIdToken(m[1]); } catch (e) { res.status(401).json({ error: "sign-in" }); return; }
+  try {
+    if (!L.loginInOffice(caller.email, office, project)) { res.status(403).json({ error: "office" }); return; }
+    const cm = await memberRef(office, caller.uid).get();
+    if (!cm.exists || cm.get("role") !== "admin" || cm.get("active") === false) { res.status(403).json({ error: "admin" }); return; }
+    let user = null;
+    if (body.uid) {
+      if (!/^[A-Za-z0-9]{6,128}$/.test(String(body.uid))) { res.status(400).json({ error: "uid" }); return; }
+      try { user = await admin.auth().getUser(String(body.uid)); } catch (e) { res.status(200).json({ ok: true, gone: true }); return; }
+    } else {
+      const email = L.loginEmail(body.username, office, project);
+      if (!email) { res.status(400).json({ error: "username" }); return; }
+      try { user = await admin.auth().getUserByEmail(email); } catch (e) { res.status(200).json({ ok: true, gone: true }); return; }
+    }
+    if (!L.loginInOffice(user.email, office, project)) { res.status(403).json({ error: "office" }); return; }
+    if (user.uid === caller.uid || (!office && /^vincent@/.test(String(user.email)))) { res.status(403).json({ error: "self" }); return; }
+    if ((await memberRef(office, user.uid).get()).exists) { res.status(409).json({ error: "in-use" }); return; }
+    await admin.auth().deleteUser(user.uid);
+    try { const tk = await db.collection("pushTokens").where("uid", "==", user.uid).limit(50).get(); await Promise.all(tk.docs.map(function (d) { return d.ref.delete(); })); } catch (e) {}
+    logger.info("freeLogin", { office: office ? "office" : "team" });
+    res.status(200).json({ ok: true });
+  } catch (e) {
+    logger.error("freeLogin failed", { err: String(e && e.code || e) });
+    res.status(500).json({ error: "server" });
   }
 });
