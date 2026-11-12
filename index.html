@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-02-26">
+<meta name="vpex-build" content="2027-02-27">
 <!-- Scripts only from this site and Google's Firebase library; no plugins; no <base> or form hijacking. Inline scripts stay
      allowed because the app is one file. (GitHub Pages can't send headers, so this is the strongest policy a page can set.) -->
 <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://www.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self'">
@@ -7000,6 +7000,9 @@ window.VPEX_SIG = [
   .fu-sum { margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: var(--surface-raised); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--text-dim); }
   .fu-sum b { color: var(--text); font-size: 15px; }
   .fu-sum.bad { border-color: var(--notinterested); }
+  #outcomesRow.need { animation: needOut 0.9s ease 2; border-radius: var(--radius-m, 12px); }
+  @keyframes needOut { 0%, 100% { box-shadow: 0 0 0 0 transparent; } 40% { box-shadow: 0 0 0 3px var(--accent); } }
+  @media (prefers-reduced-motion: reduce) { #outcomesRow.need { animation: none; box-shadow: 0 0 0 3px var(--accent); } }
   .fu-sum.saved { border-color: color-mix(in srgb, var(--interested) 55%, var(--border)); }
   .fu-saved { display: inline-flex; align-items: center; gap: 5px; color: var(--interested); font-weight: 650; }
   .fu-saved i { font-style: normal; }
@@ -13617,19 +13620,20 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     render();
   }
 
-  // A call that was placed always saves. Moving on without tapping an outcome (Skip, opening another lead or follow-up,
-  // closing a follow-up) logs it as No answer: it counts in calls today, it's in the history, and it gets its next try.
-  function flushDial(why) {
+  // A dialed call needs its real outcome before the rep moves on: Skip, calling or opening another lead or follow-up, and
+  // leaving a follow-up all wait for it (nothing is logged for them, so the call count can't be padded by Call + Skip).
+  function needOutcome() {
     if (!state.awaitingOutcome) return false;
     var l = currentLead(); if (!l) { state.awaitingOutcome = false; return false; }
-    logOutcome("noanswer");
-    showToast("Saved your call to " + (firstName(l.name) || "them") + " as No answer" + (why ? " \u00b7 " + why : ""));
+    showToast("Tap how your call to " + (firstName(l.name) || "them") + " went first");
+    var r = document.getElementById("outcomesRow");
+    if (r) { r.classList.remove("need"); void r.offsetWidth; r.classList.add("need"); try { r.scrollIntoView({ block: "nearest", behavior: "smooth" }); } catch (e) {} }
     return true;
   }
   function skipLead() {
     var lead = currentLead();
     if (!lead) return;
-    if (state.awaitingOutcome) { flushDial(); return; }   // dialed, then Skip: the call is saved as No answer and the next lead comes up
+    if (needOutcome()) return;   // dialed: the outcome first (Skip never logs a call for them)
     var pending = pendingLeads();
     if (pending.length <= 1) { showToast("No other leads to skip to"); return; }
     state.awaitingOutcome = false;
@@ -14628,7 +14632,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
   // Any Call button outside the dial card dials, and when you come back the
   // dial card is open on that lead with the outcome buttons ready.
   function startCall(leadId, from, taskId, href) {
-    if (state.awaitingOutcome) { var cur = currentLead(); if (cur && cur.id !== leadId) flushDial(); }
+    if (state.awaitingOutcome) { var cur = currentLead(); if (cur && cur.id !== leadId && needOutcome()) return; }
     if (state.manualDial) kpRaw = "";
     if (state.lastFollow && state.lastFollow.leadId !== leadId) state.lastFollow = null;
     var lead = findLeadById(leadId);
@@ -14648,7 +14652,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     setTimeout(function () { if (!document.hidden) dialFallback(href); }, 400);
   }
   function focusTask(t, from) {
-    if (state.awaitingOutcome) { var cur = currentLead(); if (cur && cur.id !== t.leadId) flushDial(); }
+    if (state.awaitingOutcome) { var cur = currentLead(); if (cur && cur.id !== t.leadId && needOutcome()) return; }
     state.recallLeadId = null;
     state.focusLeadId = t.leadId;
     state.focusTaskId = t.id;
@@ -14696,8 +14700,8 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       saveState();
       render();
     }
-    if (state.awaitingOutcome) showConfirm("You haven\u2019t logged this call yet. Save it as No answer and leave?", function () { flushDial(); go(); }, "Save and leave");
-    else go();
+    if (needOutcome()) return;
+    go();
   }
   function followupBannerHtml() {
     var n = dueTasks().length;
@@ -20892,6 +20896,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
   }
   // Every Call button goes through here. Returns false (and stops the dial) when it should wait.
   function callGate(lead, e, force, num) {
+    if (state.awaitingOutcome) { var cur0 = currentLead(); if (cur0 && lead && cur0.id !== lead.id && needOutcome()) { if (e) e.preventDefault(); return false; } }
     if (isDnc(lead)) { if (e && e.preventDefault) e.preventDefault(); showToast(lead.name + " is on your team\u2019s Do Not Call list"); return false; }
     if (num && altDnc(num)) { if (e && e.preventDefault) e.preventDefault(); showToast("That number is on your team\u2019s Do Not Call list"); return false; }
     var now = Date.now(), cfg = pacingCfg(), st = dialStats(now);

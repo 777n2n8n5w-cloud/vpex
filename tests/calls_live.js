@@ -59,17 +59,23 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const after = await samCalls();
   check('admin: still one more call after it\'s logged (not two), and no longer on a call', after === c0 + 1 && !/on a call/.test(await samLine() || ''), { after, line: await samLine() });
 
-  // 2b. dialed, then Skip without an outcome: the call is saved as No answer, not lost
+  // 2b. dialed, then Skip: Skip waits for the real outcome (nothing is logged for them, so Call + Skip can't pad the count)
   await rep.waitForTimeout(9000);   // the pacing gap between dials
   const savedCalls = () => admin.evaluate(() => { const db = JSON.parse(localStorage.getItem('__mockfs')); return Object.keys(db).filter(k => /^callDays\/\d{4}-\d\d-\d\d_dR2_/.test(k)).reduce((n, k) => n + Object.keys(db[k].calls || {}).length, 0); });
   const sv0 = await savedCalls(), skipWho = await rep.evaluate(() => document.querySelector('.lead-name').textContent);
   await rep.evaluate(() => document.getElementById('callBtn').click()); await rep.waitForTimeout(400);
-  await rep.evaluate(() => document.getElementById('skipBtn').click()); await rep.waitForTimeout(900);
-  const sk = await rep.evaluate(() => ({ toast: document.getElementById('toast').textContent, next: (document.querySelector('.lead-name') || {}).textContent, n: +document.getElementById('todayNum').textContent }));
-  check('dial then Skip: the call is saved as No answer (rep is told)', (await savedCalls()) === sv0 + 1 && /as No answer/.test(sk.toast), { sv0, now: await savedCalls(), sk });
-  check('dial then Skip: it counts once and the next lead comes up', sk.n === r0 + 2 && sk.next !== skipWho, { sk, r0 });
+  await rep.evaluate(() => document.getElementById('skipBtn').click()); await rep.waitForTimeout(700);
+  let sk = await rep.evaluate(() => ({ toast: document.getElementById('toast').textContent, cur: (document.querySelector('.lead-name') || {}).textContent, need: document.getElementById('outcomesRow').classList.contains('need'), n: +document.getElementById('todayNum').textContent }));
+  check('dial then Skip: asks for the outcome, stays on the lead, logs nothing', /went first/.test(sk.toast) && sk.need && sk.cur === skipWho && (await savedCalls()) === sv0, { sk, saved: await savedCalls(), sv0 });
+  check('dial then Skip: the live call still counts once, no more', sk.n === r0 + 2, { sk, r0 });
+  await rep.evaluate(() => document.querySelector('.out-btn[data-outcome="voicemail"]').click()); await rep.waitForTimeout(900);
+  check('the real outcome saves it, counted once', (await savedCalls()) === sv0 + 1 && (await repCount()) === r0 + 2, { saved: await savedCalls(), n: await repCount() });
   const ac2 = await waitFor(samCalls, v => v === c0 + 2, 2500);
-  check('admin: the skipped call counts for Sam too', ac2.ms >= 0, ac2);
+  check('admin: it counts for Sam once', ac2.ms >= 0, ac2);
+  await rep.waitForTimeout(9000);
+  const n0 = await repCount();
+  await rep.evaluate(() => document.getElementById('skipBtn').click()); await rep.waitForTimeout(500);
+  check('Skip without dialing still just skips (no count)', (await repCount()) === n0 && (await rep.evaluate(() => (document.querySelector('.lead-name') || {}).textContent)) !== skipWho, await repCount());
 
   // 3. the Scoreboard counts a call the moment it's placed too
   await admin.keyboard.press('Tab'); await admin.evaluate(() => { const x = document.querySelector('#teamModal .modal-x, #teamModal [data-close], #teamModalClose'); if (x) x.click(); else document.getElementById('teamModal').classList.remove('show'); });
