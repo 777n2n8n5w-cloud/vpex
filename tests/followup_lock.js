@@ -116,6 +116,22 @@ function libChecks() {
   await page.locator('#fuBook').click(); await page.waitForTimeout(300);
   check('Done closes the sheet', !(await shown(page, 'fuSheet')));
 
+  // ---------- 4b. call back in 30, 60 or 90 days: one tap ----------
+  await clearPrompts(page);
+  const L4 = await ev(page, () => window.__fuCurrent());
+  await call(page); await out(page, 'callback');
+  const lat = await ev(page, () => [...document.querySelectorAll('.fu-later [data-fu-q]')].map(b => ({ l: b.querySelector('b').textContent, at: +b.getAttribute('data-fu-at') })));
+  const nowT = await ev(page, () => Date.now()), D = 86400000;
+  check('Callback later offers In 30, 60 and 90 days', lat.map(x => x.l).join('|') === 'In 30 days|In 60 days|In 90 days', lat);
+  check('each lands about that many days out, inside their calling hours', lat.length === 3 && [30, 60, 90].every((n, i) => lat[i].at > nowT + (n - 1) * D && lat[i].at < nowT + (n + 4) * D) &&
+    (await ev(page, (ts) => ts.every(t => { const h = new Date(t).getHours(); return h >= 8 && h < 21; }), lat.map(x => x.at))), lat);
+  await page.locator('.fu-later [data-fu-q]').nth(2).click(); await page.waitForTimeout(200);
+  let t4 = (await ev(page, id => window.__fuTasks(id), L4.id)).filter(t => !t.done);
+  check('tapping In 90 days saves it right away', t4.length === 1 && t4[0].dueAt === lat[2].at && t4[0].pinned, t4);
+  await page.locator('#fuX').click(); await page.waitForTimeout(300); await clearPrompts(page);
+  t4 = (await ev(page, id => window.__fuTasks(id), L4.id)).filter(t => !t.done);
+  check('and it stays after closing; the lead is held until then', t4.length === 1 && t4[0].dueAt === lat[2].at && (await ev(page, () => window.__fuLists())).held.includes(L4.id), t4);
+
   // ---------- 5. Move and Set next step save on the tap too ----------
   await clearPrompts(page);
   await ev(page, () => document.querySelector('[data-view="tasks"]').click()); await page.waitForTimeout(400);

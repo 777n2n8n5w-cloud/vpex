@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-02-22">
+<meta name="vpex-build" content="2027-02-23">
 <!-- Scripts only from this site and Google's Firebase library; no plugins; no <base> or form hijacking. Inline scripts stay
      allowed because the app is one file. (GitHub Pages can't send headers, so this is the strongest policy a page can set.) -->
 <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://www.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self'">
@@ -12688,6 +12688,13 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       if (q[0] === 7 * 1440) { var s = new Date(FU.sug); ts = new Date(s.getFullYear(), s.getMonth(), s.getDate() + 7, s.getHours(), s.getMinutes()).getTime(); }
       return { ts: ts, label: q[1] };
     }).filter(function (q) { return fuSlotOk(lead, q.ts) && !slotTaken(q.ts, lead.id, FU.taskId); });
+    // "Call me back in a month or two": 30, 60 and 90 days out at the suggested time of day; on a day or hour they can't be
+    // called (a holiday, a Sunday ban) or a time already taken, the next open time inside their calling hours.
+    var later = [30, 60, 90].map(function (n) {
+      var s = new Date(FU.sug), ts = new Date(s.getFullYear(), s.getMonth(), s.getDate() + n, s.getHours(), s.getMinutes()).getTime();
+      if (!fuSlotOk(lead, ts) || slotTaken(ts, lead.id, FU.taskId)) ts = fuFreeFrom(lead, ts, FU.taskId);
+      return ts ? { ts: ts, label: "In " + n + " days", sub: new Date(ts).toLocaleDateString(undefined, { month: "short", day: "numeric" }) } : null;
+    }).filter(Boolean);
     var byPart = { am: [], pm: [], eve: [] };
     slots.forEach(function (s) { byPart[fuPart(s.ts)].push(s); });
     var part = FU.part && byPart[FU.part].length ? FU.part : byPart[fuPart(FU.at)].length ? fuPart(FU.at) : (byPart.pm.length ? "pm" : byPart.am.length ? "am" : "eve");
@@ -12703,6 +12710,9 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       }).join("") + '</div>') + (cb && !bl ? '' : '<div class="fu-label fu-when">' + (cb ? '' : 'When') + bl + '</div>') +
       (quick.length ? '<div class="fu-row fu-quick" role="group" aria-label="Quick picks">' + quick.map(function (q) {
         return '<button type="button" class="fu-chip fu-q' + (q.ts === FU.at ? ' on' : '') + '" data-fu-at="' + q.ts + '" data-fu-q="1" aria-pressed="' + (q.ts === FU.at) + '"><b>' + q.label + '</b><small>' + escapeHtml(fuTime(q.ts)) + '</small></button>';
+      }).join("") + '</div>' : '') +
+      (later.length ? '<div class="fu-row fu-quick fu-later" role="group" aria-label="Call back later">' + later.map(function (q) {
+        return '<button type="button" class="fu-chip fu-q' + (q.ts === FU.at ? ' on' : '') + '" data-fu-at="' + q.ts + '" data-fu-q="1" aria-pressed="' + (q.ts === FU.at) + '" aria-label="' + q.label + ', ' + escapeHtml(fmtWhen(q.ts)) + '"><b>' + q.label + '</b><small>' + escapeHtml(q.sub) + '</small></button>';
       }).join("") + '</div>' : '') +
       '<div class="fu-label">Day</div>' +
       '<div class="fu-row fu-days" role="group" aria-label="Day">' + days.map(function (d) {

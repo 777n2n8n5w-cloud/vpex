@@ -20,6 +20,12 @@ on:
 permissions:
   contents: read
 
+# One check at a time: two at once share the same test request and can read each other's answer (Nov 12: a check started
+# by hand while the after-deploy check ran made that one fail and alert). A second check waits for the first to finish.
+concurrency:
+  group: vpex-notifications-check
+  cancel-in-progress: false
+
 jobs:
   check:
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
