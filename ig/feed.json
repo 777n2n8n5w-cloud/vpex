@@ -1,6 +1,132 @@
 {
-"built": "2026-11-06T02:01-05:00",
+"built": "2026-11-12T09:04-05:00",
 "tiles": [
+{
+"id": "w8-thanks",
+"at": "2026-11-23T19:00:00-05:00",
+"t": "Thanksgiving, no sales calls in 4 states",
+"img": "t/w8-thanks.jpg",
+"go": "home",
+"c": "w8",
+"k": "carousel"
+},
+{
+"id": "w8-ax",
+"at": "2026-11-23T11:00:00-05:00",
+"t": "Monday. Dialing by lunch.",
+"img": "t/w8-ax.jpg",
+"go": "trial",
+"c": "w8",
+"k": "reel"
+},
+{
+"id": "w8-callback",
+"at": "2026-11-22T19:00:00-05:00",
+"t": "Call me back tomorrow at 10",
+"img": "t/w8-callback.jpg",
+"go": "home",
+"c": "w8",
+"k": "image"
+},
+{
+"id": "w8-aw",
+"at": "2026-11-22T11:00:00-05:00",
+"t": "Number on a sticky note?",
+"img": "t/w8-aw.jpg",
+"go": "home",
+"c": "w8",
+"k": "reel"
+},
+{
+"id": "w8-math",
+"at": "2026-11-21T19:00:00-05:00",
+"t": "Floor math, picking who to call next",
+"img": "t/w8-math.jpg",
+"go": "home",
+"c": "w8",
+"k": "image"
+},
+{
+"id": "w8-av",
+"at": "2026-11-21T11:00:00-05:00",
+"t": "Rep POV: my closer is out today.",
+"img": "t/w8-av.jpg",
+"go": "home",
+"c": "w8",
+"k": "reel"
+},
+{
+"id": "w8-price",
+"at": "2026-11-20T19:00:00-05:00",
+"t": "$49 a rep. What's in it?",
+"img": "t/w8-price.jpg",
+"go": "trial",
+"c": "w8",
+"k": "image"
+},
+{
+"id": "w8-au",
+"at": "2026-11-20T11:00:00-05:00",
+"t": "Friday, 4 PM. Who's on the phone?",
+"img": "t/w8-au.jpg",
+"go": "home",
+"c": "w8",
+"k": "reel"
+},
+{
+"id": "w8-first",
+"at": "2026-11-19T19:00:00-05:00",
+"t": "Who should your reps call first?",
+"img": "t/w8-first.jpg",
+"go": "home",
+"c": "w8",
+"k": "carousel"
+},
+{
+"id": "w8-at",
+"at": "2026-11-19T11:00:00-05:00",
+"t": "Same lead. Wrong hour.",
+"img": "t/w8-at.jpg",
+"go": "home",
+"c": "w8",
+"k": "reel"
+},
+{
+"id": "w8-brush",
+"at": "2026-11-18T19:00:00-05:00",
+"t": "6 brush-offs your floor hears every day",
+"img": "t/w8-brush.jpg",
+"go": "home",
+"c": "w8",
+"k": "carousel"
+},
+{
+"id": "w8-as",
+"at": "2026-11-18T11:00:00-05:00",
+"t": "Just text me a time.",
+"img": "t/w8-as.jpg",
+"go": "home",
+"c": "w8",
+"k": "reel"
+},
+{
+"id": "w8-hours",
+"at": "2026-11-17T19:00:00-05:00",
+"t": "Calling hours, every state. One carousel.",
+"img": "t/w8-hours.jpg",
+"go": "home",
+"c": "w8",
+"k": "carousel"
+},
+{
+"id": "w8-ar",
+"at": "2026-11-17T11:00:00-05:00",
+"t": "9 AM. Who can you call?",
+"img": "t/w8-ar.jpg",
+"go": "home",
+"c": "w8",
+"k": "reel"
+},
 {
 "id": "w7-trial",
 "at": "2026-11-16T19:00:00-05:00",
