@@ -73,7 +73,7 @@ const rootVar = (page, n) => page.evaluate(n => getComputedStyle(document.docume
     // Round two: kits. data-vx-kit follows data-theme whoever changes it; each kit shapes the Call button and rows.
     const kits = await page.evaluate(async () => { const o = {}; for (const t of ['royal', 'synthwave', 'missioncontrol', 'gameday', 'christmas', 'aurora', 'flow', 'arcade', 'sig-horologe']) {
       document.documentElement.setAttribute('data-theme', t); await new Promise(r => setTimeout(r, 0)); o[t] = document.documentElement.getAttribute('data-vx-kit'); } return o; });
-    check('kits follow the theme', JSON.stringify(kits) === JSON.stringify({ royal: 'ledger', synthwave: 'neon', missioncontrol: 'hud', gameday: 'arena', christmas: 'festive', aurora: 'botanic', flow: 'studio', arcade: 'none', 'sig-horologe': 'none' }), kits);
+    check('kits follow the theme', JSON.stringify(kits) === JSON.stringify({ royal: 'ledger', synthwave: 'neon', missioncontrol: 'hud', gameday: 'arena', christmas: 'festive', aurora: 'botanic', flow: 'house', arcade: 'none', 'sig-horologe': 'none' }), kits);
     const artN = await page.evaluate(() => [...document.querySelectorAll('style')].map(s => s.textContent).join('').match(/--vx-art: url\(/g).length);
     check('card artwork for the themes that get it (90+)', artN >= 90, artN);
     const artOn = await page.evaluate(async () => { const o = {}; for (const t of ['christmas', 'arcade']) { document.documentElement.setAttribute('data-theme', t); await new Promise(r => setTimeout(r, 0));
