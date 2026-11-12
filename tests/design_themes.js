@@ -71,13 +71,13 @@ async function boot(br, o) {
       check(tag + ': Call on one line, on screen, 44 px+', r.callLines === 1 && r.callIn && r.callH >= 44, r);
       check(tag + ': no sideways scroll', !r.over);
       // log a call: Call then No answer
+      const before = await page.evaluate(() => (document.querySelector('.rh-count strong') || {}).textContent);
       await page.evaluate(() => document.querySelector('#mainArea .call-btn').click()); await page.waitForTimeout(500);
       const sheet = await page.evaluate(() => { const b = [...document.querySelectorAll('button')].find(x => /Try the call/.test(x.textContent) && x.offsetParent); if (b) b.click(); return !!b; });
       if (sheet) await page.waitForTimeout(400);
-      const before = await page.evaluate(() => (document.querySelector('.rh-count strong') || {}).textContent);
       await page.evaluate(() => { const b = document.querySelector('#outcomesRow [data-outcome="noanswer"]') || document.querySelector('#outcomesRow [data-outcome]'); b.click(); }); await page.waitForTimeout(600);
       const after = await page.evaluate(() => (document.querySelector('.rh-count strong') || {}).textContent);
-      check(tag + ': a call logs (+1 today)', +after === +before + 1, [before, after]);
+      check(tag + ': a call counts once (+1 today: on the dial, not again when logged)', +after === +before + 1, [before, after]);
       check(tag + ': no page errors', errs.length === 0, errs);
       await ctx.close();
     }
