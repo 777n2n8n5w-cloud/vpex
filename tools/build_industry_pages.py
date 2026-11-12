@@ -119,9 +119,7 @@ def page(k):
 <meta name="theme-color" content="#0D1224">
 <link rel="icon" href="/vpex-icon-64.png">
 <link rel="apple-touch-icon" href="/vpex-icon-180.png">
-<link rel="preconnect" data-consent-href="https://fonts.googleapis.com">
-<link rel="preconnect" data-consent-href="https://fonts.gstatic.com" crossorigin>
-<link data-consent-href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet">
+<link rel="preload" href="/fonts/vpex-sans.woff2" as="font" type="font/woff2" crossorigin>
 <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script src="/consent.js"></script>

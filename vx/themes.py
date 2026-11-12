@@ -13,8 +13,9 @@ def r(id, L=(), **k):
     k['L'] = list(L); R[id] = k
 
 # Everyday
-r('flow',        [('#4F6BFF', .30), ('#E3AE45', .20), ('#7B5CFF', .22)], mo='glide')
-r('flowlight',   [('#6E8BFF', .16), ('#F2C46B', .16), ('#A9BBFF', .14)], mo='glide')
+# VPEX (ids stay flow / flowlight): the house look. Light kept low and steady; banknote engraving at the foot of the screen.
+r('flow',        [('#2B3A8F', .24), ('#E8B94A', .10), ('#1A2566', .28)], tx='guilloche', txo=.32, mo='silk')
+r('flowlight',   [('#C7D0F0', .14), ('#F2D58A', .12), ('#DDE3F7', .10)], tx='guilloche', txo=.26, mo='silk')
 r('midnight',    [('#2E4C9A', .34), ('#D6B26E', .16), ('#1B2B66', .30)], tx='stars', txo=.55, mo='silk', det='hair')
 r('daylight',    [('#9CC3FF', .18), ('#FFD38A', .24), ('#C9DCFF', .12)], P=('4% 90%', '100% 28%', '50% 120%'), mo='glide')
 r('slate',       [('#6F8DD6', .22), ('#93B5FF', .12), ('#4A5A7A', .26)], tx='brushed', txo=.5, mo='glide')

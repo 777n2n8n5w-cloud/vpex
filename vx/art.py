@@ -24,6 +24,11 @@ def reticle():
     return s + path('M100 100 L%s %s A64 64 0 0 1 %s %s Z' % (_f(pol(100, 100, 64, 20)[0]), _f(pol(100, 100, 64, 20)[1]), _f(pol(100, 100, 64, 60)[0]), _f(pol(100, 100, 64, 60)[1])), stroke_width=.8)
 def rays(n=36, r0=34, r1=98): return circle(100, 100, r0 - 6) + ''.join(line(*pol(100, 100, r0, a), *pol(100, 100, r1 if i % 2 == 0 else r1 - 18, a)) for i, a in enumerate(range(0, 360, 360 // n)))
 def milled(): return ''.join(circle(100, 100, r, stroke_width=.7) for r in range(14, 100, 7)) + circle(100, 100, 6, stroke_width=2)
+def seal():
+    # An engraved seal, the way a share certificate or a banknote is lathe-cut: a guilloche band between two milled rings.
+    s = ''.join(ell(100, 100, 88, 34, i * 6, stroke_width=.55) for i in range(30))
+    s += circle(100, 100, 94, stroke_width=.8) + circle(100, 100, 97.5, stroke_width=.5, stroke_dasharray='1.2 2.2')
+    return s + circle(100, 100, 30, stroke_width=.8) + circle(100, 100, 24, stroke_width=.5)
 def flowlines(): return ''.join(path('M-10 %d C 50 %d, 120 %d, 210 %d' % (40 + i * 16, 10 + i * 16, 110 + i * 12, 60 + i * 15), stroke_width=1.1) for i in range(8))
 def topo():
     s = ''
@@ -153,7 +158,7 @@ def champagne(): return firework()
 
 ART = {
     # everyday
-    'flow': flowlines, 'flowlight': flowlines, 'midnight': moonstars, 'daylight': rays, 'slate': topo, 'forest': pines,
+    'flow': seal, 'flowlight': seal, 'midnight': moonstars, 'daylight': rays, 'slate': topo, 'forest': pines,
     'sunset': dunes, 'emerald': gem, 'ocean': wave, 'rosegold': rosette, 'arctic': snowflake, 'graphite': milled, 'sand': dunes,
     # money
     'wallstreet': candlesticks, 'ivory': laurel, 'royal': crown, 'terminal': reticle, 'oldmoney': crest, 'oxblood': rosette,

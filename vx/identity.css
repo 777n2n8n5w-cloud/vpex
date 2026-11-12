@@ -1,0 +1,91 @@
+/* ===== VPEX identity =====
+   Built into index.html by vx/build.py, after the Experience layer so it has the last word.
+   @V expands to the VPEX theme in all its forms: Auto (no data-theme), VPEX (flow) and VPEX Light (flowlight).
+
+   Type: VPEX Sans (fonts/), one variable family with three voices.
+     Headings and names  width 125%, weight 800, tight: wide and commanding.
+     Reading text        width 100%, weight 400 to 600.
+     Figures             width 75 to 88%, weight 650 to 800, tabular: a trading-floor board. Calls, money, phone numbers, clock.
+   Shape: hairline rules and small radii (8 cards, 6 buttons and rows, 4 chips and fields), never one radius for everything.
+   One gold rule marks the lead you're on, like the edge of a certificate. No glass, no gradient buttons, no glow.
+
+   Part 1 is shared by every theme (labels and figures). Part 2 is VPEX's own look. Part 3 is the sales page. */
+
+/* ---------- 1. Every theme: readable labels, figures that line up ---------- */
+:is(.stage-name, .task-section-head, .lead-stage-label, .lead-notes-label, .settings-heading, .hx-day, .lp-tl-head, .theme-group-label, .hot-head, .gs-head, .lp-next-k, .dl-sec) {
+  text-transform: none; letter-spacing: 0; font-size: 12.5px; font-weight: 650; }
+body.desk #deskLeft > #queueControls::before, body.desk #deskLeft #queueHeading { text-transform: none; letter-spacing: 0; font-size: 12.5px; font-weight: 650; }
+:is(#todayNum, .chip-n, .stage-count, .deal-bar-amounts, .hx-sub, .task-due, .lead-phone, .qi-phone, .queue-tag, #hcTime, .dl-rate, .goal-btn, .pipe-amount, .rh-unit, .tab-badge) { font-variant-numeric: tabular-nums; }
+
+/* ---------- 2. VPEX ---------- */
+@V body { font-family: var(--font-body); }
+@V :is(h1, h2, h3, .tasks-title, .done-panel h2, .empty h2, .modal h3, .lp-name, .feat-title) { font-stretch: 120%; font-weight: 800; letter-spacing: -0.006em; }
+
+/* Header: solid ground, one rule under it */
+@V header.top { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; border-bottom: 1px solid var(--border); }
+@V .brand .name { font-stretch: 125%; font-weight: 820; font-size: 17px; letter-spacing: 0.045em; }
+@V .icon-btn { border-radius: var(--radius-s); }
+@V .hdr-clock .hc-time { font-stretch: 84%; font-weight: 720; letter-spacing: 0.01em; }
+@V .hdr-clock .hc-date { font-weight: 560; }
+@V .hdr-clock .hc-zone { font-stretch: 90%; font-weight: 650; letter-spacing: 0.04em; }
+
+/* View tabs: words on a rule, the one you're on underlined in gold */
+@V .view-tabs { background: transparent; border: 0; border-bottom: 1px solid var(--border); border-radius: 0; padding: 0; gap: 2px; }
+@V .view-tab { border-radius: 0; background: none; color: var(--text-dim); font-stretch: 110%; font-weight: 640; font-size: 13px; min-height: 42px; padding: 11px 2px 12px; }
+@V .view-tab.active, @V .view-tab.active:hover { background: transparent; color: var(--text); box-shadow: inset 0 -2px 0 var(--rule); }
+@V body.desk .view-tab { font-size: 14px; padding: 10px 16px 12px; }
+@V body.desk .view-tab:not(.active):hover { background: transparent; color: var(--text); box-shadow: inset 0 -2px 0 var(--border); }
+
+/* The count: tall gold figures */
+@V .rh-count strong { font-stretch: 75%; font-weight: 800; font-size: calc(var(--count-base) * 1.5); line-height: 0.86; letter-spacing: -0.005em; color: var(--ink-num); }
+@V .rh-unit { font-size: 15px; font-weight: 560; color: var(--text-dim); }
+@V .goal-btn { border-style: solid; border-radius: var(--radius-s); font-stretch: 95%; }
+
+/* Chips, pills and tags: tickets, not lozenges */
+@V :is(.filter-chip, .need-pill, .md-bar.md-pill, .goal-btn, .qf-chip, .lead-where, .prev-pill, .win-chip, .dt-left, .fu-chip, .tab-badge) { border-radius: var(--radius-s); }
+@V .filter-chip { font-weight: 560; }
+@V .filter-chip.active { font-weight: 650; }
+@V :is(.need-pill, .md-bar.md-pill b) { font-weight: 650; }
+@V .qi-status { border-radius: 3px; font-stretch: 96%; font-weight: 650; padding: 1px 7px; }
+@V .stage-count { border-radius: 3px; font-stretch: 92%; }
+
+/* The lead card: flat navy, a hairline, and the gold rule on top */
+@V #mainArea .card { border-radius: var(--radius-l); border: 1px solid var(--border); border-top: 3px solid var(--rule); box-shadow: none; }
+@V #mainArea .card { --vx-art-layer: var(--vx-art, linear-gradient(transparent, transparent)) right -72px top calc(-78px + var(--vx-art-dy)) / 206px 206px no-repeat; }
+@V #mainArea .card.done-panel { --vx-art-layer: linear-gradient(transparent, transparent); }
+@V .lead-name { font-stretch: 125%; font-weight: 800; font-size: clamp(24px, 7.6vw, 34px); letter-spacing: -0.014em; line-height: 1.02; margin-bottom: 6px; }
+@V .lead-phone { font-family: var(--font-num); font-stretch: 86%; font-weight: 650; font-size: 22px; letter-spacing: 0.012em; color: var(--ink-num); }
+@V .lead-where { font-weight: 600; }
+@V :is(select, textarea, input:not([type="checkbox"]):not([type="radio"]):not([type="range"])) { border-radius: var(--radius-s); }
+
+/* Buttons: solid, square-shouldered, no gloss */
+@V .call-btn { background: var(--call-bg); color: var(--call-text); border-radius: var(--radius-m); box-shadow: var(--call-shadow); font-stretch: 112%; font-weight: 760; font-size: 17px; letter-spacing: 0.004em; }
+@V .call-btn::after { display: none; }
+@V .call-btn:hover:not(:disabled) { filter: brightness(1.05); }
+@V :is(.btn-primary, .btn-secondary, .copy-btn, .sc-bar-b, .nx-go) { border-radius: var(--radius-s); }
+@V .btn-primary { font-stretch: 106%; font-weight: 700; }
+@V .out-btn { border-radius: var(--radius-s); font-stretch: 104%; font-weight: 600; }
+
+/* Lists: rows on rules, money and dates in figures */
+@V :is(.pipe-item, .task-item, .hist-item, .deal-bar-card, .queue-item, .pipe-empty, .fu-banner) { border-radius: var(--radius-m); box-shadow: none; }
+@V .stage-name { font-stretch: 110%; font-size: 13px; font-weight: 720; color: var(--text); }
+@V :is(.pipe-item-name, .task-lead-name, .hist-name) { font-stretch: 106%; font-weight: 680; }
+@V .deal-bar-amounts { font-stretch: 84%; font-weight: 750; font-size: 15px; }
+
+/* Desk: panels share the card's shape; numbers read as a board */
+@V body.desk :is(#deskLeft > *, #deskRight > *, .desk-col > *) { border-radius: var(--radius-l); box-shadow: none; }
+@V .dl-kpi b { font-family: var(--font-num); font-stretch: 76%; font-weight: 800; font-size: 32px; line-height: 0.95; letter-spacing: 0; }
+@V .dl-kpi { border-radius: var(--radius-m); }
+@V :is(.dl-title, .dl-head .dl-title) { font-stretch: 118%; font-weight: 800; }
+
+/* Sheets and dialogs */
+@V :is(.modal, .feat-modal .modal-box, #featModalBody) { border-radius: var(--radius-l); }
+@V .theme-card { border-radius: var(--radius-m); }
+
+/* ---------- 3. The sales page ---------- */
+@V #authScreen.landing .auth-brand { font-stretch: 125%; font-weight: 820; letter-spacing: 0.045em; font-size: 18px; }
+@V #authScreen.landing .hero-h { font-stretch: 125%; font-weight: 820; font-size: clamp(32px, 8.6vw, 56px); line-height: 1; letter-spacing: -0.016em; word-spacing: 0.06em; }
+@V #authScreen.landing :is(.hero-badge, .lp-badge) { border-radius: var(--radius-s); }
+@V #authScreen.landing .lp-h2, @V #authScreen.landing .auth-faq h2 { font-stretch: 122%; font-weight: 800; letter-spacing: -0.016em; }
+@V #authScreen.landing .lp-price { font-stretch: 78%; font-weight: 800; letter-spacing: 0; }
+@V #authScreen.landing :is(.hero-cta, #suGo, .lp-cta, .lp-topcta, .lp-ghost), @V .lp-dock .btn-primary { border-radius: var(--radius-m); font-stretch: 110%; font-weight: 750; }
