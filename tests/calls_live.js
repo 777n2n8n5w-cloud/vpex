@@ -59,13 +59,25 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const after = await samCalls();
   check('admin: still one more call after it\'s logged (not two), and no longer on a call', after === c0 + 1 && !/on a call/.test(await samLine() || ''), { after, line: await samLine() });
 
+  // 2b. dialed, then Skip without an outcome: the call is saved as No answer, not lost
+  await rep.waitForTimeout(9000);   // the pacing gap between dials
+  const savedCalls = () => admin.evaluate(() => { const db = JSON.parse(localStorage.getItem('__mockfs')); return Object.keys(db).filter(k => /^callDays\/\d{4}-\d\d-\d\d_dR2_/.test(k)).reduce((n, k) => n + Object.keys(db[k].calls || {}).length, 0); });
+  const sv0 = await savedCalls(), skipWho = await rep.evaluate(() => document.querySelector('.lead-name').textContent);
+  await rep.evaluate(() => document.getElementById('callBtn').click()); await rep.waitForTimeout(400);
+  await rep.evaluate(() => document.getElementById('skipBtn').click()); await rep.waitForTimeout(900);
+  const sk = await rep.evaluate(() => ({ toast: document.getElementById('toast').textContent, next: (document.querySelector('.lead-name') || {}).textContent, n: +document.getElementById('todayNum').textContent }));
+  check('dial then Skip: the call is saved as No answer (rep is told)', (await savedCalls()) === sv0 + 1 && /as No answer/.test(sk.toast), { sv0, now: await savedCalls(), sk });
+  check('dial then Skip: it counts once and the next lead comes up', sk.n === r0 + 2 && sk.next !== skipWho, { sk, r0 });
+  const ac2 = await waitFor(samCalls, v => v === c0 + 2, 2500);
+  check('admin: the skipped call counts for Sam too', ac2.ms >= 0, ac2);
+
   // 3. the Scoreboard counts a call the moment it's placed too
   await admin.keyboard.press('Tab'); await admin.evaluate(() => { const x = document.querySelector('#teamModal .modal-x, #teamModal [data-close], #teamModalClose'); if (x) x.click(); else document.getElementById('teamModal').classList.remove('show'); });
   await rep.waitForTimeout(9000);   // the pacing gap between dials
   await rep.evaluate(() => document.getElementById('callBtn').click()); await sleep(1500);
   const sb = await admin.evaluate(() => { const s = window.__scoreRows ? window.__scoreRows() : null; return s; });
-  check('Scoreboard: Sam\'s live call counts', (sb.find(r => r.uid === 'dR2') || {}).calls === c0 + 2, sb);
-  check('rep: second dial counted at once', await repCount() === r0 + 2, await repCount());
+  check('Scoreboard: Sam\'s live call counts', (sb.find(r => r.uid === 'dR2') || {}).calls === c0 + 3, sb);
+  check('rep: third dial counted at once', await repCount() === r0 + 3, await repCount());
   check('no page errors', !errs.length, errs);
   await br.close();
   console.log('calls_live: ' + pass + ' passed, ' + fail + ' failed');

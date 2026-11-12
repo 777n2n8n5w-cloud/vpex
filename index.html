@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-02-25">
+<meta name="vpex-build" content="2027-02-26">
 <!-- Scripts only from this site and Google's Firebase library; no plugins; no <base> or form hijacking. Inline scripts stay
      allowed because the app is one file. (GitHub Pages can't send headers, so this is the strongest policy a page can set.) -->
 <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://www.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self'">
@@ -13617,9 +13617,19 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     render();
   }
 
+  // A call that was placed always saves. Moving on without tapping an outcome (Skip, opening another lead or follow-up,
+  // closing a follow-up) logs it as No answer: it counts in calls today, it's in the history, and it gets its next try.
+  function flushDial(why) {
+    if (!state.awaitingOutcome) return false;
+    var l = currentLead(); if (!l) { state.awaitingOutcome = false; return false; }
+    logOutcome("noanswer");
+    showToast("Saved your call to " + (firstName(l.name) || "them") + " as No answer" + (why ? " \u00b7 " + why : ""));
+    return true;
+  }
   function skipLead() {
     var lead = currentLead();
     if (!lead) return;
+    if (state.awaitingOutcome) { flushDial(); return; }   // dialed, then Skip: the call is saved as No answer and the next lead comes up
     var pending = pendingLeads();
     if (pending.length <= 1) { showToast("No other leads to skip to"); return; }
     state.awaitingOutcome = false;
@@ -14618,6 +14628,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
   // Any Call button outside the dial card dials, and when you come back the
   // dial card is open on that lead with the outcome buttons ready.
   function startCall(leadId, from, taskId, href) {
+    if (state.awaitingOutcome) { var cur = currentLead(); if (cur && cur.id !== leadId) flushDial(); }
     if (state.manualDial) kpRaw = "";
     if (state.lastFollow && state.lastFollow.leadId !== leadId) state.lastFollow = null;
     var lead = findLeadById(leadId);
@@ -14637,6 +14648,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     setTimeout(function () { if (!document.hidden) dialFallback(href); }, 400);
   }
   function focusTask(t, from) {
+    if (state.awaitingOutcome) { var cur = currentLead(); if (cur && cur.id !== t.leadId) flushDial(); }
     state.recallLeadId = null;
     state.focusLeadId = t.leadId;
     state.focusTaskId = t.id;
@@ -14684,7 +14696,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       saveState();
       render();
     }
-    if (state.awaitingOutcome) showConfirm("You haven\u2019t logged this call yet. Leave without logging it?", go);
+    if (state.awaitingOutcome) showConfirm("You haven\u2019t logged this call yet. Save it as No answer and leave?", function () { flushDial(); go(); }, "Save and leave");
     else go();
   }
   function followupBannerHtml() {
