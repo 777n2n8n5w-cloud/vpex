@@ -6354,7 +6354,7 @@ window.VPEX_SIG = [
   .task-top-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 3px; }
   .task-lead-name { font-size: 13px; font-weight: 600; }
   .task-lead-name.linkish { position: relative; }
-  .task-lead-name.linkish::after { content: ""; position: absolute; left: 0; right: 0; top: -12px; bottom: -12px; }   /* 44 px to tap, same line height */
+  .task-lead-name.linkish::after { content: ""; position: absolute; left: 0; right: 0; top: min(-12px, calc(50% - 22px)); bottom: min(-12px, calc(50% - 22px)); }   /* at least 44 px to tap whatever the font, same line height */
   .task-note { font-size: 12px; color: var(--text-dim); }
   .task-due { font-size: 11px; color: var(--text-faint); margin-top: 3px; }
   .task-actions { display: flex; gap: 10px; flex-shrink: 0; }
@@ -7199,7 +7199,7 @@ window.VPEX_SIG = [
   .lead-prog-face { border-color: color-mix(in srgb, var(--interested) 45%, var(--border)); background: color-mix(in srgb, var(--interested) 10%, transparent); }
   .lead-prog-face span { color: color-mix(in srgb, var(--interested) 62%, var(--text)); }
   .lead-prog-face small { color: var(--text-dim); font-weight: 500; font-size: 12.5px; }
-  .lead-prog-face::after { content: ""; position: absolute; left: 0; right: 0; top: -7px; bottom: -7px; }   /* 44 px to tap */
+  .lead-prog-face::after { content: ""; position: absolute; left: 0; right: 0; top: min(-7px, calc(50% - 22px)); bottom: min(-7px, calc(50% - 22px)); }   /* at least 44 px to tap, whatever the font */
   .lp-src { font-size: 12px; color: var(--text-faint); margin: -6px 0 10px; }
   #submitUpload:disabled { opacity: 0.5; }
   @media (max-width: 360px) { .save-pill.ok:not(.live-save) { font-size: 0; gap: 0; } }
