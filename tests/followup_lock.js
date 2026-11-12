@@ -116,7 +116,34 @@ function libChecks() {
   await page.locator('#fuBook').click(); await page.waitForTimeout(300);
   check('Done closes the sheet', !(await shown(page, 'fuSheet')));
 
-  // ---------- 5. due: it comes back on time ----------
+  // ---------- 5. Move and Set next step save on the tap too ----------
+  await clearPrompts(page);
+  await ev(page, () => document.querySelector('[data-view="tasks"]').click()); await page.waitForTimeout(400);
+  const before2 = (await ev(page, id => window.__fuTasks(id), L2.id)).filter(t => !t.done)[0];
+  await ev(page, n => { const it = [...document.querySelectorAll('.task-item')].find(x => (x.querySelector('.task-lead-name') || {}).textContent === n); it.querySelector('[data-move-task]').click(); }, L2.name); await page.waitForTimeout(400);
+  check('Move opens the sheet', await shown(page, 'fuSheet'));
+  await page.locator('.fu-days [data-fu-day]').nth(2).click(); await page.waitForTimeout(150);
+  const mchip = page.locator('.fu-times [data-fu-at]').first(); const tsM = Number(await mchip.getAttribute('data-fu-at'));
+  await mchip.click(); await page.waitForTimeout(200);
+  let after2 = (await ev(page, id => window.__fuTasks(id), L2.id)).filter(t => !t.done);
+  check('Move saves the new time on the tap (same follow-up, no second one)', after2.length === 1 && after2[0].id === before2.id && after2[0].dueAt === tsM, after2);
+  await page.locator('#fuX').click(); await page.waitForTimeout(300);
+  after2 = (await ev(page, id => window.__fuTasks(id), L2.id)).filter(t => !t.done);
+  check('closing after a Move keeps the new time', after2.length === 1 && after2[0].dueAt === tsM, after2);
+  await ev(page, () => document.querySelector('[data-view="pipeline"]').click()); await page.waitForTimeout(500);
+  const L3 = await ev(page, () => { const b = document.querySelector('[data-set-next]'); return b ? b.getAttribute('data-set-next') : null; });
+  if (L3) {
+    await ev(page, id => document.querySelector('[data-set-next="' + id + '"]').click(), L3); await page.waitForTimeout(400);
+    await page.locator('.fu-days [data-fu-day]').nth(1).click(); await page.waitForTimeout(150);
+    const schip = page.locator('.fu-times [data-fu-at]').first(); const tsS = Number(await schip.getAttribute('data-fu-at'));
+    await schip.click(); await page.waitForTimeout(200);
+    await page.locator('#fuX').click(); await page.waitForTimeout(300);
+    const t3 = (await ev(page, id => window.__fuTasks(id), L3)).filter(t => !t.done);
+    check('Set next step saves on the tap and stays after closing (set by hand, so it holds the time)', t3.length === 1 && t3[0].dueAt === tsS && t3[0].auto === false, t3);
+    check('that lead is held until then too', (await ev(page, () => window.__fuLists())).held.includes(L3));
+  } else check('pipeline offers Set next step for a lead without one', false);
+
+  // ---------- 6. due: it comes back on time ----------
   const nowIn = await ev(page, () => Date.now()); await page.clock.fastForward(ts1 - nowIn + 60000); await page.waitForTimeout(400);
   ls = await ev(page, () => window.__fuLists());
   check('at its time it comes back as a due follow-up', !ls.held.includes(L1.id) && ls.due.includes(L1.id), ls);
