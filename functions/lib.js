@@ -143,7 +143,8 @@ function dueMessages(items) {
 
 function handoffMessage(office, ev, tz, now) {
   var h = ev.h, from = firstName(h.from && h.from.name) || "Your team";
-  var body = (typeof h.apptAt === "number" ? "Appointment " + fmtWhen(h.apptAt, tz, now) : "Tap to open their file.") + (h.note ? " · " + str(h.note, 120) : "");
+  // "Call now": the setter just qualified them on the phone and they're waiting for the closer's call.
+  var body = (h.now === true ? "Call now. They're expecting you." : typeof h.apptAt === "number" ? "Appointment " + fmtWhen(h.apptAt, tz, now) : "Tap to open their file.") + (h.note ? " · " + str(h.note, 120) : "");
   return { kind: "handoff", title: "New handoff from " + from + ": " + str(ev.lead.name || "a lead", 60), body: body, link: leadLink(office, ev.leadId), tag: "vpex-lead-" + ev.leadId, leadId: ev.leadId, office: office || "" };
 }
 

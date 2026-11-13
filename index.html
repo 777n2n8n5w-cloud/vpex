@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-02-27">
+<meta name="vpex-build" content="2027-02-28">
 <!-- Scripts only from this site and Google's Firebase library; no plugins; no <base> or form hijacking. Inline scripts stay
      allowed because the app is one file. (GitHub Pages can't send headers, so this is the strongest policy a page can set.) -->
 <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://www.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self'">
@@ -7967,6 +7967,51 @@ window.VPEX_SIG = [
   .handoff-info { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; margin: 4px 0 10px; padding: 10px 12px; border-radius: 10px;
     background: var(--surface-raised); border: 1px solid var(--border); font-size: 13px; color: var(--text-dim); }
   .handoff-info b { color: var(--text); } .handoff-info span { font-style: italic; }
+  .handoff-info .ho-st { font-size: 12px; font-weight: 600; color: var(--text-faint); } .handoff-info .ho-st.ok { color: var(--interested); }
+  /* Send to a closer: shows on the dial card and the profile once every qualifying answer is in */
+  .ho-ready { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 58px; margin: 2px 0 12px; padding: 10px 14px; text-align: left; font: inherit; color: var(--text); cursor: pointer;
+    border: 1px solid var(--accent); border-radius: var(--radius-m, 12px); background: color-mix(in srgb, var(--accent) 13%, transparent); transition: background 0.15s, transform 0.1s; }
+  .ho-ready:hover { background: color-mix(in srgb, var(--accent) 20%, transparent); }
+  .ho-ready:active { transform: scale(0.985); }
+  .ho-ready:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .ho-ready-ic { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: var(--accent-text); }
+  .ho-ready-ic svg { width: 19px; height: 19px; }
+  .ho-ready-t { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .ho-ready-t b { font-size: 15.5px; font-weight: 750; line-height: 1.2; }
+  .ho-ready-t small { font-size: 12.5px; color: var(--text-dim); line-height: 1.25; }
+  #leadModalBody .ho-ready { margin: 4px 0 12px; }
+  /* The handoff sheet */
+  .ho-qf { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 6px; }
+  .ho-lbl { margin: 14px 0 7px; font-size: 13px; font-weight: 650; color: var(--text); }
+  .ho-closers { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+  .ho-cl { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-height: 56px; padding: 9px 12px; text-align: left; font: inherit; cursor: pointer; color: var(--text);
+    background: var(--surface-raised); border: 1px solid var(--border); border-radius: var(--radius-m, 10px); }
+  .ho-cl b { font-size: 14.5px; font-weight: 700; } .ho-cl span { font-size: 12px; color: var(--text-dim); }
+  .ho-cl[aria-checked="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--surface-raised)); }
+  .ho-when { display: flex; flex-wrap: wrap; gap: 7px; }
+  .ho-when .ho-w { min-height: 40px; }
+  #hoAt { margin-top: 8px; }
+  .ho-slot { min-height: 20px; margin: 9px 0 2px; font-size: 13px; color: var(--text-dim); line-height: 1.4; }
+  .ho-slot.bad { color: var(--notinterested); }
+  .ho-free { margin-left: 4px; min-height: 32px; padding: 4px 10px; font: inherit; font-size: 12.5px; font-weight: 650; color: var(--text); cursor: pointer; background: var(--surface-raised); border: 1px solid var(--border); border-radius: var(--radius-s, 6px); }
+  .modal-actions.qf-acts2 { display: grid; grid-template-columns: 1fr 1.6fr; gap: 8px; }
+  /* The closer's alert: drops in from the top on any screen */
+  .ho-alert { position: fixed; z-index: 245; left: 50%; top: calc(10px + env(safe-area-inset-top, 0px)); width: min(440px, calc(100% - 20px)); padding: 12px 16px 14px;
+    color: var(--text); background: var(--surface-raised); border: 1px solid var(--border); border-top: 3px solid var(--accent); border-radius: var(--radius-l, 14px);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.38); transform: translate(-50%, calc(-100% - 30px)); opacity: 0; visibility: hidden; pointer-events: none;
+    transition: transform 0.34s cubic-bezier(0.2, 0.9, 0.25, 1.15), opacity 0.2s, visibility 0s 0.34s; }
+  .ho-alert.show { transform: translate(-50%, 0); opacity: 1; visibility: visible; pointer-events: auto; transition: transform 0.34s cubic-bezier(0.2, 0.9, 0.25, 1.15), opacity 0.2s, visibility 0s; }
+  .ho-a-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .ho-a-k { font-size: 12.5px; font-weight: 650; color: var(--accent); }
+  .ho-a-x { flex: none; width: 36px; height: 36px; margin: -6px -8px -6px 0; font-size: 22px; line-height: 1; color: var(--text-dim); background: none; border: 0; cursor: pointer; border-radius: 50%; }
+  .ho-a-name { margin: 2px 0 2px; font-size: 21px; font-weight: 800; line-height: 1.15; overflow-wrap: anywhere; }
+  .ho-a-when { font-size: 14px; font-weight: 600; color: var(--text-dim); }
+  .ho-a-when.now { color: var(--interested); }
+  .ho-alert .ho-qf { margin: 9px 0 0; }
+  .ho-a-note { margin-top: 8px; font-size: 13.5px; font-style: italic; color: var(--text-dim); }
+  .ho-a-act { display: grid; grid-template-columns: 1fr 1.5fr; gap: 8px; margin-top: 12px; }
+  .ho-a-act button { min-height: 44px; }
+  @media (prefers-reduced-motion: reduce) { .ho-alert, .ho-alert.show { transition: opacity 0.15s, visibility 0s; } }
   .lp-star.dnc-on { color: var(--notinterested); border-color: var(--notinterested); }
 
   .ll-card { padding: 12px; margin: 10px 0 0; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-raised); display: flex; flex-direction: column; gap: 6px; }
@@ -11416,7 +11461,7 @@ body.desk #deskLeft > #queueControls::before, body.desk #deskLeft #queueHeading 
     };
     var s = 42, rnd = function () { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }, pick = function (a) { return a[Math.floor(rnd() * a.length)]; };
     db["members/dAdm"] = { username: "demo", name: "You", role: "admin", active: true, lastSeen: now };
-    reps.forEach(function (r, i) { db["members/" + r.uid] = { username: ["jordan", "sam", "mia"][i], name: r.name, role: "rep", active: true, lastSeen: now }; });
+    reps.forEach(function (r, i) { db["members/" + r.uid] = { username: ["jordan", "sam", "mia"][i], name: r.name, role: "rep", active: true, lastSeen: now, closer: r.uid === "dR2" }; });   // Sam closes
     var leads = {}, ids = [];
     for (var i = 0; i < 240; i++) {
       var st = ST[i % ST.length], id = "dm" + i, skip = rnd(), ph = String(st[1]) + "555" + String(100 + Math.floor(i / ST.length)).padStart(4, "0");   // 555-01xx: numbers reserved for fiction, so the demo never shows a real person's number
@@ -11467,6 +11512,7 @@ body.desk #deskLeft > #queueControls::before, body.desk #deskLeft #queueHeading 
     });
     // A week of handoffs (appointments) and note activity, so the scoreboard's remote vs in-office numbers are real.
     var closer = { uid: "dR2", name: "Sam Ortiz" };
+    db["leadChunks/_team"].roster = [{ uid: "dAdm", name: "You", role: "admin", closer: false, active: true }].concat(reps.map(function (r) { return { uid: r.uid, name: r.name, role: "rep", closer: r.uid === "dR2", active: true }; }));
     worked.filter(function (id) { var L = leads[id]; return L.outcome === "interested" && L.owner && L.owner.uid !== "dR2" && Date.parse(L.calledAt) > now - 6 * 86400000; }).slice(0, 8).forEach(function (id, k) {
       var L = leads[id], at = Date.parse(L.calledAt) + 120000;
       L.handoff = { from: L.owner, to: closer, at: at, apptAt: inHours(at + (1 + k % 3) * 86400000, L.st), note: "Wants the details walked through", seen: true };
@@ -11599,11 +11645,26 @@ body.desk #deskLeft > #queueControls::before, body.desk #deskLeft #queueHeading 
   function openQualify(lead) {
     var F = qFields(), q = lead.qf || {}, n = F.filter(function (f) { return q[f.k]; }).length;
     var b = featOpen('<h3>Qualify ' + escapeHtml(firstName(lead.name)) + '</h3><p class="modal-sub">Ask as you talk. Every answer saves as you tap.' + liveSaveHtml() + '</p>' +
-      qfFormHtml(lead) + '<div class="modal-actions"><button class="btn-primary" type="button" id="qfDone" style="width:100%">Done</button></div>');
-    var box = b && b.querySelector ? b : document.getElementById("featModalBody");
-    wireQf(box, lead, null);
+      '<div class="qf-sheet">' + qfFormHtml(lead) + '</div><div class="modal-actions" id="qfActs"></div>');
+    // Wired to this sheet's own wrapper: the dialog's body is reused, and listeners on it would outlive the sheet
+    // (tapping an answer for one lead used to also change the last lead whose details were open).
+    var box = document.querySelector("#featModalBody .qf-sheet");
     var finish = function () { featClose(); render(); };
-    document.getElementById("qfDone").addEventListener("click", finish);
+    // Once every answer is in, the sheet itself offers the handoff.
+    var acts = function () {
+      var el = document.getElementById("qfActs"); if (!el) return;
+      var ready = hoReady(lead), k = ready ? "r" : "d";
+      if (el.getAttribute("data-k") === k) return;
+      el.setAttribute("data-k", k);
+      el.innerHTML = ready
+        ? '<button class="btn-secondary" type="button" id="qfDone">Done</button><button class="btn-primary" type="button" id="qfSend" data-handoff="' + escapeHtml(lead.id) + '">Send to a closer</button>'
+        : '<button class="btn-primary" type="button" id="qfDone" style="width:100%">Done</button>';
+      el.classList.toggle("qf-acts2", ready);
+      document.getElementById("qfDone").addEventListener("click", finish);
+    };
+    wireQf(box, lead, acts);
+    box.addEventListener("input", function (e) { if (e.target.closest && e.target.closest("[data-qf-in]")) acts(); });
+    acts();
     document.getElementById("featClose").addEventListener("click", function () { render(); });
     var first = box.querySelector("[data-qf-in]"); if (first && n === 0 && !("ontouchstart" in window)) first.focus();
   }
@@ -12473,7 +12534,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       var mine = state.leads.filter(function (l) { return l.handoff && l.handoff.to && l.handoff.to.uid === TEAM.me.uid && !l.handoff.seen && now - l.handoff.at < 14 * 86400000; });
       if (mine.length) p.push('<button class="need-pill" type="button" data-open-lead="' + mine[0].id + '">\u21aa New handoff: ' + escapeHtml(firstName(mine[0].name)) + (mine.length > 1 ? ' +' + (mine.length - 1) : '') + '</button>');
       var li = state.lastInterested, l = li && now - li.at < 15 * 60000 ? findLeadById(li.id) : null;
-      if (l && !l.handoff && closers().some(function (m) { return m.uid !== TEAM.me.uid; })) p.push('<button class="need-pill" type="button" data-handoff="' + l.id + '">\u21aa Hand ' + escapeHtml(firstName(l.name)) + ' to a closer?</button>');
+      if (l && !l.handoff && closers().some(function (m) { return m.uid !== TEAM.me.uid; })) p.push('<button class="need-pill" type="button" data-handoff="' + l.id + '">\u21aa Send ' + escapeHtml(firstName(l.name)) + ' to a closer?</button>');
       if (canSeeTeam()) { var od = overdueWarm().length; if (od) p.push('<button class="need-pill warn" type="button" data-need="overdue">\u25b6 Call ' + od + ' late follow-up' + (od === 1 ? '' : 's') + '</button>'); }
       if (secCfg().requireLock && !lockCred() && lockSupported()) p.push('<button class="need-pill warn" type="button" data-need="lock">Turn on Face ID</button>');
       if (pushPromptDue()) p.push('<button class="need-pill" type="button" data-need="push">\uD83D\uDD14 Get follow-up alerts</button>');
@@ -13489,7 +13550,8 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     callback:      { label: "Callback later", cls: "callback" }
   };
 
-  function logOutcome(outcome) {
+  function logOutcome(outcome, opts) {
+    opts = opts || {};
     var lead = currentLead();
     if (!lead) return;
     if (DEMO) vpexHit("demo_call", { i: IND_KEY });
@@ -13506,7 +13568,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       outcomeKey: outcome, outcome: outcomeLabel(outcome), attempt: attempt, timestamp: lead.calledAt, talk: talkFor(lead.id)
     };
     if (dialed) callEntry.alt = dialed.l || "Other";
-    if (outcome === "interested") state.lastInterested = { id: lead.id, at: Date.now() };
+    if (outcome === "interested" && !opts.handoff) state.lastInterested = { id: lead.id, at: Date.now() };
     if (TEAM.on && TEAM.me) {
       callEntry.by = meRef();
       if (!lead.owner) lead.owner = meRef();
@@ -13523,7 +13585,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     var newest = heldBy(lead);   // an early call: the booked follow-up is the one to keep or move
     if (!newest) state.tasks.forEach(function (t) { if (!t.done && t.auto && t.leadId === lead.id && (!newest || (t.createdAt || 0) >= (newest.createdAt || 0))) newest = t; });
     state.lastFollow = (outcome === "callback" || outcome === "interested") && newest ? { taskId: newest.id, leadId: lead.id, kind: outcome } : null;
-    var offer = maybeOfferText(lead, outcome);
+    var offer = opts.handoff ? null : maybeOfferText(lead, outcome);
     pendingText = offer && !offer.skipped ? offer : null;
     if (offer && offer.skipped) followMsg = (followMsg ? followMsg + " \u00b7 " : "") + "too late in their day to text";
     if (wasFocus) {
@@ -13542,8 +13604,9 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       state.paused = !state.autoAdvance && pendingLeads().length > 0;
     }
     // Interested / Callback later: book the exact follow-up on screen; the thank-you text waits until it's booked.
-    var sheet = outcome === "interested" || outcome === "callback" ? { leadId: lead.id, taskId: newest ? newest.id : null, kind: outcome, text: pendingText } : null;
-    if (sheet) { pendingText = null; state.lastFollow = null; }
+    var sheet = !opts.handoff && (outcome === "interested" || outcome === "callback") ? { leadId: lead.id, taskId: newest ? newest.id : null, kind: outcome, text: pendingText } : null;
+    if (sheet || opts.handoff) { pendingText = null; state.lastFollow = null; }
+    if (opts.handoff) { saveState(); return; }   // sendHandoff takes it from here (saves, renders and says what happened)
     var nudge = demoNudgeDue();
     if (nudge) { pendingText = null; if (sheet) sheet.text = null; }   // the trial card takes the text prompt's place, once
     saveState();
@@ -14483,6 +14546,20 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       return { pending: ids(allPendingLeads()), int: ids(interestedPool(true)), hot: ids(hotPool()), due: dueTasks().map(function (t) { return t.leadId; }), held: state.leads.filter(function (l) { return heldBy(l); }).map(function (l) { return l.id; }) }; };
     window.__fuCurrent = function () { var l = currentLead(); return l ? { id: l.id, name: l.name } : null; };
     window.__scoreRows = function () { var d = new Date(); d.setHours(0, 0, 0, 0); return repStats(d.getTime(), d.getTime() + 86400000, "").map(function (r) { return { uid: r.uid, calls: r.calls }; }); };
+  }
+  if (window.__mockListenerCount) {   // test bench only: tests/closer_handoff.js
+    var hoCopy = function (x) { return x == null ? null : JSON.parse(JSON.stringify(x)); }, hoLead = function (id) { return findLeadById(id); };
+    window.__ho = {
+      lead: function (id) { return hoCopy(hoLead(id)); },
+      calls: function (id) { return hoCopy(state.callLog.filter(function (c) { return c.leadId === id; })); },
+      lastCall: function () { return hoCopy(state.callLog[state.callLog.length - 1]); },
+      tasks: function (id) { return hoCopy(state.tasks.filter(function (t) { return t.leadId === id && !t.done; })); },
+      awaiting: function () { return !!state.awaitingOutcome; },
+      pending: function () { return state.leads.filter(function (l) { return l.status === "pending"; }).map(function (l) { return l.id; }); },
+      profile: function (id) { openLeadProfile(id); }, closeProfile: function () { closeLeadProfile(true); },
+      qualify: function (id) { openQualify(hoLead(id)); }, closeSheet: function () { featClose(); },
+      alert: function (id) { showHandoffAlert(hoLead(id), 1); }
+    };
   }
   if (window.__mockListenerCount) window.__mockFillText = function (name) { return fillTemplate(textSettings().noAnswerTpl, { name: name }); };   // test bench only
   if (window.__mockListenerCount) {   // test bench only
@@ -15546,7 +15623,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     if (!lead) { showToast("That lead was removed"); return; }
     profileLeadId = id;
     var hl0 = findLeadById(id);
-    if (hl0 && hl0.handoff && TEAM.me && hl0.handoff.to && hl0.handoff.to.uid === TEAM.me.uid && !hl0.handoff.seen) { hl0.handoff.seen = true; saveState(); }
+    if (hl0) markHandoffSeen(hl0);
     var calls = callsForLead(id);
     var tasks = state.tasks.filter(function (t) { return t.leadId === id; });
     var last = calls[calls.length - 1];
@@ -15571,9 +15648,9 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       '<button class="close-x" id="lpClose">&times;</button>' +
       '<h3 class="lp-name">' + escapeHtml(lead.name) + '</h3>' +
       '<button class="star-btn lp-star' + (isHot(lead.id) ? ' on' : '') + '" data-star="' + lead.id + '">\u2605 ' + (isHot(lead.id) ? 'On your hot list' : 'Add to hot list') + '</button>' +
-      (TEAM.on && !isDnc(lead) && closers().some(function (m) { return !TEAM.me || m.uid !== TEAM.me.uid; }) ? '<button class="star-btn lp-star" data-handoff="' + lead.id + '">\u21aa Hand off to a closer</button>' : '') +
+      (hoReady(lead) || (!isAdmin() && lead.handoff && lead.handoff.from && TEAM.me && lead.handoff.from.uid === TEAM.me.uid && Date.now() - lead.handoff.at < 30 * 86400000) ? '' : canHandoff(lead) ? '<button class="star-btn lp-star" data-handoff="' + lead.id + '">\u21aa Send to a closer</button>' : '') +
       '<button class="star-btn lp-star' + (isDnc(lead) ? ' dnc-on' : '') + '" data-dnc-toggle="' + lead.id + '">' + (isDnc(lead) ? '\u26d4 On the Do Not Call list' : 'Do not call') + '</button>' +
-      handoffInfoHtml(lead) +
+      handoffInfoHtml(lead) + hoReadyHtml(lead) +
       (lead.stalled ? '<div class="lp-parked"><span><b>Parked</b> \u00b7 ' + escapeHtml(parkedWhy(lead)) + '</span><button type="button" data-revive="' + lead.id + '">Revive</button></div>' : '') +
       contactCardHtml(lead, next ? next.id : null) +
       (lead.source ? '<div class="lp-src">List: ' + escapeHtml(lead.source) + (lead.addedAt ? ' \u00b7 added ' + escapeHtml(dayLabel(new Date(lead.addedAt))) : '') + '</div>' : '') +
@@ -16518,6 +16595,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
         altPillsHtml(lead) +
         (lead.callWindow ? '<div class="win-chip">Prefers ' + escapeHtml(windowLabel(lead)) + '</div>' : '') +
         '<div class="lead-meta">' + leadWhereWhenHtml(lead) + qfRowHtml(lead) + '</div>' +
+        hoReadyHtml(lead) +
         progFaceHtml(lead) +
         leadTrackHtml(lead) +
         flowGuideHtml(lead) +
@@ -19180,6 +19258,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     if (!fromCache && !TEAM.migrationChecked) { TEAM.migrationChecked = true; teamOfferMigration(qs.empty); }
     setSaveStatus(fromCache ? "teamoffline" : "teamsynced");
     teamRenderSoon();
+    try { handoffWatch(); } catch (e) {}
   }
 
   function todayCountPatch() { var n = document.getElementById("todayNum"); if (n && state && state.callLog) { var v = String(callsTodayLive()); if (n.textContent !== v) n.textContent = v; } }
@@ -22426,48 +22505,213 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
   /* ----- setter -> closer handoff ----- */
   function fmtAppt(ts) { return new Date(ts).toLocaleString(undefined, { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }); }
   function toLocalInput(d) { var p = function (n) { return String(n).padStart(2, "0"); }; return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + "T" + p(d.getHours()) + ":" + p(d.getMinutes()); }
+  // "Fully qualified": every qualifying question for the office's industry answered (or, with none set up, the lead is in the pipeline).
+  function qfCount(lead) { var F = qFields(), q = (lead && lead.qf) || {}; return { n: F.filter(function (f) { return q[f.k]; }).length, of: F.length }; }
+  function fullyQualified(lead) { var c = qfCount(lead); return c.of ? c.n === c.of : /^(Qualified|Pitched|Objection)$/.test((lead && lead.stage) || ""); }
+  function hoClosers() { return closers().filter(function (m) { return !TEAM.me || m.uid !== TEAM.me.uid; }); }
+  function canHandoff(lead) { return !!(lead && TEAM.on && TEAM.me && !isDnc(lead) && !lead.retired && hoClosers().length); }
+  // The big "Send to a closer" button: a fully qualified lead nobody has handed off yet (or not in the last month).
+  function hoReady(lead) { return canHandoff(lead) && fullyQualified(lead) && !(lead.handoff && Date.now() - lead.handoff.at < 30 * 86400000); }
+  function hoReadyHtml(lead) {
+    if (!hoReady(lead)) return "";
+    var c = qfCount(lead);
+    return '<button type="button" class="ho-ready" data-handoff="' + lead.id + '"><span class="ho-ready-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h13M12 6l6 6-6 6"></path></svg></span>' +
+      '<span class="ho-ready-t"><b>Send to a closer</b><small>' + (c.of ? 'Fully qualified, ' + c.n + ' of ' + c.of + ' answered' : 'Qualified') + '</small></span></button>';
+  }
+  // Another arranged call on the closer's calendar within half an hour of ts (not this lead's).
+  function closerBusyAt(uid, ts, leadId) {
+    var ts2 = state.tasks;
+    for (var i = 0; i < ts2.length; i++) {
+      var t = ts2[i], a = assigneeOf(t);
+      if (t.leadId !== leadId && a && a.uid === uid && arrangedTask(t) && Math.abs(taskDueTs(t) - ts) < SLOT_GAP) return t;
+    }
+    return null;
+  }
+  // The first open time after ts, in 5-minute steps (so 7:19 against a 7:09 booking offers 7:39, not 7:49).
+  function closerNextFree(uid, ts, leadId) { for (var k = 0; k < 288 && closerBusyAt(uid, ts, leadId); k++) ts += 5 * 60000; return ts; }
+  function closerStatus(m) {
+    var on = presenceNow().filter(function (p) { return p.uid === m.uid; })[0];
+    if (on) return "On a call now";
+    var now = Date.now(), next = state.tasks.filter(function (t) { var a = assigneeOf(t); return a && a.uid === m.uid && arrangedTask(t) && taskDueTs(t) > now - 15 * 60000 && taskDueTs(t) !== Infinity; })
+      .sort(function (a, b) { return taskDueTs(a) - taskDueTs(b); })[0];
+    return next ? "Next booked " + fmtAppt(taskDueTs(next)) : "Nothing booked";
+  }
   function openHandoff(lead) {
-    var cl = closers().filter(function (m) { return !TEAM.me || m.uid !== TEAM.me.uid; });
-    if (!cl.length) { showToast(isAdmin() ? "Mark someone as a closer in Team & access first" : "Your admin hasn\u2019t set up closers yet"); return; }
+    var cl = hoClosers();
+    if (!cl.length) { showToast(isAdmin() ? "Mark someone as a closer in Team & access first" : "Your admin hasn’t set up closers yet"); return; }
+    var cur = currentLead(), onCall = !!(state.awaitingOutcome && cur && cur.id === lead.id);
+    if (state.awaitingOutcome && !onCall && needOutcome()) return;
     if (profileLeadId) closeLeadProfile(true);
+    var q = lead.qf || {}, F = qFields().filter(function (f) { return q[f.k]; });
     var d0 = new Date(); d0.setDate(d0.getDate() + (d0.getDay() === 5 ? 3 : d0.getDay() === 6 ? 2 : 1)); d0.setHours(10, 0, 0, 0);
-    featOpen('<h3>Hand off to a closer</h3><p class="modal-sub">' + escapeHtml(lead.name) + ' moves to the closer with the full history. You get credit for the appointment.</p>' +
-      '<label for="hoTo">Closer</label><select id="hoTo">' + cl.map(function (m) { return '<option value="' + escapeHtml(m.uid) + '">' + escapeHtml(m.name) + '</option>'; }).join("") + '</select>' +
-      '<label for="hoAt">Appointment (your time)</label><input type="datetime-local" id="hoAt" value="' + toLocalInput(d0) + '">' +
+    var h1 = new Date(Date.now() + 3600000); h1.setMinutes(Math.ceil(h1.getMinutes() / 15) * 15, 0, 0);
+    var picks = [{ k: "now", l: "Call now" }, { k: "h1", l: "In 1 hour", at: h1.getTime() }, { k: "tm", l: "Tomorrow 10 AM", at: d0.getTime() }, { k: "pick", l: "Pick a time" }];
+    var sel = { uid: cl[0].uid, when: "now", at: 0 };
+    featOpen('<div id="hoSheet"><h3>Send ' + escapeHtml(firstName(lead.name) || lead.name) + ' to a closer</h3><p class="modal-sub">' + escapeHtml(lead.name) + ' moves to the closer with the full history and your answers. The closer is alerted on their screen and phone, and you get credit for the appointment.</p>' +
+      (F.length ? '<div class="ho-qf">' + F.map(function (f) { return '<span class="qf-chip">' + escapeHtml(qSum(f, q[f.k])) + '</span>'; }).join("") + '</div>' : '') +
+      '<div class="ho-lbl" id="hoToL">Closer</div><div class="ho-closers" role="radiogroup" aria-labelledby="hoToL">' + cl.map(function (m, i) {
+        return '<button type="button" class="ho-cl" role="radio" aria-checked="' + (i === 0) + '" data-ho-uid="' + escapeHtml(m.uid) + '"><b>' + escapeHtml(m.name) + '</b><span>' + escapeHtml(closerStatus(m)) + '</span></button>'; }).join("") + '</div>' +
+      '<div class="ho-lbl" id="hoWhenL">When</div><div class="ho-when" role="radiogroup" aria-labelledby="hoWhenL">' + picks.map(function (p) {
+        return '<button type="button" class="fu-chip ho-w" role="radio" aria-checked="' + (p.k === "now") + '" data-ho-when="' + p.k + '">' + escapeHtml(p.l) + '</button>'; }).join("") + '</div>' +
+      '<input type="datetime-local" id="hoAt" aria-label="Appointment time (your time)" value="' + toLocalInput(d0) + '" hidden>' +
+      '<div class="ho-slot" id="hoSlot" aria-live="polite"></div>' +
       '<label for="hoNote">Note for the closer</label><textarea id="hoNote" rows="3" maxlength="500" placeholder="What they care about, anything you promised"></textarea>' +
-      '<div class="field-error" id="hoErr"></div><div class="modal-actions"><button class="btn-primary" id="hoGo" style="width:100%">Hand off</button></div>');
-    document.getElementById("hoGo").addEventListener("click", function () {
-      var tv = document.getElementById("hoTo").value, to = cl.filter(function (m) { return m.uid === tv; })[0], at = new Date(document.getElementById("hoAt").value).getTime();
-      if (!to || !at || isNaN(at)) { document.getElementById("hoErr").textContent = "Pick a closer and an appointment time."; return; }
-      var me = meRef() || { uid: "me", name: "You" }, now = Date.now(), note = document.getElementById("hoNote").value.trim();
-      lead.handoff = { from: me, to: { uid: to.uid, name: to.name }, at: now, apptAt: at, note: note, seen: false };
-      lead.owner = { uid: to.uid, name: to.name };
-      if (!lead.stage || lead.stage === "New Lead") setStage(lead, "Qualified");
-      state.tasks.forEach(function (t) { if (t.leadId === lead.id && !t.done) { t.done = true; t.doneAt = now; t.note = (t.note ? t.note + " \u00b7 " : "") + "Handed off to " + to.name; } });
-      state.tasks.push({ id: uid(), leadId: lead.id, leadName: lead.name, type: "Call", priority: "High", due: localDateStr(new Date(at)), dueAt: at,
-        note: "Appointment \u2014 handoff from " + me.name + (note ? ": " + note : ""), done: false, auto: false, assignee: { uid: to.uid, name: to.name } });
-      if (state.lastInterested && state.lastInterested.id === lead.id) state.lastInterested = null;
-      saveState(); featClose(); showToast(lead.name + " handed to " + firstName(to.name) + " for " + fmtAppt(at));
-      var tsx = textSettings();
-      if (tsx.confirmOn && !lead.noText && !isDnc(lead) && (lead.phone || lead.phoneRaw) && (!leadZone(lead).iana || leadClock(lead).ok))
-        pendingText = { leadId: lead.id, kind: "confirm", body: fillTemplate(tsx.confirmTpl, lead, null, { when: whenPhrase(lead, at), closer: firstName(to.name) }) };
-      render(); renderTextPrompt();
+      '<div class="field-error" id="hoErr"></div><div class="modal-actions"><button class="btn-primary" id="hoGo" style="width:100%">Send</button></div></div>');
+    document.getElementById("featClose").addEventListener("click", function () { render(); });
+    var box = document.getElementById("hoSheet"), $ = function (id) { return document.getElementById(id); };
+    function closer() { return cl.filter(function (m) { return m.uid === sel.uid; })[0]; }
+    function when() {
+      if (sel.when === "now") return Date.now();
+      if (sel.when === "pick") { var v = new Date($("hoAt").value).getTime(); return isNaN(v) ? 0 : v; }
+      return picks.filter(function (p) { return p.k === sel.when; })[0].at;
+    }
+    function paint() {
+      box.querySelectorAll("[data-ho-uid]").forEach(function (b) { b.setAttribute("aria-checked", String(b.getAttribute("data-ho-uid") === sel.uid)); });
+      box.querySelectorAll("[data-ho-when]").forEach(function (b) { var on = b.getAttribute("data-ho-when") === sel.when; b.setAttribute("aria-checked", String(on)); b.classList.toggle("on", on); });
+      $("hoAt").hidden = sel.when !== "pick";
+      var m = closer(), at = when(), slot = $("hoSlot"), go = $("hoGo"), first = escapeHtml(firstName(m.name)), busy = null, msg = "";
+      $("hoErr").textContent = "";
+      if (sel.when === "now") {
+        var onc = presenceNow().some(function (p) { return p.uid === m.uid; });
+        msg = onc ? first + " is on a call. They’ll get it the moment they hang up." : first + " gets an alert now to call " + escapeHtml(firstName(lead.name)) + ".";
+        go.textContent = "Send to " + firstName(m.name) + " now";
+      } else if (!at) { msg = "Pick a date and time."; go.textContent = "Send to " + firstName(m.name); }
+      else if (at < Date.now() - 60000) { msg = "That time has passed. Pick a later one."; go.textContent = "Send to " + firstName(m.name); }
+      else {
+        busy = closerBusyAt(m.uid, at, lead.id);
+        if (busy) {
+          var nf = closerNextFree(m.uid, at, lead.id);
+          msg = first + " already has " + escapeHtml(busy.leadName || "a call") + " at " + escapeHtml(fmtAppt(taskDueTs(busy))) + '. <button type="button" class="ho-free" data-ho-free="' + nf + '">Use ' + escapeHtml(fmtAppt(nf)) + '</button>';
+        } else msg = first + " is free then.";
+        go.textContent = "Send to " + firstName(m.name) + " for " + fmtAppt(at);
+      }
+      slot.innerHTML = msg; slot.classList.toggle("bad", !!busy || (sel.when !== "now" && (!at || at < Date.now() - 60000)));
+      go.disabled = !!busy;
+    }
+    box.addEventListener("click", function (e) {
+      var u = e.target.closest("[data-ho-uid]"), w = e.target.closest("[data-ho-when]"), fr = e.target.closest("[data-ho-free]");
+      if (u) { sel.uid = u.getAttribute("data-ho-uid"); paint(); }
+      else if (w) { sel.when = w.getAttribute("data-ho-when"); paint(); if (sel.when === "pick") try { $("hoAt").focus(); } catch (x) {} }
+      else if (fr) { sel.when = "pick"; $("hoAt").value = toLocalInput(new Date(+fr.getAttribute("data-ho-free"))); paint(); }
+    });
+    $("hoAt").addEventListener("input", paint); $("hoAt").addEventListener("change", paint);
+    paint();
+    $("hoGo").addEventListener("click", function () {
+      var to = closer(), now = sel.when === "now", at = when();
+      if (!to || !at) { $("hoErr").textContent = "Pick a closer and a time."; return; }
+      if (!now && at < Date.now() - 60000) { $("hoErr").textContent = "That time has passed. Pick a later one."; return; }
+      if (!now && closerBusyAt(to.uid, at, lead.id)) { paint(); return; }
+      sendHandoff(lead, to, now ? Date.now() : at, now, $("hoNote").value.trim());
     });
   }
-  function handoffBannerHtml() {
-    if (!TEAM.on || !TEAM.me) return "";
-    var out = "", now = Date.now();
-    var mine = state.leads.filter(function (l) { return l.handoff && l.handoff.to && l.handoff.to.uid === TEAM.me.uid && !l.handoff.seen && now - l.handoff.at < 14 * 86400000; });
-    if (mine.length) {
-      var h = mine[0].handoff;
-      out += '<button class="num-warn soft" id="handoffSeeBtn" data-open-lead="' + mine[0].id + '"><b>New handoff from ' + escapeHtml(firstName(h.from.name)) + ': ' + escapeHtml(mine[0].name) + '</b><span>Appointment ' + escapeHtml(fmtAppt(h.apptAt)) +
-        (mine.length > 1 ? ' \u00b7 +' + (mine.length - 1) + ' more' : '') + ' \u00b7 tap to open</span></button>';
+  function sendHandoff(lead, to, at, now, note) {
+    // Handing off from the call: that call is logged as Interested (a real, dialed call), with no follow-up sheet.
+    var cur = currentLead();
+    if (state.awaitingOutcome && cur && cur.id === lead.id) logOutcome("interested", { handoff: true });
+    var me = meRef() || { uid: "me", name: "You" }, ts = Date.now();
+    lead.handoff = { from: me, to: { uid: to.uid, name: to.name }, at: ts, apptAt: at, note: note, seen: false };
+    if (now) lead.handoff.now = true;
+    lead.owner = { uid: to.uid, name: to.name };
+    lead.claim = null;
+    if (lead.status === "pending") lead.status = "done";
+    if (!lead.stage || lead.stage === "New Lead") setStage(lead, "Qualified");
+    state.tasks.forEach(function (t) { if (t.leadId === lead.id && !t.done) { t.done = true; t.doneAt = ts; t.note = (t.note ? t.note + " · " : "") + "Handed off to " + to.name; } });
+    state.tasks.push({ id: uid(), leadId: lead.id, leadName: lead.name, type: "Call", priority: "High", due: localDateStr(new Date(at)), dueAt: at, createdAt: ts,
+      note: "Appointment — " + (now ? "call now, " : "") + "handoff from " + me.name + (note ? ": " + note : ""), done: false, auto: false, assignee: { uid: to.uid, name: to.name } });
+    if (state.lastInterested && state.lastInterested.id === lead.id) state.lastInterested = null;
+    if (state.focusLeadId === lead.id) {
+      state.focusLeadId = null; state.focusTaskId = null;
+      var nx = state.followupRun ? runQueue()[0] : null;
+      if (nx) { state.focusLeadId = nx.leadId; state.focusTaskId = nx.id; }
+      else { state.followupRun = false; state.runKind = ""; state.runSkip = []; state.activeView = state.focusReturn || "dial"; }
     }
-    var li = state.lastInterested, l = li && now - li.at < 15 * 60000 ? findLeadById(li.id) : null;
-    if (l && !l.handoff && closers().some(function (m) { return m.uid !== TEAM.me.uid; }))
-      out += '<button class="num-warn soft" id="handoffAskBtn" data-handoff="' + l.id + '"><b>Hand ' + escapeHtml(l.name) + ' to a closer?</b><span>Book the appointment while it\u2019s warm.</span></button>';
-    return out;
+    saveState(); if (TEAM.on) teamScheduleFlush(0);
+    featClose();
+    showToast(now ? lead.name + " sent to " + firstName(to.name) + ". They’ve been alerted to call now." : lead.name + " sent to " + firstName(to.name) + " for " + fmtAppt(at));
+    var tsx = textSettings();
+    if (!now && tsx.confirmOn && !lead.noText && !isDnc(lead) && (lead.phone || lead.phoneRaw) && (!leadZone(lead).iana || leadClock(lead).ok))
+      pendingText = { leadId: lead.id, kind: "confirm", body: fillTemplate(tsx.confirmTpl, lead, null, { when: whenPhrase(lead, at), closer: firstName(to.name) }) };
+    render(); renderTextPrompt();
   }
+  function markHandoffSeen(lead) {
+    var h = lead && lead.handoff;
+    if (!h || !TEAM.me || !h.to || h.to.uid !== TEAM.me.uid || h.seen) return;
+    h.seen = true; h.seenAt = Date.now(); saveState(); if (TEAM.on) teamScheduleFlush(0);
+    if (HO.showing === lead.id) hideHandoffAlert();
+  }
+
+  /* ----- the closer's alert: a handoff that lands while the app is open shows up at once, on any screen ----- */
+  var HO = { showing: null, mem: {}, title: "" };
+  function hoMarks() { try { return JSON.parse(localStorage.getItem("vpex_ho_alerted") || "{}") || {}; } catch (e) { return HO.mem; } }
+  function hoMark(k) {
+    var m = hoMarks(), now = Date.now(); m[k] = now;
+    Object.keys(m).forEach(function (x) { if (now - m[x] > 30 * 86400000) delete m[x]; });
+    HO.mem = m; try { localStorage.setItem("vpex_ho_alerted", JSON.stringify(m)); } catch (e) {}
+  }
+  function handoffWatch() {
+    if (!TEAM.on || !TEAM.me) return;
+    var now = Date.now(), me = TEAM.me.uid, marks = hoMarks(), fresh = [];
+    state.leads.forEach(function (l) {
+      var h = l.handoff; if (!h || !h.to || typeof h.at !== "number") return;
+      if (h.to.uid === me && !h.seen && now - h.at < 2 * 86400000 && !marks[l.id + "_" + h.at]) fresh.push(l);
+      if (h.from && h.from.uid === me && h.seenAt && now - h.seenAt < 10 * 60000 && !marks["s_" + l.id + "_" + h.at]) {
+        hoMark("s_" + l.id + "_" + h.at); showToast(firstName(h.to.name) + " opened " + firstName(l.name) + "’s handoff");
+      }
+    });
+    if (HO.showing) { var sl = findLeadById(HO.showing); if (!sl || !sl.handoff || sl.handoff.seen || !sl.handoff.to || sl.handoff.to.uid !== me) hideHandoffAlert(); }
+    if (!HO.showing && fresh.length) { fresh.sort(function (a, b) { return b.handoff.at - a.handoff.at; }); showHandoffAlert(fresh[0], fresh.length); }
+  }
+  function hoChime() {
+    try {
+      var A = window.AudioContext || window.webkitAudioContext; if (!A) throw 0;
+      var ac = HO.ac || (HO.ac = new A()); if (ac.state === "suspended") ac.resume();
+      var t = ac.currentTime;
+      [[784, 0], [1175, 0.15]].forEach(function (p) {
+        var o = ac.createOscillator(), g = ac.createGain(); o.type = "sine"; o.frequency.value = p[0];
+        g.gain.setValueAtTime(0.0001, t + p[1]); g.gain.exponentialRampToValueAtTime(0.16, t + p[1] + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + p[1] + 0.55);
+        o.connect(g); g.connect(ac.destination); o.start(t + p[1]); o.stop(t + p[1] + 0.6);
+      });
+    } catch (e) {}
+    try { if (navigator.vibrate) navigator.vibrate([160, 90, 160]); } catch (e) {}
+  }
+  function showHandoffAlert(lead, n) {
+    var h = lead.handoff; hoMark(lead.id + "_" + h.at);
+    var box = document.getElementById("hoAlert");
+    if (!box) { box = document.createElement("div"); box.id = "hoAlert"; box.className = "ho-alert"; box.setAttribute("role", "alertdialog"); box.setAttribute("aria-modal", "false"); document.body.appendChild(box); }
+    var q = lead.qf || {}, F = qFields().filter(function (f) { return q[f.k]; }), fn = escapeHtml(firstName(lead.name) || lead.name);
+    box.setAttribute("aria-label", "New handoff from " + firstName(h.from && h.from.name) + ": " + lead.name);
+    box.innerHTML =
+      '<div class="ho-a-top"><span class="ho-a-k">New handoff from ' + escapeHtml(firstName(h.from && h.from.name) || "your team") + (n > 1 ? ' · ' + n + ' waiting' : '') + '</span>' +
+        '<button type="button" class="ho-a-x" id="hoAlertLater" aria-label="Later">&times;</button></div>' +
+      '<div class="ho-a-name">' + escapeHtml(lead.name) + '</div>' +
+      '<div class="ho-a-when' + (h.now ? ' now' : '') + '">' + (h.now ? 'Call now. They’re expecting you.' : 'Appointment ' + escapeHtml(fmtAppt(h.apptAt))) + '</div>' +
+      (F.length ? '<div class="ho-qf">' + F.slice(0, 6).map(function (f) { return '<span class="qf-chip">' + escapeHtml(qSum(f, q[f.k])) + '</span>'; }).join("") + '</div>' : '') +
+      (h.note ? '<div class="ho-a-note">“' + escapeHtml(h.note) + '”</div>' : '') +
+      '<div class="ho-a-act"><button type="button" class="btn-secondary" id="hoAlertOpen">Open file</button>' +
+        '<button type="button" class="btn-primary" id="hoAlertGo">' + (h.now ? 'Call ' + fn + ' now' : 'Got it') + '</button></div>';
+    box.classList.remove("show"); void box.offsetWidth; box.classList.add("show");
+    HO.showing = lead.id;
+    hoChime();
+    if (document.hidden) { if (!HO.title) HO.title = document.title; document.title = "● New handoff: " + lead.name; }
+    document.getElementById("hoAlertLater").addEventListener("click", function () { hideHandoffAlert(); setTimeout(handoffWatch, 400); });
+    document.getElementById("hoAlertOpen").addEventListener("click", function () { hideHandoffAlert(); markHandoffSeen(lead); openLeadProfile(lead.id); });
+    document.getElementById("hoAlertGo").addEventListener("click", function () {
+      hideHandoffAlert();
+      if (!h.now) { markHandoffSeen(lead); render(); setTimeout(handoffWatch, 400); return; }
+      var t = openTasksFor(lead.id).filter(function (x) { var a = assigneeOf(x); return a && a.uid === TEAM.me.uid; })[0];
+      if (state.awaitingOutcome) { var c = currentLead(); if (c && c.id !== lead.id && needOutcome()) return; }   // log the call you're on first; the pill stays
+      markHandoffSeen(lead);
+      if (t) focusTask(t, state.activeView === "tasks" ? "tasks" : "dial"); else openLeadProfile(lead.id);
+    });
+    try { document.getElementById("hoAlertGo").focus({ preventScroll: true }); } catch (e) {}
+  }
+  function hideHandoffAlert() {
+    var box = document.getElementById("hoAlert"); if (box) box.classList.remove("show");
+    HO.showing = null;
+    if (HO.title) { document.title = HO.title; HO.title = ""; }
+  }
+  document.addEventListener("visibilitychange", function () { if (!document.hidden && HO.title) { document.title = HO.title; HO.title = ""; } });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && HO.showing) hideHandoffAlert(); });
   function downloadIcs(lead) {
     var h = lead && lead.handoff; if (!h) return;
     var z = function (t) { return new Date(t).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, ""); }, clean = function (t) { return String(t).replace(/[,;\\]/g, " ").replace(/[\r\n]+/g, " "); };
@@ -22479,7 +22723,9 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
   }
   function handoffInfoHtml(lead) {
     var h = lead.handoff; if (!h) return "";
-    return '<div class="handoff-info"><b>\u21aa Handed off</b> by ' + escapeHtml(h.from.name) + ' to ' + escapeHtml(h.to.name) + ' \u00b7 appointment ' + escapeHtml(fmtAppt(h.apptAt)) +
+    var st = h.seen ? (h.seenAt ? "Opened by " + firstName(h.to.name) + " " + fmtAppt(h.seenAt) : "Opened") : "Not opened yet";
+    return '<div class="handoff-info"><b>\u21aa Handed off</b> by ' + escapeHtml(h.from.name) + ' to ' + escapeHtml(h.to.name) + ' \u00b7 ' + (h.now ? 'call now (' + escapeHtml(fmtAppt(h.at)) + ')' : 'appointment ' + escapeHtml(fmtAppt(h.apptAt))) +
+      '<small class="ho-st' + (h.seen ? ' ok' : '') + '">' + escapeHtml(st) + '</small>' +
       (h.note ? '<span>\u201c' + escapeHtml(h.note) + '\u201d</span>' : '') + '<button class="copy-btn" data-ics="' + lead.id + '">Add to calendar</button></div>';
   }
 
