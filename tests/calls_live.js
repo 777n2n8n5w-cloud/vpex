@@ -13,6 +13,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 (async () => {
   const br = await chromium.launch();
   const ctx = await br.newContext({ timezoneId: 'America/New_York' });
+  await ctx.clock.install({ time: new Date('2026-11-04T11:30:00-05:00') });   // a weekday 11:30 AM in New York: the leads are inside calling hours (at night Call asks first)
   const errs = [];
   const admin = await ctx.newPage(); await admin.setViewportSize({ width: 390, height: 844 }); admin.on('pageerror', e => errs.push('admin: ' + e.message));
   await admin.route(/gstatic\.com\/firebasejs/, r => r.abort());

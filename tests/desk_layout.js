@@ -185,7 +185,7 @@ async function demo(br, o, c) {
       check('live: and clears when logged', !(await oc()));
       // the activity record holds only the small presence note (no phone number)
       const rec = await desk.evaluate(() => { const db = JSON.parse(localStorage.getItem('__mockfs') || '{}'); const k = Object.keys(db).filter(x => /callDays\/act_/.test(x)).sort().pop(); return k ? db[k].live : null; });
-      check('live: presence note saved as live.<uid> with no phone number', rec && rec.dR2 && rec.dR2.s === 'idle' && !/555/.test(JSON.stringify(rec)), rec);
+      check('live: presence note saved as live.<uid> with no phone number', rec && rec.dR2 && rec.dR2.s === 'idle' && !/555/.test(JSON.stringify(rec, (k, v) => k === 'at' ? 0 : v)), rec);   // 'at' is a time stamp (it can contain 555)
     }
     check('live: no page errors', errs.length === 0, errs);
     await desk.evaluate(() => { localStorage.removeItem('vpex_mockbench'); localStorage.removeItem('__mockfs'); });
