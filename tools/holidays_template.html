@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{{TITLE}}</title>
+<meta name="description" content="{{DESC}}">
+<link rel="canonical" href="https://vpexdialer.com/calling-hours/holidays/">
+<meta property="og:title" content="{{OG_TITLE}}">
+<meta property="og:description" content="{{OG_DESC}}">
+<meta property="og:image" content="https://vpexdialer.com/vpex-og.jpg">
+<meta property="og:url" content="https://vpexdialer.com/calling-hours/holidays/">
+<meta name="theme-color" content="#0D1224">
+<link rel="icon" href="/vpex-icon-64.png">
+<link rel="apple-touch-icon" href="/vpex-icon-180.png">
+<link rel="preload" href="/fonts/vpex-sans.woff2" as="font" type="font/woff2" crossorigin>
+<style>@font-face { font-family: "VPEX Sans"; src: url("/fonts/vpex-sans.woff2") format("woff2"); font-weight: 200 900; font-stretch: 75% 125%; font-display: swap; }</style>
+<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<script src="/consent.js"></script>
+<style>
+  :root {
+    --bg: #0D1224; --surface: #141B34; --raised: #1B2344; --border: #283258; --text: #EDF0FB; --dim: #A2AACB;
+    --gold: #E8B94A; --gold-hi: #F2C964; --gold-text: #FFC94D; --ink: #131A3E; --focus: #E8B94A;
+    --ok: #57C08A; --ok-bg: rgba(87,192,138,0.14); --no: #FF8A8A; --no-bg: rgba(255,120,120,0.13);
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root { --bg: #ECEFF7; --surface: #FFFFFF; --raised: #F5F7FD; --border: #D4DAEB; --text: #11172E; --dim: #4F5A7C; --gold-text: #8A630C;
+      --ok: #17784A; --ok-bg: rgba(23,120,74,0.10); --no: #B3261E; --no-bg: rgba(179,38,30,0.08); color-scheme: light; }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 'VPEX Sans', system-ui, -apple-system, sans-serif;
+    background-image: radial-gradient(110% 420px at 100% -60px, rgba(90,128,255,0.22), transparent 70%); background-repeat: no-repeat; }
+  @media (prefers-color-scheme: light) { body { background-image: radial-gradient(110% 420px at 100% -60px, rgba(47,91,235,0.10), transparent 70%); } }
+  main { max-width: 720px; margin: 0 auto; padding: calc(14px + env(safe-area-inset-top, 0px)) 16px calc(48px + env(safe-area-inset-bottom, 0px)); }
+  a { color: inherit; }
+  a:focus-visible, button:focus-visible, select:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 8px; }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .wm { display: inline-flex; align-items: center; min-height: 44px; font-weight: 850; font-stretch: 120%; font-size: 20px; text-decoration: none; }
+  .topcta { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 10px; background: var(--gold); color: #111827; font-weight: 750; font-size: 14.5px; text-decoration: none; }
+  h1 { font-size: clamp(32px, 9vw, 52px); line-height: 1; letter-spacing: -0.03em; font-weight: 850; font-stretch: 104%; margin: 22px 0 12px; }
+  h1 em { font-style: normal; color: var(--gold-text); }
+  .lede { color: var(--dim); margin: 0 0 22px; font-size: 17px; max-width: 34em; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 18px; }
+  label { display: block; font-size: 13px; font-weight: 700; color: var(--dim); margin: 0 0 6px; }
+  select { width: 100%; min-height: 50px; font: inherit; font-size: 17px; font-weight: 650; color: var(--text); background: var(--raised); border: 1px solid var(--border); border-radius: 12px; padding: 0 14px; }
+  #verdict { margin-top: 16px; border-radius: 14px; padding: 16px; display: none; }
+  #verdict.on { display: block; }
+  #verdict.ok { background: var(--ok-bg); }
+  #verdict.no { background: var(--no-bg); }
+  .vh { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 800; letter-spacing: -0.01em; }
+  .ok .vh { color: var(--ok); } .no .vh { color: var(--no); }
+  .dot { width: 12px; height: 12px; border-radius: 50%; background: currentColor; flex: none; }
+  .vl { margin: 8px 0 0; color: var(--text); }
+  .vl b { font-weight: 750; }
+  .vs { margin: 6px 0 0; color: var(--dim); font-size: 14.5px; }
+  .note { margin: 14px 0 0; font-size: 13.5px; color: var(--dim); }
+  h2 { font-size: clamp(24px, 6vw, 32px); line-height: 1.1; letter-spacing: -0.02em; font-weight: 820; margin: 44px 0 10px; }
+  .tw { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -16px; padding: 0 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14.5px; min-width: 520px; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--dim); font-weight: 700; }
+  td:first-child { font-weight: 700; white-space: nowrap; }
+  .fine { font-size: 13.5px; color: var(--dim); }
+  .sell { margin-top: 44px; }
+  .sell p { color: var(--dim); margin: 0 0 14px; max-width: 34em; }
+  .demos { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+  .sell .floors-h { margin: 26px 0 10px; font-size: 15px; font-weight: 750; color: var(--dim); }
+  .floors { display: flex; flex-wrap: wrap; gap: 8px; }
+  .demos a, .floors a, .cta2 { display: inline-flex; align-items: center; min-height: 46px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); font-weight: 650; text-decoration: none; }
+  .cta { display: flex; align-items: center; justify-content: center; min-height: 52px; border-radius: 12px; background: var(--gold); color: #111827; font-weight: 800; font-size: 16.5px; text-decoration: none; max-width: 360px; }
+  .assure { font-size: 13.5px; color: var(--dim); margin: 8px 0 0; }
+  footer { margin-top: 48px; font-size: 13.5px; color: var(--dim); display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  footer a { display: inline-flex; align-items: center; min-height: 44px; }
+  ul.faq { padding-left: 20px; margin: 0; } ul.faq li { margin: 0 0 10px; }
+  .crumb { display: inline-flex; align-items: center; min-height: 44px; margin-top: 10px; font-size: 14.5px; font-weight: 650; color: var(--dim); }
+  .crumb + h1 { margin-top: 4px; }
+  .facts { margin-top: 16px; }
+  .facts h2 { margin: 0 0 10px; font-size: clamp(21px, 5.4vw, 26px); }
+  .facts dl { margin: 0; display: grid; grid-template-columns: minmax(110px, 38%) 1fr; }
+  .facts dt, .facts dd { margin: 0; padding: 9px 0; border-bottom: 1px solid var(--border); }
+  .facts dt { color: var(--dim); font-size: 14.5px; font-weight: 700; padding-right: 12px; }
+  .facts dd { font-weight: 650; }
+  .facts p { margin: 12px 0 0; }
+  .states { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0 12px; }
+  .states a { display: flex; align-items: center; min-height: 44px; border-bottom: 1px solid var(--border); text-decoration: none; font-weight: 600; font-size: 15px; }
+  .states a:hover { color: var(--gold-text); }
+  .states a[aria-current] { color: var(--gold-text); font-weight: 800; }
+  .states a b { margin-left: 6px; color: var(--gold-text); font-size: 12px; font-weight: 800; }
+  .chg { margin: 0; padding: 0; list-style: none; }
+  .chg li { padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .chg li:last-child { border-bottom: 0; padding-bottom: 0; }
+  .chg b { display: block; font-size: 17px; font-weight: 780; margin-bottom: 2px; }
+  .chg span { color: var(--dim); }
+  .do { padding-left: 20px; margin: 0; } .do li { margin: 0 0 10px; }
+  .src a { display: inline-flex; align-items: center; min-height: 44px; }
+  .back { display: inline-flex; align-items: center; min-height: 46px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); font-weight: 650; text-decoration: none; margin-top: 14px; }
+
+  .next { margin-top: 16px; border-radius: 14px; padding: 16px; background: var(--no-bg); display: none; }
+  .next.on { display: block; }
+  .next b { display: block; font-size: 21px; font-weight: 800; letter-spacing: -0.01em; color: var(--no); }
+  .next span { display: block; margin-top: 6px; color: var(--text); }
+  .hols td:first-child { white-space: nowrap; }
+  .hols tr.past { display: none; }
+  .hols tr.nx td { color: var(--no); }
+  .hols table { min-width: 0; }
+  .do a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 700; color: var(--gold-text); }
+</style>
+</head>
+<body>
+<main>
+  <div class="top"><a class="wm" href="/?{{U}}&amp;utm_content=logo">VPEX</a><a class="topcta" data-cta="top" href="/?{{U}}&amp;utm_content=top&amp;trial=start">Start free trial</a></div>
+  <a class="crumb" href="/calling-hours/">← Calling hours by state</a>
+  <h1>Can I make sales calls <em>on a holiday?</em></h1>
+  <p class="lede">{{LEDE}}</p>
+
+  <section class="card" aria-labelledby="dates-h">
+    <h2 id="dates-h" style="margin-top:0">Holiday bans, {{RANGE}}</h2>
+    <p class="fine" style="margin-top:0">No sales calls in {{HOL_STATES}} on these days, in the lead's local time. Every other state: normal hours.</p>
+    <div class="next" id="next" aria-live="polite"></div>
+    <div class="tw hols"><table>
+      <thead><tr><th>Date</th><th>Holiday</th></tr></thead>
+      <tbody>{{ROWS}}</tbody>
+    </table></div>
+  </section>
+
+  <h2>Days to check yourself</h2>
+  <ul class="do">
+    <li><b>Day after Thanksgiving ({{DAY_AFTER}}).</b> It isn't a federal holiday, so VPEX treats it as a normal day. Some compliance alerts list Pennsylvania for it, and Louisiana when the governor proclaims Acadian Day. If you want to be careful, skip leads in those states that day.</li>
+    <li><b>State-only holidays.</b> Some of these states have their own legal holidays beyond the federal list (Pennsylvania and Louisiana, for example). VPEX checks federal holidays only, so check those with your counsel.</li>
+    <li><b>Utah and Nebraska</b> also limit holiday calls, but only for autodialed or prerecorded calls. Reps who dial by hand aren't covered by those rules.</li>
+    <li><b>Everywhere else:</b> holidays follow the normal federal rule, 8 AM to 9 PM in the lead's local time, unless the state has stricter hours. <a href="/calling-hours/">See every state's hours</a>.</li>
+  </ul>
+
+  <h2>What to do on your floor</h2>
+  <ul class="do">
+    <li>The day before a holiday, call your {{HOL_STATES}} leads while you still can.</li>
+    <li>Move follow-ups that land on the holiday to the next business day for leads in those states.</li>
+    <li>A holiday observed on a Friday or Monday is banned that day too (for example when Christmas falls on a Saturday).</li>
+    <li>Scrub cold lists against the National Do Not Call Registry before you upload. Holidays don't change that.</li>
+  </ul>
+
+  <h2>What VPEX does on holidays</h2>
+  <ul class="do">
+    <li>Every lead shows their local time, and leads in {{HOL_STATES}} show "holiday, no sales calls" on the day.</li>
+    <li>The day before, the Dial screen shows how many of those leads are waiting and opens a list of the ones you can call now.</li>
+    <li>Tapping Call on a holiday-ban lead asks first. Follow-ups booked on the holiday get a warning and a one-tap move to the next allowed time.</li>
+    <li>VPEX skips your team's own Do Not Call list. It doesn't check the National Do Not Call Registry, so scrub cold lists first.</li>
+  </ul>
+
+  <p class="fine" style="margin-top:28px">{{LEGAL}} Federal holidays as observed by the US government.</p>
+  <p class="fine src">Sources, checked {{CHECKED}}: <a href="https://www.dnc.com/holiday-alerts/2026-november-restricted-call-dates" rel="noopener">DNC.com, November 2026 restricted call dates</a> · <a href="https://www.opm.gov/policy-data-oversight/pay-leave/federal-holidays/" rel="noopener">OPM federal holidays</a></p>
+
+  <section class="sell" aria-label="VPEX">
+    <h2>VPEX checks this on every lead, before your reps dial.</h2>
+    <p>VPEX is the power dialer for sales floors. Every lead shows their local time. Call asks first when a lead is outside their state's hours, and follow-ups land inside them. Reps call from their own phones, with no phone lines to buy.</p>
+    <div class="demos">
+      <a data-cta="demo-insurance" href="/?{{U}}&amp;utm_content=demo-insurance#demo-insurance">Insurance demo</a>
+      <a data-cta="demo-realestate" href="/?{{U}}&amp;utm_content=demo-realestate#demo-realestate">Real estate</a>
+      <a data-cta="demo-mca" href="/?{{U}}&amp;utm_content=demo-mca#demo-mca">Business funding</a>
+      <a data-cta="demo-auto" href="/?{{U}}&amp;utm_content=demo-auto#demo-auto">Auto</a>
+      <a data-cta="demo-solar" href="/?{{U}}&amp;utm_content=demo-solar#demo-solar">Solar</a>
+    </div>
+    <a class="cta" data-cta="trial" href="/?{{U}}&amp;utm_content=trial&amp;trial=start">Start my free trial</a>
+    <p class="assure">7 days free. No card needed. $49 per rep per month after that.</p>
+  </section>
+
+  <footer><a href="/?{{U}}&amp;utm_content=footer">vpexdialer.com</a><a href="/calling-hours/">Calling hours by state</a><a href="mailto:support@vpexdialer.com">support@vpexdialer.com</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="/cookies/">Cookies</a><a href="/cookies/#settings" data-cookie-settings>Cookie settings</a></footer>
+</main>
+<script>
+(function () {
+  // Hide holidays that have passed (the lead's date in Eastern time is close enough for a list) and point out the next one.
+  var p = new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date()), o = {};
+  p.forEach(function (x) { o[x.type] = x.value; });
+  var today = o.year + "-" + o.month + "-" + o.day, rows = document.querySelectorAll(".hols tr[data-d]"), nx = null;
+  for (var i = 0; i < rows.length; i++) { var d = rows[i].getAttribute("data-d"); if (d < today) rows[i].className = "past"; else if (!nx) nx = rows[i]; }
+  var box = document.getElementById("next");
+  if (!nx) return;
+  nx.className = "nx";
+  var d = nx.getAttribute("data-d"), days = Math.round((Date.UTC(+d.slice(0, 4), +d.slice(5, 7) - 1, +d.slice(8)) - Date.UTC(+o.year, +o.month - 1, +o.day)) / 864e5);
+  box.innerHTML = "<b>" + (days === 0 ? "Today: " : "Next: ") + nx.cells[1].textContent + "</b><span>" + nx.cells[0].textContent + (days === 0 ? ". No sales calls today in {{HOL_STATES_SHORT}}." : days === 1 ? ", tomorrow. Call those leads today." : ", in " + days + " days.") + "</span>";
+  box.className = "next on";
+})();
+</script>
+</body>
+</html>

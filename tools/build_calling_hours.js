@@ -81,7 +81,8 @@ function build(only) {
       row('Calls per person', r.max3 ? 'No more than 3 in 24 hours' : 'No state limit in VPEX’s rules') +
       row('Time zone', (ZONE_WORD[z.iana] || z.iana) + (SPLIT[st] ? '. Note: ' + SPLIT[st] + '.' : '')) +
       '</dl>\n    <p class="fine">' + summary(st) + ' Rules that only cover autodialers or prerecorded messages aren’t included. ' + legal + '</p>\n' +
-      (EXPLAIN[st] ? '    <a class="more" href="' + EXPLAIN[st][0] + '">' + EXPLAIN[st][1] + '</a>\n' : '') + '  </section>\n';
+      (EXPLAIN[st] ? '    <a class="more" href="' + EXPLAIN[st][0] + '">' + EXPLAIN[st][1] + '</a>\n' : '') +
+      (r.hol ? '    <a class="hol" href="/calling-hours/holidays/">Holiday dates with no sales calls in ' + n + ' →</a>\n' : '') + '  </section>\n';
   }
   function page(st) {
     const n = st && NAMES[st];
@@ -109,14 +110,44 @@ function build(only) {
   }
   return page(only || '');
 }
+// vpexdialer.com/calling-hours/holidays/: the federal holidays (with observed days) from the compliance month to the end of next year, from the app's own
+// holidayNames(), and the states that ban sales calls on them (STATE_HOURS hol). Rebuilt with the rest whenever the rules or the compliance month change.
+const HOL_PATH = '/calling-hours/holidays/';
+function holidays() {
+  const src = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const rules = rulesFrom(src), legal = legalFrom(src);
+  const ctx = {}; vm.createContext(ctx); vm.runInContext(rules + '\n' + grab(src, /function holidayNames\(/) + '\nthis.SH = STATE_HOURS; this.HN = holidayNames; this.UH = usHolidays;', ctx);
+  const SH = ctx.SH, list = a => a.map(s => NAMES[s]).join(', ').replace(/, ([^,]+)$/, ' and $1');
+  const hol = Object.keys(SH).filter(s => SH[s].hol).sort((a, b) => NAMES[a].localeCompare(NAMES[b]));
+  const month = /as of ([A-Z][a-z]+ \d{4})/.exec(legal)[1], y0 = Number(month.slice(-4));
+  const m0 = ('0' + (new Date(month + ' 1 UTC').getUTCMonth() + 1)).slice(-2), start = y0 + '-' + m0 + '-01';
+  const fmt = d => new Date(d + 'T12:00:00Z').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+  const days = [];
+  [y0, y0 + 1].forEach(y => { const n = ctx.HN(y), u = ctx.UH(y); Object.keys(n).sort().forEach(d => { if (d >= start && u[d]) days.push([d, n[d]]); }); });
+  const tg = days.find(x => /^Thanksgiving$/.test(x[1]));
+  const after = tg ? new Date(Date.parse(tg[0] + 'T12:00:00Z') + 864e5).toISOString().slice(0, 10) : '';
+  const U = 'utm_source=calling-hours&amp;utm_medium=tool&amp;utm_campaign=holidays';
+  const fill = {
+    TITLE: 'Can telemarketers call on holidays? Holiday calling bans by state (' + y0 + '–' + (y0 + 1) + ') | VPEX',
+    DESC: esc('No sales calls on federal holidays in ' + list(hol) + ', including the weekday a holiday is observed on. Every holiday date from ' + month + ' through ' + (y0 + 1) + ', plus the days to check yourself. Free, from VPEX.'),
+    OG_TITLE: 'Can I make sales calls on a holiday?', OG_DESC: esc('Holiday calling bans in ' + list(hol) + ', with every date through ' + (y0 + 1) + '. Free, from VPEX.'),
+    LEDE: esc('Federal law doesn’t ban sales calls on holidays: the 8 AM to 9 PM rule applies. But ' + hol.length + ' states ban sales calls on federal legal holidays: ' + list(hol) + '. That includes the weekday a holiday is observed on.'),
+    RANGE: month.replace(/ \d{4}$/, '') + ' ' + y0 + ' to December ' + (y0 + 1), HOL_STATES: list(hol), HOL_STATES_SHORT: hol.join(', ').replace(/, ([^,]+)$/, ' and $1'),
+    ROWS: days.map(x => '<tr data-d="' + x[0] + '"><td>' + fmt(x[0]) + '</td><td>' + esc(x[1]) + '</td></tr>').join('\n      '),
+    DAY_AFTER: after ? fmt(after) : 'the Friday after', LEGAL: legal, CHECKED: 'November 14, 2026', U
+  };
+  const tpl = fs.readFileSync(path.join(__dirname, 'holidays_template.html'), 'utf8');
+  return tpl.replace(/\{\{([A-Z0-9_]+)\}\}/g, (m, k) => { if (!(k in fill)) throw new Error('unknown placeholder ' + k); return fill[k]; });
+}
 // Every page: { 'calling-hours/index.html': html, 'calling-hours/pennsylvania/index.html': html, … }
 function buildAll() {
   const out = { 'calling-hours/index.html': build() };
   Object.keys(NAMES).forEach(st => { out['calling-hours/' + slug(st) + '/index.html'] = build(st); });
+  out['calling-hours/holidays/index.html'] = holidays();
   return out;
 }
 function siteUrls() {
-  return ['/', '/phoneburner-alternative/', '/batchdialer-alternative/', '/mojo-dialer-alternative/', '/power-dialer-for-insurance-agents/', '/power-dialer-for-real-estate-agents/', '/power-dialer-for-business-funding/', '/power-dialer-for-auto-sales/', '/power-dialer-for-solar-sales/', '/calling-hours/'].concat(Object.keys(EXPLAIN).map(st => EXPLAIN[st][0]), Object.keys(NAMES).sort((a, b) => NAMES[a].localeCompare(NAMES[b])).map(st => '/calling-hours/' + slug(st) + '/'));
+  return ['/', '/phoneburner-alternative/', '/batchdialer-alternative/', '/mojo-dialer-alternative/', '/power-dialer-for-insurance-agents/', '/power-dialer-for-real-estate-agents/', '/power-dialer-for-business-funding/', '/power-dialer-for-auto-sales/', '/power-dialer-for-solar-sales/', '/calling-hours/', HOL_PATH].concat(Object.keys(EXPLAIN).map(st => EXPLAIN[st][0]), Object.keys(NAMES).sort((a, b) => NAMES[a].localeCompare(NAMES[b])).map(st => '/calling-hours/' + slug(st) + '/'));
 }
 function sitemap() {
   const urls = siteUrls();
@@ -131,7 +162,7 @@ function notFound() {
   const tpl = fs.readFileSync(path.join(__dirname, 'not_found_template.html'), 'utf8');
   return tpl.replace(/\{\{([A-Z]+)\}\}/g, (m, k) => { if (k === 'STATES') return JSON.stringify(states); if (k === 'PAGES') return JSON.stringify(pages); throw new Error('unknown placeholder ' + k); });
 }
-module.exports = { build, buildAll, sitemap, siteUrls, notFound, slug, NAMES };
+module.exports = { build, buildAll, holidays, sitemap, siteUrls, notFound, slug, NAMES };
 if (require.main === module) {
   const pages = buildAll();
   for (const [rel, html] of Object.entries(pages)) { fs.mkdirSync(path.dirname(path.join(ROOT, rel)), { recursive: true }); fs.writeFileSync(path.join(ROOT, rel), html); }

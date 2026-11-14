@@ -12,8 +12,8 @@ const { build, buildAll, sitemap, slug, NAMES } = require(path.join(ROOT, 'tools
 const committed = fs.readFileSync(path.join(ROOT, 'calling-hours', 'index.html'), 'utf8');
 check('committed page is up to date with index.html (run node tools/build_calling_hours.js)', committed === build());
 { const all = buildAll(), stale = Object.keys(all).filter(rel => { try { return fs.readFileSync(path.join(ROOT, rel), 'utf8') !== all[rel]; } catch (e) { return true; } });
-  check('all 52 calling-hours pages are up to date (run node tools/build_calling_hours.js)', Object.keys(all).length === 52 && !stale.length, stale.slice(0, 5));
-  check('sitemap.xml is up to date and lists every state page', fs.readFileSync(path.join(ROOT, 'sitemap.xml'), 'utf8') === sitemap() && (sitemap().match(/<loc>/g) || []).length === 62); }   // home, 3 comparison pages, 5 industry pages, the checker, the PA law explainer, 51 states
+  check('all 53 calling-hours pages (52 + holidays) are up to date (run node tools/build_calling_hours.js)', Object.keys(all).length === 53 && !stale.length, stale.slice(0, 5));
+  check('sitemap.xml is up to date and lists every state page', fs.readFileSync(path.join(ROOT, 'sitemap.xml'), 'utf8') === sitemap() && (sitemap().match(/<loc>/g) || []).length === 63); }   // home, 3 comparison pages, 5 industry pages, the checker, the holidays page, the PA law explainer, 51 states
 // The app's rules, straight from index.html, as the reference
 const src = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
 function grab(re) { const m = re.exec(src); let i = src.indexOf('{', m.index), d = 0, j = i; for (; j < src.length; j++) { if (src[j] === '{') d++; else if (src[j] === '}' && !--d) break; } return src.slice(m.index, j + 1) + (/^\s*var /.test(m[0]) ? ';' : ''); }
