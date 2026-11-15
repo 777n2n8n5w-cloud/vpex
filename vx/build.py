@@ -186,6 +186,11 @@ if '<!-- VX:HTML -->' in new:
 else:
     new = new.replace('<div id="fxLayer" aria-hidden="true"></div>', HTML + '\n<div id="fxLayer" aria-hidden="true"></div>', 1)
 
+# The copy of the database rules the app offers to copy (Investor Vault setup, the owner console) is always the
+# rules that are actually published: firestore-rules.txt. A stale copy pasted into Firebase would undo newer rules.
+RULES = open(os.path.join(HERE, '..', 'firestore-rules.txt'), encoding='utf-8').read()
+new = re.sub(r'  var VAULT_RULES = ".*?";\n', lambda m: '  var VAULT_RULES = ' + json.dumps(RULES, ensure_ascii=True) + ';\n', new, count=1, flags=re.S)
+
 if '--check' in sys.argv:
     if new != html: sys.exit('index.html is out of date: run python3 vx/build.py')
     print('vx up to date'); sys.exit(0)

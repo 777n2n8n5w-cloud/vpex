@@ -14,7 +14,7 @@ PROJECT = os.environ.get("PROJECT", "dovetail-f863c")
 HERE = os.path.dirname(os.path.abspath(__file__))
 RULES = os.path.join(HERE, "..", "firestore-rules.txt")
 NOW = "2026-11-05T15:00:00Z"
-NOW_MS = 1793372400000
+NOW_MS = 1793890800000   # = NOW
 DB = "/databases/(default)/documents/"
 
 # The database the rules look things up in: office "acme" on a trial, office "shut" locked.
@@ -34,9 +34,10 @@ DOCS = {
 def mocks():
     out = []
     for path, data in DOCS.items():
-        full = DB + path
-        out.append({"function": "exists", "args": [{"exactValue": full}], "result": {"value": True}})
-        out.append({"function": "get", "args": [{"exactValue": full}], "result": {"value": {"data": data}}})
+        # the rules engine passes some paths with "(default)" written as %28default%29; answer both spellings
+        for full in (DB + path, DB.replace("(default)", "%28default%29") + path):
+            out.append({"function": "exists", "args": [{"exactValue": full}], "result": {"value": True}})
+            out.append({"function": "get", "args": [{"exactValue": full}], "result": {"value": {"data": data}}})
     out.append({"function": "exists", "args": [{"anyValue": {}}], "result": {"value": False}})
     out.append({"function": "get", "args": [{"anyValue": {}}], "result": {"undefined": {}}})
     return out
@@ -77,6 +78,9 @@ def floor_req(uid="adm1", **kw):
 FL = "offices/acme/floor/adm1_abc"
 MSG = {"by": "adm1", "byName": "Dana Cruz", "body": "Back on the phones!", "to": [], "at": NOW_MS}
 OWNER = who("own1", "vincent@dovetail-f863c.firebaseapp.com")
+CALL = {"id": "c1", "leadId": "L1", "outcomeKey": "noanswer", "timestamp": "2026-11-05T15:00:00.000Z", "by": {"uid": "rep1", "name": "Jo"}}
+LIVE = {"s": "call", "lead": "L1", "at": NOW_MS, "dev": "d1", "by": "x"}
+ACME = DOCS["offices/acme"]
 CASES = [
     # ---- Command Center: the owner reads the funnel and the bot's results, never its keys ----
     case("command: owner reads a day of funnel counts", "ALLOW", "get", "growth/days/items/2026-11-05", OWNER, old={"day": "2026-11-05", "t": 3}),
@@ -144,6 +148,49 @@ CASES = [
     case("message: original team, turned off", "DENY", "get", "floor/tadm_abc", TGONE, old=MSG),
     case("message: original team, not a member", "DENY", "get", "floor/tadm_abc", STRANGER, old=MSG),
     case("message: an office login isn't on the original team", "DENY", "get", "floor/tadm_abc", REP1, old=MSG),
+    # ---- security audit (2026-11-14): call records can only be added to, by their own rep ----
+    case("calls: a rep starts their own hour of calls", "ALLOW", "create", "offices/acme/callDays/2026-11-05_rep1_10", REP1, new={"calls": {"c1": CALL}}),
+    case("calls: a rep adds a call to their own hour", "ALLOW", "update", "offices/acme/callDays/2026-11-05_rep1_10", REP1, new={"calls": {"c1": CALL, "c2": CALL}}, old={"calls": {"c1": CALL}}),
+    case("calls: saving the same call again (a retry) is fine", "ALLOW", "update", "offices/acme/callDays/2026-11-05_rep1_10", REP1, new={"calls": {"c1": CALL}}, old={"calls": {"c1": CALL}}),
+    case("calls: a rep can't add calls to a teammate's record", "DENY", "update", "offices/acme/callDays/2026-11-05_mgr1_10", REP1, new={"calls": {"m1": CALL, "fake": CALL}}, old={"calls": {"m1": CALL}}),
+    case("calls: a rep can't start a record in a teammate's name", "DENY", "create", "offices/acme/callDays/2026-11-05_mgr1_11", REP1, new={"calls": {"fake": CALL}}),
+    case("calls: a rep can't change a call already saved", "DENY", "update", "offices/acme/callDays/2026-11-05_rep1_10", REP1, new={"calls": {"c1": dict(CALL, outcomeKey="interested")}}, old={"calls": {"c1": CALL}}),
+    case("calls: a rep can't remove a call", "DENY", "update", "offices/acme/callDays/2026-11-05_rep1_10", REP1, new={"calls": {}}, old={"calls": {"c1": CALL}}),
+    case("calls: no other fields on a call record", "DENY", "update", "offices/acme/callDays/2026-11-05_rep1_10", REP1, new={"calls": {"c1": CALL}, "x": 1}, old={"calls": {"c1": CALL}}),
+    case("calls: a record shaped like someone's id inside yours doesn't count", "DENY", "create", "offices/acme/callDays/2026-11-05_rep1x_10", REP1, new={"calls": {"c1": CALL}}),
+    case("calls: the day's total starts at one", "ALLOW", "create", "offices/acme/callDays/n_2026-11-05", REP1, new={"calls": {}, "c": 1}),
+    case("calls: the day's total goes up by one", "ALLOW", "update", "offices/acme/callDays/n_2026-11-05", REP1, new={"calls": {}, "c": 8}, old={"calls": {}, "c": 7}),
+    case("calls: the day's total can't jump", "DENY", "update", "offices/acme/callDays/n_2026-11-05", REP1, new={"calls": {}, "c": 70}, old={"calls": {}, "c": 7}),
+    case("calls: the day's total can't go down", "DENY", "update", "offices/acme/callDays/n_2026-11-05", REP1, new={"calls": {}, "c": 0}, old={"calls": {}, "c": 7}),
+    case("activity: a rep marks themselves on a call", "ALLOW", "update", "offices/acme/callDays/act_2026-11-05", REP1, new={"calls": {}, "live": {"rep1": LIVE, "mgr1": LIVE}}, old={"calls": {}, "live": {"mgr1": LIVE}}),
+    case("activity: a rep starts the day's activity record", "ALLOW", "create", "offices/acme/callDays/act_2026-11-05", REP1, new={"calls": {}, "live": {"rep1": LIVE}}),
+    case("activity: a rep can't change a teammate's line", "DENY", "update", "offices/acme/callDays/act_2026-11-05", REP1, new={"calls": {}, "live": {"mgr1": dict(LIVE, s="idle")}}, old={"calls": {}, "live": {"mgr1": LIVE}}),
+    case("activity: a rep can't erase a teammate's line", "DENY", "update", "offices/acme/callDays/act_2026-11-05", REP1, new={"calls": {}, "live": {}}, old={"calls": {}, "live": {"mgr1": LIVE}}),
+    case("activity: a rep adds a note mark", "ALLOW", "update", "offices/acme/callDays/act_2026-11-05", REP1, new={"calls": {}, "notes": {"rep1_L1": {"by": "rep1"}}}, old={"calls": {}}),
+    case("activity: a rep can't erase note marks", "DENY", "update", "offices/acme/callDays/act_2026-11-05", REP1, new={"calls": {}, "notes": {}}, old={"calls": {}, "notes": {"mgr1_L1": {"by": "mgr1"}}}),
+    case("calls: an admin can still correct any record", "ALLOW", "update", "offices/acme/callDays/2026-11-05_rep1_10", ADM1, new={"calls": {}}, old={"calls": {"c1": CALL}}),
+    case("calls: a turned-off login can't add calls", "DENY", "update", "offices/acme/callDays/2026-11-05_gone_10", GONE, new={"calls": {"c1": CALL}}, old={"calls": {}}),
+    case("calls: original team, own record", "ALLOW", "update", "callDays/2026-11-05_team1_10", TEAM1, new={"calls": {"c1": CALL, "c2": CALL}}, old={"calls": {"c1": CALL}}),
+    case("calls: original team, a teammate's record", "DENY", "update", "callDays/2026-11-05_tadm_10", TEAM1, new={"calls": {"x": CALL}}, old={"calls": {}}),
+    # ---- security audit: things that must already hold ----
+    case("audit: a rep can't make themselves an admin", "DENY", "update", "offices/acme/members/rep1", REP1, new={"active": True, "role": "admin"}, old={"active": True, "role": "rep"}),
+    case("audit: a turned-off rep can't turn themselves back on", "DENY", "update", "offices/acme/members/gone", GONE, new={"active": True, "role": "rep"}, old={"active": False, "role": "rep"}),
+    case("audit: a rep can't mark the office paid", "DENY", "update", "offices/acme", REP1, new=dict(ACME, plan="paid", paidThrough=NOW_MS + 9e11), old=ACME),
+    case("audit: an admin can't mark their own office paid", "DENY", "update", "offices/acme", ADM1, new=dict(ACME, plan="paid", paidThrough=NOW_MS + 9e11), old=ACME),
+    case("audit: an admin can't unlock a paused office", "DENY", "update", "offices/shut", who("x", "boss@shut.vpex.app"), new={"plan": "trial", "locked": False, "ownerUid": "x"}, old={"plan": "trial", "locked": True, "ownerUid": "x"}),
+    case("audit: a new office can't start out paid", "DENY", "create", "offices/newco", who("n1", "me@newco.vpex.app"), new={"name": "N", "industry": "x", "ownerUid": "n1", "plan": "paid", "trialEnds": NOW_MS, "createdAt": NOW_MS, "invite": "abcdefgh", "locked": False}),
+    case("audit: a new office can't give itself a long trial", "DENY", "create", "offices/newco", who("n1", "me@newco.vpex.app"), new={"name": "N", "industry": "x", "ownerUid": "n1", "plan": "trial", "trialEnds": NOW_MS + 30 * 86400000, "createdAt": NOW_MS, "invite": "abcdefgh", "locked": False}),
+    case("audit: joining with the wrong invite code", "DENY", "create", "offices/acme/members/new1", who("new1", "kim@acme.vpex.app"), new={"active": True, "role": "rep", "invite": "wrongcode1"}),
+    case("audit: joining as an admin with the invite code", "DENY", "create", "offices/acme/members/new1", who("new1", "kim@acme.vpex.app"), new={"active": True, "role": "admin", "invite": "abc123xyz"}),
+    case("audit: joining as a rep with the invite code", "ALLOW", "create", "offices/acme/members/new1", who("new1", "kim@acme.vpex.app"), new={"active": True, "role": "rep", "invite": "abc123xyz"}),
+    case("audit: another office's login can't join with the code", "DENY", "create", "offices/acme/members/new2", who("new2", "kim@other.vpex.app"), new={"active": True, "role": "rep", "invite": "abc123xyz"}),
+    case("audit: a rep can't read a teammate's Vault investor", "DENY", "get", "offices/acme/vault/v1", REP1, old={"ownerUid": "mgr1", "investments": []}),
+    case("audit: a rep can't delete leads from a record", "DENY", "update", "offices/acme/leadChunks/c001", REP1, new={"leads": {"a": {}}}, old={"leads": {"a": {}, "b": {}}}),
+    case("audit: a turned-off rep can't read leads", "DENY", "get", "offices/acme/leadChunks/c001", GONE, old={"leads": {}}),
+    case("audit: signed out can't read leads", "DENY", "get", "offices/acme/leadChunks/c001", None, old={"leads": {}}),
+    case("audit: an admin can't read another office's team", "DENY", "get", "offices/acme/members/rep1", who("adm1", "boss@other.vpex.app"), old={"active": True, "role": "rep"}),
+    case("audit: nobody but VPEX changes the price or payment links", "DENY", "update", "config/billing", ADM1, new={"price": 1}, old={"price": 49}),
+    case("audit: an admin can't list every office", "DENY", "list", "offices/acme", ADM1, old=ACME),
 ]
 
 
