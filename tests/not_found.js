@@ -48,6 +48,8 @@ const server = http.createServer((req, res) => {
     ['/IG', '/ig/'], ['/Power-Dialer-For-Solar-Sales', '/power-dialer-for-solar-sales/'], ['/solar', '/power-dialer-for-solar-sales/'], ['/insurance/', '/power-dialer-for-insurance-agents/'],
     ['/real-estate', '/power-dialer-for-real-estate-agents/'], ['/mca', '/power-dialer-for-business-funding/'], ['/auto', '/power-dialer-for-auto-sales/'],
     ['/phoneburner', '/phoneburner-alternative/'], ['/mojo', '/mojo-dialer-alternative/'], ['/batchdialer/', '/batchdialer-alternative/'],
+    ['/holidays', '/calling-hours/holidays/'], ['/Thanksgiving', '/calling-hours/holidays/'], ['/christmas/', '/calling-hours/holidays/'], ['/calling-hours/thanksgiving', '/calling-hours/holidays/'],
+    ['/calling-hours/holiday', '/calling-hours/holidays/'], ['/calling-hours/Holidays', '/calling-hours/holidays/'], ['/hours/new-years', '/calling-hours/holidays/'], ['/holiday-calling-hours', '/calling-hours/holidays/'],
   ];
   {
     const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, timezoneId: 'America/New_York' });

@@ -80,6 +80,8 @@ async function demo(br, o, c) {
     const ctx = await br.newContext({ viewport: { width: c.w, height: c.h }, isMobile: !!c.mob, hasTouch: !!c.mob, timezoneId: 'America/New_York' });
     const page = await ctx.newPage(); await page.clock.install({ time: new Date(MORN) });
     await page.route(/gstatic\.com\/firebasejs|fonts\.googleapis|cloudfunctions/, r => r.abort());
+    // the layout is measured at the top of the page: skip the demo's once-a-visit welcome, which can scroll a phone down to Call
+    await page.addInitScript(() => { try { sessionStorage.setItem('vpex_demo_hi', '1'); } catch (e) {} });
     await page.goto(BASE + '#demo-insurance'); await page.waitForTimeout(1800);
     const L = await lay(page);
     check(c.w + ': phone layout kept (no desk, tabs under the header, Live hidden)', !L.desk && !L.tabsInHeader && !L.live.vis && !L.left.vis && !L.progInLeft && L.tabs.t >= L.hdr.b - 1 && L.main.w <= 480, L);

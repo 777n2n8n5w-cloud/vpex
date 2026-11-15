@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-03-01">
+<meta name="vpex-build" content="2027-03-02">
 <!-- Scripts only from this site and Google's Firebase library; no plugins; no <base> or form hijacking. Inline scripts stay
      allowed because the app is one file. (GitHub Pages can't send headers, so this is the strongest policy a page can set.) -->
 <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://www.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self'">
@@ -7905,6 +7905,14 @@ window.VPEX_SIG = [
   .demo-pill.with-trial span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .demo-pill.with-trial button { flex: none; white-space: nowrap; }
   .demo-pill button.demo-exit { background: transparent; color: #F9FAFB; box-shadow: inset 0 0 0 1px rgba(249, 250, 251, 0.45); margin-left: -4px; }
+  /* Phones and narrow windows: the demo bar stays at the top while the visitor scrolls (Start free trial always in reach);
+     the app's own sticky header sits under it (--dp-h = the bar's height). Computers (body.desk) keep it as it was. */
+  body:not(.desk) > .demo-pill { position: sticky; top: env(safe-area-inset-top, 0px); }
+  body.demo-sticky:not(.desk) { height: auto; min-height: 100%; }   /* the bar sticks within body, so body grows with the page */
+  body.demo-sticky:not(.desk) header.top { top: calc(env(safe-area-inset-top, 0px) + var(--dp-h, 0px)); }
+  /* the privacy notice's room at the end of the page as content (not body padding), so the bar stays put to the very end */
+  html.vc-on body.demo-sticky:not(.desk) { padding-bottom: 0; }
+  html.vc-on body.demo-sticky:not(.desk)::after { content: ""; display: block; height: var(--vc-h, 0px); }
   /* Touch screens: the small everyday buttons keep their look but answer a 44 px tap (an invisible frame around them,
      kept inside the gap to the next button): top bar icons, list and history chips, Goal, + Add, the demo bar. */
   @media (pointer: coarse) {
@@ -13660,8 +13668,26 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       if (!document.getElementById("callBtn") || document.querySelector(".modal.show, .tour-layer")) { if (tries < 20) demoHi(tries + 1); return; }
       try { window.sessionStorage.setItem("vpex_demo_hi", "1"); } catch (e) {}
       showToast("Demo office with sample leads \u2014 " + (document.querySelector(".lead-where.late") ? "After hours for this lead, so Call shows VPEX\u2019s time check first. No real call goes out." : "Tap Call to try it. No real call goes out."));
+      demoCallInView();
     }, tries ? 500 : 1000);
   })(0);
+  // The welcome says "Tap Call", but on a phone the Call button can start below the screen (or under the privacy notice,
+  // --vc-h). Once, if the visitor hasn't scrolled yet, bring it up just above the bottom edge; the lead's name stays in
+  // view under the header and the demo bar (both sticky on phones). Computers fit it already.
+  function demoCallInView() {
+    try {
+      if ((DESK && DESK.on) || window.scrollY > 8 || !(window.matchMedia && window.matchMedia("(pointer: coarse)").matches)) return;   // touch screens only
+      var cb = document.getElementById("callBtn"), nm = cb && cb.closest(".card") ? cb.closest(".card").querySelector(".lead-name") : null, hd = document.querySelector("header.top");
+      if (!cb || !cb.offsetParent) return;
+      var vch = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--vc-h")) || 0;
+      var need = cb.getBoundingClientRect().bottom - (window.innerHeight - vch - 12);
+      if (need <= 0) return;
+      if (nm && hd) need = Math.min(need, nm.getBoundingClientRect().top - hd.getBoundingClientRect().bottom - 8);
+      if (need < 16) return;
+      var calm = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      window.scrollBy({ top: Math.round(need), behavior: calm ? "auto" : "smooth" });
+    } catch (e) {}
+  }
 
   function advanceFromPause() {
     state.paused = false;
@@ -21910,6 +21936,8 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     demoPill.innerHTML = '<span title="Demo office \u00b7 ' + escapeHtml(IND.name) + '">' + (sellsVpex ? 'Demo \u00b7 ' + escapeHtml(demoShort || (IND_KEY === "investments" ? "sample data" : IND.name)) : 'Demo office \u00b7 ' + (IND_KEY === "investments" ? 'sample data' : escapeHtml(IND.name))) + '</span>' +
       (sellsVpex ? '<button type="button" id="demoTrial">Start free trial</button><button type="button" id="demoExit" class="demo-exit">Exit</button>' : '<button type="button" id="demoExit">Exit demo</button>');
     document.body.insertBefore(demoPill, document.body.firstChild); document.getElementById("demoExit").addEventListener("click", exitDemo);
+    var dpH = function () { document.documentElement.style.setProperty("--dp-h", demoPill.offsetHeight + "px"); };
+    document.body.classList.add("demo-sticky"); dpH(); window.addEventListener("resize", dpH);
     var dTrial = document.getElementById("demoTrial"); if (dTrial) dTrial.addEventListener("click", function () { exitDemo(IND_KEY || "insurance"); });
   }
 

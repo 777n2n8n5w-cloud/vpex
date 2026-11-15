@@ -22,6 +22,8 @@
     "register": "/?trial=start", "get-started": "/?trial=start", "try": "/?trial=start",
     "login": "/", "log-in": "/", "signin": "/", "sign-in": "/", "app": "/", "dialer": "/", "home": "/", "index": "/",
     "hours": "/calling-hours/", "calling-hours-checker": "/calling-hours/", "callinghours": "/calling-hours/", "calling-hour": "/calling-hours/",
+    "holidays": "/calling-hours/holidays/", "holiday": "/calling-hours/holidays/", "holiday-calling": "/calling-hours/holidays/", "holiday-calling-hours": "/calling-hours/holidays/",
+    "thanksgiving": "/calling-hours/holidays/", "christmas": "/calling-hours/holidays/", "new-years": "/calling-hours/holidays/", "new-year": "/calling-hours/holidays/",
     "insurance": "/power-dialer-for-insurance-agents/", "real-estate": "/power-dialer-for-real-estate-agents/", "realestate": "/power-dialer-for-real-estate-agents/",
     "business-funding": "/power-dialer-for-business-funding/", "mca": "/power-dialer-for-business-funding/", "funding": "/power-dialer-for-business-funding/",
     "auto": "/power-dialer-for-auto-sales/", "solar": "/power-dialer-for-solar-sales/",
@@ -36,10 +38,12 @@
     if (PAGES.indexOf(p + "/") >= 0 && p + "/" !== raw) return p + "/";
     var parts = p.split("/").filter(Boolean);
     var st = function (x) { x = String(x || "").replace(/[^a-z]/g, ""); return STATES[x] ? "/calling-hours/" + STATES[x] + "/" : ""; };
+    // Holiday words under the checker (/calling-hours/thanksgiving, /calling-hours/holiday) go to the holiday page
+    if (parts.length === 2 && /^(calling-hours?|hours|callinghours)$/.test(parts[0]) && /^(holidays?|thanksgiving|christmas|new-years?|federal-holidays?)$/.test(parts[1])) return "/calling-hours/holidays/";
     if (parts.length === 2 && /^(calling-hours?|hours|callinghours)$/.test(parts[0])) return st(parts[1]);
     if (parts.length === 1) {
       var m = /^(.+?)-calling-hours$/.exec(parts[0]);
-      if (m) return st(m[1]);
+      if (m && st(m[1])) return st(m[1]);
       m = /^demo-(.+)$/.exec(parts[0]);
       if (m && DEMO[m[1]]) return "/#demo-" + DEMO[m[1]];
       if (ALIAS[parts[0]]) return ALIAS[parts[0]];

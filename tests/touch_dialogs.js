@@ -13,6 +13,8 @@ async function open(br, c, hash, theme) {
   const page = await ctx.newPage(); const errs = []; page.on('pageerror', e => errs.push(e.message));
   // A weekday late morning in New York, so Call dials straight away (at night the demo's calling-hours sheet opens first).
   await page.clock.install({ time: new Date('2026-11-04T11:30:00-05:00') });
+  // tap areas are measured at the top of the page: skip the demo's once-a-visit welcome, which can scroll a phone down to Call
+  await page.addInitScript(() => { try { sessionStorage.setItem('vpex_demo_hi', '1'); } catch (e) {} });
   if (theme) await page.addInitScript(t => { try { localStorage.setItem('dovetail_dialer_theme_v1', t); } catch (e) {} }, theme);
   await page.route(/gstatic\.com\/firebasejs|fonts\.g/, r => r.abort());
   await page.goto(BASE + hash); await page.waitForTimeout(2600);
