@@ -16737,7 +16737,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
 
   function telHref(phone) {
     // Match the bare-digit tel: format iOS's own phone-number detector uses
-    // (tel://2125550142), rather than the E.164 tel:+17143134553 form —
+    // (tel://2125550142), rather than the E.164 tel:+12125550142 form —
     // some embedded webviews handle the plain form more reliably.
     var digits = (phone || "").replace(/[^\d]/g, "");
     if (phone.charAt(0) === "+" && digits.length === 11 && digits.charAt(0) === "1") {
