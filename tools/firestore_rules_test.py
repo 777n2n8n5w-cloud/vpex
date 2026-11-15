@@ -14,7 +14,7 @@ PROJECT = os.environ.get("PROJECT", "dovetail-f863c")
 HERE = os.path.dirname(os.path.abspath(__file__))
 RULES = os.path.join(HERE, "..", "firestore-rules.txt")
 NOW = "2026-11-05T15:00:00Z"
-NOW_MS = 1793372400000
+NOW_MS = 1793890800000   # = NOW
 DB = "/databases/(default)/documents/"
 
 # The database the rules look things up in: office "acme" on a trial, office "shut" locked.
