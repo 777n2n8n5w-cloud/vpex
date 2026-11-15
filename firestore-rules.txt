@@ -13,31 +13,6 @@ service cloud.firestore {
     function isAdmin() {
       return isOwner() || (isActive() && get(memberPath()).data.role == 'admin');
     }
-    // ---- Call records (callDays), for reps; admins can do anything here ----
-    // {date}_{uid}_{hour}: one person's calls for an hour. Only that person writes it, and only by adding calls:
-    // a call already saved can't be changed or removed, so nobody rewrites a teammate's numbers or edits their own history.
-    // n_{date}: the day's total, which only ever goes up by one. act_{date}: who's on a call and who took notes today;
-    // each person changes only their own "on a call" line.
-    function myCallDoc(day) { return day.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}_' + request.auth.uid + '_[0-9]{2}$'); }
-    function dayCount(day) { return day.matches('^n_[0-9]{4}-[0-9]{2}-[0-9]{2}$'); }
-    function dayAct(day) { return day.matches('^act_[0-9]{4}-[0-9]{2}-[0-9]{2}$'); }
-    function callsCreateOk(day) {
-      let d = request.resource.data;
-      return (myCallDoc(day) && d.keys().hasOnly(['calls']) && d.calls is map)
-        || (dayCount(day) && d.keys().hasOnly(['calls', 'c']) && d.c == 1)
-        || (dayAct(day) && d.keys().hasOnly(['calls', 'live', 'notes'])
-            && (!('live' in d) || d.live.keys().hasOnly([request.auth.uid])));
-    }
-    function callsUpdateOk(day) {
-      let d = request.resource.data;
-      let o = resource.data;
-      return (myCallDoc(day) && d.keys().hasOnly(['calls'])
-            && d.calls.diff(o.calls).changedKeys().size() == 0 && d.calls.diff(o.calls).removedKeys().size() == 0)
-        || (dayCount(day) && d.keys().hasOnly(['calls', 'c']) && d.c == o.get('c', 0) + 1)
-        || (dayAct(day) && d.diff(o).affectedKeys().hasOnly(['live', 'notes'])
-            && d.get('live', {}).diff(o.get('live', {})).affectedKeys().hasOnly([request.auth.uid])
-            && d.get('notes', {}).diff(o.get('notes', {})).removedKeys().size() == 0);
-    }
     match /members/{uid} {
       allow read: if isAdmin() || (signedIn() && request.auth.uid == uid);
       allow create, delete: if isAdmin();
@@ -57,9 +32,9 @@ service cloud.firestore {
             && resource.data.leads.keys().hasAll(request.resource.data.leads.keys()));
     }
     match /callDays/{day} {
-      allow read: if isActive();
-      allow create: if isAdmin() || (isActive() && callsCreateOk(day));
-      allow update: if isAdmin() || (isActive() && callsUpdateOk(day));
+      allow read, create: if isActive();
+      allow update: if isAdmin()
+        || (isActive() && request.resource.data.calls.keys().hasAll(resource.data.calls.keys()));
       allow delete: if isAdmin();
     }
     match /vault/{id} {
@@ -190,8 +165,9 @@ service cloud.firestore {
       }
       match /callDays/{day} {
         allow read: if isOwner() || oActive(office);
-        allow create: if oOpen(office) && (oAdmin(office) || (oActive(office) && callsCreateOk(day)));
-        allow update: if oOpen(office) && (oAdmin(office) || (oActive(office) && callsUpdateOk(day)));
+        allow create: if oOpen(office) && oActive(office);
+        allow update: if oOpen(office) && (oAdmin(office)
+          || (oActive(office) && request.resource.data.calls.keys().hasAll(resource.data.calls.keys())));
         allow delete: if isOwner() || oAdmin(office);
       }
       match /floor/{id} {
