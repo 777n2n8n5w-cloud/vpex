@@ -1,0 +1,41 @@
+# Checks the server code's packages (functions/) and the posting bot's (instagram-bot/) for known security holes.
+# Runs weekly and whenever the package lists change. Reads only: nothing is installed into the project or published.
+name: Check VPEX packages for known vulnerabilities
+
+on:
+  push:
+    paths:
+      - "functions/package.json"
+      - "instagram-bot/requirements.txt"
+      - ".github/workflows/vpex-deps.yml"
+  schedule:
+    - cron: "17 13 * * 1"      # Mondays, 9:17 AM New York (8:17 in winter)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Server packages (functions/)
+        working-directory: functions
+        run: |
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund >/dev/null
+          echo "Installed versions:"; npm ls --depth=0 || true
+          if npm audit --omit=dev --audit-level=high; then echo "::notice title=Server packages::No high or critical known vulnerabilities."
+          else echo "::error title=Server packages::npm audit found high or critical vulnerabilities (details above)."; exit 1; fi
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Posting bot packages (instagram-bot/)
+        run: |
+          pip install -q pip-audit
+          if pip-audit -r instagram-bot/requirements.txt; then echo "::notice title=Bot packages::No known vulnerabilities."
+          else echo "::error title=Bot packages::pip-audit found known vulnerabilities (details above)."; exit 1; fi
