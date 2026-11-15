@@ -34,9 +34,10 @@ DOCS = {
 def mocks():
     out = []
     for path, data in DOCS.items():
-        full = DB + path
-        out.append({"function": "exists", "args": [{"exactValue": full}], "result": {"value": True}})
-        out.append({"function": "get", "args": [{"exactValue": full}], "result": {"value": {"data": data}}})
+        # the rules engine passes some paths with "(default)" written as %28default%29; answer both spellings
+        for full in (DB + path, DB.replace("(default)", "%28default%29") + path):
+            out.append({"function": "exists", "args": [{"exactValue": full}], "result": {"value": True}})
+            out.append({"function": "get", "args": [{"exactValue": full}], "result": {"value": {"data": data}}})
     out.append({"function": "exists", "args": [{"anyValue": {}}], "result": {"value": False}})
     out.append({"function": "get", "args": [{"anyValue": {}}], "result": {"undefined": {}}})
     return out
