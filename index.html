@@ -18867,6 +18867,10 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
   async function forceSignOut(msg, reason) {
     if (TEAM.signingOut) return;
     TEAM.signingOut = true;
+    // This person's copy of the office's leads and calls kept on the device for offline use, and their call history.
+    // Removed below so the next person on a shared or lost phone can't read it from the browser; kept only while calls
+    // made offline are still waiting to upload (they go up the next time this person signs in here).
+    var myKeys = TEAM.me ? [STORAGE_KEY, histStoreKey()] : [], unsent = !!(state && state.pendingCalls && state.pendingCalls.length);
     logSignout(reason || (msg ? "signed out" : "you signed out"), msg);
     clearTimeout(verifyTimer); clearTimeout(TEAM.retryTimer);
     teamDetachData();
@@ -18876,6 +18880,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     PUSH.booted = false;
     var pse = document.getElementById("pausedScreen"); if (pse) pse.style.display = "none";
     STORAGE_KEY = "dovetail_team_signedout";
+    if (!unsent) myKeys.forEach(function (k) { if (k && k !== STORAGE_KEY) try { window.localStorage.removeItem(k); } catch (e) {} });
     state = defaultState();
     pendingText = null;
     renderTextPrompt();
