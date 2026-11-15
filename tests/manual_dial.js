@@ -59,6 +59,25 @@ const check = (n, ok, info) => { if (ok) pass++; else { fail++; console.log('FAI
   check('Call dials the number (demo holds the actual call)', tel.length === 1 && tel[0].href.replace(/\D/g, '').slice(-10) === '7325550142', tel);
   check('after the call it asks whether to save the number', /You called \(732\) 555-0142\. Add them as a lead\?/.test(await ev(() => (document.querySelector('.kp-after') || {}).innerText || '')));
   await page.tap('#kpSkip'); await page.waitForTimeout(300);
+  // right after a call, the keypad counts down the spacing between calls instead of a lit button that does nothing
+  await paste('(732) 555-0177');
+  const wait = await ev(() => ({ info: document.getElementById('kpInfo').innerText, lit: !!document.querySelector('#kpGo a'), w: (document.querySelector('#kpGo .kp-wait') || {}).innerText }));
+  check('right after a call: Call shows the countdown, not a dead button', !wait.lit && /^Next call in \d+s/.test(wait.info) && /\d+s/.test(wait.w || ''), wait);
+  await page.clock.runFor(9000); await page.waitForTimeout(300);
+  check('and lights up when the wait is over', await ev(() => !!document.querySelector('#kpGo a')));
+  await paste('');
+  await page.tap('#mdToggle'); await page.waitForTimeout(300);
+  // the keypad and Call fit the screen you actually see (Safari's bars on an iPhone 13: 390 x 664)
+  await page.setViewportSize({ width: 390, height: 664 }); await page.evaluate(() => scrollTo(0, 0));
+  await page.tap('#mdToggle'); await page.waitForTimeout(400);
+  for (const k of '7325550142') await page.tap('[data-k="' + k + '"]');
+  await page.waitForTimeout(600);
+  const fitR = await ev(() => { const g = document.querySelector('#kpGo a, #kpGo span').getBoundingClientRect(), n = document.getElementById('kpNum').getBoundingClientRect(), k = document.querySelector('.kp-key').getBoundingClientRect();
+    return { call: [Math.round(g.top), Math.round(g.bottom)], num: [Math.round(n.top), Math.round(n.bottom)], key: Math.round(k.width), vh: innerHeight }; });
+  check('iPhone with Safari bars: the number and Call are both on screen once the number is typed', fitR.call[0] >= 0 && fitR.call[1] <= fitR.vh && fitR.num[0] >= 0, fitR);
+  check('the keys stay big enough to tap (54 px or more)', fitR.key >= 54, fitR);
+  await paste('');
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.tap('#mdToggle'); await page.waitForTimeout(300);
   check('switching it off brings your leads back', await ev(() => !document.getElementById('kpNum') && !!document.getElementById('mdToggle')));
   check('no page errors', !errs.length, errs);

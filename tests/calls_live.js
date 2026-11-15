@@ -85,6 +85,16 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const sb = await admin.evaluate(() => { const s = window.__scoreRows ? window.__scoreRows() : null; return s; });
   check('Scoreboard: Sam\'s live call counts', (sb.find(r => r.uid === 'dR2') || {}).calls === c0 + 3, sb);
   check('rep: third dial counted at once', await repCount() === r0 + 3, await repCount());
+  // 4. a call placed from Search counts the moment it's placed too (it used to wait for the outcome)
+  await rep.evaluate(() => document.querySelector('.out-btn[data-outcome="noanswer"]').click()); await rep.waitForTimeout(400);
+  const r3 = await repCount();
+  await rep.waitForTimeout(9000);
+  await rep.evaluate(() => document.getElementById('searchBtn').click()); await rep.waitForTimeout(300);
+  await rep.fill('#gsQ', 'walsh'); await rep.waitForTimeout(400);
+  await rep.evaluate(() => document.querySelector('.srch-call').click()); await rep.waitForTimeout(500);
+  check('rep: a call from Search counts the moment it\'s placed', await repCount() === r3 + 1, { r3, now: await repCount() });
+  await rep.evaluate(() => document.querySelector('.out-btn[data-outcome="noanswer"]').click()); await rep.waitForTimeout(400);
+  check('rep: and once, after the outcome', await repCount() === r3 + 1, await repCount());
   check('no page errors', !errs.length, errs);
   await br.close();
   console.log('calls_live: ' + pass + ' passed, ' + fail + ' failed');
