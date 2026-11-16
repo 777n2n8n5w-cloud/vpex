@@ -230,14 +230,99 @@ function digestCounts(chunks, uid, now, tz) {
   });
   return c;
 }
+// ---------- holiday heads-up in the morning summary ----------
+// Same federal holiday list (with names, observed weekdays included) as holidayNames()/usHolidays() in index.html, and the
+// states whose STATE_HOURS entry has hol: true (no sales calls on legal holidays). tests/holiday_digest.js keeps both in step.
+var HOL_STATES = { AL: 1, LA: 1, PA: 1, RI: 1 };
+var ZONE_STATES = {};
+("CT DE DC FL GA IN KY ME MD MA MI NH NJ NY NC OH PA RI SC VT VA WV ON QC NS NB PR VI AL AR IL IA KS LA MN MS MO NE ND OK SD TN TX WI MB " +
+  "SK CO ID MT NM UT WY AB AZ CA NV OR WA BC AK HI").split(" ").forEach(function (st) { ZONE_STATES[st] = 1; });
+function holidayNames(y) {
+  var s = {};
+  function key(t) { return t.getUTCFullYear() + "-" + ("0" + (t.getUTCMonth() + 1)).slice(-2) + "-" + ("0" + t.getUTCDate()).slice(-2); }
+  function day(m, d) { return new Date(Date.UTC(y, m - 1, d)); }
+  function nth(m, wd, n) { var f = day(m, 1).getUTCDay(); return day(m, 1 + ((wd - f + 7) % 7) + (n - 1) * 7); }
+  function last(m, wd) { var e = new Date(Date.UTC(y, m, 0)); return new Date(e.getTime() - ((e.getUTCDay() - wd + 7) % 7) * 864e5); }
+  function fixed(m, d, n) { var t = day(m, d), w = t.getUTCDay(); s[key(t)] = n; if (w === 6) s[key(day(m, d - 1))] = n + " (observed)"; if (w === 0) s[key(day(m, d + 1))] = n + " (observed)"; }
+  fixed(1, 1, "New Year\u2019s Day"); fixed(6, 19, "Juneteenth"); fixed(7, 4, "Independence Day"); fixed(11, 11, "Veterans Day"); fixed(12, 25, "Christmas Day");
+  if (new Date(Date.UTC(y + 1, 0, 1)).getUTCDay() === 6) s[y + "-12-31"] = "New Year\u2019s Day (observed)";
+  [[nth(1, 1, 3), "Martin Luther King Jr. Day"], [nth(2, 1, 3), "Presidents Day"], [last(5, 1), "Memorial Day"], [nth(9, 1, 1), "Labor Day"],
+    [nth(10, 1, 2), "Columbus Day"], [nth(11, 4, 4), "Thanksgiving"]].forEach(function (x) { s[key(x[0])] = x[1]; });
+  return s;
+}
+function holidayOn(ymd) { return holidayNames(Number(String(ymd).slice(0, 4)))[ymd] || ""; }
+// The lead's state the way the app reads it (leadState in index.html): the saved st, else the last 2-letter code in the notes.
+function leadSt(l) {
+  if (!l) return "";
+  if (typeof l.st === "string") return l.st;
+  var segs = String(l.notes || "").split("|");
+  for (var i = segs.length - 1; i >= 0; i--) {
+    var seg = segs[i].trim();
+    if (!seg || /^p\.\d+$/i.test(seg) || /^alt:/i.test(seg) || seg.indexOf("@") !== -1) continue;
+    var toks = seg.split(/\s+/);
+    for (var j = toks.length - 1; j >= 0; j--) {
+      var raw = toks[j].replace(/[^A-Za-z0-9]/g, "");
+      if (!raw || /^\d+$/.test(raw)) continue;
+      var up = raw.toUpperCase();
+      if (up.length === 2 && ZONE_STATES[up] && (raw === up || toks.length <= 2)) return up;
+      break;
+    }
+  }
+  return "";
+}
+// Today, tomorrow or (on a Friday) Monday is a federal holiday: the rep's open follow-ups due by the end of that day for
+// leads in a state that bans sales calls on it. { when: "today"|"tomorrow"|"Monday", name, n, states } or null.
+function holidayHeads(chunks, uid, now, tz) {
+  var today = localParts(now, tz), b = localDayBounds(now, tz), ymd = "", when = "", end = b.end;
+  if (holidayOn(today.date)) { ymd = today.date; when = "today"; }
+  else {
+    var ahead = today.weekday === "Fri" ? [1, 3] : [1];
+    for (var k = 0; k < ahead.length && !ymd; k++) {
+      var t = b.end + (ahead[k] - 1) * 86400000 + 3 * 3600000, d = localParts(t, tz).date;
+      if (holidayOn(d)) { ymd = d; when = ahead[k] === 1 ? "tomorrow" : "Monday"; end = localDayBounds(t, tz).end; }
+    }
+  }
+  if (!ymd) return null;
+  var n = 0, by = {};
+  (chunks || []).forEach(function (data) {
+    var leads = (data && data.leads) || {};
+    Object.keys(leads).forEach(function (id) {
+      var lead = leads[id] || {};
+      if (lead.retired || lead.badNumber || lead.dnc) return;
+      var st = leadSt(lead);
+      if (!HOL_STATES[st]) return;
+      var hit = (Array.isArray(lead.tasks) ? lead.tasks : []).some(function (t) {
+        return t && !t.done && typeof t.dueAt === "number" && isFinite(t.dueAt) && !isAppt(t) && t.dueAt < end && assigneeOf(t, lead) === uid;
+      });
+      if (hit) { n++; by[st] = (by[st] || 0) + 1; }
+    });
+  });
+  if (!n) return null;
+  var states = Object.keys(by).sort(function (a, c) { return by[c] - by[a] || (a < c ? -1 : 1); });
+  return { when: when, ymd: ymd, name: holidayOn(ymd).replace(" (observed)", ""), n: n, states: states };
+}
+function stList(a) { return a.length <= 1 ? a.join("") : a.length === 2 ? a[0] + " and " + a[1] : a.slice(0, -1).join(", ") + " and " + a[a.length - 1]; }
+function holidayLine(h) {
+  if (!h || !h.n) return "";
+  var who = h.n === 1 ? "1 lead" : h.n + " leads", st = stList(h.states);
+  if (h.when === "today") return h.name + ": no sales calls in " + st + " today, so leave your " + who + " there for tomorrow.";
+  return h.name + " is " + h.when + ": no sales calls in " + st + " then. Call your " + who + " there today.";
+}
 function digestMessage(name, c, office, tz) {
+  var hl = holidayLine(c && c.hol);
+  if (hl && c.hol.when !== "today") {   // a reason to call today even when nothing else is waiting
+    var fn0 = firstName(name), b0 = digestMessage(name, Object.assign({}, c, { hol: null }), office, tz);
+    var body0 = b0 ? b0.body.replace(/ Tap to start dialing\.$/, "") + " " + hl : hl;
+    return { kind: "digest", title: "Good morning" + (fn0 ? ", " + fn0 : ""), body: body0 + " Tap to start dialing.",
+      link: leadLink(office, ""), tag: "vpex-digest", leadId: "", office: office || "" };
+  }
   if (!c || (!c.waiting && !c.appts)) return null;
   var n = function (x) { return Number(x).toLocaleString("en-US"); }, bits = [];
   if (c.waiting) bits.push(n(c.waiting) + " follow-up" + (c.waiting === 1 ? "" : "s") + " waiting" + (c.today && c.today < c.waiting ? " (" + n(c.today) + " new today)" : ""));
   if (c.appts) bits.push(c.appts + " appointment" + (c.appts === 1 ? "" : "s") + " today, first at " +
     new Intl.DateTimeFormat("en-US", { timeZone: safeTz(tz), hour: "numeric", minute: "2-digit" }).format(new Date(c.firstAppt)));
   var fn = firstName(name);
-  return { kind: "digest", title: "Good morning" + (fn ? ", " + fn : ""), body: bits.join(" · ") + (c.waiting ? ". Tap to start dialing." : "."),
+  return { kind: "digest", title: "Good morning" + (fn ? ", " + fn : ""), body: bits.join(" · ") + (hl ? ". " + hl : "") + (c.waiting ? (hl ? " " : ". ") + "Tap to start dialing." : hl ? "" : "."),
     link: leadLink(office, ""), tag: "vpex-digest", leadId: "", office: office || "" };
 }
 
@@ -549,7 +634,7 @@ function bookMessage(office, leadId, lead, at, tz, moved) {
 module.exports = {
   loginEmail, loginInOffice, APP_URL, STALE_MS, DROP_MS, APPT_LEAD_MS, queueId, notifyAt, assigneeOf, taskEntries, diffQueue, handoffEvents, officeOpen,
   fmtWhen, leadLink, dueMessages, handoffMessage, testMessage, fcmMessage, deadToken, officeFromEmail, safeTz, firstName,
-  localParts, digestDue, localDayBounds, digestCounts, digestMessage,
+  localParts, digestDue, localDayBounds, digestCounts, digestMessage, holidayNames, holidayOn, leadSt, holidayHeads, holidayLine, HOL_STATES, ZONE_STATES,
   weekDue, weekLead, lastWeekBounds, weekDates, weekAdd, weekNew, weekMessage, utcDate,
   FLOOR_MAX, floorRequest, floorGate, floorRecipients, floorMessage,
   HIT_EVENTS, HIT_INDS, HIT_ORIGINS, HIT_DAY_KEYS, hitOriginOk, capHit, hitTok, parseHit, hitKey, unHitKey, nyDate, freshOffice,

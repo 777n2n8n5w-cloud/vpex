@@ -4,7 +4,8 @@
 //  - sendDue: every minute, send the follow-ups that just came due.
 //  - sendTest: the "Send a test" button in the app.
 //  - sendFloor: "Message your floor", an admin or manager sends one short message to every rep's phone (or the reps they pick).
-//  - morningDigest: weekdays at 8:30 in each rep's time zone, what's waiting today; Mondays, admins and managers also get
+//  - morningDigest: weekdays at 8:30 in each rep's time zone, what's waiting today;
+//    the day before a federal holiday (Friday: a Monday holiday) it names follow-ups in states that ban sales calls on it; Mondays, admins and managers also get
 //    last week on the floor (calls, conversations, interested, change from the week before, top caller).
 //  - igDone: the "Done" button on an Instagram hand-off page (marks that post as posted by hand; needs the page's own key).
 //  - hit: anonymous funnel counts from vpexdialer.com (page seen, demo opened, trial form, sign-up), by where people came from.
@@ -290,7 +291,9 @@ exports.morningDigest = onSchedule({ schedule: "30 * * * *", timeZone: "Etc/UTC"
       chunks = qs.docs.filter(function (d) { return d.id.charAt(0) !== "_"; }).map(function (d) { return d.data(); });
       chunkCache.set(p.office, chunks);
     }
-    const msg = L.digestMessage(name, L.digestCounts(chunks, uid, now, p.tz), p.office, p.tz);
+    const counts = L.digestCounts(chunks, uid, now, p.tz);
+    try { counts.hol = L.holidayHeads(chunks, uid, now, p.tz); } catch (e) { logger.warn("holiday heads-up failed", { err: String(e) }); }
+    const msg = L.digestMessage(name, counts, p.office, p.tz);
     if (!msg) continue;
     const r = await sendTo(uid, [msg], 4 * 3600);
     sent += r.sent;
