@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-03-02">
+<meta name="vpex-build" content="2027-03-03">
 <!-- Scripts only from this site and Google's Firebase library; no plugins; no <base> or form hijacking. Inline scripts stay
      allowed because the app is one file. (GitHub Pages can't send headers, so this is the strongest policy a page can set.) -->
 <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://www.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self'">
@@ -13220,6 +13220,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       '<li>' + PUSH_BELL + '<span><b>Appointments</b> 10 minutes before they start</span></li>' +
       '<li>' + PUSH_BELL + '<span><b>New handoffs</b> the moment a lead is handed to you</span></li>' +
       '<li>' + PUSH_BELL + '<span><b>A morning summary</b> at 8:30 on weekdays with what’s waiting</span></li>' +
+      '<li>' + PUSH_BELL + '<span><b>A holiday heads-up</b> in that summary the weekday before a holiday, naming your follow-ups in states that ban sales calls on it</span></li>' +
       (TEAM.on && TEAM.me ? '<li>' + PUSH_BELL + '<span><b>Messages from your manager</b> to the whole floor, like “Back on the phones!”</span></li>' : '') +
       (TEAM.on && TEAM.me && (isAdmin() || isManager()) ? '<li>' + PUSH_BELL + '<span><b>Your floor’s week</b> on Monday mornings: calls, conversations, interested and the top caller</span></li>' : '') + '</ul>';
     var share = '<svg class="push-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Share"><path d="M12 15V3"/><path d="M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>';
@@ -13491,7 +13492,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     if (isRun()) return runLeads();
     var all = allPendingLeads();
     var f = state.queueFilter || "all", holSet = {};
-    if (f === "hol") holidayLeads(localDateStr(new Date(shiftDays(Date.now(), 1)))).forEach(function (l) { holSet[l.id] = 1; });
+    if (f === "hol") { var hy = holidayAheadYmd(); if (hy) holidayLeads(hy).forEach(function (l) { holSet[l.id] = 1; }); }
     var list = f === "all" ? all : all.filter(function (l) {
       var z = leadZone(l);
       if (f === "now") return !!z.iana && leadClock(l).ok;
@@ -13883,9 +13884,16 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     });
   }
   // Today's or tomorrow's holiday ban, as { when: "today"|"tomorrow", ymd, name, day, leads, states, now (callable now) } or null.
+  // The next holiday to warn about ahead of it: tomorrow's, or on a Friday or Saturday a Monday holiday (AL, LA, PA and RI all
+  // ban Sunday sales calls, so Friday/Saturday is the last chance to call those leads before it).
+  function holidayAheadYmd() {
+    var wd = new Date().getDay(), ahead = [1].concat(wd === 5 ? [3] : wd === 6 ? [2] : []);
+    for (var i = 0; i < ahead.length; i++) { var m = localDateStr(new Date(shiftDays(Date.now(), ahead[i]))); if (usHolidays(Number(m.slice(0, 4)))[m]) return m; }
+    return "";
+  }
   function holidayHeads() {
-    var t = localDateStr(new Date()), m = localDateStr(new Date(shiftDays(Date.now(), 1)));
-    var ymd = usHolidays(Number(t.slice(0, 4)))[t] ? t : usHolidays(Number(m.slice(0, 4)))[m] ? m : "";
+    var t = localDateStr(new Date()), m = holidayAheadYmd();
+    var ymd = usHolidays(Number(t.slice(0, 4)))[t] ? t : m;
     if (!ymd) return null;
     var leads = holidayLeads(ymd); if (!leads.length) return null;
     var by = {}; leads.forEach(function (l) { var st = leadZone(l).st; by[st] = (by[st] || 0) + 1; });
@@ -18107,7 +18115,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
   var CALL_DAYS = 45;
   var TEAM = { on: false, app: null, auth: null, db: null, me: null, members: {}, unsub: [], lastSent: {}, lastCk: {},
     chunkSizes: {}, flushTimer: null, flushing: false, again: false, claiming: null, myClaimId: null, days: {}, dayUnsub: {}, fastSig: {},
-    ready: false, renderPending: false, taskScope: "mine", histRep: "all", heartbeat: null, dayTimer: null,
+    ready: false, renderPending: false, taskScope: DEMO ? "all" : "mine", histRep: "all", heartbeat: null, dayTimer: null,
     signingOut: false, migrationChecked: false, membersUnsub: null, setupMode: false, office: null, officeDoc: null, officeUnsub: null };
 
   function teamAvailable() { return !!(window.firebase && typeof firebase.initializeApp === "function" && FIREBASE_CONFIG.apiKey); }

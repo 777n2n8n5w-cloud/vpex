@@ -21,6 +21,7 @@ check('2026-11-26 is Thanksgiving', ctx.holidayNames(2026)['2026-11-26'] === 'Th
 check('2027-12-24 is Christmas Day (observed)', ctx.holidayNames(2027)['2027-12-24'] === 'Christmas Day (observed)');
 check('2027-12-31 is New Year’s Day (observed)', /New Year.s Day \(observed\)/.test(ctx.holidayNames(2027)['2027-12-31'] || ''));
 check('2027-01-18 is Martin Luther King Jr. Day', ctx.holidayNames(2027)['2027-01-18'] === 'Martin Luther King Jr. Day');
+check('Notifications sheet lists the holiday heads-up', /<b>A holiday heads-up<\/b> in that summary the weekday before a holiday/.test(src));
 check('stList', ctx.stList(['PA']) === 'PA' && ctx.stList(['PA', 'AL']) === 'PA and AL' && ctx.stList(['PA', 'AL', 'RI']) === 'PA, AL and RI');
 
 // 2) In the demo offices, with a list that has Pennsylvania and Alabama leads.
@@ -95,9 +96,33 @@ const toast = (page) => page.evaluate(() => [...document.querySelectorAll('.toas
     await cx.close();
   }
   // Wed before Thanksgiving: the right name.
-  const { cx, page } = await open(br, 'auto', CF[0], '2026-11-25T16:00:00Z', true);
-  const p = await pill(page);
-  check('auto Wed Nov 25: Thu is Thanksgiving', p && /Thu is Thanksgiving/.test(p.text), p);
-  await cx.close();
+  { const { cx, page } = await open(br, 'auto', CF[0], '2026-11-25T16:00:00Z', true);
+    const p = await pill(page);
+    check('auto Wed Nov 25: Thu is Thanksgiving', p && /Thu is Thanksgiving/.test(p.text), p);
+    await cx.close(); }
+  // A Monday holiday: AL, LA, PA and RI also ban Sundays, so Friday and Saturday are the last days to call those leads.
+  for (const c of CF) for (const [day, iso] of [['Fri Jan 15', '2027-01-15T16:00:00Z'], ['Sat Jan 16', '2027-01-16T16:00:00Z']]) {
+    const tag = 'insurance/' + c.n + ' ' + day;
+    const { cx, page, errs } = await open(br, 'insurance', c, iso, true);
+    const p = await pill(page);
+    check(tag + ': "Mon is Martin Luther King Jr. Day · call your 4 leads in PA, AL today"', p && /Mon is Martin Luther King Jr\. Day · call your 4 leads in PA, AL today$/.test(p.text), p);
+    check(tag + ': pill fits the screen', p && p.right <= p.vw + 1, p);
+    if (p) { await page.click('[data-need="hol"]'); await page.waitForTimeout(500); }
+    const st = await page.evaluate(() => { const a = document.querySelector('.filter-chip.active[data-qfilter="hol"]'); return { chip: a && a.innerText, sw: document.documentElement.scrollWidth, vw: innerWidth }; });
+    check(tag + ' tap: "Before the holiday 4" chip, PA/AL lead on screen', st.chip && /Before the holiday\s+4/.test(st.chip) && HOL.includes(await leadName(page)), { st, nm: await leadName(page) });
+    check(tag + ' tap: toast names the holiday', /No sales calls on Martin Luther King Jr\. Day in PA and AL\. Showing the 4 you can call now\./.test(await toast(page)), await toast(page));
+    check(tag + ': no sideways scroll, no page errors', st.sw <= st.vw && !errs.length, { st, errs });
+    await cx.close();
+  }
+  { // Sunday: PA and AL ban Sunday calls, so the pill only informs.
+    const { cx, page } = await open(br, 'insurance', CF[0], '2027-01-17T16:00:00Z', true);
+    const p = await pill(page);
+    check('insurance Sun Jan 17: "Mon is Martin Luther King Jr. Day · no sales calls to 4 leads in PA, AL then"', p && /Mon is Martin Luther King Jr\. Day · no sales calls to 4 leads in PA, AL then$/.test(p.text), p);
+    await cx.close(); }
+  for (const [day, iso] of [['Thu Jan 14 (Mon holiday 4 days out)', '2027-01-14T16:00:00Z'], ['Fri Nov 20 2026 (no Monday holiday)', '2026-11-20T16:00:00Z'], ['Sat Nov 21 2026', '2026-11-21T16:00:00Z']]) {
+    const { cx, page } = await open(br, 'insurance', CF[0], iso, true);
+    check('insurance ' + day + ': no pill', !(await pill(page)));
+    await cx.close();
+  }
   await br.close(); console.log(`holiday_heads: ${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);
 })();

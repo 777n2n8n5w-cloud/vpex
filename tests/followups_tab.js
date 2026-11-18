@@ -85,6 +85,7 @@ async function toastWith(page, re) {   // other toasts (a badge, a goal) can be 
     for (const o of ['noanswer', 'voicemail', 'noanswer', 'noanswer', 'interested', 'noanswer', 'voicemail', 'noanswer', 'noanswer', 'noanswer', 'noanswer', 'voicemail']) await log(page, o);
     await page.clock.fastForward(4 * 86400000); await page.waitForTimeout(400);
     await view(page, 'tasks');
+    await ev(page, () => { const b = document.querySelector('[data-tscope="mine"]'); if (b) b.click(); }); await page.waitForTimeout(300);   // demos open on Everyone's; these checks are about the visitor's own
     g = await ev(page, () => ({ sub: document.querySelector('.tasks-sub').textContent, banner: (document.querySelector('.fu-banner') || {}).innerText || '', bl: (document.querySelector('.tk-backlog') || {}).innerText || '', chips: [...document.querySelectorAll('[data-tk-kind]')].map(b => b.innerText.replace(/\s+/g, ' ')), heads: [...document.querySelectorAll('.task-section-head')].map(h => h.innerText) }));
     check(c.n + ' the tab counts what\'s due and starts the run', /due now/.test(g.sub) && /Call \d+ due now/.test(g.banner), g);
     check(c.n + ' late retries can be spread out (interested leads aren\'t counted)', /^1[01] automatic retries are 2\+ days late/.test(g.bl), g.bl);
@@ -134,6 +135,7 @@ async function toastWith(page, re) {   // other toasts (a badge, a goal) can be 
     for (let i = 0; i < 30; i++) await log(page, 'noanswer');
     await page.clock.fastForward(4 * 86400000); await page.waitForTimeout(300);
     await view(page, 'tasks');
+    await ev(page, () => { const b = document.querySelector('[data-tscope="mine"]'); if (b) b.click(); }); await page.waitForTimeout(300);
     let n = await ev(page, () => ({ rows: document.querySelectorAll('.task-item').length, more: (document.querySelector('[data-tk-more]') || {}).textContent || '' }));
     check('30 due: 25 rows and "Show all 30"', n.rows === 25 && n.more === 'Show all 30', n);
     await tap(page, '[data-tk-more]');
