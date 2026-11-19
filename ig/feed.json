@@ -1,6 +1,132 @@
 {
-"built": "2026-11-12T09:04-05:00",
+"built": "2026-11-19T09:10-05:00",
 "tiles": [
+{
+"id": "w9-dec",
+"at": "2026-11-30T19:00:00-05:00",
+"t": "December calling days",
+"img": "t/w9-dec.jpg",
+"go": "home",
+"c": "w9",
+"k": "carousel"
+},
+{
+"id": "w9-be",
+"at": "2026-11-30T11:00:00-05:00",
+"t": "Monday after Thanksgiving. Follow-ups first.",
+"img": "t/w9-be.jpg",
+"go": "home",
+"c": "w9",
+"k": "reel"
+},
+{
+"id": "w9-price",
+"at": "2026-11-29T19:00:00-05:00",
+"t": "No Black Friday sale. $49 a rep, every day.",
+"img": "t/w9-price.jpg",
+"go": "trial",
+"c": "w9",
+"k": "image"
+},
+{
+"id": "w9-bd",
+"at": "2026-11-29T11:00:00-05:00",
+"t": "Sunday. Who can you call?",
+"img": "t/w9-bd.jpg",
+"go": "home",
+"c": "w9",
+"k": "reel"
+},
+{
+"id": "w9-math",
+"at": "2026-11-28T19:00:00-05:00",
+"t": "Floor math, January callbacks",
+"img": "t/w9-math.jpg",
+"go": "home",
+"c": "w9",
+"k": "image"
+},
+{
+"id": "w9-bc",
+"at": "2026-11-28T11:00:00-05:00",
+"t": "Saturday, 9:30 AM. Who can you call?",
+"img": "t/w9-bc.jpg",
+"go": "home",
+"c": "w9",
+"k": "reel"
+},
+{
+"id": "w9-next",
+"at": "2026-11-27T19:00:00-05:00",
+"t": "No answer. Now what?",
+"img": "t/w9-next.jpg",
+"go": "home",
+"c": "w9",
+"k": "carousel"
+},
+{
+"id": "w9-bb",
+"at": "2026-11-27T11:00:00-05:00",
+"t": "No Black Friday sale.",
+"img": "t/w9-bb.jpg",
+"go": "trial",
+"c": "w9",
+"k": "reel"
+},
+{
+"id": "w9-remote",
+"at": "2026-11-26T19:00:00-05:00",
+"t": "Half your floor dials from home?",
+"img": "t/w9-remote.jpg",
+"go": "home",
+"c": "w9",
+"k": "image"
+},
+{
+"id": "w9-ba",
+"at": "2026-11-26T11:00:00-05:00",
+"t": "What your floor is thankful for",
+"img": "t/w9-ba.jpg",
+"go": "home",
+"c": "w9",
+"k": "reel"
+},
+{
+"id": "w9-honest",
+"at": "2026-11-25T19:00:00-05:00",
+"t": "212 calls today. Were they all calls?",
+"img": "t/w9-honest.jpg",
+"go": "home",
+"c": "w9",
+"k": "image"
+},
+{
+"id": "w9-az",
+"at": "2026-11-25T11:00:00-05:00",
+"t": "9:30 in Kentucky? Too early.",
+"img": "t/w9-az.jpg",
+"go": "home",
+"c": "w9",
+"k": "reel"
+},
+{
+"id": "w9-re",
+"at": "2026-11-24T19:00:00-05:00",
+"t": "Built for real estate floors",
+"img": "t/w9-re.jpg",
+"go": "demo:realestate",
+"c": "w9",
+"k": "carousel"
+},
+{
+"id": "w9-ay",
+"at": "2026-11-24T11:00:00-05:00",
+"t": "Call me after the holidays.",
+"img": "t/w9-ay.jpg",
+"go": "home",
+"c": "w9",
+"k": "reel"
+},
 {
 "id": "w8-thanks",
 "at": "2026-11-23T19:00:00-05:00",
