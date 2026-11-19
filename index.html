@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-03-03">
+<meta name="vpex-build" content="2027-03-04">
 <!-- Scripts only from this site and Google's Firebase library; no plugins; no <base> or form hijacking. Inline scripts stay
      allowed because the app is one file. (GitHub Pages can't send headers, so this is the strongest policy a page can set.) -->
 <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://www.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self'">
@@ -8040,7 +8040,7 @@ window.VPEX_SIG = [
   ::-webkit-scrollbar { width: 8px; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; }
 
-  .kp { --kp: min(76px, 20vw); max-width: 340px; margin: 4px auto 0; display: flex; flex-direction: column; align-items: center; }
+  .kp { --kp: min(76px, 20vw); width: 100%; max-width: 340px; margin: 4px auto 0; display: flex; flex-direction: column; align-items: center; }
   .kp-top { position: relative; width: 100%; min-height: 58px; display: flex; align-items: center; }
   .kp-num { width: 100%; box-sizing: border-box; text-align: center; font-size: 32px !important; font-weight: 500; letter-spacing: 0.5px; padding: 8px 46px !important;
     border: none !important; background: none !important; box-shadow: none !important; color: var(--text); outline: none; caret-color: var(--accent); }
@@ -8449,6 +8449,13 @@ window.VPEX_SIG = [
      typing field uses 16px, so notes, pickers and forms open without zooming. */
   @media (pointer: coarse) {
     input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea { font-size: 16px !important; }
+    /* The Manual dial number keeps its big size (it never opens a keyboard, and it's above 16px anyway). */
+    input.kp-num:not([type="checkbox"]):not([type="radio"]):not([type="range"]) { font-size: 32px !important; }
+    input.kp-num.long:not([type="checkbox"]):not([type="radio"]):not([type="range"]) { font-size: 24px !important; }
+  }
+  @media (max-width: 359px) {
+    input.kp-num:not([type="checkbox"]):not([type="radio"]):not([type="range"]) { font-size: 26px !important; }
+    input.kp-num.long:not([type="checkbox"]):not([type="radio"]):not([type="range"]) { font-size: 22px !important; }
   }
 
 

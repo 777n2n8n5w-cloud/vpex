@@ -41,8 +41,9 @@ const check = (n, ok, info) => { if (ok) pass++; else { fail++; console.log('FAI
   await paste('');
   for (const k of '17325550142') await page.tap('[data-k="' + k + '"]');
   const fit = await ev(() => { const i = document.getElementById('kpNum'), c = document.createElement('canvas').getContext('2d'), cs = getComputedStyle(i); c.font = cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
-    return { v: i.value, text: c.measureText(i.value).width + i.value.length * (parseFloat(cs.letterSpacing) || 0), room: i.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) }; });
+    return { v: i.value, text: c.measureText(i.value).width + i.value.length * (parseFloat(cs.letterSpacing) || 0), room: i.getBoundingClientRect().width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight), fs: parseFloat(cs.fontSize) }; });
   check('a typed 1 + 10 digits fits on the line', fit.v === '1 (732) 555-0142' && fit.text <= fit.room, fit);
+  check('on a phone the keypad number stays big (not the 16px no-zoom size)', fit.fs >= 24, fit);
   const intl = await paste('+44 20 7946 0958');
   check('a non-US number says why it can\'t be called', !intl.href && /US numbers/.test(intl.info), intl);
   const long = await paste('732555014299');
