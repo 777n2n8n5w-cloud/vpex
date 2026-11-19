@@ -96,8 +96,8 @@ post("W9-Honest", "Post: 212 calls today. Were they all calls?", NIGHT,
 # ========== Thu 19:00 post: remote reps, one scoreboard ==========
 post("W9-Remote", "Post: Half your floor dials from home?", PAPER,
     at(84, 84, headline("Half your floor dials from home?", 104, INK), w=910) +
-    at(88, 380, para("Same scoreboard. In office and remote, side by side, per rep.", 40, SLATE, "font-weight: 600"), w=900) +
-    crop("office", 500, 1.75) + demo_tag(1150) +
+    at(88, 425, para("Same scoreboard. In office and remote, side by side, per rep.", 40, SLATE, "font-weight: 600"), w=900) +
+    crop("office", 562, 1.65) + demo_tag(1150) +
     at(88, 1195, para("Comment DEMO and we’ll send you a live demo office.", 30, INK, "font-weight: 700")) + foot_light(1262))
 
 # ========== Fri 19:00 carousel: no answer, your next 3 moves ==========
