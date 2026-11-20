@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-03-11">
+<meta name="vpex-build" content="2027-03-12">
 <!-- Scripts only from this site and Google's Firebase library; no plugins; no <base> or form hijacking. Inline scripts stay
      allowed because the app is one file. (GitHub Pages can't send headers, so this is the strongest policy a page can set.) -->
 <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://www.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self'">
@@ -13592,8 +13592,13 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     });
     var ql = state.queueList || "all";
     if (ql !== "all") list = list.filter(function (l) { return (l.source || "Original list") === ql; });
-    var out = state.queueOrder === "smart" ? smartSort(list) : list;
-    return out;
+    if (state.queueOrder === "smart") return smartSort(list);   // smart order already puts anyone outside their calling hours last
+    // Any other order: the people you can call right now come first, in the order you chose; anyone outside their
+    // calling hours (early on the West Coast, evenings on the East Coast, a state's quiet day) waits at the end
+    // instead of stopping every other call with "Outside calling hours".
+    var now = [], later = [];
+    for (var i = 0; i < list.length; i++) { var lz = leadZone(list[i]); (lz.iana && !leadClock(list[i]).ok ? later : now).push(list[i]); }
+    return later.length && now.length ? now.concat(later) : list;
   }
 
   // Answer-likelihood by the lead's LOCAL hour, from published sales-call
