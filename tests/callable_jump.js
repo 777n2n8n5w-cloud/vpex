@@ -27,6 +27,11 @@ const st = page => page.evaluate(() => {
     const tag = o + '/' + c.n;
     let { ctx, page, errs } = await open(br, o, LATE, c);
     let s = await st(page);
+    // All leads: whoever can be called now comes first (build 2027-03-05), so the card isn't blocked and needs no jump
+    check(tag + ' 10:30 PM ET, All: the lead on screen is callable, no jump needed', s.late === false && !s.btn, s);
+    // A list where nobody is callable now (the East Coast at 10:30 PM ET): the jump to Callable now is offered
+    await page.evaluate(() => { const b = document.querySelector('[data-qfilter="E"]'); if (b) b.click(); }); await page.waitForTimeout(500);
+    s = await st(page);
     if (s.late) {
       check(tag + ' late lead: button offered', !!s.btn && s.chip > 0, s);
       check(tag + ' button count = Callable now count', s.btn && Number(s.btn.match(/[\d,]+/)[0].replace(/,/g, '')) === s.chip, s);
@@ -41,7 +46,8 @@ const st = page => page.evaluate(() => {
       check(tag + ' tap: button gone', !s2.btn, s2);
       const saved = await page.evaluate(() => { for (const k of Object.keys(localStorage)) { try { const v = JSON.parse(localStorage[k]); if (v && v.queueFilter) return v.queueFilter; } catch (e) {} } return null; });
       check(tag + ' tap: filter saved', saved === 'now', saved);
-    } else check(tag + ' first lead is blocked at 10:30 PM ET', false, s);
+      await page.evaluate(() => { const b = document.querySelector('[data-qfilter="all"]'); if (b) b.click(); }); await page.waitForTimeout(300);
+    } else check(tag + ' Eastern at 10:30 PM ET: first lead is blocked', false, s);
     check(tag + ' no page errors', !errs.length, errs); await ctx.close();
     if (c.n !== 'p-dark') continue;
     ({ ctx, page, errs } = await open(br, o, NIGHT, c)); s = await st(page);
