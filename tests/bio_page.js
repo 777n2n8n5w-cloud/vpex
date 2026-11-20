@@ -63,7 +63,7 @@ async function mk(br, c) {
     check('threads: links say utm_source=threads', /utm_source=threads/.test(h) && hits[0] && hits[0].s === 'threads', [h, hits[0]]);
     check('threads: no errors', !errs.length, errs); await ctx.close(); }
   // Older posts: 24 at first, then 24 more per Show older posts until all are shown
-  { const { ctx, p } = await mk(br, { w: 390, s: 'dark' }); await p.clock.setSystemTime(new Date('2026-11-30T12:00:00-05:00'));
+  { const { ctx, p } = await mk(br, { w: 390, s: 'dark' }); await p.clock.setSystemTime(new Date(Math.max.apply(null, feed.tiles.map(t => Date.parse(t.at))) + 3600000));   // after the newest post, whatever week the content packs reach
     await p.goto(ROOT + '/ig/'); await p.waitForTimeout(1000);
     const a = await p.evaluate(() => document.querySelectorAll('#grid a').length);
     const steps = [a];
