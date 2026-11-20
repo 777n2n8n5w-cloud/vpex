@@ -112,7 +112,7 @@ const CSV = 'Name,Home Phone,Mobile Phone,Work Phone,Email,Email 2,State,Company
     await setVal(page, '#ctPhone', L.phoneRaw);
     // edit: Make main, remove one, add one, change email and state
     await click(page, '[data-ct-main="1"]'); await page.waitForTimeout(150);
-    check(c.n + ' Make main swaps it with the main number', await page.evaluate(() => document.getElementById('ctPhone').value) === '(646) 555-0144' && await page.evaluate(() => document.querySelector('[data-ct-n="1"]').value) === '(212) 555-0115');
+    check(c.n + ' Make main swaps it with the main number', await page.evaluate(() => document.getElementById('ctPhone').value) === '(646) 555-0144' && await page.evaluate(() => document.querySelector('[data-ct-n="1"]').value) === '(212) 555-0105');
     await click(page, '[data-ct-del="2"]'); await page.waitForTimeout(100);
     await click(page, '#ctAddNum'); await page.waitForTimeout(100);
     await setVal(page, '[data-ct-n="2"]', '9175550178'); await setVal(page, '[data-ct-l="2"]', 'Home');
@@ -120,7 +120,7 @@ const CSV = 'Name,Home Phone,Mobile Phone,Work Phone,Email,Email 2,State,Company
     await click(page, '#ctSave'); await page.waitForTimeout(500);
     L = await lead(page, id);
     check(c.n + ' saved: new main number', L.phoneRaw === '(646) 555-0144' && L.phone === '+16465550144', [L.phoneRaw, L.phone]);
-    check(c.n + ' saved: other numbers with labels', JSON.stringify(L.alts) === JSON.stringify([{ n: '(212) 555-0150', l: 'Mobile' }, { n: '(212) 555-0115', l: 'Other' }, { n: '9175550178', l: 'Home' }]), L.alts);
+    check(c.n + ' saved: other numbers with labels', JSON.stringify(L.alts) === JSON.stringify([{ n: '(212) 555-0150', l: 'Mobile' }, { n: '(212) 555-0105', l: 'Other' }, { n: '9175550178', l: 'Home' }]), L.alts);
     check(c.n + ' saved: email, state and name', L.email === 'anthony.r@example.com' && L.st === 'NJ' && L.name === 'Anthony J. Ross', [L.email, L.st, L.name]);
     check(c.n + ' saved: says so', /Contact saved/.test(await toast(page)), await toast(page));
     const after = await page.evaluate(() => ({ card: document.getElementById('lpContact').innerText.replace(/\s+/g, ' '), tl: (document.querySelector('.lp-tl') || {}).innerText || '', where: document.getElementById('leadModalBody').innerText }));

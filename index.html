@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-03-04">
+<meta name="vpex-build" content="2027-03-05">
 <!-- Scripts only from this site and Google's Firebase library; no plugins; no <base> or form hijacking. Inline scripts stay
      allowed because the app is one file. (GitHub Pages can't send headers, so this is the strongest policy a page can set.) -->
 <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://www.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self'">
@@ -11479,15 +11479,18 @@ body.desk #deskLeft > #queueControls::before, body.desk #deskLeft #queueHeading 
     var s = 42, rnd = function () { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }, pick = function (a) { return a[Math.floor(rnd() * a.length)]; };
     db["members/dAdm"] = { username: "demo", name: "You", role: "admin", active: true, lastSeen: now };
     reps.forEach(function (r, i) { db["members/" + r.uid] = { username: ["jordan", "sam", "mia"][i], name: r.name, role: "rep", active: true, lastSeen: now, closer: r.uid === "dR2" }; });   // Sam closes
-    var leads = {}, ids = [];
+    var leads = {}, ids = [], usedNm = {};
     for (var i = 0; i < 240; i++) {
-      var st = ST[i % ST.length], id = "dm" + i, skip = rnd(), ph = String(st[1]) + "555" + String(100 + Math.floor(i / ST.length)).padStart(4, "0");   // 555-01xx: numbers reserved for fiction, so the demo never shows a real person's number
-      leads[id] = { id: id, name: pick(FN) + " " + pick(LN), phoneRaw: "(" + ph.slice(0, 3) + ") " + ph.slice(3, 6) + "-" + ph.slice(6), phone: "+1" + ph,
+      var st = ST[i % ST.length], id = "dm" + i, skip = rnd(), sfx = (Math.floor(i / ST.length) * 7 + (i % ST.length) * 3) % 50, ph = String(st[1]) + "555" + String(100 + sfx).padStart(4, "0");   // 555-01xx: numbers reserved for fiction, so the demo never shows a real person's number. Main numbers 0100-0149 (alternates 0150-0199), unique per area code and varied down the list
+      var nm = pick(FN) + " " + pick(LN), fi = FN.indexOf(nm.split(" ")[0]), li = LN.indexOf(nm.split(" ")[1]);
+      for (var dn = 1; usedNm[nm] && dn < LN.length; dn++) nm = FN[fi] + " " + LN[(li + dn * 7) % LN.length];   // no two demo leads share a name (no extra rnd() calls, so the rest of the demo stays the same)
+      usedNm[nm] = 1;
+      leads[id] = { id: id, name: nm, phoneRaw: "(" + ph.slice(0, 3) + ") " + ph.slice(3, 6) + "-" + ph.slice(6), phone: "+1" + ph,
         notes: IND.demo.note(Math.floor(rnd() * 1000), st[0]), st: st[0], stage: "New Lead", amount: 0, status: "pending", outcome: null,
         calledAt: null, seq: i, tasks: [], texts: [], source: IND.demo.lists[i < 140 ? 0 : 1] };
       var dq = demoQf(i); if (dq) { leads[id].qf = dq; leads[id].notes = demoTalk(i) + " | " + st[0]; }   // the rep's notes, alongside the details
       if (i % 3 !== 2) leads[id].email = leads[id].name.toLowerCase().replace(/[^a-z ]/g, "").replace(" ", ".") + "@example.com";   // example.com: a domain reserved for examples
-      if (i % 4 === 0) leads[id].alts = [{ n: "(" + ph.slice(0, 3) + ") 555-" + String(150 + Math.floor(i / ST.length)).padStart(4, "0"), l: i % 8 === 0 ? "Mobile" : "Work" }];
+      if (i % 4 === 0) leads[id].alts = [{ n: "(" + ph.slice(0, 3) + ") 555-" + String(150 + sfx).padStart(4, "0"), l: i % 8 === 0 ? "Mobile" : "Work" }];
       ids.push(id);
     }
     var OUT = [["noanswer", "No answer", 46], ["voicemail", "Voicemail", 22], ["notinterested", "Not interested", 14], ["interested", "Interested", 8], ["callback", "Callback", 6], ["badnum", "Bad number", 4]];
@@ -11523,7 +11526,7 @@ body.desk #deskLeft > #queueControls::before, body.desk #deskLeft #queueHeading 
     [["Catherine Hughes", 250000, "Funded", 20, "Pre-IPO AI chips"], ["Marcus Bennett", 500000, "Committed", 4, "Series E fintech"], ["Priya Patel", 150000, "Closed", 60, "Defense tech"],
      ["Daniel Ross", 100000, "Committed", 11, "Payments platform"], ["Elena Morgan", 350000, "Funded", 35, "Data platform"]].forEach(function (v, k) {
       var o = k % 2 ? reps[k % 3] : me;
-      db["vault/dv" + k] = { name: v[0], phone: "+1212555" + (1200 + k), phoneRaw: "(212) 555-" + (1200 + k), state: "NY", leadId: "", ownerUid: o.uid, ownerName: o.name, createdAt: now - v[3] * 86400000,
+      db["vault/dv" + k] = { name: v[0], phone: "+16465550" + (190 + k), phoneRaw: "(646) 555-0" + (190 + k), state: "NY", leadId: "", ownerUid: o.uid, ownerName: o.name, createdAt: now - v[3] * 86400000,
         investments: [{ id: "di" + k, deal: IND.demo.deals[k], amount: Math.round(v[1] / 25000 * IND.demo.amt), date: new Date(now - v[3] * 86400000).toISOString().slice(0, 10), status: v[2], done: v[2] === "Committed" ? (k === 1 ? (function () { var o = {}; o[IND.steps[0][0]] = now; return o; })() : {}) : (function () { var o = {}; IND.steps.forEach(function (st) { o[st[0]] = now - v[3] * 86400000; }); return o; })() }],
         keyDates: [], interests: IND.demo.interest, notes: "", lastContactAt: now - k * 9 * 86400000, nextReachOut: "", removalRequest: null, updatedAt: now };
     });
@@ -11553,11 +11556,11 @@ body.desk #deskLeft > #queueControls::before, body.desk #deskLeft #queueHeading 
   if (DEMO) {
     installDemoBackend();
     try {
-      if (!window.localStorage.getItem("__mockfs") || window.localStorage.getItem("dovetail_demo_v") !== "4:" + IND_KEY) {
+      if (!window.localStorage.getItem("__mockfs") || window.localStorage.getItem("dovetail_demo_v") !== "5:" + IND_KEY) {
         window.localStorage.removeItem("dovetail_team_dAdm");
         window.localStorage.setItem("__mockfs", JSON.stringify(demoSeed()));
         var da = {}; da["demo@" + BASE_DOMAIN] = { uid: "dAdm", pw: "demo" };
-        window.localStorage.setItem("__mockauth", JSON.stringify(da)); window.localStorage.setItem("dovetail_demo_v", "4:" + IND_KEY);
+        window.localStorage.setItem("__mockauth", JSON.stringify(da)); window.localStorage.setItem("dovetail_demo_v", "5:" + IND_KEY);
       }
       window.sessionStorage.setItem("__mocksess", JSON.stringify({ uid: "dAdm", email: "demo@" + BASE_DOMAIN }));
     } catch (e) {}

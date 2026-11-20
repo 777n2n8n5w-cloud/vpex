@@ -51,7 +51,7 @@ const check = (n, ok, info) => { if (ok) pass++; else { fail++; console.log('FAI
   const short = await paste('732555');
   check('a number still being typed stays quiet', !short.href && short.info === '', short);
 
-  const known = await paste('(212) 555-0115');
+  const known = await paste('(212) 555-0105');
   check('a lead\'s number shows who it is', /Anthony Ross/.test(known.info) && !!known.href, known);
 
   await paste('(732) 555-0142');
