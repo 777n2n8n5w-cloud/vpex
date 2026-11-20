@@ -21000,7 +21000,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
   }
   function dialStats(now) {
     var cfg = pacingCfg(), win = now - cfg.burstMins * 60000, start = dayStart(0), s = { inWin: 0, today: 0, last: 0 };
-    (state.dialLog || []).forEach(function (t) { if (t >= win) s.inWin++; if (t >= start) s.today++; if (t > s.last) s.last = t; });
+    (state.dialLog || []).forEach(function (t) { if (t > now + 60000) return; if (t >= win) s.inWin++; if (t >= start) s.today++; if (t > s.last) s.last = t; });
     return s;
   }
   function pacingWait(now) {
@@ -22975,7 +22975,9 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     return d;
   }
   function manualToggleHtml() {
-    if (state.awaitingOutcome || state.focusLeadId) return "";
+    // Always on the Dial screen (not inside a follow-up): while a dialed call still needs its outcome the switch used to
+    // disappear, which looked like Manual dial was broken. Now tapping it says what to do first.
+    if (state.focusLeadId) return "";
     var on = !!state.manualDial;
     if (!on) return '<button class="md-bar md-pill" id="mdToggle" type="button" role="switch" aria-checked="false"><span class="md-switch" aria-hidden="true"><span></span></span><b>Manual dial</b></button>';
     return '<button class="md-bar' + (on ? ' on' : '') + '" id="mdToggle" type="button" role="switch" aria-checked="' + on + '">' +
@@ -22984,7 +22986,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
   }
   document.addEventListener("click", function (e) {
     var b = e.target.closest && e.target.closest("#mdToggle"); if (!b) return;
-    if (state.awaitingOutcome) { showToast("Log the outcome for this call first"); return; }
+    if (state.awaitingOutcome && needOutcome()) return;   // "Tap how your call to Sam went first", with the outcome buttons pulsing
     if (state.mdAfter) { showToast("Save or skip the number you just called first"); return; }
     state.manualDial = !state.manualDial; kpRaw = "";
     saveState(); render(); window.scrollTo(0, 0);
@@ -23050,6 +23052,11 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     if (!ok) { var why = kpWhy(kpRaw); info.innerHTML = why ? '<span class="kp-warn">' + escapeHtml(why) + '</span>' : ""; go.innerHTML = off; return; }
     if (dncNums()[dncKey(norm)] || (match && isDnc(match))) {
       info.innerHTML = '<span class="kp-warn">On your team\u2019s Do Not Call list</span>'; go.innerHTML = off; return;
+    }
+    var kcfg = pacingCfg(), kst = dialStats(Date.now());
+    if (kcfg.dayMode === "pause" && kst.today >= Number(kcfg.perDay)) {
+      info.innerHTML = '<span class="kp-warn">Daily call limit reached (' + escapeHtml(String(kcfg.perDay)) + ' calls from this phone). Your admin sets it in Calling rules.</span>';
+      go.innerHTML = off; return;
     }
     var kw = pacingWait(Date.now());
     clearTimeout(kpDraw.t);
