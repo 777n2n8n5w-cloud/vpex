@@ -64,6 +64,8 @@ async function demo(br, o, c) {
     await page.evaluate(() => document.querySelector('#viewTabs [data-view="dial"]').click()); await page.waitForTimeout(350);
     await page.clock.fastForward(20000); await page.waitForTimeout(100);
     await page.evaluate(() => document.getElementById('callBtn').click()); await page.waitForTimeout(500);
+    // the toast slides up into place; on a busy machine it can still be moving at 500 ms, so wait until it settles
+    await page.waitForFunction(() => { const t = document.getElementById('toast'); if (!t) return true; const b = Math.round(t.getBoundingClientRect().bottom), w = window.__tbLast; window.__tbLast = b; return b === w && b <= innerHeight; }, null, { timeout: 3000, polling: 100 }).catch(() => {});
     const ui = await page.evaluate(() => { const t = document.getElementById('toast').getBoundingClientRect(), o = [...document.querySelectorAll('#outcomesRow .out-btn')].map(b => Math.round(b.getBoundingClientRect().top)); return { tr: Math.round(t.right), tb: Math.round(t.bottom), vw: innerWidth, vh: innerHeight, rows: new Set(o).size, n: o.length }; });
     check(tag + ' toast sits at the bottom right', ui.tr >= ui.vw - 40 && ui.tb >= ui.vh - 40 && ui.tb <= ui.vh, ui);
     check(tag + ' outcomes: ' + (c.w >= 1200 ? '3 columns' : '2 columns'), ui.n === 6 && ui.rows === (c.w >= 1200 ? 2 : 3), ui);
