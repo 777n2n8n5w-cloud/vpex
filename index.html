@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-03-05">
+<meta name="vpex-build" content="2027-03-06">
 <!-- Scripts only from this site and Google's Firebase library; no plugins; no <base> or form hijacking. Inline scripts stay
      allowed because the app is one file. (GitHub Pages can't send headers, so this is the strongest policy a page can set.) -->
 <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://www.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self'">
@@ -8742,9 +8742,10 @@ window.VPEX_SIG = [
   .outcomes:not(.disabled) .out-btn[data-outcome="interested"] { background: color-mix(in srgb, var(--oc) 22%, var(--surface)); }
 
   /* On a call: one decision on screen */
-  body.st-live header.top, body.st-live #viewTabs, body.st-live #progressWrap, body.st-live #queueControls, body.st-live #mainArea > :not(.card) {
+  /* The sticky header stays solid (dimming the whole bar let the tabs and the list show through it as they scroll under); only what's in it dims */
+  body.st-live header.top > *, body.st-live header.top::after, body.st-live #viewTabs, body.st-live #progressWrap, body.st-live #queueControls, body.st-live #mainArea > :not(.card) {
     opacity: 0.32; filter: saturate(0.4); transition: opacity 0.4s ease, filter 0.4s ease; }
-  header.top, #viewTabs, #progressWrap, #queueControls, #mainArea > * { transition: opacity 0.4s ease, filter 0.4s ease; }
+  header.top > *, #viewTabs, #progressWrap, #queueControls, #mainArea > * { transition: opacity 0.4s ease, filter 0.4s ease; }
   body.st-live #mainArea .card { box-shadow: 0 0 0 2px var(--accent), var(--card-shadow, 0 14px 32px rgba(0,0,0,0.2)); }
   body.st-live .card .flow-guide .deal-track, body.st-live .card .lead-stage-row { opacity: 0.6; }
   body.st-live .call-btn { background: transparent !important; box-shadow: none !important; color: var(--text-dim) !important;
@@ -8792,7 +8793,7 @@ window.VPEX_SIG = [
   body.st-live #progressWrap, body.st-live #queueControls, body.st-live #mainArea > :not(.card), body.st-live #queueBlock, body.st-live #statsBlock { display: none !important; }
   body.st-live .card .eyebrow-right { display: none; }
   body.st-live .card .eyebrow-row { opacity: 0.55; }
-  body.st-live header.top, body.st-live #viewTabs { opacity: 0.4; }
+  body.st-live header.top > *, body.st-live header.top::after, body.st-live #viewTabs { opacity: 0.4; }
   body.st-live #viewTabs { margin-bottom: 14px; }
   /* Logging a call rings the next card in that outcome's color */
   :root[data-flash] #mainArea .card::after { content: ""; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none;
