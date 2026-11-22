@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-03-06">
+<meta name="vpex-build" content="2027-03-07">
 <!-- Scripts only from this site and Google's Firebase library; no plugins; no <base> or form hijacking. Inline scripts stay
      allowed because the app is one file. (GitHub Pages can't send headers, so this is the strongest policy a page can set.) -->
 <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://www.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self'">
@@ -7974,6 +7974,25 @@ window.VPEX_SIG = [
   .tm-closer input { width: 18px; height: 18px; margin: 0; }
   .handoff-info { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; margin: 4px 0 10px; padding: 10px 12px; border-radius: 10px;
     background: var(--surface-raised); border: 1px solid var(--border); font-size: 13px; color: var(--text-dim); }
+  /* Your floor (admins and managers, Dial screen on a phone) */
+  .floor-strip { margin: 2px 0 12px; }
+  .floor-strip .fs-head { display: flex; align-items: baseline; gap: 8px; width: 100%; min-height: 36px; padding: 4px 0; background: none; border: 0; font: inherit; color: var(--text); text-align: left; cursor: pointer; }
+  .floor-strip .fs-t { font-size: 13px; font-weight: 700; }
+  .floor-strip .fs-sum { font-size: 13px; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+  .floor-strip .fs-sum b { color: var(--text); font-weight: 750; }
+  .floor-strip .fs-live { color: var(--interested); font-weight: 650; }
+  .floor-strip .fs-go { margin-left: auto; color: var(--text-dim); font-size: 18px; line-height: 1; }
+  .floor-strip .fs-row { display: flex; gap: 7px; overflow-x: auto; scrollbar-width: none; padding: 2px 0 4px; -webkit-overflow-scrolling: touch; }
+  .floor-strip .fs-row::-webkit-scrollbar { display: none; }
+  .floor-strip .fs-rep { flex: none; display: inline-flex; align-items: center; gap: 7px; min-height: 38px; padding: 6px 11px; border-radius: var(--radius-s, 8px); border: 1px solid var(--border);
+    background: var(--surface-raised, var(--surface)); color: var(--text); font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; }
+  .floor-strip .fs-rep b { font-weight: 750; font-variant-numeric: tabular-nums; }
+  .floor-strip .fs-rep i { width: 7px; height: 7px; border-radius: 50%; background: var(--text-faint, var(--border)); flex: none; }
+  .floor-strip .fs-rep.on { border-color: var(--interested); }
+  .floor-strip .fs-rep.on i { background: var(--interested); box-shadow: 0 0 0 3px color-mix(in srgb, var(--interested) 25%, transparent); }
+  @media (prefers-reduced-motion: no-preference) { .floor-strip .fs-rep.on i { animation: fsPulse 1.6s ease-in-out infinite; } }
+  @keyframes fsPulse { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--interested) 0%, transparent); } }
+  body.st-live .floor-strip { display: none; }
   .handoff-info b { color: var(--text); } .handoff-info span { font-style: italic; }
   .handoff-info .ho-st { font-size: 12px; font-weight: 600; color: var(--text-faint); } .handoff-info .ho-st.ok { color: var(--interested); }
   /* Send to a closer: shows on the dial card and the profile once every qualifying answer is in */
@@ -14043,6 +14062,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     if (["dial", "history", "pipeline", "tasks", "vault"].indexOf(state.activeView || "dial") < 0) state.activeView = "dial";   // e.g. a saved view from the removed Ops tab
     document.body.setAttribute("data-view", state.activeView || "dial");
     if (DESK && DESK.on) Promise.resolve().then(deskRenderLive);
+    Promise.resolve().then(floorStripRender);
     if (typeof TV !== "undefined" && TV && TV.on) Promise.resolve().then(tvRender);
     document.getElementById("viewTabs").style.display = total > 0 ? "" : "none";
     document.getElementById("viewTabDial").classList.toggle("active", state.activeView === "dial");
@@ -19313,6 +19333,34 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     try { handoffWatch(); } catch (e) {}
   }
 
+  /* ----- Your floor, live, on the Dial screen of an admin's or manager's phone: every rep's calls today, who's on a call now.
+     Same counts as the Team panel and Scoreboard: a call counts the moment it's dialed, once. Tap for the Scoreboard. ----- */
+  function floorStripRender() {
+    var host = document.getElementById("floorStrip");
+    var show = TEAM.on && TEAM.me && (isAdmin() || isManager()) && !(DESK && DESK.on) && (state.activeView || "dial") === "dial" &&
+      !state.awaitingOutcome && totalCount() > 0;
+    var reps = show ? roster().filter(function (m) { return m.uid !== TEAM.me.uid; }) : [];
+    if (!reps.length) { if (host) host.remove(); return; }
+    if (!host) {
+      var pw = document.getElementById("progressWrap"); if (!pw || !pw.parentNode) return;
+      host = document.createElement("section"); host.id = "floorStrip"; host.className = "floor-strip"; host.setAttribute("aria-label", "Your floor today");
+      pw.parentNode.insertBefore(host, pw.nextSibling);
+      host.addEventListener("click", function (e) { if (e.target.closest("[data-fs-open]")) openScoreboard("today"); });
+    }
+    var cmap = callsTodayMap(), live = {}, total = 0;
+    presenceNow().forEach(function (p) { live[p.uid] = p.p; });
+    var rows = reps.map(function (m) { var n = callsTodayLive(m.uid, cmap); total += n; return { m: m, n: n, on: live[m.uid] }; })
+      .sort(function (a, b) { return (b.on ? 1 : 0) - (a.on ? 1 : 0) || b.n - a.n || (a.m.name < b.m.name ? -1 : 1); });
+    var onN = rows.filter(function (r) { return r.on; }).length;
+    var h = '<button type="button" class="fs-head" data-fs-open><span class="fs-t">Your floor</span><span class="fs-sum"><b>' + total + '</b> call' + (total === 1 ? '' : 's') + ' today' +
+        (onN ? ' \u00b7 <span class="fs-live">' + onN + ' on a call</span>' : '') + '</span><span class="fs-go" aria-hidden="true">\u203a</span></button>' +
+      '<div class="fs-row" role="list">' + rows.map(function (r) {
+        var nm = escapeHtml(firstName(r.m.name) || r.m.name || "Rep");
+        return '<button type="button" role="listitem" class="fs-rep' + (r.on ? ' on' : '') + '" data-fs-open data-fs-uid="' + escapeHtml(r.m.uid) + '" aria-label="' + nm + ', ' + r.n + (r.n === 1 ? ' call' : ' calls') + ' today' + (r.on ? ', on a call with ' + escapeHtml(r.on.name || "a lead") : '') + '">' +
+          '<i aria-hidden="true"></i><span>' + nm + '</span><b>' + r.n + '</b></button>';
+      }).join("") + '</div>';
+    if (host.innerHTML !== h) { var sx = (host.querySelector(".fs-row") || {}).scrollLeft || 0; host.innerHTML = h; var row = host.querySelector(".fs-row"); if (row) row.scrollLeft = sx; }
+  }
   function todayCountPatch() { var n = document.getElementById("todayNum"); if (n && state && state.callLog) { var v = String(callsTodayLive()); if (n.textContent !== v) n.textContent = v; } }
   function teamRenderSoon() {
     clearTimeout(teamRenderSoon.t);
@@ -19320,7 +19368,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       if (!TEAM.me) return;
       try { liveSheetsRefresh(); } catch (e) {}
       var ae = document.activeElement;
-      if (ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) { TEAM.renderPending = true; if (DESK && DESK.on) deskRenderLive(); tmStatsPatch(); todayCountPatch(); return; }
+      if (ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) { TEAM.renderPending = true; if (DESK && DESK.on) deskRenderLive(); tmStatsPatch(); todayCountPatch(); floorStripRender(); return; }
       render();
       if (teamModalOpen()) renderTeamPanel();
       if (document.getElementById("flTrack")) floorRenderTrack();
@@ -22987,14 +23035,24 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
   document.addEventListener("click", function (e) {
     var b = e.target.closest && e.target.closest("#mdToggle"); if (!b) return;
     if (state.awaitingOutcome && needOutcome()) return;   // "Tap how your call to Sam went first", with the outcome buttons pulsing
-    if (state.mdAfter) { showToast("Save or skip the number you just called first"); return; }
+    // A number called from the keypad is still waiting for Save or Don't save. Switching Manual dial on shows that question
+    // (it used to refuse with "Save or skip the number you just called first" while the question itself was hidden,
+    // e.g. after Manual dial was switched off on another phone or computer, which left the switch stuck).
+    mdAfterFresh();
+    if (state.mdAfter && state.manualDial) { showToast("Save or skip the number you just called first"); return; }
     state.manualDial = !state.manualDial; kpRaw = "";
     saveState(); render(); window.scrollTo(0, 0);
     // A short screen: bring the switch to the top so the keypad and Call are what you see.
     var g = document.getElementById("kpGo"), t = document.getElementById("mdToggle");
     if (state.manualDial && g && t && g.getBoundingClientRect().bottom > kpVh() - 20) window.scrollTo(0, Math.max(0, t.getBoundingClientRect().top + window.pageYOffset - 8));
   });
+  // A Save-or-skip question older than 6 hours is from another day's calling: let it go rather than block the keypad.
+  function mdAfterFresh() {
+    var md = state.mdAfter;
+    if (md && (!md.num || !(Date.now() - (md.at || 0) < 6 * 3600000))) { state.mdAfter = null; saveState(); }
+  }
   function renderManualDial(main) {
+    mdAfterFresh();
     if (state.mdAfter && state.mdAfter.num) { renderMdAfter(main); return; }
     main.innerHTML = manualToggleHtml() + lastFollowHtml() + '<div class="kp">' +
       '<div class="kp-top"><input id="kpNum" class="kp-num" inputmode="none" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Phone number">' +
