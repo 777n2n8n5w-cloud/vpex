@@ -35,10 +35,18 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const samCalls = async () => { const t = await samLine(); const m = /(\d+) calls? today/.exec(t || ''); return m ? +m[1] : -1; };
   const waitFor = async (f, ok, ms) => { const t0 = Date.now(); let v; while (Date.now() - t0 < ms) { v = await f(); if (ok(v)) return { v, ms: Date.now() - t0 }; await sleep(100); } return { v, ms: -1 }; };
 
-  // the admin's Dial screen shows the floor live: every rep's calls today, no tap needed
-  const stripN = () => admin.evaluate(() => { const b = document.querySelector('#floorStrip [data-fs-uid="dR2"] b'); return b ? +b.textContent : -1; });
+  // a second admin screen (the office computer) keeps Admin controls > Team > Live rep tracker open
+  const boss = await ctx.newPage(); await boss.setViewportSize({ width: 1366, height: 900 }); boss.on('pageerror', e => errs.push('boss: ' + e.message));
+  await boss.route(/gstatic\.com\/firebasejs/, r => r.abort());
+  await boss.addInitScript(() => { try { sessionStorage.setItem('__mocksess', JSON.stringify({ uid: 'dAdm', email: 'demo@dovetail-f863c.firebaseapp.com' })); } catch (e) {} });
+  await boss.goto(BASE); await boss.waitForTimeout(2800);
+  await boss.evaluate(() => document.getElementById('adminBtn').click()); await boss.waitForTimeout(300);
+  check('Admin controls > Team has a Live rep tracker row', await boss.evaluate(() => !!document.getElementById('hubTrack')));
+  await boss.evaluate(() => document.getElementById('hubTrack').click()); await boss.waitForTimeout(400);
+  const stripN = () => boss.evaluate(() => { const b = document.querySelector('#rtBody [data-rt-uid="dR2"] [data-rt-calls]'); return b ? +b.textContent : -1; });
+  const samSt = () => boss.evaluate(() => { const el = document.querySelector('#rtBody [data-rt-uid="dR2"]'); return el ? { cls: el.className, st: el.querySelector('.rt-st').textContent } : null; });
   const s0 = await stripN();
-  check('admin Dial screen: Your floor strip shows Sam\'s calls today', s0 >= 0, s0);
+  check('Live rep tracker shows Sam\'s calls today', s0 >= 0, s0);
   // the admin opens Team & access and starts typing a new rep's username
   await admin.evaluate(() => document.getElementById('adminBtn').click()); await admin.waitForTimeout(300);
   await admin.evaluate(() => document.getElementById('hubTeam').click()); await admin.waitForTimeout(500);
@@ -54,8 +62,9 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const ac = await waitFor(samCalls, v => v === c0 + 1, 2500);
   check('admin: Sam\'s count goes up within 1.5 s of the dial, while the admin types', ac.ms >= 0 && ac.ms < 1500, { c0, got: ac.v, ms: ac.ms });
   const sc = await waitFor(stripN, v => v === s0 + 1, 2500);
-  check('admin Dial screen: Sam\'s count in Your floor moves within 1.5 s of the dial', sc.ms >= 0 && sc.ms < 1500, { s0, got: sc.v, ms: sc.ms });
-  check('admin Dial screen: Sam shows as on a call', await admin.evaluate(() => !!document.querySelector('#floorStrip [data-fs-uid="dR2"].on')));
+  check('Live rep tracker: Sam\'s count moves within 1.5 s of the dial', sc.ms >= 0 && sc.ms < 1500, { s0, got: sc.v, ms: sc.ms });
+  const ss = await samSt();
+  check('Live rep tracker: Sam shows as on a call with the lead, with a running clock', ss && /st-call/.test(ss.cls) && new RegExp('On a call with ' + who).test(ss.st) && /\d:\d\d/.test(ss.st), ss);
   check('admin: and it says who Sam is on a call with', new RegExp('on a call with ' + who).test(await samLine() || ''), await samLine());
   const typing = await admin.evaluate(() => ({ v: document.getElementById('tmUser').value, f: document.activeElement && document.activeElement.id }));
   check('admin: the username being typed and the cursor stay put', typing.v === 'lancenop' && typing.f === 'tmUser', typing);
@@ -66,6 +75,10 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await sleep(1500);
   const after = await samCalls();
   check('admin: still one more call after it\'s logged (not two), and no longer on a call', after === c0 + 1 && !/on a call/.test(await samLine() || ''), { after, line: await samLine() });
+  const ss2 = await samSt(), sn2 = await stripN();
+  check('Live rep tracker: one more call (not two), Sam back to dialing, the outcome in his latest calls', sn2 === s0 + 1 && ss2 && !/st-call/.test(ss2.cls), { s0, sn2, ss2 });
+  await boss.evaluate(() => document.querySelector('#rtBody [data-rt-toggle="dR2"]').click()); await boss.waitForTimeout(300);
+  check('Live rep tracker: tapping Sam opens his day (latest calls with the outcome)', await boss.evaluate(w => { const d = document.querySelector('#rtBody [data-rt-uid="dR2"] .rt-recent'); return !!d && d.textContent.indexOf(w) >= 0 && /No answer/i.test(d.textContent); }, who));
 
   // 2b. dialed, then Skip: Skip waits for the real outcome (nothing is logged for them, so Call + Skip can't pad the count)
   await rep.waitForTimeout(9000);   // the pacing gap between dials

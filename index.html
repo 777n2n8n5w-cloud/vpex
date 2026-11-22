@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-03-07">
+<meta name="vpex-build" content="2027-03-08">
 <!-- Scripts only from this site and Google's Firebase library; no plugins; no <base> or form hijacking. Inline scripts stay
      allowed because the app is one file. (GitHub Pages can't send headers, so this is the strongest policy a page can set.) -->
 <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://www.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self'">
@@ -7974,25 +7974,80 @@ window.VPEX_SIG = [
   .tm-closer input { width: 18px; height: 18px; margin: 0; }
   .handoff-info { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; margin: 4px 0 10px; padding: 10px 12px; border-radius: 10px;
     background: var(--surface-raised); border: 1px solid var(--border); font-size: 13px; color: var(--text-dim); }
-  /* Your floor (admins and managers, Dial screen on a phone) */
-  .floor-strip { margin: 2px 0 12px; }
-  .floor-strip .fs-head { display: flex; align-items: baseline; gap: 8px; width: 100%; min-height: 36px; padding: 4px 0; background: none; border: 0; font: inherit; color: var(--text); text-align: left; cursor: pointer; }
-  .floor-strip .fs-t { font-size: 13px; font-weight: 700; }
-  .floor-strip .fs-sum { font-size: 13px; color: var(--text-dim); font-variant-numeric: tabular-nums; }
-  .floor-strip .fs-sum b { color: var(--text); font-weight: 750; }
-  .floor-strip .fs-live { color: var(--interested); font-weight: 650; }
-  .floor-strip .fs-go { margin-left: auto; color: var(--text-dim); font-size: 18px; line-height: 1; }
-  .floor-strip .fs-row { display: flex; gap: 7px; overflow-x: auto; scrollbar-width: none; padding: 2px 0 4px; -webkit-overflow-scrolling: touch; }
-  .floor-strip .fs-row::-webkit-scrollbar { display: none; }
-  .floor-strip .fs-rep { flex: none; display: inline-flex; align-items: center; gap: 7px; min-height: 38px; padding: 6px 11px; border-radius: var(--radius-s, 8px); border: 1px solid var(--border);
-    background: var(--surface-raised, var(--surface)); color: var(--text); font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; }
-  .floor-strip .fs-rep b { font-weight: 750; font-variant-numeric: tabular-nums; }
-  .floor-strip .fs-rep i { width: 7px; height: 7px; border-radius: 50%; background: var(--text-faint, var(--border)); flex: none; }
-  .floor-strip .fs-rep.on { border-color: var(--interested); }
-  .floor-strip .fs-rep.on i { background: var(--interested); box-shadow: 0 0 0 3px color-mix(in srgb, var(--interested) 25%, transparent); }
-  @media (prefers-reduced-motion: no-preference) { .floor-strip .fs-rep.on i { animation: fsPulse 1.6s ease-in-out infinite; } }
-  @keyframes fsPulse { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--interested) 0%, transparent); } }
-  body.st-live .floor-strip { display: none; }
+  /* Live rep tracker */
+  .rt-ov .rt-modal { width: min(1120px, 100%); max-width: min(1120px, 100%); max-height: min(92vh, 100%); overflow-y: auto; padding: 20px 20px 24px; }
+  @media (max-width: 640px) { .rt-ov { align-items: stretch; padding: 0; } .rt-ov .rt-modal { max-height: none; height: 100%; border-radius: 0; padding: calc(14px + env(safe-area-inset-top, 0px)) 16px calc(20px + env(safe-area-inset-bottom, 0px)); } }
+  .rt-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .rt-top h3 { margin: 0; }
+  .rt-top .close-x { position: static; flex: none; }
+  .rt-sub { margin: 4px 0 0; font-size: 13px; color: var(--text-dim); display: flex; align-items: center; gap: 7px; }
+  .rt-livedot { width: 8px; height: 8px; border-radius: 50%; background: var(--interested); flex: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--interested) 22%, transparent); }
+  .rt-sum { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 16px 0 12px; }
+  @media (min-width: 760px) { .rt-sum { grid-template-columns: 1.3fr repeat(5, minmax(0, 1fr)); } }
+  .rt-s { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-m, 10px); background: var(--surface-raised, var(--surface)); min-width: 0; }
+  .rt-s b { font-size: 22px; line-height: 1.05; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--text); }
+  .rt-s.big b { font-size: 28px; color: var(--ink-num, var(--text)); }
+  .rt-s.live b { color: var(--interested); }
+  .rt-s span { font-size: 12px; color: var(--text-dim); line-height: 1.25; overflow-wrap: normal; }
+  .rt-name, .rt-n small, .rt-m, .rt-kv, .rt-flag, .rt-sorts .filter-chip { overflow-wrap: normal; }
+  .rt-floorhrs, .rt-hrs { display: grid; grid-template-columns: 1fr; gap: 5px; margin: 0 0 12px; font-size: 12px; color: var(--text-dim); }
+  .rt-hours { display: grid; grid-template-columns: repeat(13, 1fr); align-items: end; gap: 3px; height: 38px; }
+  .rt-hours i { display: block; height: max(2px, calc(var(--v) * 100%)); border-radius: 2px 2px 0 0; background: color-mix(in srgb, var(--accent) 70%, transparent); }
+  .rt-hours i.now { background: var(--accent); }
+  .rt-hours i.later { background: var(--border); height: 2px; }
+  .rt-hx { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-faint, var(--text-dim)); }
+  .rt-sorts { display: flex; gap: 7px; overflow-x: auto; scrollbar-width: none; margin: 0 0 10px; padding-bottom: 2px; }
+  .rt-sorts::-webkit-scrollbar { display: none; }
+  .rt-sorts .filter-chip { flex: none; min-height: 38px; }
+  .rt-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .rt-rep { border: 1px solid var(--border); border-radius: var(--radius-m, 10px); background: var(--surface-raised, var(--surface)); padding: 4px 14px 12px; }
+  .rt-rep.st-call { border-color: color-mix(in srgb, var(--interested) 60%, var(--border)); box-shadow: inset 3px 0 0 var(--interested); }
+  .rt-rep.flagged:not(.st-call) { box-shadow: inset 3px 0 0 var(--callback); }
+  .rt-main { display: flex; align-items: center; gap: 11px; width: 100%; min-height: 52px; padding: 6px 0; background: none; border: 0; font: inherit; color: var(--text); text-align: left; cursor: pointer; }
+  .rt-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; background: var(--text-faint, var(--border)); }
+  .st-call .rt-dot { background: var(--interested); box-shadow: 0 0 0 4px color-mix(in srgb, var(--interested) 22%, transparent); }
+  .st-dial .rt-dot { background: color-mix(in srgb, var(--interested) 70%, var(--text-dim)); }
+  .st-idle .rt-dot { background: var(--callback); }
+  .st-out .rt-dot, .st-away .rt-dot { background: transparent; border: 1.5px solid var(--text-faint, var(--border)); }
+  @media (prefers-reduced-motion: no-preference) { .st-call .rt-dot { animation: rtPulse 1.6s ease-in-out infinite; } }
+  @keyframes rtPulse { 50% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--interested) 0%, transparent); } }
+  .rt-who { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+  .rt-name { font-size: 16px; font-weight: 750; }
+  .rt-st { font-size: 13px; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .st-call .rt-st { color: var(--interested); font-weight: 650; }
+  .rt-st time { font-variant-numeric: tabular-nums; }
+  .rt-n { display: flex; flex-direction: column; align-items: flex-end; flex: none; }
+  .rt-n b { font-size: 26px; line-height: 1; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .rt-n small { font-size: 11.5px; color: var(--text-dim); }
+  .rt-line { display: flex; flex-wrap: wrap; gap: 4px 14px; padding-left: 21px; font-size: 12.5px; color: var(--text-dim); }
+  .rt-m b { color: var(--text); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .rt-flags { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 0 0 21px; }
+  .rt-flag { font-size: 12px; font-weight: 650; padding: 3px 9px; border-radius: var(--radius-s, 6px); color: var(--callback); background: color-mix(in srgb, var(--callback) 14%, transparent); }
+  .rt-flag.bad { color: var(--notinterested); background: color-mix(in srgb, var(--notinterested) 14%, transparent); }
+  .rt-detail { margin: 12px 0 0 21px; padding-top: 12px; border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
+  .rt-kv { display: flex; flex-direction: column; gap: 1px; font-size: 12px; color: var(--text-dim); }
+  .rt-kv b { font-size: 14px; color: var(--text); font-weight: 650; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .rt-late { color: var(--notinterested); font-weight: 650; }
+  .rt-detail .rt-hrs, .rt-recent, .rt-detail .rt-none { grid-column: 1 / -1; margin: 4px 0 0; }
+  .rt-recent > span { font-size: 12px; color: var(--text-dim); }
+  .rt-recent ol { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; }
+  .rt-recent li { display: flex; align-items: center; gap: 10px; min-height: 40px; border-top: 1px solid var(--border); font-size: 13.5px; }
+  .rt-recent li:first-child { border-top: 0; }
+  .rt-recent time { flex: none; width: 66px; color: var(--text-dim); font-variant-numeric: tabular-nums; font-size: 12.5px; }
+  .rt-recent small, .rt-recent time, .rt-oc { white-space: nowrap; overflow-wrap: normal; }
+  .rt-recent small { margin-left: auto; flex: none; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+  .rt-lead { background: none; border: 0; padding: 8px 0; font: inherit; font-weight: 600; color: var(--text); text-align: left; cursor: pointer; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rt-oc { flex: none; font-size: 11.5px; font-weight: 650; padding: 2px 7px; border-radius: var(--radius-s, 6px); color: var(--text); background: color-mix(in srgb, var(--text) 8%, transparent); }
+  .rt-oc.interested { color: var(--interested); background: color-mix(in srgb, var(--interested) 14%, transparent); }
+  .rt-oc.callback { color: var(--callback); background: color-mix(in srgb, var(--callback) 14%, transparent); }
+  .rt-oc.notinterested, .rt-oc.badnum { color: var(--notinterested); background: color-mix(in srgb, var(--notinterested) 12%, transparent); }
+  .rt-none { color: var(--text-dim); font-size: 13.5px; }
+  @media (min-width: 900px) {
+    .rt-rep { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); column-gap: 18px; align-items: center; padding: 4px 16px 6px; }
+    .rt-line { padding: 0; justify-content: flex-end; }
+    .rt-flags { grid-column: 1 / -1; padding-bottom: 6px; }
+    .rt-detail { grid-column: 1 / -1; grid-template-columns: repeat(5, 1fr); margin-left: 21px; padding-bottom: 8px; }
+  }
   .handoff-info b { color: var(--text); } .handoff-info span { font-style: italic; }
   .handoff-info .ho-st { font-size: 12px; font-weight: 600; color: var(--text-faint); } .handoff-info .ho-st.ok { color: var(--interested); }
   /* Send to a closer: shows on the dial card and the profile once every qualifying answer is in */
@@ -8879,6 +8934,7 @@ window.VPEX_SIG = [
   .hub-cat-top { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 8px; }
   .hub-cat b { font-size: 15px; font-weight: 650; line-height: 1.2; }
   .hub-cat-sub { font-size: 12px; line-height: 1.35; color: var(--text-dim); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .hub-flag.live { color: var(--interested); background: color-mix(in srgb, var(--interested) 15%, transparent); }
   .hub-n { font-size: 12px; font-weight: 700; color: var(--text-faint); font-variant-numeric: tabular-nums; }
   .hub-flag { min-width: 0; padding: 3px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     color: var(--notinterested); background: var(--surface); background: color-mix(in srgb, var(--notinterested) 15%, transparent); }
@@ -14062,7 +14118,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     if (["dial", "history", "pipeline", "tasks", "vault"].indexOf(state.activeView || "dial") < 0) state.activeView = "dial";   // e.g. a saved view from the removed Ops tab
     document.body.setAttribute("data-view", state.activeView || "dial");
     if (DESK && DESK.on) Promise.resolve().then(deskRenderLive);
-    Promise.resolve().then(floorStripRender);
+    if (RT.open) rtSoon();
     if (typeof TV !== "undefined" && TV && TV.on) Promise.resolve().then(tvRender);
     document.getElementById("viewTabs").style.display = total > 0 ? "" : "none";
     document.getElementById("viewTabDial").classList.toggle("active", state.activeView === "dial");
@@ -19333,34 +19389,6 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     try { handoffWatch(); } catch (e) {}
   }
 
-  /* ----- Your floor, live, on the Dial screen of an admin's or manager's phone: every rep's calls today, who's on a call now.
-     Same counts as the Team panel and Scoreboard: a call counts the moment it's dialed, once. Tap for the Scoreboard. ----- */
-  function floorStripRender() {
-    var host = document.getElementById("floorStrip");
-    var show = TEAM.on && TEAM.me && (isAdmin() || isManager()) && !(DESK && DESK.on) && (state.activeView || "dial") === "dial" &&
-      !state.awaitingOutcome && totalCount() > 0;
-    var reps = show ? roster().filter(function (m) { return m.uid !== TEAM.me.uid; }) : [];
-    if (!reps.length) { if (host) host.remove(); return; }
-    if (!host) {
-      var pw = document.getElementById("progressWrap"); if (!pw || !pw.parentNode) return;
-      host = document.createElement("section"); host.id = "floorStrip"; host.className = "floor-strip"; host.setAttribute("aria-label", "Your floor today");
-      pw.parentNode.insertBefore(host, pw.nextSibling);
-      host.addEventListener("click", function (e) { if (e.target.closest("[data-fs-open]")) openScoreboard("today"); });
-    }
-    var cmap = callsTodayMap(), live = {}, total = 0;
-    presenceNow().forEach(function (p) { live[p.uid] = p.p; });
-    var rows = reps.map(function (m) { var n = callsTodayLive(m.uid, cmap); total += n; return { m: m, n: n, on: live[m.uid] }; })
-      .sort(function (a, b) { return (b.on ? 1 : 0) - (a.on ? 1 : 0) || b.n - a.n || (a.m.name < b.m.name ? -1 : 1); });
-    var onN = rows.filter(function (r) { return r.on; }).length;
-    var h = '<button type="button" class="fs-head" data-fs-open><span class="fs-t">Your floor</span><span class="fs-sum"><b>' + total + '</b> call' + (total === 1 ? '' : 's') + ' today' +
-        (onN ? ' \u00b7 <span class="fs-live">' + onN + ' on a call</span>' : '') + '</span><span class="fs-go" aria-hidden="true">\u203a</span></button>' +
-      '<div class="fs-row" role="list">' + rows.map(function (r) {
-        var nm = escapeHtml(firstName(r.m.name) || r.m.name || "Rep");
-        return '<button type="button" role="listitem" class="fs-rep' + (r.on ? ' on' : '') + '" data-fs-open data-fs-uid="' + escapeHtml(r.m.uid) + '" aria-label="' + nm + ', ' + r.n + (r.n === 1 ? ' call' : ' calls') + ' today' + (r.on ? ', on a call with ' + escapeHtml(r.on.name || "a lead") : '') + '">' +
-          '<i aria-hidden="true"></i><span>' + nm + '</span><b>' + r.n + '</b></button>';
-      }).join("") + '</div>';
-    if (host.innerHTML !== h) { var sx = (host.querySelector(".fs-row") || {}).scrollLeft || 0; host.innerHTML = h; var row = host.querySelector(".fs-row"); if (row) row.scrollLeft = sx; }
-  }
   function todayCountPatch() { var n = document.getElementById("todayNum"); if (n && state && state.callLog) { var v = String(callsTodayLive()); if (n.textContent !== v) n.textContent = v; } }
   function teamRenderSoon() {
     clearTimeout(teamRenderSoon.t);
@@ -19368,7 +19396,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       if (!TEAM.me) return;
       try { liveSheetsRefresh(); } catch (e) {}
       var ae = document.activeElement;
-      if (ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) { TEAM.renderPending = true; if (DESK && DESK.on) deskRenderLive(); tmStatsPatch(); todayCountPatch(); floorStripRender(); return; }
+      if (ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) { TEAM.renderPending = true; if (DESK && DESK.on) deskRenderLive(); tmStatsPatch(); todayCountPatch(); if (RT.open) rtSoon(); return; }
       render();
       if (teamModalOpen()) renderTeamPanel();
       if (document.getElementById("flTrack")) floorRenderTrack();
@@ -20042,6 +20070,194 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
   }
   function pct(a, b) { return b ? Math.round((a / b) * 100) + "%" : "\u2014"; }
 
+  /** ---------- Live rep tracker (Admin controls > Team): who is doing what, right now ----------
+      One screen for owners and managers. Every rep: what they're doing this second (on a call and with whom, for how
+      long; dialing; idle; offline; out), today's calls, conversations, interested, appointments, the last hour, their last
+      call and how it went, talk time, pace, follow-ups due and late, and anything that needs you. Counts match the
+      Scoreboard and the Team panel (a call counts the moment it's dialed, once). It updates as the floor syncs, and only
+      while it's open: one pass over today's calls (newest first, stopping at yesterday), one over leads and tasks. */
+  var RT = { open: false, sort: "live", openUid: null, t: 0, last: 0, tick: null, html: "" };
+  var RT_SORTS = [["live", "Live"], ["calls", "Most calls"], ["results", "Results"], ["needs", "Needs you"]];
+  function rtSumLine() { var n = 0, cm = callsTodayMap(); roster().forEach(function (m) { n += callsTodayLive(m.uid, cm); }); return n + " call" + (n === 1 ? "" : "s") + " today \u00b7 who\u2019s doing what, right now"; }
+  function rtCan() { return TEAM.on && TEAM.me && (isAdmin() || isManager()); }
+  function rtClock(ms) { var s = Math.max(0, Math.floor(ms / 1000)); return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
+  function rtAgo(ms) { var m = Math.floor(ms / 60000); return m < 1 ? "just now" : m < 60 ? m + " min ago" : Math.floor(m / 60) + " h " + (m % 60 ? (m % 60) + " min " : "") + "ago"; }
+  function rtData() {
+    var now = Date.now(), from = dayStart(0), hourAgo = now - 3600000, me = TEAM.me ? TEAM.me.uid : "";
+    var reps = {}, order = [], team = { calls: 0, reached: 0, interested: 0, appts: 0, onCall: 0, online: 0, hours: {} };
+    function rep(uid, name) {
+      var r = reps[uid];
+      if (!r) { r = reps[uid] = { uid: uid, name: name || "Rep", calls: 0, reached: 0, interested: 0, cb: 0, appts: 0, lastHour: 0, talk: 0, timed: 0, first: 0, last: null,
+        recent: [], hours: {}, due: 0, late: 0, member: (TEAM.members || {})[uid] || null, role: "rep" }; order.push(uid); }
+      else if (name && r.name === "Rep") r.name = name;
+      return r;
+    }
+    roster().forEach(function (m) { if (m.uid) { var r = rep(m.uid, m.name); r.role = m.role || "rep"; } });
+    // today's calls, newest first; the log is in time order, so stop once well into yesterday
+    var cl = state.callLog, older = 0;
+    for (var i = cl.length - 1; i >= 0; i--) {
+      var c = cl[i], ts = Date.parse(c.timestamp);
+      if (!(ts >= from)) { if (++older > 300) break; continue; }
+      if (!c.by || !c.by.uid) continue;
+      var r = rep(c.by.uid, c.by.name);
+      r.calls++; var h = new Date(ts).getHours(); r.hours[h] = (r.hours[h] || 0) + 1; team.hours[h] = (team.hours[h] || 0) + 1;
+      if (CONTACT_OUTCOMES[c.outcomeKey]) r.reached++;
+      if (c.outcomeKey === "interested") r.interested++;
+      if (c.outcomeKey === "callback") r.cb++;
+      if (ts >= hourAgo) r.lastHour++;
+      if (c.talk) { r.talk += c.talk; r.timed++; }
+      if (!r.first || ts < r.first) r.first = ts;
+      if (!r.last || ts > r.last.ts) r.last = { ts: ts, k: c.outcomeKey, name: c.name };
+      if (r.recent.length < 8) r.recent.push({ ts: ts, k: c.outcomeKey, name: c.name, talk: c.talk || 0, leadId: c.leadId });
+    }
+    var live = {}; presenceNow().forEach(function (p) { live[p.uid] = p.p; });
+    state.leads.forEach(function (l) { var hd = l.handoff; if (hd && hd.from && hd.from.uid && hd.at >= from) rep(hd.from.uid, hd.from.name).appts++; });
+    var todayEnd = dayStart(1);
+    state.tasks.forEach(function (t) {
+      if (t.done) return; var a = assigneeOf(t); if (!a || !reps[a.uid]) return;
+      var d = taskDueTs(t); if (d === Infinity || d >= todayEnd) return;
+      reps[a.uid].due++; if (d < from) reps[a.uid].late++;
+    });
+    var hr = new Date().getHours(), wk = new Date().getDay() % 6 !== 0;
+    var list = order.map(function (uid) {
+      var r = reps[uid], m = r.member, p = live[uid], seen = m && m.lastSeen ? Number(m.lastSeen) || Date.parse(m.lastSeen) || 0 : 0;
+      if (uid === me && state.awaitingOutcome) { var cur = currentLead(); p = p || { s: "call", name: cur ? cur.name : "", at: state.liveAt || now }; }
+      if (uid === me) seen = now;
+      if (p && p.at && p.at >= from && (!r.last || p.at > r.last.ts)) { r.calls++; if (!r.first) r.first = p.at; }
+      var lastAct = Math.max(r.last ? r.last.ts : 0, p ? p.at || 0 : 0);
+      var st;
+      if (m && m.workLoc === "out") st = { k: "out", t: "Out of office" };
+      else if (p) st = { k: "call", t: "On a call" + (p.name ? " with " + p.name : ""), since: p.at || now };
+      else if (lastAct && now - lastAct < 10 * 60000) st = { k: "dial", t: "Dialing", sub: "last call " + rtAgo(now - lastAct) };
+      else if (seen && now - seen < 7 * 60000) st = { k: "idle", t: r.calls ? "Online, idle" : "Online, no calls yet", sub: lastAct ? "last call " + rtAgo(now - lastAct) : "" , idle: lastAct ? now - lastAct : 0 };
+      else if (seen && seen >= from) st = { k: "off", t: "Offline", sub: "last seen " + rtAgo(now - seen) };
+      else st = { k: "away", t: "Not on today", sub: seen ? "last seen " + rtAgo(now - seen) : "" };
+      r.st = st;
+      var hrs = r.first ? Math.max(0.25, (Math.max(lastAct, r.first) - r.first) / 3600000) : 0;
+      r.pace = r.calls > 2 && hrs ? Math.round(r.calls / hrs) : 0;
+      r.avgTalk = r.timed ? Math.round(r.talk / r.timed) : 0;
+      var flags = [];
+      if (st.k === "idle" && st.idle >= 20 * 60000 && hr >= 9 && hr < 20) flags.push({ k: "warn", t: "Idle " + Math.floor(st.idle / 60000) + " min" });
+      if (!r.calls && wk && hr >= 10 && r.role === "rep" && st.k !== "out" && st.k !== "away") flags.push({ k: "warn", t: "No calls yet" });
+      if (r.late) flags.push({ k: r.late >= 5 ? "bad" : "warn", t: r.late + " late follow-up" + (r.late === 1 ? "" : "s") });
+      if (typeof spamSignal === "function" && r.calls >= 25) { var sp = spamSignal(uid); if (sp) flags.push({ k: "bad", t: "Number may be flagged: " + sp.today + "% answering" }); }
+      r.flags = flags;
+      team.calls += r.calls; team.reached += r.reached; team.interested += r.interested; team.appts += r.appts;
+      if (st.k === "call") team.onCall++;
+      if (st.k === "call" || st.k === "dial" || st.k === "idle") team.online++;
+      return r;
+    }).filter(function (r) { return r.role !== "admin" || r.calls > 0 || r.st.k === "call"; });   // owners who don't dial stay out of the way
+    var rank = { call: 0, dial: 1, idle: 2, off: 3, out: 4, away: 5 };
+    var sorts = {
+      live: function (a, b) { return rank[a.st.k] - rank[b.st.k] || (b.st.since || 0) - (a.st.since || 0) || b.calls - a.calls; },
+      calls: function (a, b) { return b.calls - a.calls || b.reached - a.reached; },
+      results: function (a, b) { return (b.interested + b.appts * 2) - (a.interested + a.appts * 2) || b.reached - a.reached || b.calls - a.calls; },
+      needs: function (a, b) { return b.flags.length - a.flags.length || b.late - a.late || rank[a.st.k] - rank[b.st.k]; }
+    };
+    list.sort(function (a, b) { return sorts[RT.sort](a, b) || (a.name < b.name ? -1 : 1); });
+    return { list: list, team: team, now: now, hr: hr };
+  }
+  function rtStat(n, l) { return '<span class="rt-m"><b>' + n + '</b>' + l + '</span>'; }
+  function rtOutcome(k) { var m = OUTCOME_META[k]; return m ? '<span class="rt-oc ' + m.cls + '">' + escapeHtml(m.label) + '</span>' : ''; }
+  function rtHours(hours, now) {
+    var cur = new Date(now).getHours(), max = 1, h;
+    for (h = 8; h <= 20; h++) max = Math.max(max, hours[h] || 0);
+    var out = '';
+    for (h = 8; h <= 20; h++) { var n = hours[h] || 0; out += '<i class="' + (h === cur ? 'now' : h > cur ? 'later' : '') + '" style="--v:' + (n / max).toFixed(3) + '" title="' + hourLabel(h) + ': ' + n + '"></i>'; }
+    return '<span class="rt-hours" aria-hidden="true">' + out + '</span>';
+  }
+  function rtRowHtml(r, now) {
+    var st = r.st, open = RT.openUid === r.uid, nm = escapeHtml(r.name), reach = r.calls ? Math.round(r.reached / r.calls * 100) : 0;
+    var h = '<li class="rt-rep st-' + st.k + (open ? ' open' : '') + (r.flags.length ? ' flagged' : '') + '" data-rt-uid="' + escapeHtml(r.uid) + '">' +
+      '<button type="button" class="rt-main" data-rt-toggle="' + escapeHtml(r.uid) + '" aria-expanded="' + open + '">' +
+        '<span class="rt-dot" aria-hidden="true"></span>' +
+        '<span class="rt-who"><b class="rt-name">' + nm + '</b><span class="rt-st">' + escapeHtml(st.t) +
+          (st.k === "call" ? ' · <time data-rt-since="' + st.since + '">' + rtClock(now - st.since) + '</time>' : st.sub ? ' · ' + escapeHtml(st.sub) : '') + '</span></span>' +
+        '<span class="rt-n"><b data-rt-calls>' + r.calls + '</b><small>call' + (r.calls === 1 ? '' : 's') + '</small></span>' +
+      '</button>' +
+      '<div class="rt-line">' + rtStat(r.reached, ' talked' + (r.calls ? ' (' + reach + '%)' : '')) + rtStat(r.interested, ' interested') + rtStat(r.appts, ' appt' + (r.appts === 1 ? '' : 's')) +
+        rtStat(r.lastHour, ' last hr') + (r.pace ? rtStat(r.pace, '/hr pace') : '') + '</div>' +
+      (r.flags.length ? '<div class="rt-flags">' + r.flags.map(function (f) { return '<span class="rt-flag ' + f.k + '">' + escapeHtml(f.t) + '</span>'; }).join('') + '</div>' : '');
+    if (open) {
+      h += '<div class="rt-detail">' +
+        '<div class="rt-kv"><span>First call</span><b>' + (r.first ? timeShort(r.first) : '—') + '</b></div>' +
+        '<div class="rt-kv"><span>Last call</span><b>' + (r.last ? timeShort(r.last.ts) + ' ' + rtOutcome(r.last.k) : '—') + '</b></div>' +
+        '<div class="rt-kv"><span>Average talk</span><b>' + (r.avgTalk ? rtClock(r.avgTalk * 1000) : '—') + '</b></div>' +
+        '<div class="rt-kv"><span>Callbacks set</span><b>' + r.cb + '</b></div>' +
+        '<div class="rt-kv"><span>Follow-ups due today</span><b>' + r.due + (r.late ? ' <span class="rt-late">(' + r.late + ' late)</span>' : '') + '</b></div>' +
+        '<div class="rt-hrs"><span>Calls by hour</span>' + rtHours(r.hours, now) + '<span class="rt-hx"><span>8 AM</span><span>2 PM</span><span>8 PM</span></span></div>' +
+        (r.recent.length ? '<div class="rt-recent"><span>Latest calls</span><ol>' + r.recent.map(function (c) {
+          return '<li><time>' + timeShort(c.ts) + '</time><button type="button" class="rt-lead" data-open-lead="' + escapeHtml(c.leadId || "") + '">' + escapeHtml(c.name || "Lead") + '</button>' + rtOutcome(c.k) +
+            (c.talk ? '<small>' + rtClock(c.talk * 1000) + '</small>' : '') + '</li>'; }).join('') + '</ol></div>' : '<p class="rt-none">No calls yet today.</p>') +
+      '</div>';
+    }
+    return h + '</li>';
+  }
+  function rtRender(force) {
+    var body = document.getElementById("rtBody"); if (!body || !RT.open) return;
+    if (!rtCan()) { closeRepTracker(); return; }
+    var d = rtData(), t = d.team, reach = t.calls ? Math.round(t.reached / t.calls * 100) : 0;
+    var html = '<div class="rt-top"><div><h3 id="rtTitle">Your reps, live</h3><p class="rt-sub"><span class="rt-livedot" aria-hidden="true"></span>Updates the moment a rep dials · ' +
+        escapeHtml(new Date(d.now).toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" })) + '</p></div>' +
+        '<button class="close-x" type="button" data-rt-close aria-label="Close">&times;</button></div>' +
+      '<div class="rt-sum" role="group" aria-label="Floor today">' +
+        '<div class="rt-s big"><b>' + t.calls + '</b><span>calls today</span></div>' +
+        '<div class="rt-s live"><b>' + t.onCall + '</b><span>on a call now</span></div>' +
+        '<div class="rt-s"><b>' + t.online + '</b><span>working now</span></div>' +
+        '<div class="rt-s"><b>' + t.reached + '</b><span>conversations' + (t.calls ? ' · ' + reach + '%' : '') + '</span></div>' +
+        '<div class="rt-s"><b>' + t.interested + '</b><span>interested</span></div>' +
+        '<div class="rt-s"><b>' + t.appts + '</b><span>appointments</span></div>' +
+      '</div>' +
+      '<div class="rt-floorhrs"><span>Floor calls by hour</span>' + rtHours(t.hours, d.now) + '<span class="rt-hx"><span>8 AM</span><span>2 PM</span><span>8 PM</span></span></div>' +
+      '<div class="rt-sorts" role="tablist" aria-label="Sort reps">' + RT_SORTS.map(function (x) {
+        var n = x[0] === "needs" ? d.list.filter(function (r) { return r.flags.length; }).length : 0;
+        return '<button type="button" role="tab" class="filter-chip' + (RT.sort === x[0] ? ' active' : '') + '" aria-selected="' + (RT.sort === x[0]) + '" data-rt-sort="' + x[0] + '">' + x[1] + (n ? ' <span class="chip-n">' + n + '</span>' : '') + '</button>'; }).join('') + '</div>' +
+      (d.list.length ? '<ul class="rt-list">' + d.list.map(function (r) { return rtRowHtml(r, d.now); }).join('') + '</ul>'
+        : '<p class="rt-none">No reps yet. Add them in Team &amp; logins.</p>');
+    if (force || html !== RT.html) {
+      var sc = body.scrollTop, box = body.closest(".modal"), bsc = box ? box.scrollTop : 0;
+      body.innerHTML = html; RT.html = html;
+      if (box) box.scrollTop = bsc;
+    }
+    RT.last = Date.now();
+  }
+  // Many sync events can arrive together (a busy floor): draw at most a few times a second.
+  function rtSoon() {
+    if (!RT.open || RT.t) return;
+    var wait = Math.max(0, 250 - (Date.now() - RT.last));
+    RT.t = setTimeout(function () { RT.t = 0; rtRender(false); }, wait);
+  }
+  function rtTick() {
+    if (!RT.open) return;
+    var now = Date.now();
+    document.querySelectorAll("#rtBody time[data-rt-since]").forEach(function (el) { el.textContent = rtClock(now - Number(el.getAttribute("data-rt-since"))); });
+    if (now - RT.last > 30000) rtRender(false);   // idle minutes and "last call … ago" stay true without any sync
+  }
+  function openRepTracker() {
+    if (!rtCan()) return;
+    closeAdminHub();
+    var m = document.getElementById("rtModal");
+    if (!m) {
+      m = document.createElement("div"); m.className = "modal-overlay rt-ov"; m.id = "rtModal";
+      m.innerHTML = '<div class="modal rt-modal" role="dialog" aria-modal="true" aria-labelledby="rtTitle"><div id="rtBody"></div></div>';
+      document.body.appendChild(m);
+      m.addEventListener("click", function (e) {
+        if (e.target === m || e.target.closest("[data-rt-close]")) { closeRepTracker(); return; }
+        var so = e.target.closest("[data-rt-sort]"); if (so) { RT.sort = so.getAttribute("data-rt-sort"); rtRender(true); return; }
+        var tg = e.target.closest("[data-rt-toggle]"); if (tg) { var u = tg.getAttribute("data-rt-toggle"); RT.openUid = RT.openUid === u ? null : u; rtRender(true); return; }
+        var ol = e.target.closest("[data-open-lead]"); if (ol && ol.getAttribute("data-open-lead")) { closeRepTracker(); }
+      });
+    }
+    RT.open = true; RT.html = ""; m.classList.add("show");
+    rtRender(true);
+    clearInterval(RT.tick); RT.tick = setInterval(rtTick, 1000);
+    try { teamWatchDays(); teamActListen(); } catch (e) {}
+  }
+  function closeRepTracker() {
+    RT.open = false; clearInterval(RT.tick); RT.tick = null; clearTimeout(RT.t); RT.t = 0;
+    var m = document.getElementById("rtModal"); if (m) m.classList.remove("show");
+  }
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && RT.open) closeRepTracker(); });
   function openScoreboard(view) {
     closeMenuModal();
     scoreView = view || (new Date().getHours() >= 17 ? "recap" : "today");
@@ -24420,6 +24636,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     var live = !!(contestCfg() && contestCfg().end > Date.now());
     var nDnc = Object.keys(dncNums()).length + state.leads.filter(function (l) { return l.dnc; }).length;
     var nLinks = infoCfg().links.length;
+    var rtOn = rtCan() ? presenceNow().length : 0;
     var I = function (d) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>'; };
     function row(id, icon, title, sub, badge, hot) {
       return '<button class="hub-row' + (hot ? ' hot' : '') + '" id="' + id + '" type="button">' +
@@ -24429,7 +24646,9 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     // [key, name, tone, icon, flag when something needs attention, summary, rows]
     var GROUPS = [
       ["team", "Team", "accent", '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7"/><path d="M18 14.8c2 .7 3.2 2.4 3.6 5.2"/>',
-        recapReady ? "Ready" : live ? "Live" : "", (admin ? active + " active · " : "") + "scoreboard, coach" + (admin ? ", goals" : ""), [
+        rtOn ? rtOn + " on a call" : recapReady ? "Ready" : live ? "Live" : "", (admin ? active + " active · " : "") + "live reps, scoreboard, coach" + (admin ? ", goals" : ""), [
+        rtCan() && row("hubTrack", '<circle cx="12" cy="12" r="2.5"/><path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4"/><path d="M5 5a10 10 0 0 0 0 14M19 5a10 10 0 0 1 0 14"/>',
+          "Live rep tracker", rtSumLine(), rtOn ? rtOn + " on a call" : "Live"),
         admin && row("hubTeam", '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7"/><path d="M18 14.8c2 .7 3.2 2.4 3.6 5.2"/>',
           "Team &amp; logins", "Logins and who has access", active + " active"),
         floorCan() && row("hubFloorRow", '<path d="M3 10.5v3a1 1 0 0 0 1 1h2.5L15 19V5L6.5 9.5H4a1 1 0 0 0-1 1z"/><path d="M7 14.5l1.4 4.5h2.8l-1.1-3.6"/><path d="M18.5 9a4 4 0 0 1 0 6"/>', "Message your floor", "A quick note to every rep’s phone"),
@@ -24487,8 +24706,9 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     var cats = GROUPS.map(function (g) { return { key: g[0], name: g[1], tone: g[2], icon: g[3], flag: g[4], sub: g[5], rows: g[6].filter(Boolean) }; })
       .filter(function (c) { return c.rows.length; });
     var grid = '<div class="hub-cats">' + cats.map(function (c) {
-      return '<button class="hub-cat' + (c.flag ? ' hot' : '') + '" type="button" data-hub-cat="' + c.key + '" style="--hc:var(--' + c.tone + ')">' +
-        '<span class="hub-cat-top"><span class="hub-ic">' + I(c.icon) + '</span>' + (c.flag ? '<span class="hub-flag">' + c.flag + '</span>' : '<span class="hub-n">' + c.rows.length + '</span>') + '</span>' +
+      var good = c.flag && /on a call$|^Live$/.test(c.flag);   // reps on calls is good news, not an alert
+      return '<button class="hub-cat' + (c.flag && !good ? ' hot' : '') + '" type="button" data-hub-cat="' + c.key + '" style="--hc:var(--' + c.tone + ')">' +
+        '<span class="hub-cat-top"><span class="hub-ic">' + I(c.icon) + '</span>' + (c.flag ? '<span class="hub-flag' + (good ? ' live' : '') + '">' + c.flag + '</span>' : '<span class="hub-n">' + c.rows.length + '</span>') + '</span>' +
         '<b>' + c.name + '</b><span class="hub-cat-sub">' + c.sub + '</span></button>';
     }).join("") + '</div>';
     var views = cats.map(function (c) {
@@ -24525,6 +24745,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     (document.getElementById("hubCmd") || document.createElement("i")).addEventListener("click", function () { closeAdminHub(); openCommand(); });
     ["hubFloor", "hubFloorRow"].forEach(function (k) { var e = document.getElementById(k); if (e) e.addEventListener("click", function () { closeAdminHub(); openFloor(); }); });
     (document.getElementById("hubTeam") || document.createElement("i")).addEventListener("click", function () { closeAdminHub(); openTeamPanel(); });
+    (document.getElementById("hubTrack") || document.createElement("i")).addEventListener("click", function () { openRepTracker(); });
     (document.getElementById("hubScore") || document.createElement("i")).addEventListener("click", function () { closeAdminHub(); openScoreboard(); });
     (document.getElementById("hubCoach") || document.createElement("i")).addEventListener("click", function () { closeAdminHub(); openCoach("team"); });
     (document.getElementById("hubVault") || document.createElement("i")).addEventListener("click", function () { closeAdminHub(); state.activeView = "vault"; saveState(); render(); });
