@@ -64,6 +64,25 @@
   th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
   th { font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--dim); font-weight: 700; }
   td:first-child { font-weight: 700; white-space: nowrap; }
+  .strict-key { display: none; }
+  /* Phones: each stricter state is a small card (no sideways swipe to reach Holidays and Calls per person) */
+  @media (max-width: 560px) {
+    .tw.strict { overflow: visible; margin: 0; padding: 0; }
+    .strict table { min-width: 0; }
+    .strict thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .strict tr { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .strict td { display: block; padding: 0; border: 0; font-size: 14.5px; overflow-wrap: anywhere; }
+    .strict td:first-child { grid-column: 1 / -1; font-size: 16.5px; }
+    .strict td:nth-child(n+2)::before { display: block; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--dim); font-weight: 700; margin-bottom: 2px; }
+    .strict td:nth-child(2)::before { content: "Hours"; }
+    .strict td:nth-child(3)::before { content: "Saturday"; }
+    .strict td:nth-child(4)::before { content: "Sunday"; }
+    .strict td:nth-child(5)::before { content: "Holidays"; }
+    .strict td:nth-child(6)::before { content: "Calls per person"; }
+    .strict td.d { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .strict td:nth-child(6) { grid-column: span 2; }
+    .strict-key { display: inline; }
+  }
   .fine { font-size: 13.5px; color: var(--dim); }
   .sell { margin-top: 44px; }
   .sell p { color: var(--dim); margin: 0 0 14px; max-width: 34em; }
@@ -109,8 +128,8 @@
   </section>
 {{STATE_BLOCK}}
   <h2>The {{N_STRICT}} states with stricter calling hours</h2>
-  <p class="fine">For sales calls, in the lead's local time. Every other state follows the federal 8 AM to 9 PM.</p>
-  <div class="tw"><table>
+  <p class="fine">For sales calls, in the lead's local time. Every other state follows the federal 8 AM to 9 PM.<span class="strict-key"> Each state shows its hours and only the rules that differ: weekends, holidays and calls per person.</span></p>
+  <div class="tw strict"><table>
     <thead><tr><th>State</th><th>Hours</th><th>Saturday</th><th>Sunday</th><th>Holidays</th><th>Calls per person</th></tr></thead>
     <tbody>{{TABLE}}</tbody>
   </table></div>

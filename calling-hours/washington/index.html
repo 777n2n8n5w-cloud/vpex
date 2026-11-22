@@ -64,6 +64,25 @@
   th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
   th { font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--dim); font-weight: 700; }
   td:first-child { font-weight: 700; white-space: nowrap; }
+  .strict-key { display: none; }
+  /* Phones: each stricter state is a small card (no sideways swipe to reach Holidays and Calls per person) */
+  @media (max-width: 560px) {
+    .tw.strict { overflow: visible; margin: 0; padding: 0; }
+    .strict table { min-width: 0; }
+    .strict thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .strict tr { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .strict td { display: block; padding: 0; border: 0; font-size: 14.5px; overflow-wrap: anywhere; }
+    .strict td:first-child { grid-column: 1 / -1; font-size: 16.5px; }
+    .strict td:nth-child(n+2)::before { display: block; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--dim); font-weight: 700; margin-bottom: 2px; }
+    .strict td:nth-child(2)::before { content: "Hours"; }
+    .strict td:nth-child(3)::before { content: "Saturday"; }
+    .strict td:nth-child(4)::before { content: "Sunday"; }
+    .strict td:nth-child(5)::before { content: "Holidays"; }
+    .strict td:nth-child(6)::before { content: "Calls per person"; }
+    .strict td.d { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .strict td:nth-child(6) { grid-column: span 2; }
+    .strict-key { display: inline; }
+  }
   .fine { font-size: 13.5px; color: var(--dim); }
   .sell { margin-top: 44px; }
   .sell p { color: var(--dim); margin: 0 0 14px; max-width: 34em; }
@@ -116,29 +135,29 @@
   </section>
 
   <h2>The 20 states with stricter calling hours</h2>
-  <p class="fine">For sales calls, in the lead's local time. Every other state follows the federal 8 AM to 9 PM.</p>
-  <div class="tw"><table>
+  <p class="fine">For sales calls, in the lead's local time. Every other state follows the federal 8 AM to 9 PM.<span class="strict-key"> Each state shows its hours and only the rules that differ: weekends, holidays and calls per person.</span></p>
+  <div class="tw strict"><table>
     <thead><tr><th>State</th><th>Hours</th><th>Saturday</th><th>Sunday</th><th>Holidays</th><th>Calls per person</th></tr></thead>
-    <tbody><tr><td>Alabama</td><td>8 AM–8 PM</td><td>Same</td><td>No calls</td><td>No calls</td><td>No state limit</td></tr>
-      <tr><td>Connecticut</td><td>9 AM–8 PM</td><td>Same</td><td>Same</td><td>Allowed</td><td>No state limit</td></tr>
-      <tr><td>Florida</td><td>8 AM–8 PM</td><td>Same</td><td>Same</td><td>Allowed</td><td>3 per 24 hours</td></tr>
-      <tr><td>Kentucky</td><td>10 AM–9 PM</td><td>Same</td><td>Same</td><td>Allowed</td><td>No state limit</td></tr>
-      <tr><td>Louisiana</td><td>8 AM–8 PM</td><td>Same</td><td>No calls</td><td>No calls</td><td>No state limit</td></tr>
-      <tr><td>Maryland</td><td>8 AM–8 PM</td><td>Same</td><td>Same</td><td>Allowed</td><td>3 per 24 hours</td></tr>
-      <tr><td>Massachusetts</td><td>8 AM–8 PM</td><td>Same</td><td>Same</td><td>Allowed</td><td>No state limit</td></tr>
-      <tr><td>Michigan</td><td>9 AM–9 PM</td><td>Same</td><td>Same</td><td>Allowed</td><td>No state limit</td></tr>
-      <tr><td>Minnesota</td><td>9 AM–9 PM</td><td>Same</td><td>Same</td><td>Allowed</td><td>No state limit</td></tr>
-      <tr><td>Mississippi</td><td>8 AM–8 PM</td><td>Same</td><td>No calls</td><td>Allowed</td><td>No state limit</td></tr>
-      <tr><td>Nevada</td><td>9 AM–8 PM</td><td>Same</td><td>Same</td><td>Allowed</td><td>No state limit</td></tr>
-      <tr><td>New Mexico</td><td>9 AM–9 PM</td><td>Same</td><td>Same</td><td>Allowed</td><td>No state limit</td></tr>
-      <tr><td>Oklahoma</td><td>8 AM–8 PM</td><td>Same</td><td>Same</td><td>Allowed</td><td>3 per 24 hours</td></tr>
-      <tr><td>Oregon</td><td>8 AM–8 PM</td><td>Same</td><td>Same</td><td>Allowed</td><td>3 per 24 hours</td></tr>
-      <tr><td>Pennsylvania</td><td>9 AM–7 PM (from Oct 18, 2026)</td><td>Same</td><td>No calls</td><td>No calls</td><td>No state limit</td></tr>
-      <tr><td>Rhode Island</td><td>9 AM–6 PM</td><td>10 AM–5 PM</td><td>No calls</td><td>No calls</td><td>No state limit</td></tr>
-      <tr><td>South Dakota</td><td>9 AM–9 PM</td><td>Same</td><td>No calls</td><td>Allowed</td><td>No state limit</td></tr>
-      <tr><td>Texas</td><td>9 AM–9 PM</td><td>Same</td><td>12 PM–9 PM</td><td>Allowed</td><td>No state limit</td></tr>
-      <tr><td>Washington</td><td>8 AM–8 PM</td><td>Same</td><td>Same</td><td>Allowed</td><td>No state limit</td></tr>
-      <tr><td>Wyoming</td><td>8 AM–8 PM</td><td>Same</td><td>Same</td><td>Allowed</td><td>No state limit</td></tr></tbody>
+    <tbody><tr><td>Alabama</td><td>8 AM–8 PM</td><td class="d">Same</td><td>No calls</td><td>No calls</td><td class="d">No state limit</td></tr>
+      <tr><td>Connecticut</td><td>9 AM–8 PM</td><td class="d">Same</td><td class="d">Same</td><td class="d">Allowed</td><td class="d">No state limit</td></tr>
+      <tr><td>Florida</td><td>8 AM–8 PM</td><td class="d">Same</td><td class="d">Same</td><td class="d">Allowed</td><td>3 per 24 hours</td></tr>
+      <tr><td>Kentucky</td><td>10 AM–9 PM</td><td class="d">Same</td><td class="d">Same</td><td class="d">Allowed</td><td class="d">No state limit</td></tr>
+      <tr><td>Louisiana</td><td>8 AM–8 PM</td><td class="d">Same</td><td>No calls</td><td>No calls</td><td class="d">No state limit</td></tr>
+      <tr><td>Maryland</td><td>8 AM–8 PM</td><td class="d">Same</td><td class="d">Same</td><td class="d">Allowed</td><td>3 per 24 hours</td></tr>
+      <tr><td>Massachusetts</td><td>8 AM–8 PM</td><td class="d">Same</td><td class="d">Same</td><td class="d">Allowed</td><td class="d">No state limit</td></tr>
+      <tr><td>Michigan</td><td>9 AM–9 PM</td><td class="d">Same</td><td class="d">Same</td><td class="d">Allowed</td><td class="d">No state limit</td></tr>
+      <tr><td>Minnesota</td><td>9 AM–9 PM</td><td class="d">Same</td><td class="d">Same</td><td class="d">Allowed</td><td class="d">No state limit</td></tr>
+      <tr><td>Mississippi</td><td>8 AM–8 PM</td><td class="d">Same</td><td>No calls</td><td class="d">Allowed</td><td class="d">No state limit</td></tr>
+      <tr><td>Nevada</td><td>9 AM–8 PM</td><td class="d">Same</td><td class="d">Same</td><td class="d">Allowed</td><td class="d">No state limit</td></tr>
+      <tr><td>New Mexico</td><td>9 AM–9 PM</td><td class="d">Same</td><td class="d">Same</td><td class="d">Allowed</td><td class="d">No state limit</td></tr>
+      <tr><td>Oklahoma</td><td>8 AM–8 PM</td><td class="d">Same</td><td class="d">Same</td><td class="d">Allowed</td><td>3 per 24 hours</td></tr>
+      <tr><td>Oregon</td><td>8 AM–8 PM</td><td class="d">Same</td><td class="d">Same</td><td class="d">Allowed</td><td>3 per 24 hours</td></tr>
+      <tr><td>Pennsylvania</td><td>9 AM–7 PM (from Oct 18, 2026)</td><td class="d">Same</td><td>No calls</td><td>No calls</td><td class="d">No state limit</td></tr>
+      <tr><td>Rhode Island</td><td>9 AM–6 PM</td><td>10 AM–5 PM</td><td>No calls</td><td>No calls</td><td class="d">No state limit</td></tr>
+      <tr><td>South Dakota</td><td>9 AM–9 PM</td><td class="d">Same</td><td>No calls</td><td class="d">Allowed</td><td class="d">No state limit</td></tr>
+      <tr><td>Texas</td><td>9 AM–9 PM</td><td class="d">Same</td><td>12 PM–9 PM</td><td class="d">Allowed</td><td class="d">No state limit</td></tr>
+      <tr><td>Washington</td><td>8 AM–8 PM</td><td class="d">Same</td><td class="d">Same</td><td class="d">Allowed</td><td class="d">No state limit</td></tr>
+      <tr><td>Wyoming</td><td>8 AM–8 PM</td><td class="d">Same</td><td class="d">Same</td><td class="d">Allowed</td><td class="d">No state limit</td></tr></tbody>
   </table></div>
   <p class="fine">Based on published state rules as of November 2026. Not legal advice.</p>
 

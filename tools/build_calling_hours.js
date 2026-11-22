@@ -49,8 +49,10 @@ function build(only) {
   const rows = strict.map(st => {
     const r = SH[st];
     const hours = win(r.h) + (r.from ? ' (from ' + fmtDate(r.from) + ')' : '');
-    return '<tr><td>' + NAMES[st] + '</td><td>' + hours + '</td><td>' + (r.sat ? win(r.sat) : 'Same') + '</td><td>' + (r.sun === false ? 'No calls' : r.sunH ? win(r.sunH) : 'Same') +
-      '</td><td>' + (r.hol ? 'No calls' : 'Allowed') + '</td><td>' + (r.max3 ? '3 per 24 hours' : 'No state limit') + '</td></tr>';
+    // td class "d" = the federal default; on phones those cells are visually hidden so each card shows only what's stricter
+    const td = (v, d) => (d ? '<td class="d">' : '<td>') + v + '</td>';
+    return '<tr><td>' + NAMES[st] + '</td><td>' + hours + '</td>' + td(r.sat ? win(r.sat) : 'Same', !r.sat) + td(r.sun === false ? 'No calls' : r.sunH ? win(r.sunH) : 'Same', r.sun !== false && !r.sunH) +
+      td(r.hol ? 'No calls' : 'Allowed', !r.hol) + td(r.max3 ? '3 per 24 hours' : 'No state limit', !r.max3) + '</tr>';
   }).join('\n      ');
   const list = a => a.map(s => NAMES[s]).join(', ').replace(/, ([^,]+)$/, ' and $1');
   const all = Object.keys(NAMES).sort((a, b) => NAMES[a].localeCompare(NAMES[b]));
