@@ -1,0 +1,57 @@
+# Runs every VPEX app and website test in a real browser on every push, on any branch, so a change that breaks
+# something shows up red here before it goes live. Nothing is published and no secrets are used.
+name: Test VPEX app
+
+on:
+  push:
+    paths-ignore:
+      - "instagram/**"
+      - "instagram-bot/**"
+      - "studio/**"
+      - "**/*.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: app-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Build and code checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - name: The app file matches its parts (vx/build.py)
+        run: python3 vx/build.py --check
+      - name: Every script in the app and the site pages parses
+        run: node tools/check_scripts.js
+
+  browser:
+    name: Browser tests ${{ matrix.shard }}/6
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Install Playwright and Chromium
+        run: |
+          npm install --no-save --no-audit --no-fund --prefix "$RUNNER_TEMP/pw" playwright@1.63.0
+          "$RUNNER_TEMP/pw/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Run tests
+        env:
+          NODE_PATH: ${{ runner.temp }}/pw/node_modules
+          SHARD: ${{ matrix.shard }}
+          SHARDS: 6
+          PAR: 2
+          TZ: America/New_York
+        run: bash tools/run_tests.sh

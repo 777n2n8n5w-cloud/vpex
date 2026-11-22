@@ -149,7 +149,7 @@ function buildAll() {
   return out;
 }
 function siteUrls() {
-  return ['/', '/phoneburner-alternative/', '/batchdialer-alternative/', '/mojo-dialer-alternative/', '/power-dialer-for-insurance-agents/', '/power-dialer-for-real-estate-agents/', '/power-dialer-for-business-funding/', '/power-dialer-for-auto-sales/', '/power-dialer-for-solar-sales/', '/calling-hours/', HOL_PATH].concat(Object.keys(EXPLAIN).map(st => EXPLAIN[st][0]), Object.keys(NAMES).sort((a, b) => NAMES[a].localeCompare(NAMES[b])).map(st => '/calling-hours/' + slug(st) + '/'));
+  return ['/', '/phoneburner-alternative/', '/batchdialer-alternative/', '/mojo-dialer-alternative/', '/power-dialer-for-insurance-agents/', '/power-dialer-for-real-estate-agents/', '/power-dialer-for-business-funding/', '/power-dialer-for-auto-sales/', '/power-dialer-for-solar-sales/', '/calling-hours/', HOL_PATH, '/ig/', '/privacy/', '/terms/', '/cookies/'].concat(Object.keys(EXPLAIN).map(st => EXPLAIN[st][0]), Object.keys(NAMES).sort((a, b) => NAMES[a].localeCompare(NAMES[b])).map(st => '/calling-hours/' + slug(st) + '/'));
 }
 function sitemap() {
   const urls = siteUrls();
