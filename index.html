@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-03-09">
+<meta name="vpex-build" content="2027-03-10">
 <!-- Scripts only from this site and Google's Firebase library; no plugins; no <base> or form hijacking. Inline scripts stay
      allowed because the app is one file. (GitHub Pages can't send headers, so this is the strongest policy a page can set.) -->
 <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://www.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self'">
@@ -11325,7 +11325,13 @@ body.desk #deskLeft > #queueControls::before, body.desk #deskLeft #queueHeading 
     (function () {
       var FS = "__mockfs", AU = "__mockauth";
       function load(k) { try { return JSON.parse(localStorage.getItem(k) || "{}"); } catch (e) { return {}; } }
-      function save(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
+      // what was just saved is also the copy the next read shares (nothing holds on to it after a write: values going in are copies)
+      function save(k, v) { var raw = JSON.stringify(v); localStorage.setItem(k, raw); RO[k] = { raw: raw, v: v }; }
+      // Reads that only look (permission checks, listeners, gets) share one parsed copy, parsed again only when the stored
+      // text changes. Each update used to re-parse the whole database once per open listener, several times over: most of
+      // a demo's start-up on a phone. Writes still parse their own copy, so a write that's refused leaves nothing behind.
+      var RO = {};
+      function loadRO(k) { var raw = localStorage.getItem(k) || "{}", c = RO[k]; if (c && c.raw === raw) return c.v; var v; try { v = JSON.parse(raw); } catch (e) { v = {}; } RO[k] = { raw: raw, v: v }; return v; }
       function clone(x) { return x === undefined ? undefined : JSON.parse(JSON.stringify(x)); }
       var DEL = { __del: true };
       function err(code, msg) { var e = new Error(msg || code); e.code = code; return e; }
@@ -11354,11 +11360,11 @@ body.desk #deskLeft > #queueControls::before, body.desk #deskLeft #queueHeading 
         if (r.office && path === "offices") return false;
         if (r.office && r.rel === "") {                                       // its own office record: members (or its creator) read it; write() checks changes
           if (op !== "read") return true;
-          var db0 = load(FS), od0 = db0[path], mm0 = db0[r.pre + "members/" + u.uid];
+          var db0 = loadRO(FS), od0 = db0[path], mm0 = db0[r.pre + "members/" + u.uid];
           return !od0 || !!(mm0 && mm0.active) || od0.ownerUid === u.uid;
         }
         path = r.rel;
-        var db = load(FS), m = db[r.pre + "members/" + u.uid];
+        var db = loadRO(FS), m = db[r.pre + "members/" + u.uid];
         if (path === "vault" || path.indexOf("vault/") === 0) {           // the Vault's rules
           if (window.__noVaultRules) return false;
           if (isAdminUser(app)) return true;
@@ -11377,7 +11383,7 @@ body.desk #deskLeft > #queueControls::before, body.desk #deskLeft #queueHeading 
       function fire(l) {
         if (!l.app._user) return;
         if (!allowed(l.app, l.path, "read", l.filters)) { var ix = listeners.indexOf(l); if (ix > -1) listeners.splice(ix, 1); if (l.err) l.err(err("permission-denied")); return; }
-        var db = load(FS);
+        var db = loadRO(FS);
         if (l.kind === "doc") {
           var d = db[l.path], js = JSON.stringify(d === undefined ? null : d);
           if (js === l.last) return; l.last = js; l.cb(snapDoc(l.path, d));
@@ -11398,7 +11404,7 @@ body.desk #deskLeft > #queueControls::before, body.desk #deskLeft #queueHeading 
       function notify() { listeners.slice().forEach(fire); }
       window.addEventListener("storage", function (e) { if (e.key === FS) notify(); });
       window.__mockListenerCount = function () { return listeners.length; };
-      function isAdminUser(app, path) { var u = app._user; if (!u) return false; var uo = emailOffice(u.email); if (!uo && isOwnerEmail(u.email)) return true; var mm = load(FS)[(uo ? "offices/" + uo + "/" : "") + "members/" + u.uid]; return !!(mm && mm.active && mm.role === "admin"); }
+      function isAdminUser(app, path) { var u = app._user; if (!u) return false; var uo = emailOffice(u.email); if (!uo && isOwnerEmail(u.email)) return true; var mm = loadRO(FS)[(uo ? "offices/" + uo + "/" : "") + "members/" + u.uid]; return !!(mm && mm.active && mm.role === "admin"); }
       function passes(k, d, f) {
         var v = f[0] === "__name__" ? k.split("/").pop() : (d || {})[f[0]], op = f[2] || "==";
         return op === "==" ? v === f[1] : op === ">=" ? v >= f[1] : op === ">" ? v > f[1] : op === "<=" ? v <= f[1] : op === "<" ? v < f[1] : false;
@@ -11458,9 +11464,9 @@ body.desk #deskLeft > #queueControls::before, body.desk #deskLeft #queueHeading 
       function officeOpen(d) { var t = Date.now(); if (!d || d.locked === true) return false; return d.plan === "comp" || (d.plan === "paid" && t < (d.paidThrough || 1e14) + 604800000) || (d.plan === "trial" && t < d.trialEnds); }
       function emailOffice(email) { var m = /@([a-z0-9-]+)\.vpex\.app$/.exec(String(email || "")); return m ? m[1] : null; }
       DocRef.prototype.get = function (opts) { var a = this.app, p = this.path, cache = opts && opts.source === "cache"; return Promise.resolve().then(function () {
-        if (cache) { var d = load(FS)[p]; if (d === undefined) throw err("unavailable"); return snapDoc(p, d); }
+        if (cache) { var d = loadRO(FS)[p]; if (d === undefined) throw err("unavailable"); return snapDoc(p, d); }
         if (window.__offline) throw err("unavailable");
-        if (!allowed(a, p, "read")) throw err("permission-denied"); return snapDoc(p, load(FS)[p]); }); };
+        if (!allowed(a, p, "read")) throw err("permission-denied"); return snapDoc(p, loadRO(FS)[p]); }); };
       DocRef.prototype.set = function (data, opts) { var p = this.path; return write(this.app, p, function (db) { if (!(opts && opts.merge && db[p])) db[p] = {}; merge(db[p], data); }); };
       DocRef.prototype.update = function (obj) { var p = this.path, args = arguments; return write(this.app, p, function (db) {
         if (!db[p]) throw err("not-found", "No document to update");
@@ -11476,7 +11482,7 @@ body.desk #deskLeft > #queueControls::before, body.desk #deskLeft #queueHeading 
         if (!cache && window.__offline) throw err("unavailable");
         if (!cache) window.__mockServerQueries = (window.__mockServerQueries || []).concat([p + " " + JSON.stringify(f || [])]);
         if (!allowed(a, p, "read", f)) throw err("permission-denied");
-        var db = load(FS), depth = p.split("/").length + 1;
+        var db = loadRO(FS), depth = p.split("/").length + 1;
         var docs = Object.keys(db).filter(function (k) { return k.indexOf(p + "/") === 0 && k.split("/").length === depth; })
           .filter(function (k) { return (f || []).every(function (x) { return passes(k, db[k], x); }); }).sort().slice(0, lim || undefined).map(function (k) { return snapDoc(k, db[k]); });
         return { docs: docs, empty: !docs.length, size: docs.length, forEach: function (fn) { docs.forEach(fn); } }; }); };
@@ -16753,8 +16759,9 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       autoAdvanceToggleHtml();
 
     var notesInput = document.getElementById("leadNotesInput");
-    var fitNotes = function () { notesInput.style.height = "auto"; notesInput.style.height = Math.min(120, Math.max(46, notesInput.scrollHeight + 2)) + "px"; };
-    fitNotes(); notesInput.addEventListener("input", fitNotes);
+    var fitNotes = function () { if (!notesInput.isConnected) return; notesInput.style.height = "auto"; notesInput.style.height = Math.min(120, Math.max(46, notesInput.scrollHeight + 2)) + "px"; };
+    // sized in the next frame, not here: measuring right after drawing the card forced a full layout on every redraw
+    requestAnimationFrame(fitNotes); notesInput.addEventListener("input", fitNotes);
     notesInput.addEventListener("change", function () { logNoteEvent(lead); });
     notesInput.addEventListener("input", function () {
       lead.notes = notesInput.value;
@@ -22251,7 +22258,10 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       (sellsVpex ? '<button type="button" id="demoTrial">Start free trial</button><button type="button" id="demoExit" class="demo-exit">Exit</button>' : '<button type="button" id="demoExit">Exit demo</button>');
     document.body.insertBefore(demoPill, document.body.firstChild); document.getElementById("demoExit").addEventListener("click", exitDemo);
     var dpH = function () { document.documentElement.style.setProperty("--dp-h", demoPill.offsetHeight + "px"); };
-    document.body.classList.add("demo-sticky"); dpH(); window.addEventListener("resize", dpH);
+    // measured when the browser lays the page out anyway (and again if the pill's size changes: a font loads, the phone
+    // turns), instead of forcing a layout at start-up
+    document.body.classList.add("demo-sticky");
+    if (window.ResizeObserver) new ResizeObserver(dpH).observe(demoPill); else { dpH(); window.addEventListener("resize", dpH); }
     var dTrial = document.getElementById("demoTrial"); if (dTrial) dTrial.addEventListener("click", function () { exitDemo(IND_KEY || "insurance"); });
   }
 
