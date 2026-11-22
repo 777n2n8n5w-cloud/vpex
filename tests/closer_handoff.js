@@ -101,6 +101,8 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const t1 = Date.now(); let alertMs = -1;
   while (Date.now() - t1 < 4000) { if (await sam.evaluate(() => { const a = document.getElementById('hoAlert'); return !!(a && a.classList.contains('show')); })) { alertMs = Date.now() - sentAt; break; } await sleep(100); }
   check('closer: alert shows within 2 s of the send, on another tab (' + samView + ')', alertMs >= 0 && alertMs < 2000, alertMs);
+  await sam.evaluate(() => Promise.all(document.getElementById('hoAlert').getAnimations({ subtree: true }).map(x => x.finished.catch(() => {}))));   // measure where it lands, not mid-slide
+  await sleep(450);
   const al = await sam.evaluate(() => { const a = document.getElementById('hoAlert'); return { text: a.innerText, go: document.getElementById('hoAlertGo').textContent, chimes: window.__chimes, role: a.getAttribute('role'), r: a.getBoundingClientRect().toJSON() }; });
   check('closer: alert says who, which lead, call now, the note and the answers', al.text.includes('New handoff from Mia') && al.text.includes(lead.name) && al.text.includes('Call now') && al.text.includes('20-year term') && /61/.test(al.text), al.text);
   check('closer: it chimes, and is an alert dialog fully on screen', al.chimes >= 1 && al.role === 'alertdialog' && al.r.top >= 0 && al.r.right <= 390 && al.r.left >= 0, al);
