@@ -3,7 +3,8 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-03-12">
+<meta name="vpex-build" content="2027-03-13">
+<meta name="vpex-min-build" content="2027-03-12">
 <!-- Scripts only from this site and Google's Firebase library; no plugins; no <base> or form hijacking. Inline scripts stay
      allowed because the app is one file. (GitHub Pages can't send headers, so this is the strongest policy a page can set.) -->
 <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://www.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self'">
@@ -24563,7 +24564,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       return r.conclusion === "success" ? ['ok', 'OK'] : r.conclusion === "failure" ? ['bad', 'Failed'] : ['none', (r.conclusion || "Skipped").replace(/_/g, " ")];
     };
     var rows = [
-      ['ok', 'VPEX app', 'Build ' + escapeHtml(APP_BUILD || "?") + (UPD && UPD.pending ? ' · update waiting for tonight' : ' · up to date'), ''],
+      ['ok', 'VPEX app', 'Build ' + escapeHtml(APP_BUILD || "?") + (UPD && UPD.pending ? (UPD.pending.urgent ? ' · important fix installing' : ' · update waiting for tonight') : ' · up to date'), ''],
       [b.connectorUrl ? 'ok' : 'none', 'Billing connector', b.connectorUrl ? 'Set: offices switch to paid by themselves' : 'Not set: mark offices paid by hand', ''],
       [pushStatus() === "on" ? 'ok' : 'none', 'Notifications on this phone', pushStatus() === "on" ? 'On' : 'Off', '']
     ];
@@ -24899,13 +24900,15 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
   /** ---------- Automatic updates, installed overnight ---------- **/
   // The app checks for a newer version on its own. Anything published during the day waits until
   // midnight, then installs quietly the next time it's safe (never mid-call or while typing).
+  // An important fix doesn't wait: the published page names the oldest build that is still OK
+  // (<meta name="vpex-min-build">); a phone on an older build installs it the next time it's safe, day or night.
   var APP_BUILD = ((document.querySelector('meta[name="vpex-build"], meta[name="dovetail-build"]') || {}).content) || "";
   var UPD_KEY = "dovetail_update", UPD_TRY = "dovetail_update_tried";
   var UPD = { pending: null, checking: false, lastCheck: 0 };
   function updLoad() { try { return JSON.parse(window.localStorage.getItem(UPD_KEY) || "null"); } catch (e) { return null; } }
   function updSave(v) { try { if (v) window.localStorage.setItem(UPD_KEY, JSON.stringify(v)); else window.localStorage.removeItem(UPD_KEY); } catch (e) {} }
   function nextMidnight(ts) { var d = new Date(ts); d.setHours(24, 0, 0, 0); return d.getTime(); }
-  function updDue() { return !!(UPD.pending && Date.now() >= nextMidnight(UPD.pending.since)); }
+  function updDue() { return !!(UPD.pending && (UPD.pending.urgent || Date.now() >= nextMidnight(UPD.pending.since))); }
   function updSafe() {
     var ae = document.activeElement;
     return !state.awaitingOutcome && !LF.busy && !(ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) && !document.querySelector(".modal-overlay.show") &&
@@ -24925,7 +24928,8 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
         if (!m || m[1] <= APP_BUILD) { UPD.pending = null; updSave(null); updShow(); return; }
         var saved = updLoad(), published = x.lm ? Date.parse(x.lm) : NaN;
         var since = saved && saved.build === m[1] ? saved.since : (isNaN(published) ? Date.now() : Math.min(published, Date.now()));
-        UPD.pending = { build: m[1], since: since };
+        var mb = x.t.match(/name="vpex-min-build" content="([^"]+)"/);
+        UPD.pending = { build: m[1], since: since, urgent: !!(mb && APP_BUILD < mb[1]) };
         updSave(UPD.pending);
         updShow();
         updMaybeApply();
@@ -24947,7 +24951,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     if (!el) return;
     if (!UPD.pending) { el.innerHTML = ""; return; }
     el.innerHTML = '<div class="upd-note"><b>Update ready: Build ' + escapeHtml(UPD.pending.build) + '</b><span>' +
-      (updDue() ? "Installs the next time you\u2019re not mid-call." : "Installs automatically after midnight.") +
+      (UPD.pending.urgent ? "Important fix. Installs the next time you\u2019re not mid-call." : updDue() ? "Installs the next time you\u2019re not mid-call." : "Installs automatically after midnight.") +
       '</span><button class="btn-secondary" id="updNow">Install now</button></div>';
     document.getElementById("updNow").addEventListener("click", function () { closeMenuModal(); updInstall(); });
   }
