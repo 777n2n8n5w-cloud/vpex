@@ -30,5 +30,17 @@ for (const f of files) {
     try { new vm.Script(body, { filename: f + ':' + line }); } catch (e) { bad++; console.log('FAIL ' + f + ':' + line + ': ' + e.message); }
   }
 }
+// A save that makes a missing record only on "not found" silently fails for reps: for them the database answers
+// "permission denied" when the record isn't there (their rule reads the old record). That lost every rep's calls from
+// Nov 15 to Nov 24. The app must use updateOrCreate() for these; this fails the check if the old pattern comes back.
+{
+  const app = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8'), lines = app.split('\n');
+  lines.forEach((ln, i) => {
+    if (!/["']not-found["']/.test(ln)) return;
+    if (/function updateOrCreate\(|if \(code === "not-found"\) return ref\.set\(make/.test(ln + (lines[i - 3] || '') + (lines[i - 2] || '') + (lines[i - 1] || ''))) return;   // the helper itself
+    if (/err\("not-found"/.test(ln)) return;                                         // the in-page test database raising it
+    bad++; console.log('FAIL index.html:' + (i + 1) + ': handles "not found" on its own; a rep gets "permission denied" for a missing record: use updateOrCreate()');
+  });
+}
 console.log('scripts checked: ' + n + ' in ' + files.length + ' files, ' + bad + ' failed');
 process.exit(bad ? 1 : 0);

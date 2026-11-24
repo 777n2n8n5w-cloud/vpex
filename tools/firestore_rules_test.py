@@ -150,6 +150,10 @@ CASES = [
     case("message: an office login isn't on the original team", "DENY", "get", "floor/tadm_abc", REP1, old=MSG),
     # ---- security audit (2026-11-14): call records can only be added to, by their own rep ----
     case("calls: a rep starts their own hour of calls", "ALLOW", "create", "offices/acme/callDays/2026-11-05_rep1_10", REP1, new={"calls": {"c1": CALL}}),
+    # Nov 15-24: the app saved a call with "update" and made the hour's record only on "not found". For a rep, an update
+    # of a record that isn't there is refused (the rule reads the old record), so no rep's call was saved. The app now
+    # makes the record when it's missing (updateOrCreate); these keep that behavior pinned down.
+    case("calls: a rep's update of an hour record that doesn't exist yet is refused (the app must create it)", "DENY", "update", "offices/acme/callDays/2026-11-05_rep1_12", REP1, new={"calls": {"c1": CALL}}),
     case("calls: a rep adds a call to their own hour", "ALLOW", "update", "offices/acme/callDays/2026-11-05_rep1_10", REP1, new={"calls": {"c1": CALL, "c2": CALL}}, old={"calls": {"c1": CALL}}),
     case("calls: saving the same call again (a retry) is fine", "ALLOW", "update", "offices/acme/callDays/2026-11-05_rep1_10", REP1, new={"calls": {"c1": CALL}}, old={"calls": {"c1": CALL}}),
     case("calls: a rep can't add calls to a teammate's record", "DENY", "update", "offices/acme/callDays/2026-11-05_mgr1_10", REP1, new={"calls": {"m1": CALL, "fake": CALL}}, old={"calls": {"m1": CALL}}),

@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-03-11">
+<meta name="vpex-build" content="2027-03-12">
 <!-- Scripts only from this site and Google's Firebase library; no plugins; no <base> or form hijacking. Inline scripts stay
      allowed because the app is one file. (GitHub Pages can't send headers, so this is the strongest policy a page can set.) -->
 <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://www.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self'">
@@ -11468,8 +11468,10 @@ body.desk #deskLeft > #queueControls::before, body.desk #deskLeft #queueHeading 
         if (window.__offline) throw err("unavailable");
         if (!allowed(a, p, "read")) throw err("permission-denied"); return snapDoc(p, loadRO(FS)[p]); }); };
       DocRef.prototype.set = function (data, opts) { var p = this.path; return write(this.app, p, function (db) { if (!(opts && opts.merge && db[p])) db[p] = {}; merge(db[p], data); }); };
-      DocRef.prototype.update = function (obj) { var p = this.path, args = arguments; return write(this.app, p, function (db) {
-        if (!db[p]) throw err("not-found", "No document to update");
+      DocRef.prototype.update = function (obj) { var p = this.path, args = arguments, app = this.app; return write(this.app, p, function (db) {
+        // as the real database: an admin (whose rule doesn't read the old record) hears "not found"; anyone else's rule
+        // reads the old record, which isn't there, so they're refused
+        if (!db[p]) throw (isAdminUser(app) || isOwnerEmail(app._user && app._user.email) ? err("not-found", "No document to update") : err("permission-denied"));
         if (typeof obj === "string") { for (var i = 0; i < args.length; i += 2) setIn(db[p], args[i], args[i + 1]); }
         else Object.keys(obj).forEach(function (k) { setIn(db[p], k, obj[k]); });
       }); };
@@ -17085,6 +17087,24 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
   var PRES = { key: "", dev: "computer" };
   try { PRES.dev = window.matchMedia("(pointer: coarse)").matches ? "phone" : "computer"; } catch (e) {}
   var PRES_STALE = 20 * 60000;   // a call left open (app closed mid-call) stops showing after 20 minutes
+  // Each rep's phone tells the admin whether its saves are reaching the server: calls and lead changes waiting on the
+  // phone, and which version of the app it runs. Kept in today's activity record next to "on a call" (the field reps can
+  // already write: no rule change). Sent at sign-in, when the count changes, and every 5 minutes.
+  var HEALTH = { t: null, last: "", at: 0 };
+  function healthNow() { return { w: (state.pendingCalls || []).length, u: Object.keys(state.unsaved || {}).length, b: sigBuildTag(), at: Date.now() }; }
+  // the report that goes out with an "on a call" change: remembered as the last one sent, so a later change is sent too
+  function healthMark() { var h = healthNow(); HEALTH.last = h.w + "|" + h.u + "|" + h.b + "|" + actDocId(); HEALTH.at = Date.now(); return h; }
+  function healthSoon(ms) { if (TEAM.on && TEAM.me) { clearTimeout(HEALTH.t); HEALTH.t = setTimeout(healthPush, ms == null ? 3000 : ms); } }
+  function healthPush() {
+    if (!TEAM.on || !TEAM.me || !TEAM.db || DEMO) return;
+    var h = healthNow(), id = actDocId(), sig = h.w + "|" + h.u + "|" + h.b + "|" + id;
+    if (sig === HEALTH.last && Date.now() - HEALTH.at < 4 * 60000) return;
+    HEALTH.last = sig; HEALTH.at = Date.now();
+    var upd = {}; upd["live." + fp(TEAM.me.uid) + ".h"] = h;
+    var mk = { calls: {}, live: {} }; mk.live[TEAM.me.uid] = { s: "idle", at: Date.now(), h: h };
+    TEAM.acts = TEAM.acts || {}; var a = TEAM.acts[id] = TEAM.acts[id] || {}; a.live = a.live || {}; a.live[TEAM.me.uid] = Object.assign({}, a.live[TEAM.me.uid] || {}, { h: h });
+    updateOrCreate(tcol("callDays").doc(id), upd, mk).catch(function () { HEALTH.last = ""; });
+  }
   function presenceSync() {
     if (!TEAM.on || !TEAM.me || !TEAM.db) return;
     var key = state.awaitingOutcome ? String(state.liveAt || "on") : "";
@@ -17092,9 +17112,9 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     var was = PRES.key; PRES.key = key;
     if (key) {
       var l = currentLead(); if (!l) { PRES.key = was; return; }
-      actWrite("live", TEAM.me.uid, { s: "call", lead: l.id, name: String(l.name || "").slice(0, 80), at: state.liveAt || Date.now(), dev: PRES.dev, by: String(TEAM.me.name || "").slice(0, 60) }).catch(function () {});
+      actWrite("live", TEAM.me.uid, { s: "call", lead: l.id, name: String(l.name || "").slice(0, 80), at: state.liveAt || Date.now(), dev: PRES.dev, by: String(TEAM.me.name || "").slice(0, 60), h: healthMark() }).catch(function () {});
     } else if (was) {
-      actWrite("live", TEAM.me.uid, { s: "idle", at: Date.now(), dev: PRES.dev, by: String(TEAM.me.name || "").slice(0, 60) }).catch(function () {});
+      actWrite("live", TEAM.me.uid, { s: "idle", at: Date.now(), dev: PRES.dev, by: String(TEAM.me.name || "").slice(0, 60), h: healthMark() }).catch(function () {});
     }
     if (DESK.on) Promise.resolve().then(deskRenderLive);
   }
@@ -18217,6 +18237,19 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
   function emailFor(u) { var o = TEAM.me ? TEAM.office : OFFICE; return usernameClean(u) + "@" + (o ? officeDomain(o) : TEAM_DOMAIN); }
   function isAdmin() { return !!(TEAM.me && TEAM.me.role === "admin"); }
   function meRef() { return TEAM.me ? { uid: TEAM.me.uid, name: TEAM.me.name } : null; }
+  // Add to a record, or make it if it isn't there yet. For a rep, the database answers "permission denied", not "not
+  // found", when the record doesn't exist: the rep's rule reads the old record to check the change, and there is none.
+  // Code that only made the record on "not found" never made it for a rep, so every rep's calls were refused (Nov 24:
+  // no rep's call had been saved since the Nov 15 rules). Both answers now mean: if the record isn't there, make it.
+  // ALWAYS use this (never update().catch(not-found)) for a record a rep may be the first to write.
+  function updateOrCreate(ref, upd, make) {
+    return ref.update(upd).catch(function (e) {
+      var code = e && e.code;
+      if (code === "not-found") return ref.set(make, { merge: true });
+      if (code !== "permission-denied") throw e;
+      return ref.get().then(function (snap) { if (snap.exists) throw e; return ref.set(make, { merge: true }); }, function () { throw e; });
+    });
+  }
   function stableJson(v) {
     if (v === null || typeof v !== "object") return JSON.stringify(v);
     if (Array.isArray(v)) return "[" + v.map(stableJson).join(",") + "]";
@@ -18381,7 +18414,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
   // comes back, when the app comes to the front, and every few seconds after a failed try).
   function teamRetryCalls() {
     if (!TEAM.me || !state.pendingCalls || !state.pendingCalls.length) return;
-    state.pendingCalls.slice().forEach(function (c) { if ((TEAM.callDenied[c.id] || 0) <= 2) teamLogCall(c); });
+    state.pendingCalls.slice().forEach(function (c) { var d = TEAM.callDenied[c.id]; if (!d || d.n <= 2 || Date.now() - d.at > 60000) teamLogCall(c); });
   }
   var lastHiddenAt = 0;
   document.addEventListener("visibilitychange", function () {
@@ -18967,7 +19000,8 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     teamAttachData();
     TEAM.dayTimer = setInterval(teamWatchDays, 10 * 60 * 1000);
     teamHeartbeat();
-    TEAM.heartbeat = setInterval(teamHeartbeat, 5 * 60 * 1000);
+    TEAM.heartbeat = setInterval(function () { teamHeartbeat(); teamRetryCalls(); healthPush(); }, 5 * 60 * 1000);
+    healthSoon(2000);
     teamRetryCalls();
     if (isOwnerMaster()) { ownerCheckNew(); clearInterval(TEAM.ownerTimer); TEAM.ownerTimer = setInterval(ownerCheckNew, 30 * 60000); }
   }
@@ -19221,10 +19255,8 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     var id = actDocId(), ref = tcol("callDays").doc(id);
     TEAM.acts = TEAM.acts || {}; var a = TEAM.acts[id] = TEAM.acts[id] || {}; (a[field] = a[field] || {})[key] = val;
     var upd = {}; upd[field + "." + fp(key)] = val;
-    return ref.update(upd).catch(function (e) {
-      if (e && e.code === "not-found") { var o = { calls: {} }; o[field] = {}; o[field][key] = val; return ref.set(o, { merge: true }); }
-      throw e;
-    });
+    var o = { calls: {} }; o[field] = {}; o[field][key] = val;
+    return updateOrCreate(ref, upd, o);
   }
   function setWorkLoc(uid, loc) {
     if (!TEAM.on || !TEAM.db || !isAdmin()) return;
@@ -19296,12 +19328,12 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
   TEAM.callSending = {}; TEAM.callDenied = {};
   function callOutboxAdd(c) {
     if (!state.pendingCalls) state.pendingCalls = [];
-    if (!state.pendingCalls.some(function (x) { return x.id === c.id; })) { state.pendingCalls.push(c); writeLocalNow(); }
+    if (!state.pendingCalls.some(function (x) { return x.id === c.id; })) { state.pendingCalls.push(c); writeLocalNow(); healthSoon(); }
   }
   function callOutboxDone(id) {
     var before = (state.pendingCalls || []).length;
     state.pendingCalls = (state.pendingCalls || []).filter(function (x) { return x.id !== id; });
-    if (state.pendingCalls.length !== before) writeLocalNow();
+    if (state.pendingCalls.length !== before) { writeLocalNow(); healthSoon(); }
   }
   function teamLogCall(entry) {
     var clean = JSON.parse(JSON.stringify(entry)), id = clean.id;
@@ -19309,11 +19341,8 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     if (TEAM.callSending[id] || !TEAM.db) return;
     TEAM.callSending[id] = true;
     var ref = tcol("callDays").doc(callDayId(clean.timestamp, (clean.by && clean.by.uid) || (TEAM.me && TEAM.me.uid)));
-    var upd = {}; upd["calls." + fp(id)] = clean;
-    ref.update(upd).catch(function (e) {
-      if (e && e.code === "not-found") { var obj = { calls: {} }; obj.calls[id] = clean; return ref.set(obj, { merge: true }); }
-      throw e;
-    }).then(function () {
+    var upd = {}, obj = { calls: {} }; upd["calls." + fp(id)] = clean; obj.calls[id] = clean;
+    updateOrCreate(ref, upd, obj).then(function () {
       delete TEAM.callSending[id]; delete TEAM.callDenied[id];
       callOutboxDone(id);
       // the day's call total (the owner console reads these instead of every call)
@@ -19323,7 +19352,9 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       if (e && e.code === "permission-denied") {
         // check the login is still good (that re-sends what's waiting); a call refused again and again stays on the phone
         // and in history, and is tried again next time the app opens, instead of looping
-        if ((TEAM.callDenied[id] = (TEAM.callDenied[id] || 0) + 1) <= 2) teamVerifyAccess("save-call");
+        var dn = TEAM.callDenied[id] = { n: ((TEAM.callDenied[id] || {}).n || 0) + 1, at: Date.now() };
+        if (dn.n <= 2) teamVerifyAccess("save-call");
+        clearTimeout(TEAM.callRetryT); TEAM.callRetryT = setTimeout(teamRetryCalls, 65000);
         return;
       }
       setSaveStatus("teamoffline");
@@ -19583,17 +19614,14 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       clearTimeout(TEAM.slowTimer);   // no answer for a few seconds: it's held on the phone and goes when the signal's back
       TEAM.slowTimer = setTimeout(function () { if (TEAM.inflight) setSaveStatus("teamoffline"); }, 4000);
     }
-    var p = ref.update(upd).catch(function (e) {
-      if (!(e && e.code === "not-found")) throw e;
-      var obj = { leads: {} };   // a new record (first lead in it): make it
-      ids.forEach(function (id) { if (!dels[id]) obj.leads[id] = upd["leads." + fp(id)]; });
-      return ref.set(obj, { merge: true });
-    }).then(function () {
+    var make = { leads: {} };   // a new record (first lead in it): make it
+    ids.forEach(function (id) { if (!dels[id]) make.leads[id] = upd["leads." + fp(id)]; });
+    var p = updateOrCreate(ref, upd, make).then(function () {
       TEAM.sendErr = false;
       ids.forEach(function (id) { if (dels[id]) { delete TEAM.delPending[id]; delete TEAM.lastSent[id]; delete TEAM.fastSig[id]; delete TEAM.lastCk[id]; } });
       var u = state.unsaved || {}, cut = false;   // confirmed: cross off (unless a newer change of the same lead is on its way)
       ids.forEach(function (id) { if (u[id] && u[id].js === sent[id]) { delete u[id]; cut = true; } });
-      if (cut) writeLocalNow();
+      if (cut) { writeLocalNow(); healthSoon(); }
     }, function (e) {
       ids.forEach(function (id) {
         if (dels[id]) { delete TEAM.delPending[id]; return; }
@@ -20024,10 +20052,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     v.at = at;
     // update only the prefs field (never touches the leads in this record); make the record if there isn't one yet
     var ref = tcol("leadChunks").doc("r_" + uid);
-    return ref.update({ prefs: v }).catch(function (e) {
-      if (e && e.code === "not-found") return ref.set({ leads: {}, prefs: v });
-      throw e;
-    }).catch(function (e) {
+    return updateOrCreate(ref, { prefs: v }, { leads: {}, prefs: v }).catch(function (e) {
       // a paused office, or offline for now: it's still saved on this phone; try again on the next change or open
       try { if (TEAM.me && TEAM.me.uid === uid) lsSet(key, JSON.stringify({ at: loc.at || 0, h: loc.h || "" })); } catch (x) {}
     });
@@ -20218,6 +20243,16 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       if (!r.calls && wk && hr >= 10 && r.role === "rep" && st.k !== "out" && st.k !== "away") flags.push({ k: "warn", t: "No calls yet" });
       if (r.late) flags.push({ k: r.late >= 5 ? "bad" : "warn", t: r.late + " late follow-up" + (r.late === 1 ? "" : "s") });
       var sp = r.calls >= 25 ? rtSpam()[uid] : null; if (sp) flags.push({ k: "bad", t: "Number may be flagged: " + sp.today + "% answering (usually " + sp.usual + "%)" });
+      // is this rep's work reaching the server? (each phone reports it; see healthPush)
+      var hl = (((TEAM.acts || {})[actDocId()] || {}).live || {})[uid], hh = hl && hl.h, build = sigBuildTag();
+      r.health = hh || null;
+      if (uid !== me && r.role !== "admin" && !DEMO) {   // demo reps are pretend: no phones to report
+        var fresh = hh && now - (hh.at || 0) < 30 * 60000, online = st.k === "call" || st.k === "dial" || st.k === "idle";
+        if (fresh && hh.w > 0) flags.unshift({ k: "bad", t: hh.w + (hh.w === 1 ? " call" : " calls") + " not saved yet on their phone" });
+        if (fresh && hh.u > 0) flags.unshift({ k: "bad", t: hh.u + (hh.u === 1 ? " lead change" : " lead changes") + " not saved yet on their phone" });
+        if (hh && hh.b && hh.b < build) flags.unshift({ k: "bad", t: "Old app version: ask them to close and reopen the app" });
+        else if (!hh && online) flags.unshift({ k: "bad", t: "Needs the app update: ask them to close and reopen the app" });
+      }
       r.flags = flags;
       team.calls += r.calls; team.reached += r.reached; team.interested += r.interested; team.appts += r.appts;
       if (st.k === "call") team.onCall++;
@@ -20261,6 +20296,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
         '<div class="rt-kv"><span>Last call</span><b>' + (r.last ? timeShort(r.last.ts) + ' ' + rtOutcome(r.last.k) : '—') + '</b></div>' +
         '<div class="rt-kv"><span>Average talk</span><b>' + (r.avgTalk ? rtClock(r.avgTalk * 1000) : '—') + '</b></div>' +
         '<div class="rt-kv"><span>Callbacks set</span><b>' + r.cb + '</b></div>' +
+        '<div class="rt-kv"><span>Saving</span><b>' + (r.health ? ((r.health.w || r.health.u) ? '<span class="rt-late">' + ((r.health.w || 0) + (r.health.u || 0)) + ' waiting on their phone</span>' : 'All saved') + ' \u00b7 app ' + escapeHtml(String(r.health.b || "?")) : (r.uid === (TEAM.me && TEAM.me.uid) ? 'All saved' : 'No report from their phone today')) + '</b></div>' +
         (repLoc(r.uid) ? '<div class="rt-kv"><span>Working from</span><b>' + escapeHtml(LOCS[repLoc(r.uid)]) + '</b></div>' : '') +
         '<div class="rt-kv"><span>Follow-ups due today</span><b>' + r.due + (r.late ? ' <span class="rt-late">(' + r.late + ' late)</span>' : '') + '</b></div>' +
         '<div class="rt-hrs"><span>Calls by hour</span>' + rtHours(r.hours, now) + '<span class="rt-hx"><span>8 AM</span><span>2 PM</span><span>8 PM</span></span></div>' +
@@ -21832,7 +21868,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
         out[p[0]] = out[p[0]] || {}; if (v) out[p[0]][p[1]] = v;
       });
       var gref = tcol("leadChunks").doc("_team");
-      gref.update({ goals: out }).catch(function (e) { if (e && e.code === "not-found") return gref.set({ goals: out }, { merge: true }); throw e; }).then(function () { TEAM.infoCfg = Object.assign({}, TEAM.infoCfg || {}, { goals: out }); showToast("Goals saved"); openGoals(); })
+      updateOrCreate(gref, { goals: out }, { goals: out }).then(function () { TEAM.infoCfg = Object.assign({}, TEAM.infoCfg || {}, { goals: out }); showToast("Goals saved"); openGoals(); })
         .catch(function () { document.getElementById("goalErr").textContent = "Couldn\u2019t save. Check your connection."; });
     });
   }
@@ -22326,7 +22362,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
   function calCfg() { var d = TEAM.chunkCache && TEAM.me ? TEAM.chunkCache["r_" + TEAM.me.uid] : null; return (d && d.calFeed) || null; }
   function calSave(v) {
     var ref = tcol("leadChunks").doc("r_" + TEAM.me.uid);
-    return ref.update({ calFeed: v }).catch(function (e) { if (e && e.code === "not-found") return ref.set({ leads: {}, calFeed: v }); throw e; })
+    return updateOrCreate(ref, { calFeed: v }, { leads: {}, calFeed: v })
       .then(function () { if (TEAM.chunkCache) { var d = TEAM.chunkCache["r_" + TEAM.me.uid] = Object.assign({}, TEAM.chunkCache["r_" + TEAM.me.uid] || { leads: {} }); d.calFeed = v; } });
   }
   function calMake() {
@@ -23202,7 +23238,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     if (reps && reps.length) all[name] = { reps: reps }; else delete all[name];
     if (!TEAM.on) { state.listCfg = all; saveState(); if (done) done(); return; }
     var ref = tcol("leadChunks").doc("_team");
-    ref.update({ lists: all }).catch(function (e) { if (e && e.code === "not-found") return ref.set({ lists: all }, { merge: true }); throw e; })
+    updateOrCreate(ref, { lists: all }, { lists: all })
       .then(function () { TEAM.infoCfg = Object.assign({}, TEAM.infoCfg || {}, { lists: all }); if (done) done(); render(); })
       .catch(function () { showToast("Couldn\u2019t save. Check your connection."); if (fail) fail(); });
   }
