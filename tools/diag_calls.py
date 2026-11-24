@@ -65,3 +65,35 @@ for parent, label in scopes:
     for uid in per:
         if uid not in mem: print("  calls saved under a code with no person:", code(uid), {k: v[0] for k, v in per[uid].items()})
     for did, live in acts: print("  presence", did, "on a call:", live)
+
+# ---- the top-level team: what William-type reps' phones did today (codes only) ----
+today_utc = datetime.datetime.utcnow().strftime("%Y-%m-%d")
+since2 = (datetime.datetime.utcnow() - datetime.timedelta(days=2)).strftime("%Y-%m-%d")
+for d in days_docs("", "act_" + since2):
+    did = d["name"].split("/")[-1]
+    if not did.startswith("act_"): continue
+    f = {k: val(v) for k, v in d.get("fields", {}).items()}
+    for u, x in (f.get("live") or {}).items():
+        x = x or {}
+        print("  live", did, code(u), "| state", x.get("s"), "| since", et(x.get("at")) if isinstance(x.get("at"), (int, float)) else x.get("at"))
+    for u, x in (f.get("notes") or {}).items(): print("  notes", did, code(u), "|", x if isinstance(x, (int, float)) else type(x).__name__)
+chunks = lst("", "leadChunks", [])
+by = {}
+for d in chunks:
+    ck = d["name"].split("/")[-1]; f = {k: val(v) for k, v in d.get("fields", {}).items()}
+    for lid, L in (f.get("leads") or {}).items():
+        if not isinstance(L, dict): continue
+        ca = str(L.get("calledAt") or "")
+        own = (L.get("owner") or {}).get("uid") if isinstance(L.get("owner"), dict) else None
+        cl = (L.get("claim") or {}).get("uid") if isinstance(L.get("claim"), dict) else None
+        for who, tag in ((own, "owner"), (cl, "claim")):
+            if not who: continue
+            s = by.setdefault(code(who), {"owner": 0, "claim": 0, "called_2d": 0, "outcomes": {}, "chunks": set(), "last": ""})
+            s[tag] += 1; s["chunks"].add(ck[:2])
+            if tag == "owner" and ca >= since2:
+                s["called_2d"] += 1; s["outcomes"][L.get("outcome")] = s["outcomes"].get(L.get("outcome"), 0) + 1; s["last"] = max(s["last"], ca)
+for k, s in by.items(): print("  leads", k, "| owns", s["owner"], "| holding", s["claim"], "| called in 2 days", s["called_2d"], s["outcomes"], "| last", s["last"][:16], "| records", sorted(s["chunks"]))
+r = lst("", "leadChunks", ["prefs"])
+for d in r:
+    ck = d["name"].split("/")[-1]
+    if ck.startswith("r_"): print("  own record", "r_" + code(ck[2:]), "| has prefs", bool(d.get("fields")))
