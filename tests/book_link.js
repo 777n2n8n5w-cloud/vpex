@@ -8,7 +8,7 @@
 //   python3 -m http.server 8765 (repo root), then NODE_PATH=<playwright> node tests/book_link.js
 const L = require('../functions/lib.js'), crypto = require('crypto');
 let pass = 0, fail = 0; const check = (n, ok, i) => { if (ok) pass++; else { fail++; console.log('FAIL', n, i === undefined ? '' : JSON.stringify(i)); } };
-const BASE = process.env.BASE || 'http://127.0.0.1:8765/';
+const BASE = (process.env.BASE || 'http://127.0.0.1:8765/').replace(/index\.html$/, '');   // the test runner passes .../index.html
 const NOW = Date.UTC(2026, 10, 10, 20, 0);            // Tue Nov 10, 3:00 PM in New York, 12:00 PM in Los Angeles
 const SECRET = crypto.randomBytes(32).toString('hex'), H = 3600000, M = 60000;
 

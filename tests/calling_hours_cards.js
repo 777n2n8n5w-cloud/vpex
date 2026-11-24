@@ -4,7 +4,7 @@
 //  On wider screens it's the full table, unchanged.
 //   python3 -m http.server 8765 (repo root), then NODE_PATH=<playwright> node tests/calling_hours_cards.js
 const { chromium } = require('playwright');
-const BASE = process.env.BASE || 'http://127.0.0.1:8765/';
+const BASE = (process.env.BASE || 'http://127.0.0.1:8765/').replace(/index\.html$/, '');   // the test runner passes .../index.html
 let pass = 0, fail = 0;
 const check = (n, ok, info) => { if (ok) pass++; else { fail++; console.log('FAIL', n, info === undefined ? '' : JSON.stringify(info).slice(0, 400)); } };
 const read = p => p.evaluate(() => {
