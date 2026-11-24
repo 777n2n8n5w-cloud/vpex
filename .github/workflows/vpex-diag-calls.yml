@@ -1,0 +1,20 @@
+# One-off, read-only: which people's calls are saved in the live database (counts and times only; people and offices
+# appear as short codes). Runs when the diag-calls branch is pushed.
+name: Check saved calls
+on:
+  push:
+    branches: [diag-calls]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: google-github-actions/auth@v3
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Check
+        run: TOK="$(gcloud auth print-access-token)" python3 tools/diag_calls.py
