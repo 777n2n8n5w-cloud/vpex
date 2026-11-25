@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-03-14">
+<meta name="vpex-build" content="2027-03-15">
 <meta name="vpex-min-build" content="2027-03-12">
 <!-- Scripts only from this site and Google's Firebase library; no plugins; no <base> or form hijacking. Inline scripts stay
      allowed because the app is one file. (GitHub Pages can't send headers, so this is the strongest policy a page can set.) -->
@@ -12860,6 +12860,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     // called (a holiday, a Sunday ban) or a time already taken, the next open time inside their calling hours.
     var later = [30, 60, 90].map(function (n) {
       var s = new Date(FU.sug), ts = new Date(s.getFullYear(), s.getMonth(), s.getDate() + n, s.getHours(), s.getMinutes()).getTime();
+      for (var g = 0; g < 3 && closedDayName(localDateStr(new Date(ts))); g++) { var nx = new Date(ts); nx.setDate(nx.getDate() + 1); ts = nx.getTime(); }   // not on Thanksgiving, Christmas or New Year's Day
       if (!fuSlotOk(lead, ts) || slotTaken(ts, lead.id, FU.taskId)) ts = fuFreeFrom(lead, ts, FU.taskId);
       return ts ? { ts: ts, label: "In " + n + " days", sub: new Date(ts).toLocaleDateString(undefined, { month: "short", day: "numeric" }) } : null;
     }).filter(Boolean);
@@ -12884,7 +12885,8 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       }).join("") + '</div>' : '') +
       '<div class="fu-label">Day</div>' +
       '<div class="fu-row fu-days" role="group" aria-label="Day">' + days.map(function (d) {
-        return '<button type="button" class="fu-chip' + (d === FU.day ? ' on' : '') + '" data-fu-day="' + d + '" aria-pressed="' + (d === FU.day) + '">' + escapeHtml(fuDayLabel(d)) + '</button>';
+        var cn = closedDayName(d);
+        return '<button type="button" class="fu-chip' + (d === FU.day ? ' on' : '') + (cn ? ' fu-hol' : '') + '" data-fu-day="' + d + '" aria-pressed="' + (d === FU.day) + '">' + escapeHtml(fuDayLabel(d)) + (cn ? '<small>' + escapeHtml(cn) + '</small>' : '') + '</button>';
       }).join("") +
         '<button type="button" class="fu-chip fu-more' + (moreOn ? ' on' : '') + '" id="fuMore" aria-expanded="' + !!FU.cal + '" aria-controls="fuCal">' +
           (moreOn ? escapeHtml(new Date(FU.at).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })) : 'Later date') + ' <span aria-hidden="true">' + (FU.cal ? '\u25b4' : '\u25be') + '</span></button></div>' +
@@ -13971,6 +13973,18 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       [nth(10, 1, 2), "Columbus Day"], [nth(11, 4, 4), "Thanksgiving"]].forEach(function (x) { s[key(x[0])] = x[1]; });
     return s;
   }
+  // Thanksgiving, Christmas and New Year's Day (and the weekday they're observed on): most floors are closed and most people
+  // are with family, so automatic follow-ups and the suggested times skip them. A rep can still pick one by hand.
+  var CLOSED_DAYS = {};
+  function closedDayName(ymd) {
+    var y = Number(String(ymd).slice(0, 4)); if (!y) return "";
+    var c = CLOSED_DAYS[y];
+    if (!c) {
+      c = CLOSED_DAYS[y] = {}; var h = holidayNames(y);
+      Object.keys(h).forEach(function (k) { var m = /^(Thanksgiving|Christmas Day|New Year\u2019s Day)/.exec(h[k]); if (m) c[k] = m[1].replace(/ Day$/, ""); });
+    }
+    return c[ymd] || "";
+  }
   // Leads waiting to be called whose state bans sales calls on that date.
   function holidayLeads(ymd) {
     return allPendingLeads().filter(function (l) {
@@ -14292,11 +14306,12 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     var day = addBusinessDays(p.y, p.m, p.d, bizDays);
     var ts = zonedToUtc(day.y, day.m, day.d, hour, 0, iana);
     if (ts < Date.now()) { day = addBusinessDays(day.y, day.m, day.d, 1); ts = zonedToUtc(day.y, day.m, day.d, hour, 0, iana); }
-    // Never on a day the lead's state bans sales calls (AL, LA, PA, RI legal holidays): the next business day instead.
+    // Never on a day the lead's state bans sales calls (AL, LA, PA, RI legal holidays), and never on Thanksgiving, Christmas
+    // or New Year's Day (closedDayName): the next business day instead.
     var st = leadZone(lead).st;
-    for (var g = 0; g < 5 && STATE_HOURS[st]; g++) {
+    for (var g = 0; g < 5; g++) {
       var dp = zonedParts(ts, iana), ymd = dp.y + "-" + pad2(dp.m + 1) + "-" + pad2(dp.d);
-      if (!dayWindow(st, { ymd: ymd, wd: dp.dow }).closed) break;
+      if (!(STATE_HOURS[st] && dayWindow(st, { ymd: ymd, wd: dp.dow }).closed) && !closedDayName(ymd)) break;
       day = addBusinessDays(day.y, day.m, day.d, 1); ts = zonedToUtc(day.y, day.m, day.d, hour, 0, iana);
     }
     return ts;
@@ -22988,9 +23003,18 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     if (state.awaitingOutcome && !onCall && needOutcome()) return;
     if (profileLeadId) closeLeadProfile(true);
     var q = lead.qf || {}, F = qFields().filter(function (f) { return q[f.k]; });
-    var d0 = new Date(); d0.setDate(d0.getDate() + (d0.getDay() === 5 ? 3 : d0.getDay() === 6 ? 2 : 1)); d0.setHours(10, 0, 0, 0);
+    // The next working day at 10 AM (your time): not a weekend, not Thanksgiving, Christmas or New Year's Day, and not a day the
+    // lead's state bans sales calls. Labeled with its day when that isn't tomorrow ("Fri 10 AM" the day before Thanksgiving).
+    var d0 = new Date(), lz = leadZone(lead);
+    for (var g = 0; g < 10; g++) {
+      d0.setDate(d0.getDate() + 1); d0.setHours(10, 0, 0, 0);
+      var wd0 = d0.getDay(), ymd0 = localDateStr(d0);
+      if (wd0 === 0 || wd0 === 6 || closedDayName(ymd0) || (lz.st && STATE_HOURS[lz.st] && dayWindow(lz.st, { ymd: ymd0, wd: wd0 }).closed)) continue;
+      break;
+    }
+    var d0l = (dayLabel(d0) === "Tomorrow" ? "Tomorrow" : d0.toLocaleDateString(undefined, { weekday: "short" })) + " 10 AM";
     var h1 = new Date(Date.now() + 3600000); h1.setMinutes(Math.ceil(h1.getMinutes() / 15) * 15, 0, 0);
-    var picks = [{ k: "now", l: "Call now" }, { k: "h1", l: "In 1 hour", at: h1.getTime() }, { k: "tm", l: "Tomorrow 10 AM", at: d0.getTime() }, { k: "pick", l: "Pick a time" }];
+    var picks = [{ k: "now", l: "Call now" }, { k: "h1", l: "In 1 hour", at: h1.getTime() }, { k: "tm", l: d0l, at: d0.getTime() }, { k: "pick", l: "Pick a time" }];
     var sel = { uid: cl[0].uid, when: "now", at: 0 };
     featOpen('<div id="hoSheet"><h3>Send ' + escapeHtml(firstName(lead.name) || lead.name) + ' to a closer</h3><p class="modal-sub">' + escapeHtml(lead.name) + ' moves to the closer with the full history and your answers. The closer is alerted on their screen and phone, and you get credit for the appointment.</p>' +
       (F.length ? '<div class="ho-qf">' + F.map(function (f) { return '<span class="qf-chip">' + escapeHtml(qSum(f, q[f.k])) + '</span>'; }).join("") + '</div>' : '') +
@@ -23014,7 +23038,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       box.querySelectorAll("[data-ho-uid]").forEach(function (b) { b.setAttribute("aria-checked", String(b.getAttribute("data-ho-uid") === sel.uid)); });
       box.querySelectorAll("[data-ho-when]").forEach(function (b) { var on = b.getAttribute("data-ho-when") === sel.when; b.setAttribute("aria-checked", String(on)); b.classList.toggle("on", on); });
       $("hoAt").hidden = sel.when !== "pick";
-      var m = closer(), at = when(), slot = $("hoSlot"), go = $("hoGo"), first = escapeHtml(firstName(m.name)), busy = null, msg = "";
+      var m = closer(), at = when(), slot = $("hoSlot"), go = $("hoGo"), first = escapeHtml(firstName(m.name)), busy = null, hc = null, msg = "";
       $("hoErr").textContent = "";
       if (sel.when === "now") {
         var onc = presenceNow().some(function (p) { return p.uid === m.uid; });
@@ -23028,9 +23052,13 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
           var nf = closerNextFree(m.uid, at, lead.id);
           msg = first + " already has " + escapeHtml(busy.leadName || "a call") + " at " + escapeHtml(fmtAppt(taskDueTs(busy))) + '. <button type="button" class="ho-free" data-ho-free="' + nf + '">Use ' + escapeHtml(fmtAppt(nf)) + '</button>';
         } else msg = first + " is free then.";
+        // The closer will be calling the lead then: say so when that's outside the lead's calling hours, with the first allowed time.
+        hc = slotCheck(lead, at);
+        if (!busy && hc && !hc.ok) msg += ' <span class="ho-hours">That\u2019s ' + escapeHtml(hc.their) + ' for ' + escapeHtml(firstName(lead.name) || lead.name) + ' (' + escapeHtml(hc.st) + '), ' + escapeHtml(hc.why) + '.</span>' +
+          (hc.fix ? ' <button type="button" class="ho-free" data-ho-free="' + closerNextFree(m.uid, hc.fix, lead.id) + '">Use ' + escapeHtml(fmtAppt(closerNextFree(m.uid, hc.fix, lead.id))) + '</button>' : '');
         go.textContent = "Send to " + firstName(m.name) + " for " + fmtAppt(at);
       }
-      slot.innerHTML = msg; slot.classList.toggle("bad", !!busy || (sel.when !== "now" && (!at || at < Date.now() - 60000)));
+      slot.innerHTML = msg; slot.classList.toggle("bad", !!busy || (sel.when !== "now" && (!at || at < Date.now() - 60000 || !!(hc && !hc.ok))));
       go.disabled = !!busy;
     }
     box.addEventListener("click", function (e) {

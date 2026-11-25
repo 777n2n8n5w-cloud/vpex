@@ -4,7 +4,7 @@ const fs = require('fs'), path = require('path'), vm = require('vm');
 const src = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 function grab(re) { const m = re.exec(src); if (!m) throw new Error('not found: ' + re); let i = src.indexOf('{', m.index), d = 0, j = i; for (; j < src.length; j++) { if (src[j] === '{') d++; else if (src[j] === '}' && !--d) break; } return src.slice(m.index, j + 1) + (/^\s*var /.test(m[0]) ? ';' : ''); }
 const code = [/var STATE_HOURS = /, /var HOLIDAYS = /, /function usHolidays\(/, /function stateRule\(/, /function hourLabel\(/, /function dayWindow\(/, /function zonedParts\(/,
-  /function zonedToUtc\(/, /function addBusinessDays\(/, /function slotAt\(/, /function slotCheck\(/, /function pad2\(/].map(r => r.source === 'var HOLIDAYS = ' ? 'var HOLIDAYS = {};' : grab(r)).join('\n');
+  /function zonedToUtc\(/, /function addBusinessDays\(/, /function holidayNames\(/, /var CLOSED_DAYS = /, /function closedDayName\(/, /function slotAt\(/, /function slotCheck\(/, /function pad2\(/].map(r => r.source === 'var HOLIDAYS = ' ? 'var HOLIDAYS = {};' : grab(r)).join('\n');
 const IANA = { TX: 'America/Chicago', PA: 'America/New_York', RI: 'America/New_York', AL: 'America/Chicago', LA: 'America/Chicago', CA: 'America/Los_Angeles', NY: 'America/New_York' };
 const ctx = { Date, Intl, Math, Number, String, NOW: 0 };
 vm.createContext(ctx);
@@ -41,4 +41,18 @@ const s3 = ctx.slotAt({ st: 'NY' }, 1, 10); check('slotAt NY: Veterans Day stays
 const s4 = ctx.slotAt({ st: 'TX' }, 2, 10); check('slotAt TX: 2 business days', loc(s4, 'TX') === 'Thu, Nov 12, 10:00 AM', loc(s4, 'TX'));
 ctx.NOW = at('2026-12-23T16:00:00Z');
 const s5 = ctx.slotAt({ st: 'LA', }, 2, 10); check('slotAt LA from Wed Dec 23, 2 days: Christmas skipped to Mon Dec 28', loc(s5, 'AL') === 'Mon, Dec 28, 10:00 AM', loc(s5, 'AL'));
+// Thanksgiving, Christmas and New Year's Day: automatic follow-ups skip them for every lead (not only holiday-ban states).
+check('closedDayName: Thanksgiving 2026', ctx.closedDayName('2026-11-26') === 'Thanksgiving');
+check('closedDayName: Christmas 2026 and observed 2027-12-24', ctx.closedDayName('2026-12-25') === 'Christmas' && ctx.closedDayName('2027-12-24') === 'Christmas' && ctx.closedDayName('2027-12-25') === 'Christmas');
+check('closedDayName: New Year (Jan 1 2027, observed Dec 31 2027)', ctx.closedDayName('2027-01-01') === 'New Year\u2019s' && ctx.closedDayName('2027-12-31') === 'New Year\u2019s');
+check('closedDayName: Veterans Day, Columbus Day, Labor Day and ordinary days are open', !ctx.closedDayName('2026-11-11') && !ctx.closedDayName('2026-10-12') && !ctx.closedDayName('2026-09-07') && !ctx.closedDayName('2026-11-27') && !ctx.closedDayName('2026-11-25'));
+ctx.NOW = at('2026-11-25T19:30:00Z');   // Wed Nov 25, 2:30 PM ET: the day before Thanksgiving
+for (const st of ['NY', 'TX', 'CA', 'PA', 'AL']) { const t = ctx.slotAt({ st }, 1, 10); check('slotAt ' + st + ' from Wed Nov 25: Thanksgiving skipped to Fri 10 AM', loc(t, st) === 'Fri, Nov 27, 10:00 AM', loc(t, st)); }
+const tg2 = ctx.slotAt({ st: 'NY' }, 2, 10); check('slotAt NY from Wed Nov 25, 2 days: Fri Nov 27 (Thanksgiving counts as day 1, no Thursday slot)', loc(tg2, 'NY') === 'Fri, Nov 27, 10:00 AM', loc(tg2, 'NY'));
+ctx.NOW = at('2026-12-24T15:00:00Z');
+const xm = ctx.slotAt({ st: 'NY' }, 1, 16); check('slotAt NY from Thu Dec 24: Christmas skipped to Mon Dec 28 4 PM', loc(xm, 'NY') === 'Mon, Dec 28, 4:00 PM', loc(xm, 'NY'));
+ctx.NOW = at('2026-12-31T15:00:00Z');
+const ny = ctx.slotAt({ st: 'CA' }, 1, 10); check('slotAt CA from Thu Dec 31: New Year skipped to Mon Jan 4', loc(ny, 'CA') === 'Mon, Jan 4, 10:00 AM', loc(ny, 'CA'));
+ctx.NOW = at('2026-11-24T19:30:00Z');
+const tu = ctx.slotAt({ st: 'NY' }, 1, 10); check('slotAt NY from Tue Nov 24: Wed Nov 25 unchanged', loc(tu, 'NY') === 'Wed, Nov 25, 10:00 AM', loc(tu, 'NY'));
 console.log(`hours_unit: ${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);
