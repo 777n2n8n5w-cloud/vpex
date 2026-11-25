@@ -326,6 +326,73 @@ function digestMessage(name, c, office, tz) {
     link: leadLink(office, ""), tag: "vpex-digest", leadId: "", office: office || "" };
 }
 
+// ---------- Save check: are reps' calls and changes reaching the server? (hourly, office admins) ----------
+// Logging a call (logOutcome in the app) sets the lead's calledAt and saves a call record with exactly that timestamp.
+// So a lead called in the last day whose call record isn't on the server is a call that never arrived: from Nov 15 to
+// Nov 24 every rep's call was refused and nobody knew for 9 days. This finds it within the hour. A call is given
+// SAVE_GRACE to arrive (a phone on a weak signal sends it a little later). Each phone also reports how many calls and
+// lead changes it's still holding (live.<uid>.h in the day's activity record, from the app's healthPush).
+var SAVE_WINDOW = 24 * 3600000, SAVE_GRACE = 20 * 60000, SAVE_HOLD = 30 * 60000;
+// UTC dates of the call records to read (the window, an hour either side)
+function saveDates(now) {
+  var out = [];
+  for (var t = now - SAVE_WINDOW - 3600000; t <= now + 3600000; t += 3600000) { var d = utcDate(t); if (out.indexOf(d) < 0) out.push(d); }
+  return out;
+}
+// chunks: lead records ({leads}); callDocs: call records ({calls}); acts: the days' activity records ({live});
+// members: {uid: {name, role, active}}. Returns what didn't arrive, per person.
+function saveAudit(chunks, callDocs, acts, members, now) {
+  var have = {}, people = {}, missing = [], holding = [];
+  (callDocs || []).forEach(function (d) { var c = (d && d.calls) || {}; Object.keys(c).forEach(function (k) { var x = c[k]; if (x && x.leadId && x.timestamp) have[x.leadId + "|" + x.timestamp] = 1; }); });
+  var who = function (uid, name) { var m = (members || {})[uid] || {}; return str(m.name || name || "A rep"); };
+  (chunks || []).forEach(function (ch) {
+    var leads = (ch && ch.leads) || {};
+    Object.keys(leads).forEach(function (id) {
+      var l = leads[id]; if (!l || typeof l.calledAt !== "string") return;
+      var t = Date.parse(l.calledAt); if (!(t >= now - SAVE_WINDOW && t <= now - SAVE_GRACE)) return;
+      if (have[id + "|" + l.calledAt]) return;
+      var o = l.owner || {}, uid = str(o.uid);
+      missing.push({ leadId: id, at: l.calledAt, uid: uid });
+      var p = people[uid] || (people[uid] = { uid: uid, name: who(uid, o.name), missing: 0, holding: 0 }); p.missing++;
+    });
+  });
+  var latest = {};
+  (acts || []).forEach(function (a) { var lv = (a && a.live) || {}; Object.keys(lv).forEach(function (uid) { var h = lv[uid] && lv[uid].h; if (h && typeof h.at === "number" && (!latest[uid] || h.at > latest[uid].at)) latest[uid] = h; }); });
+  Object.keys(latest).forEach(function (uid) {
+    var h = latest[uid], n = (Number(h.w) || 0) + (Number(h.u) || 0);
+    if (!n || now - h.at > SAVE_WINDOW || now - h.at < 0) return;   // a report from the last day saying work is waiting
+    var m = (members || {})[uid]; if (m && m.active === false) return;
+    holding.push({ uid: uid, calls: Number(h.w) || 0, changes: Number(h.u) || 0, at: h.at });
+    var p = people[uid] || (people[uid] = { uid: uid, name: who(uid), missing: 0, holding: 0 }); p.holding = n;
+  });
+  var list = Object.keys(people).map(function (k) { return people[k]; }).sort(function (a, b) { return (b.missing + b.holding) - (a.missing + a.holding) || (a.name < b.name ? -1 : 1); });
+  return { missing: missing, holding: holding, people: list, sig: missing.map(function (x) { return x.leadId + "|" + x.at; }).sort().join(",") + "#" + holding.map(function (x) { return x.uid + ":" + (x.calls + x.changes); }).sort().join(",") };
+}
+// What to tell the office's admins. prev: what was last sent ({sig, at, open}). Alert when something new is missing or
+// waiting, again every 4 hours while it lasts, and once more when it's all saved.
+function saveDecision(r, prev, now) {
+  prev = prev || {};
+  if (!r.missing.length && !r.holding.length) return prev.open ? "clear" : null;
+  if (!prev.open) return "alert";
+  var parts = String(prev.sig || "").split("#"), seen = {};
+  (parts[0] || "").split(",").concat((parts[1] || "").split(",").map(function (x) { return "h:" + x.split(":")[0]; })).forEach(function (k) { if (k) seen[k] = 1; });
+  var fresh = r.missing.some(function (x) { return !seen[x.leadId + "|" + x.at]; }) || r.holding.some(function (x) { return !seen["h:" + x.uid]; });
+  return fresh || now - (prev.at || 0) >= 4 * 3600000 ? "alert" : null;
+}
+function saveMessage(kind, r, office) {
+  var link = leadLink(office, "");
+  if (kind === "clear") return { kind: "savecheck", title: "Calls are saving again", body: "Every rep's calls from the last day have reached VPEX.", link: link, tag: "vpex-savecheck", leadId: "", office: office || "" };
+  var bits = r.people.slice(0, 3).map(function (p) {
+    var x = [];
+    if (p.missing) x.push(p.missing + (p.missing === 1 ? " call" : " calls") + " didn't reach VPEX");
+    if (p.holding) x.push(p.holding + (p.holding === 1 ? " save" : " saves") + " waiting on their phone");
+    return firstName(p.name) + ": " + x.join(", ");
+  });
+  var more = r.people.length > 3 ? " (+" + (r.people.length - 3) + " more)" : "";
+  return { kind: "savecheck", title: "Calls not saving", body: bits.join(" · ") + more + ". Ask them to open VPEX with signal so it can send them. Details in Live rep tracker.",
+    link: link, tag: "vpex-savecheck", leadId: "", office: office || "" };
+}
+
 // ---------- Monday: last week on the floor (admins and managers) ----------
 // Mondays in the same 8 o'clock hour as the morning summary: calls, conversations and interested for the whole floor
 // last week (Monday to Sunday in the reader's time zone), the change from the week before and the top caller.
@@ -639,4 +706,5 @@ module.exports = {
   FLOOR_MAX, floorRequest, floorGate, floorRecipients, floorMessage,
   HIT_EVENTS, HIT_INDS, HIT_ORIGINS, HIT_DAY_KEYS, hitOriginOk, capHit, hitTok, parseHit, hitKey, unHitKey, nyDate, freshOffice,
   sha256hex, sameHash,
+  SAVE_WINDOW, SAVE_GRACE, saveDates, saveAudit, saveDecision, saveMessage,
   calKey, calEvents, calIcs, icsFold, bookKey, zParts, bookLive, bookSlots, bookBusy, bookPrune, bookLedgerBusy, bookClash, bookView, bookApply, bookWhen, bookMessage, BOOK_TTL, BOOK_PICKS, arranged, CONSENT_METHODS, parseConsent, RETAIN };

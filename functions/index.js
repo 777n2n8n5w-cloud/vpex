@@ -301,6 +301,48 @@ exports.morningDigest = onSchedule({ schedule: "30 * * * *", timeZone: "Etc/UTC"
   logger.info("morning summary", { people: people.size, due, sent, weekSent });
 });
 
+// Every hour: did every call a rep logged in the last day reach the server, and is any phone holding saves it can't
+// send? If not, the office's admins get a push (once, again every 4 hours while it lasts, and "saving again" when it's
+// fixed). Checks the original team and every open office. Reads only; the one write is its own note of what it sent.
+exports.saveCheck = onSchedule({ schedule: "10 * * * *", timeZone: "Etc/UTC", retryCount: 0, timeoutSeconds: 300 }, async function () {
+  const now = Date.now(), ID = admin.firestore.FieldPath.documentId();
+  const toks = await db.collection("pushTokens").get(), tzOf = new Map();
+  toks.docs.forEach(function (d) { const u = d.get("uid"); if (typeof u === "string" && !tzOf.has(u)) tzOf.set(u, L.safeTz(d.get("tz"))); });
+  const scopes = [""];
+  (await db.collection("offices").get()).docs.forEach(function (d) { if (L.officeOpen(d.data(), now)) scopes.push(d.id); });
+  let checked = 0, alerts = 0, clears = 0, missing = 0;
+  for (const office of scopes) {
+    try {
+      const base = office ? "offices/" + office + "/" : "";
+      const members = {}, admins = [];
+      (await db.collection(base + "members").get()).docs.forEach(function (d) { const m = d.data() || {}; members[d.id] = m; if (m.role === "admin" && m.active === true && tzOf.has(d.id)) admins.push(d.id); });
+      if (!admins.length) continue;   // nobody here turned notifications on
+      const chunks = (await db.collection(base + "leadChunks").get()).docs.filter(function (d) { return d.id.charAt(0) !== "_"; }).map(function (d) { return d.data(); });
+      const callDocs = [], acts = [], days = L.saveDates(now);
+      for (const d of days) {
+        const qs = await db.collection(base + "callDays").where(ID, ">=", d).where(ID, "<=", d + "~").get();
+        qs.docs.forEach(function (x) { callDocs.push(x.data()); });
+      }
+      for (const d of [L.utcDate(now - 2 * 86400000)].concat(days)) { const a = await db.doc(base + "callDays/act_" + d).get(); if (a.exists) acts.push(a.data()); }
+      const r = L.saveAudit(chunks, callDocs, acts, members, now);
+      checked++; missing += r.missing.length;
+      const noteRef = db.doc("pushMeta/save_" + (office || "_team")), note = await noteRef.get();
+      const kind = L.saveDecision(r, note.exists ? note.data() : null, now);
+      if (!kind) continue;
+      const msg = L.saveMessage(kind, r, office);
+      let sent = 0;
+      for (const uid of admins) {
+        const h = L.localParts(now, tzOf.get(uid)).hour;
+        if (h >= 8 && h < 21) sent += (await sendTo(uid, [msg], 4 * 3600)).sent;   // 8 AM to 9 PM their time; overnight finds go out at 8
+      }
+      if (!sent) continue;   // not sent (quiet hours, no working phone): try again next hour
+      if (kind === "alert") alerts++; else clears++;
+      await noteRef.set({ open: kind === "alert", sig: r.sig, at: now, people: r.people.length, missing: r.missing.length });
+    } catch (e) { logger.warn("save check failed", { office: office ? "office" : "team", err: String(e) }); }
+  }
+  logger.info("save check", { scopes: scopes.length, checked, missing, alerts, clears });
+});
+
 // Last week's calls for one office (and the week before, for the change), read one UTC day at a time so a big floor
 // never holds two weeks of calls at once. Cached per office and time zone for the run.
 async function floorWeek(office, now, tz, cache) {
