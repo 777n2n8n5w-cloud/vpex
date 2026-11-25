@@ -97,3 +97,24 @@ r = lst("", "leadChunks", ["prefs"])
 for d in r:
     ck = d["name"].split("/")[-1]
     if ck.startswith("r_"): print("  own record", "r_" + code(ck[2:]), "| has prefs", bool(d.get("fields")))
+
+# ---- what the hourly save check sees right now (top-level team) ----
+now_ms = time.time() * 1000
+have = set()
+for d in days_docs("", (datetime.datetime.utcnow() - datetime.timedelta(days=2)).strftime("%Y-%m-%d")):
+    did = d["name"].split("/")[-1]
+    if not did[:1].isdigit(): continue
+    for c in ((val(d.get("fields", {}).get("calls")) or {}).values()):
+        if isinstance(c, dict) and c.get("leadId") and c.get("timestamp"): have.add(c["leadId"] + "|" + c["timestamp"])
+miss = {}
+for d in lst("", "leadChunks", []):
+    f = {k: val(v) for k, v in d.get("fields", {}).items()}
+    for lid, L in (f.get("leads") or {}).items():
+        if not isinstance(L, dict) or not isinstance(L.get("calledAt"), str): continue
+        try: t = datetime.datetime.strptime(L["calledAt"][:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=datetime.timezone.utc).timestamp() * 1000
+        except Exception: continue
+        if not (now_ms - 24 * 3600000 <= t <= now_ms - 20 * 60000): continue
+        if (lid + "|" + L["calledAt"]) in have: continue
+        o = (L.get("owner") or {}).get("uid") if isinstance(L.get("owner"), dict) else ""
+        miss[code(o or "?")] = miss.get(code(o or "?"), 0) + 1
+print("  SAVECHECK missing in last 24h by person:", miss or "none")
