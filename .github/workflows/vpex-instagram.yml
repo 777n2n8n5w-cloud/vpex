@@ -114,9 +114,17 @@ jobs:
           if [ "$secs" = "none" ] || [ "$secs" -gt 20700 ]; then
             echo "::notice title=Relay::Next planned post is more than 5 h 45 min away (or paused); the regular schedule picks it up."; exit 0
           fi
-          others=$(gh api "repos/$REPO/actions/workflows/vpex-instagram.yml/runs?status=in_progress&per_page=20" --jq ".workflow_runs[] | select(.id != $RUN_ID) | .id")
+          # GitHub's own API sometimes answers 502 for a moment (Nov 25): try 3 times; if it's still down, leave it to the
+          # regular schedule instead of failing the run or starting a second relay blind.
+          gh_retry() { local i out; for i in 1 2 3; do if out=$(gh api "$@"); then printf '%s\n' "$out"; return 0; fi; sleep 15; done; return 1; }
+          if ! others=$(gh_retry "repos/$REPO/actions/workflows/vpex-instagram.yml/runs?status=in_progress&per_page=20" --jq ".workflow_runs[] | select(.id != $RUN_ID) | .id"); then
+            echo "::notice title=Relay::GitHub didn't answer; the regular schedule picks up the next post."; exit 0
+          fi
           for r in $others; do
-            if gh api "repos/$REPO/actions/runs/$r/jobs" --jq '.jobs[] | select(.name == "relay" and .status == "in_progress") | .id' | grep -q .; then
+            if ! jobs=$(gh_retry "repos/$REPO/actions/runs/$r/jobs" --jq '.jobs[] | select(.name == "relay" and .status == "in_progress") | .id'); then
+              echo "::notice title=Relay::GitHub didn't answer; the regular schedule picks up the next post."; exit 0
+            fi
+            if printf '%s' "$jobs" | grep -q .; then
               echo "::notice title=Relay::Another relay is already waiting for the next post."; exit 0
             fi
           done
