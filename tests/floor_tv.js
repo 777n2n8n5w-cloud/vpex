@@ -26,7 +26,7 @@ const snap = p => p.evaluate(() => {
   const rows = [...tv.querySelectorAll('.tv-row')].map(r => ({ name: r.querySelector('.tv-who b').innerText, v: +r.querySelector('.tv-val').innerText.replace(/,/g, ''), sub: r.querySelector('.tv-sub').innerText }));
   const btns = [...tv.querySelectorAll('button')].map(b => { const r = b.getBoundingClientRect(); return { id: b.id, w: r.width, h: r.height }; });
   const pr = tv.querySelector('.tv-board').getBoundingClientRect(), shown = [...tv.querySelectorAll('.tv-row')].every(r => { const b = r.getBoundingClientRect(); return b.height > 10 && b.top >= pr.top - 1 && b.bottom <= pr.bottom + 1; });
-  return { k, rows, shown, board: tv.querySelector('#tvBoardH').innerText, text: tv.innerText, over, btns, sw: tv.scrollWidth, cw: tv.clientWidth, role: tv.getAttribute('role'), focus: tv.contains(document.activeElement), feed: tv.querySelectorAll('.tv-feed li').length };
+  return { k, rows, shown, board: tv.querySelector('.tv-board-top h3').innerText, tabs: [...tv.querySelectorAll('.tv-tab')].map(b => b.innerText), hours: tv.querySelectorAll('.tv-hr').length, foot: (tv.querySelector('.tv-foot') || {}).innerText || '', text: tv.innerText, over, btns, sw: tv.scrollWidth, cw: tv.clientWidth, role: tv.getAttribute('role'), focus: tv.contains(document.activeElement), feed: tv.querySelectorAll('.tv-feed li').length };
 });
 (async () => {
   const br = await chromium.launch();
@@ -53,8 +53,10 @@ const snap = p => p.evaluate(() => {
     check(tag + ': no lead names or numbers on screen', !leak.length && leads.length > 10, leak.slice(0, 3));
     check(tag + ': fits, no sideways scroll', !s.over.length && s.sw <= s.cw + 1, s.over);
     check(tag + ': buttons at least 44 px', s.btns.every(b => b.w >= 44 && b.h >= 44), s.btns);
-    // the board takes turns; tapping the heading moves it on
-    await p.click('#tvBoardH'); await p.waitForTimeout(200); s = await snap(p);
+    check(tag + ': four board tabs and today by the hour', s.tabs.length === 4 && s.hours === 13, { tabs: s.tabs, hours: s.hours });
+    check(tag + ': says how it counts', /How it counts/.test(s.foot) && /never a lead/.test(s.foot), s.foot);
+    // the board takes turns; tapping a tab picks one
+    await p.click('[data-tv-metric="1"]'); await p.waitForTimeout(200); s = await snap(p);
     check(tag + ': board moves to Most conversations', /Most conversations/.test(s.board) && s.rows.reduce((a, r) => a + r.v, 0) === want.talk, s.board);
     await p.clock.runFor(15500); await p.waitForTimeout(200); s = await snap(p);
     check(tag + ': board turns by itself after 15 s', /Most interested/.test(s.board), s.board);
@@ -93,6 +95,40 @@ const snap = p => p.evaluate(() => {
     await a.p.clock.runFor(5500); await a.p.waitForTimeout(200);
     check('live: celebration clears after 5 s', await a.p.evaluate(() => document.getElementById('tvCele').hidden));
     check('live: no page errors', !a.errs.length && !b.errs.length, a.errs.concat(b.errs));
+    await ctx.close();
+  }
+  // the admin's theme: picking one saves it for the team; the TV wears it on any screen, gives the screen its own back on
+  // close, and "Use this screen's theme" keeps a screen on its own. Signature themes never leave the owner's own team.
+  {
+    const ctx = await ctxFor(br, { w: 1920, h: 1080, s: 'dark' });
+    await ctx.addInitScript(() => { window.__toasts = []; new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType === 1 && /\btheme applied/.test(n.textContent || '')) window.__toasts.push(n.textContent); }))).observe(document, { childList: true, subtree: true }); });
+    const { p, errs } = await page(ctx, '#demo-insurance');
+    await p.evaluate(() => document.getElementById('menuBtn').click()); await p.waitForTimeout(400);
+    const names = await p.evaluate(() => [...document.querySelectorAll('[data-theme-choice]')].map(b => b.getAttribute('data-theme-choice')).filter(x => x !== 'auto'));
+    const pick = names[names.length - 1], mine = names[0];
+    await p.evaluate(n => document.querySelector('[data-theme-choice="' + n + '"]').click(), pick); await p.waitForTimeout(400);
+    const toast = await p.evaluate(() => window.__toasts.join(' '));
+    check('theme: picking one says the Floor TV wears it', /Floor TV/.test(toast), toast);
+    const saved = await p.evaluate(() => { const fs = JSON.parse(localStorage.getItem('__mockfs') || '{}'); const k = Object.keys(fs).find(k => /leadChunks\/_team$/.test(k)); return k && fs[k].tvTheme; });
+    check('theme: saved for the team', saved && saved.id === pick && saved.by, saved);
+    // this screen has its own theme
+    await p.evaluate(n => { localStorage.setItem('dovetail_dialer_theme_v1', n); }, mine);
+    await p.reload(); await p.waitForTimeout(2600);
+    const th = () => p.evaluate(() => document.documentElement.getAttribute('data-theme'));
+    check('theme: the screen starts on its own theme', (await th()) === mine, await th());
+    await p.evaluate(() => window.__vpexTvTest.open()); await p.waitForTimeout(400);
+    check('theme: the TV wears the admin\'s theme', (await th()) === pick, await th());
+    let foot = await p.evaluate(() => document.querySelector('.tv-foot').innerText);
+    check('theme: the TV says whose theme it is', /from .+account/.test(foot), foot);
+    await p.click('#tvTheme'); await p.waitForTimeout(200);
+    check('theme: "this screen\'s theme" switches the TV back', (await th()) === mine, await th());
+    await p.click('#tvTheme'); await p.waitForTimeout(200);
+    check('theme: and back to the admin\'s', (await th()) === pick, await th());
+    await p.keyboard.press('Escape'); await p.waitForTimeout(200);
+    check('theme: closing gives the screen its own theme back', (await th()) === mine, await th());
+    check('theme: the screen\'s saved theme never changed', (await p.evaluate(() => localStorage.getItem('dovetail_dialer_theme_v1'))) === mine);
+    check('theme: signature themes stay off other offices\' TVs', await p.evaluate(() => !window.__vpexTvTest.themeOk('sig-urushi') && window.__vpexTvTest.themeOk('auto') === false));
+    check('theme: no page errors', !errs.length, errs);
     await ctx.close();
   }
   // vpexdialer.com/#tv style link opens it once the office has loaded; Command finds it

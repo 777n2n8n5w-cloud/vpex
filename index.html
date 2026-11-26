@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-03-16">
+<meta name="vpex-build" content="2027-03-17">
 <meta name="vpex-min-build" content="2027-03-15">
 <!-- Scripts only from this site and Google's Firebase library; no plugins; no <base> or form hijacking. Inline scripts stay
      allowed because the app is one file. (GitHub Pages can't send headers, so this is the strongest policy a page can set.) -->
@@ -9692,7 +9692,39 @@ window.VPEX_SIG = [
 .tv-oc i { width: 10px; height: 10px; border-radius: 50%; background: var(--interested); flex: none; animation: tvPulse 1.6s ease-in-out infinite; }
 @keyframes tvPulse { 50% { opacity: 0.35; } }
 .tv-empty { color: var(--text-dim); font-size: clamp(14px, 1.2vw, 22px); }
-.tv-foot { color: var(--text-faint); font-size: clamp(11px, 0.9vw, 16px); text-align: right; }
+.tv-foot { color: var(--text-faint); font-size: clamp(11px, 0.85vw, 16px); display: flex; gap: 6px 18px; justify-content: space-between; flex-wrap: wrap; line-height: 1.4; }
+.tv-how { flex: 1 1 420px; min-width: 0; } .tv-how b { color: var(--text-dim); font-weight: 600; } .tv-meta { white-space: nowrap; }
+.tv-kpi em { display: block; margin-top: 4px; font-style: normal; color: var(--text-faint); font-size: clamp(11px, 0.85vw, 17px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tv-goal { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 8px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 10px 16px; font-size: clamp(13px, 1.15vw, 22px); }
+.tv-goal-l { font-weight: 600; } .tv-goal-r { color: var(--text-dim); }
+.tv-goal-bar { height: clamp(10px, 1.2vh, 18px); border-radius: 99px; background: color-mix(in srgb, var(--accent) 14%, transparent); overflow: hidden; }
+.tv-goal-bar i { display: block; height: 100%; border-radius: inherit; background: var(--accent); transition: width .8s ease; }
+.tv-goal.done { border-color: var(--interested); } .tv-goal.done .tv-goal-bar i { background: var(--interested); }
+.tv-board { display: flex; flex-direction: column; }
+.tv-board-top { display: flex; align-items: center; justify-content: space-between; gap: 8px 12px; flex-wrap: wrap; margin-bottom: clamp(8px, 1vh, 16px); } .tv-board-top h3 { margin: 0; }
+.tv-tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+.tv-tab { min-height: 44px; min-width: 44px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--border); background: transparent; color: var(--text-dim); font: inherit; font-size: clamp(12px, 0.9vw, 17px); cursor: pointer; }
+.tv-tab.on { background: var(--accent); border-color: var(--accent); color: var(--accent-text, #fff); }
+.tv-tab:focus-visible, .tv-ctl button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.tv-name { display: flex; align-items: center; gap: 8px; min-width: 0; } .tv-name b { min-width: 0; }
+.tv-badge { flex: none; font-size: 0.55em; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--text); white-space: nowrap; }
+.tv-badge.hot { background: color-mix(in srgb, var(--callback, #F5A524) 22%, transparent); } .tv-badge.goal { background: color-mix(in srgb, var(--interested) 22%, transparent); }
+.tv-bar { position: relative; } .tv-bar s { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--text-dim); text-decoration: none; }
+.tv-sub { display: flex; gap: 4px 12px; flex-wrap: wrap; align-items: center; }
+.tv-st { display: inline-flex; align-items: center; gap: 5px; font-weight: 600; color: var(--text-dim); } .tv-st i { width: 8px; height: 8px; border-radius: 50%; background: var(--text-faint); }
+.tv-st.call { color: color-mix(in srgb, var(--interested) 75%, var(--text)); } .tv-st.call i { background: var(--interested); animation: tvPulse 1.6s ease-in-out infinite; }
+.tv-st.dial i { background: var(--accent); } .tv-st.idle i { background: color-mix(in srgb, var(--interested) 45%, var(--text-faint)); }
+.tv-st .tv-t { font-weight: 500; }
+.tv-today { margin-top: auto; padding-top: clamp(10px, 1.6vh, 24px); } .tv-today h4 { margin: 0 0 6px; font-size: clamp(12px, 0.95vw, 18px); color: var(--text-dim); font-weight: 600; }
+.tv-hours { display: grid; grid-template-columns: repeat(13, minmax(0, 1fr)); gap: clamp(3px, 0.4vw, 8px); align-items: end; height: clamp(70px, 12vh, 150px); }
+.tv-hr { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; min-width: 0; }
+.tv-hr-t { flex: 1; width: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; min-height: 0; }
+.tv-hr i { display: block; width: 100%; height: calc(var(--v) * (100% - 1.4em)); min-height: 2px; border-radius: 6px 6px 2px 2px; background: color-mix(in srgb, var(--accent) 55%, transparent); transition: height .8s ease; }
+.tv-hr.now i { background: var(--accent); } .tv-hr.later i { background: var(--border); }
+.tv-hr-n { font-size: clamp(10px, 0.75vw, 14px); color: var(--text-dim); line-height: 1.2; } .tv-hr small { font-size: clamp(10px, 0.75vw, 14px); color: var(--text-faint); height: 1.3em; white-space: nowrap; }
+.tv-hr.now small { color: var(--text); font-weight: 700; }
+.tv-when { color: var(--text) !important; font-weight: 700; font-size: 0.9em !important; min-width: 4.6em; } .tv-by { color: var(--text-dim); font-size: 0.8em; white-space: nowrap; }
+.tv-cele-e { display: block; font-style: normal; font-size: clamp(40px, 6vw, 120px); line-height: 1; margin-bottom: 8px; }
 .tv-cele { position: fixed; inset: 0; z-index: 2601; display: grid; place-items: center; pointer-events: none; background: color-mix(in srgb, var(--bg) 55%, transparent); }
 .tv-cele[hidden] { display: none; }
 .tv-cele-card { text-align: center; background: var(--surface); border: 2px solid var(--interested); border-radius: 28px; padding: clamp(24px, 4vw, 72px) clamp(28px, 6vw, 120px); max-width: 92vw;
@@ -9707,6 +9739,8 @@ body.tv-open { overflow: hidden; }
   .tv-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .tv-kpis .tv-kpi:last-child { grid-column: 1 / -1; }
   .tv-main { grid-template-columns: minmax(0, 1fr); flex: none; } .tv-panel { overflow: visible; }
   .tv-clock { order: 3; flex-basis: 100%; }
+  .tv-goal { grid-template-columns: minmax(0, 1fr) auto; } .tv-goal-bar { grid-column: 1 / -1; grid-row: 2; }
+  .tv-ctl { flex-wrap: wrap; }
 }
 @media (prefers-reduced-motion: reduce) { #floorTv *, .tv-cele * { animation: none !important; transition: none !important; } .tv-conf { display: none; } }
 html[data-motion="off"] #floorTv *, html[data-motion="off"] .tv-cele * { animation: none !important; transition: none !important; }
@@ -12369,6 +12403,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       document.documentElement.removeAttribute("data-theme");
       try { window.localStorage.removeItem(THEME_KEY); } catch (e) {}
       showToast("Theme now follows your phone\u2019s light/dark setting");
+      if (typeof tvThemeSave === "function") tvThemeSave("auto");
     } else {
       var sig = isSigTheme(name);
       if (THEME_NAMES.indexOf(name) === -1 && !(sig && sigAllowed())) return;
@@ -12377,7 +12412,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       document.documentElement.setAttribute("data-theme", name);
       applyThemeFont(name);
       try { window.localStorage.setItem(THEME_KEY, name); } catch (e) {}
-      showToast(THEME_LABELS[name] + " theme applied");
+      showToast(THEME_LABELS[name] + " theme applied" + (typeof tvThemeSave === "function" && tvThemeSave(name) ? " · your Floor TV wears it too" : ""));
     }
     sigMount();
     syncThemeColor();
@@ -12506,7 +12541,9 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
   // After every sign-in: the owner keeps his; anyone else's login never shows them.
   function sigGuard() {
     if (DEMO || sigAllowed()) return;
-    if (lsGet(SIG_OK) || isSigTheme(document.documentElement.getAttribute("data-theme")) || isSigTheme(lsGet(THEME_KEY))) sigRevert();
+    var shown = document.documentElement.getAttribute("data-theme");
+    if (typeof TV === "object" && TV.on && TV.themePrev !== undefined && shown === tvThemeWanted()) shown = null;   // the owner's team TV, not this phone's own theme
+    if (lsGet(SIG_OK) || isSigTheme(shown) || isSigTheme(lsGet(THEME_KEY))) sigRevert();
   }
   function sigOwnerBits() {
     var b = document.getElementById("openSigBtn"); if (b) b.hidden = !sigAllowed();
@@ -22607,70 +22644,185 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
   // A screen for the TV on the wall (Settings › Floor TV, Admin controls › Reports, Command, or vpexdialer.com/#tv):
   // today's numbers, the leaderboard (calls, conversations, interested, taking turns), who's on a call and a
   // celebration on each yes. Rep names and outcomes only, never a lead's name or number: anyone walking past can read it.
-  var TV = { on: false, seen: null, deals: null, q: [], showing: false, metric: 0, timers: [], lock: null, sound: false, last: {}, back: null };
-  var TV_METRICS = [["calls", "Most calls"], ["talk", "Most conversations"], ["int", "Most interested"]];
+  var TV = { on: false, seen: null, deals: null, q: [], showing: false, metric: 0, timers: [], lock: null, sound: false, last: {}, back: null,
+    appts: null, goalHit: null, mile: 0, leader: "", leaderAt: 0, themePrev: undefined };
+  var TV_METRICS = [["calls", "Calls"], ["talk", "Conversations"], ["int", "Interested"], ["appts", "Appointments"]];
+  var TV_MILES = [25, 50, 100, 150, 200, 250, 300, 400, 500, 750, 1000, 1500, 2000];
+  // Signature themes say yes in their own words on the TV too
+  var TV_YES = { "sig-amalfi": "Perfetto! Interested", "sig-urushi": "縁 A bond made", "sig-premiere": "And… action! Interested", "sig-blueprint": "APPROVED · Interested",
+    "sig-horologe": "Right on time · Interested", "sig-prism": "Brilliant! Interested" };
   function tvAllowed() { return canSeeTeam(); }
   function tvStart() { var d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime(); }
+  function timeStr(ts) { return new Date(ts).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }); }
+  function stageLabel(s) { return s; }
+
+  // ---- The TV wears the admin's theme ----
+  // When an admin picks a theme, it's saved for the team (leadChunks/_team tvTheme). Floor TV, on any screen of the team,
+  // shows it while it's open and gives the screen its own theme back when it closes (nothing on the screen is changed).
+  // "This screen's theme" keeps a screen on its own. Signature themes are the VPEX owner's: only his own team's TV.
+  function tvThemeCfg() { var c = TEAM.on ? (TEAM.infoCfg || {}).tvTheme : null; return c && typeof c.id === "string" ? c : null; }
+  function tvThemeOk(id) { return THEME_NAMES.indexOf(id) !== -1 || (isSigTheme(id) && !DEMO && !TEAM.office && !CUSTOMER.firebase); }
+  function tvThemeWanted() { var c = tvThemeCfg(); if (!c || c.id === "auto" || lsGet("vpex_tv_own") === "1" || !tvThemeOk(c.id)) return null; return c.id; }
+  function tvThemeApply() {
+    if (!TV.on) return;
+    var d = document.documentElement, cur = d.getAttribute("data-theme"), want = tvThemeWanted();
+    if (TV.themePrev === undefined) TV.themePrev = cur;
+    var target = want || TV.themePrev;
+    if ((target || null) === (cur || null)) return;
+    if (target) { d.setAttribute("data-theme", target); applyThemeFont(target); } else d.removeAttribute("data-theme");
+    sigMount(); syncThemeColor();
+  }
+  function tvThemeRestore() {
+    if (TV.themePrev === undefined) return;
+    var d = document.documentElement, prev = TV.themePrev; TV.themePrev = undefined;
+    if ((prev || null) !== (d.getAttribute("data-theme") || null)) { if (prev) { d.setAttribute("data-theme", prev); applyThemeFont(prev); } else d.removeAttribute("data-theme"); sigMount(); syncThemeColor(); }
+  }
+  // called by setTheme: an admin's pick becomes the team's Floor TV theme
+  function tvThemeSave(name) {
+    if (!TEAM.on || !TEAM.me || !isAdmin()) return false;
+    if (name !== "auto" && !tvThemeOk(name)) return false;
+    var v = { id: name, by: String(TEAM.me.name || "").slice(0, 60), uid: TEAM.me.uid, at: Date.now() };
+    TEAM.infoCfg = Object.assign({}, TEAM.infoCfg || {}, { tvTheme: v });
+    tcol("leadChunks").doc("_team").set({ tvTheme: v }, { merge: true }).catch(function () {});
+    return true;
+  }
+
   function tvData() {
     var t0 = tvStart(), floor = canSeeTeam(), calls = [], log = state.callLog || [];
     for (var i = log.length - 1; i >= 0; i--) {
       var c = log[i], t = new Date(c.timestamp).getTime(); if (!(t >= t0)) { if (t < t0 - 86400000 && calls.length) break; continue; }
       if (floor || myCall(c)) calls.push(c);
     }
-    var n = { calls: calls.length, talk: 0, int: 0, appts: 0, money: 0, deals: 0 }, reps = {};
+    var n = { calls: calls.length, talk: 0, int: 0, appts: 0, money: 0, deals: 0, hourCalls: 0, hourInt: 0 }, reps = {}, hourAgo = Date.now() - 3600000;
     calls.forEach(function (c) {
-      var k = c.by ? c.by.uid : "me", r = reps[k] || (reps[k] = { name: c.by ? c.by.name : "You", calls: 0, talk: 0, int: 0 });
+      var k = c.by ? c.by.uid : "me", r = reps[k] || (reps[k] = { uid: k, name: c.by ? c.by.name : "You", calls: 0, talk: 0, int: 0, appts: 0 });
       r.calls++; if (CONTACT_OUTCOMES[c.outcomeKey]) { n.talk++; r.talk++; } if (c.outcomeKey === "interested") { n.int++; r.int++; }
+      if (Date.parse(c.timestamp) >= hourAgo) { n.hourCalls++; if (c.outcomeKey === "interested") n.hourInt++; }
     });
     // calls on the line right now count the moment they're placed (floor: everyone's; otherwise yours)
     var lastBy = {}; calls.forEach(function (c) { var k = c.by ? c.by.uid : (TEAM.me ? TEAM.me.uid : "_me"), ts = new Date(c.timestamp).getTime(); if (!(lastBy[k] >= ts)) lastBy[k] = ts; });
     (TEAM.on ? Object.keys(TEAM.members || {}) : ["_me"]).forEach(function (k) {
       if (!floor && TEAM.me && k !== TEAM.me.uid) return;
-      var at = liveCallStart(k); if (at && at >= t0 && at > (lastBy[k] || 0)) { n.calls++; var r = reps[k]; if (r) r.calls++; }
+      var at = liveCallStart(k); if (at && at >= t0 && at > (lastBy[k] || 0)) { n.calls++; n.hourCalls++; var r = reps[k]; if (r) r.calls++; }
     });
-    var won = [];
+    var won = [], appts = [], now = Date.now();
     state.leads.forEach(function (l) {
-      if (l.handoff && l.handoff.at >= t0) n.appts++;
+      var hd = l.handoff;
+      if (hd && hd.at >= t0) { n.appts++; appts.push(l); var fk = hd.from && hd.from.uid; if (fk && reps[fk]) reps[fk].appts++; }
       if (l.stage === "Committed" && (l.stageLog || []).some(function (x) { return x.s === "Committed" && x.at >= t0; })) { n.deals++; n.money += Number(l.amount) || 0; won.push(l); }
     });
-    return { calls: calls, n: n, won: won, reps: Object.keys(reps).map(function (k) { return reps[k]; }) };
+    // today's appointments still to come (closer and setter names, never the lead's)
+    var end = dayStart(1), upcoming = [];
+    state.leads.forEach(function (l) { var hd = l.handoff; if (hd && hd.apptAt && hd.apptAt >= now - 15 * 60000 && hd.apptAt < end) upcoming.push(hd); });
+    upcoming.sort(function (a, b) { return a.apptAt - b.apptAt; });
+    return { calls: calls, n: n, won: won, appts: appts, upcoming: upcoming, reps: Object.keys(reps).map(function (k) { return reps[k]; }) };
+  }
+  // Rows for the board: on a team, the rep tracker's numbers (status, last call, by the hour); alone, this phone's
+  function tvRows(d) {
+    var hours = {}, list;
+    if (TEAM.on && TEAM.me && typeof rtData === "function" && rtCan()) {
+      var rd = rtData(), byUid = {}; d.reps.forEach(function (r) { byUid[r.uid] = r; });
+      hours = rd.team.hours;
+      list = rd.list.filter(function (r) { return r.calls > 0 || r.st.k === "call" || r.st.k === "dial" || r.st.k === "idle"; }).map(function (r) {
+        var t = byUid[r.uid] || {};
+        return { uid: r.uid, name: r.name, calls: r.calls, talk: r.reached, int: r.interested, appts: Math.max(r.appts, t.appts || 0), lastHour: r.lastHour,
+          st: r.st.k, since: r.st.since || 0, last: r.last ? r.last.ts : 0 };
+      });
+    } else {
+      d.calls.forEach(function (c) { var h = new Date(c.timestamp).getHours(); hours[h] = (hours[h] || 0) + 1; });
+      list = d.reps.map(function (r) { return { uid: r.uid, name: r.name, calls: r.calls, talk: r.talk, int: r.int, appts: r.appts, lastHour: 0, st: "", since: 0, last: 0 }; });
+    }
+    // today's share of each rep's monthly calls goal (Admin controls › Goals), working days only
+    var g = goalsAll(), ms = monthStart(), me = new Date(); var monthEnd = new Date(me.getFullYear(), me.getMonth() + 1, 1).getTime(), days = Math.max(1, bizDays(ms, monthEnd));
+    list.forEach(function (r) { var gg = g[r.uid] || (r.uid === "me" ? g.me : null); r.goal = gg && Number(gg.calls) > 0 ? Math.max(1, Math.round(Number(gg.calls) / days)) : 0; });
+    return { list: list, hours: hours };
   }
   function tvCallId(c) { return c.id || (c.timestamp + "|" + c.name); }
+  function tvAgo(ms) { var m = Math.floor(ms / 60000); return m < 1 ? "just now" : m < 60 ? m + "m ago" : Math.floor(m / 60) + "h " + (m % 60) + "m ago"; }
+  function tvHoursHtml(hours) {
+    var cur = new Date().getHours(), max = 1, h, out = "";
+    for (h = 8; h <= 20; h++) max = Math.max(max, hours[h] || 0);
+    for (h = 8; h <= 20; h++) {
+      var v = hours[h] || 0;
+      out += '<div class="tv-hr' + (h === cur ? ' now' : h > cur ? ' later' : '') + '"><span class="tv-hr-t"><span class="tv-hr-n">' + (v || "") + '</span><i style="--v:' + (h > cur ? 0 : Math.max(v ? 0.04 : 0, v / max)).toFixed(3) + '"></i></span><small>' + (h % 2 === 0 || h === cur ? escapeHtml(hourLabel(h).replace(":00", "")) : "") + '</small></div>';
+    }
+    return '<div class="tv-hours" role="img" aria-label="Calls by the hour today">' + out + '</div>';
+  }
+  // things worth a celebration that happened since the screen opened
+  function tvMoments(d, rows) {
+    var yes = TV_YES[document.documentElement.getAttribute("data-theme")] || "Interested!";
+    if (TV.seen) d.calls.forEach(function (c) { var id = tvCallId(c); if (TV.seen[id]) return; TV.seen[id] = 1; (TV.fresh || (TV.fresh = {}))[id] = 1; if (c.outcomeKey === "interested") TV.q.push({ e: "⭐", who: c.by ? firstName(c.by.name) : "You", what: yes }); });
+    if (TV.appts) d.appts.forEach(function (l) { if (TV.appts[l.id]) return; TV.appts[l.id] = 1; var hd = l.handoff || {};
+      TV.q.push({ e: "📅", who: hd.from && hd.from.name ? firstName(hd.from.name) : "Appointment", what: "Appointment set" + (hd.to && hd.to.name ? " for " + firstName(hd.to.name) : "") + (hd.apptAt ? " · " + whenLc(hd.apptAt) : "") }); });
+    if (TV.deals) d.won.forEach(function (l) { if (TV.deals[l.id]) return; TV.deals[l.id] = 1; TV.q.push({ e: "🏆", who: l.owner && l.owner.name ? firstName(l.owner.name) : "Deal closed", what: (l.amount ? fmtMoney(Number(l.amount) || 0) + " · " : "") + stageLabel("Committed") }); });
+    if (TV.goalHit) rows.list.forEach(function (r) { if (!r.goal || r.calls < r.goal || TV.goalHit[r.uid]) return; TV.goalHit[r.uid] = 1; TV.q.push({ e: "🎯", who: firstName(r.name), what: "Hit today’s goal: " + r.goal + " calls" }); });
+    var nxt = TV_MILES.filter(function (m) { return m > TV.mile && d.n.calls >= m; }).pop();
+    if (nxt) { TV.mile = nxt; TV.q.push({ e: "🚀", who: nxt.toLocaleString() + " calls", what: "The floor today" }); }
+    var top = rows.list.slice().sort(function (a, b) { return b.calls - a.calls; })[0];
+    if (top && top.calls >= 10 && top.uid !== TV.leader && (rows.list.filter(function (r) { return r.calls === top.calls; }).length === 1)) {
+      var was = TV.leader; TV.leader = top.uid;
+      if (was && Date.now() - TV.leaderAt > 20 * 60000) { TV.leaderAt = Date.now(); TV.q.push({ e: "👑", who: firstName(top.name), what: "Takes the lead on calls" }); }
+    }
+  }
   function tvRender() {
     var el = document.getElementById("floorTv"); if (!el || !TV.on) return;
-    var d = tvData(), n = d.n, m = TV_METRICS[TV.metric % TV_METRICS.length], now = new Date();
-    // celebrations: a new yes, or a deal that closed since the screen opened
-    if (TV.seen) d.calls.forEach(function (c) { var id = tvCallId(c); if (TV.seen[id]) return; TV.seen[id] = 1; if (c.outcomeKey === "interested") TV.q.push({ who: c.by ? firstName(c.by.name) : "You", what: "Interested!" }); });
-    if (TV.deals) d.won.forEach(function (l) { if (TV.deals[l.id]) return; TV.deals[l.id] = 1; TV.q.push({ who: l.owner && l.owner.name ? firstName(l.owner.name) : "Deal closed", what: (l.amount ? fmtMoney(Number(l.amount) || 0) + " · " : "") + "Committed" }); });
-    tvCelebrate();
-    var reps = d.reps.slice().sort(function (a, b) { return b[m[0]] - a[m[0]] || b.calls - a.calls; }), top = Math.max(1, reps.length ? reps[0][m[0]] : 1);
+    tvThemeApply();
+    var d = tvData(), n = d.n, rows = tvRows(d), mi = TV.metric % TV_METRICS.length, m = TV_METRICS[mi], now = new Date(), nowMs = now.getTime();
+    tvMoments(d, rows); tvCelebrate();
+    var reps = rows.list.slice().sort(function (a, b) { return b[m[0]] - a[m[0]] || b.calls - a.calls || (a.name < b.name ? -1 : 1); }), top = Math.max(1, reps.length ? reps[0][m[0]] : 1);
     var st = cloud.status, liveOk = TEAM.on ? st === "teamsynced" : DEMO, stTxt = !TEAM.on && !DEMO ? "This device" : (liveOk ? "Live" : (st === "teamoffline" ? "Reconnecting…" : "Syncing…"));
-    var hh = now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }).split(" ");
-    var kpi = function (k, v, l, cls) { var bump = TV.last[k] !== undefined && TV.last[k] !== v; TV.last[k] = v; return '<div class="tv-kpi' + (cls ? " " + cls : "") + (bump ? " bump" : "") + '"><b>' + v + '</b><span>' + l + '</span></div>'; };
+    var hh = now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }).split(" "), tc = tvThemeCfg(), own = lsGet("vpex_tv_own") === "1";
+    var showThemeBtn = tc && tc.id !== "auto" && tvThemeOk(tc.id) && tc.id !== TV.themePrev;
+    var kpi = function (k, v, l, sub, cls) { var bump = TV.last[k] !== undefined && TV.last[k] !== v; TV.last[k] = v; return '<div class="tv-kpi' + (cls ? " " + cls : "") + (bump ? " bump" : "") + '"><b>' + v + '</b><span>' + l + '</span>' + (sub ? '<em>' + sub + '</em>' : '') + '</div>'; };
     var h = '<div class="tv-top"><div class="tv-brand"><b>' + escapeHtml(currentCompany()) + '</b><span>Floor TV · ' + escapeHtml(now.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })) + '</span></div>' +
       '<div class="tv-clock" aria-hidden="true">' + escapeHtml(hh[0]) + '<small>' + escapeHtml(hh[1] || "") + '</small></div>' +
       '<div class="tv-ctl"><span class="tv-live' + (liveOk ? " on" : "") + '"><i aria-hidden="true"></i>' + escapeHtml(stTxt) + '</span>' +
-      '<button type="button" id="tvSound" aria-pressed="' + TV.sound + '" title="Chime on each yes">' + (TV.sound ? "Sound on" : "Sound off") + '</button>' +
+      (showThemeBtn ? '<button type="button" id="tvTheme" aria-pressed="' + !own + '" title="Which theme this screen shows">' + (own ? "Use " + escapeHtml(firstName(tc.by || "the admin")) + "’s theme" : "Use this screen’s theme") + '</button>' : '') +
+      '<button type="button" id="tvSound" aria-pressed="' + TV.sound + '" title="Chime on each celebration">' + (TV.sound ? "Sound on" : "Sound off") + '</button>' +
       (document.fullscreenEnabled ? '<button type="button" id="tvFull">' + (document.fullscreenElement ? "Exit full screen" : "Full screen") + '</button>' : '') +
       '<button type="button" id="tvClose" aria-label="Close Floor TV">✕</button></div></div>';
-    h += '<div class="tv-kpis">' + kpi("c", n.calls.toLocaleString(), n.calls === 1 ? "call today" : "calls today") + kpi("t", n.talk.toLocaleString(), "conversations") + kpi("i", n.int.toLocaleString(), "interested", "int") +
-      kpi("a", n.appts.toLocaleString(), n.appts === 1 ? "appointment set" : "appointments set") + kpi("m", n.deals ? fmtMoney(n.money) : (n.calls ? Math.round(n.talk * 100 / n.calls) + "%" : "—"), n.deals ? "committed today" : "reach rate") + '</div>';
+    // the day's numbers, each with one line that explains it
+    var reach = n.calls ? Math.round(n.talk * 100 / n.calls) : 0, nextAp = d.upcoming.filter(function (x) { return x.apptAt >= nowMs - 60000; })[0];
+    h += '<div class="tv-kpis">' +
+      kpi("c", n.calls.toLocaleString(), n.calls === 1 ? "call today" : "calls today", n.hourCalls ? "+" + n.hourCalls + " in the last hour" : "") +
+      kpi("t", n.talk.toLocaleString(), "conversations", n.calls ? reach + "% reached someone" : "") +
+      kpi("i", n.int.toLocaleString(), "interested", n.talk ? Math.round(n.int * 100 / n.talk) + "% of conversations" : "", "int") +
+      kpi("a", n.appts.toLocaleString(), n.appts === 1 ? "appointment set" : "appointments set", nextAp ? "next at " + escapeHtml(timeStr(nextAp.apptAt)) : (n.calls && n.appts ? "1 per " + Math.round(n.calls / n.appts) + " calls" : "")) +
+      kpi("m", n.deals ? fmtMoney(n.money) : (n.calls ? reach + "%" : "—"), n.deals ? stageLabel("Committed").toLowerCase() + " today" : "reach rate", n.deals ? n.deals + (n.deals === 1 ? " deal" : " deals") : (n.calls ? n.talk + " of " + n.calls + " calls" : "")) + '</div>';
+    // the floor's goal for today (each rep's monthly calls goal, split over the working days)
+    var gsum = 0, ghave = 0; rows.list.forEach(function (r) { if (r.goal) { gsum += r.goal; ghave += Math.min(r.calls, r.goal * 3); } });
+    if (gsum) { var gp = Math.min(100, Math.round(ghave / gsum * 100)), done = ghave >= gsum;
+      h += '<div class="tv-goal' + (done ? ' done' : '') + '"><span class="tv-goal-l">' + (done ? "🎉 Floor goal hit" : "Floor goal today") + '</span><div class="tv-goal-bar" role="progressbar" aria-valuemin="0" aria-valuemax="' + gsum + '" aria-valuenow="' + Math.min(ghave, gsum) + '"><i style="width:' + gp + '%"></i></div><b>' + ghave.toLocaleString() + ' / ' + gsum.toLocaleString() + ' calls</b><span class="tv-goal-r">' + (done ? "+" + (ghave - gsum) + " over" : (gsum - ghave).toLocaleString() + " to go") + '</span></div>'; }
     var ct = typeof contestCfg === "function" ? contestCfg() : null;
     if (ct && ct.end && Date.now() >= ct.start && Date.now() < ct.end) { var cb = contestBoard(ct); h += '<div class="tv-contest">🏆 ' + escapeHtml(CONTEST_METRICS[ct.metric] || "Contest") + (cb.length ? ': ' + escapeHtml(firstName(cb[0].name)) + ' leads with ' + cb[0].n : '') + (ct.prize ? ' · Prize: ' + escapeHtml(ct.prize) : '') + '</div>'; }
-    h += '<div class="tv-main"><section class="tv-panel tv-board" aria-label="Leaderboard"><h3 class="tv-board-h" id="tvBoardH" title="Show the next board">' + escapeHtml(m[1]) + ' today <small>' + TV_METRICS.map(function (x, i) { return i === TV.metric % TV_METRICS.length ? "●" : "○"; }).join(" ") + '</small></h3>';
+    // the board: takes turns every 15 s (tap a tab to pick one)
+    h += '<div class="tv-main"><section class="tv-panel tv-board" aria-label="Leaderboard"><div class="tv-board-top"><h3>Most ' + escapeHtml(m[1].toLowerCase()) + ' today</h3><div class="tv-tabs" role="group" aria-label="Board">' +
+      TV_METRICS.map(function (x, i) { return '<button type="button" class="tv-tab' + (i === mi ? ' on' : '') + '" data-tv-metric="' + i + '" aria-pressed="' + (i === mi) + '">' + escapeHtml(x[1]) + '</button>'; }).join("") + '</div></div>';
     if (!reps.length) h += '<div class="tv-empty">No calls yet today. The board fills in as your reps log calls.</div>';
-    else h += '<ol class="tv-rows">' + reps.slice(0, 10).map(function (r, i) {
-      var v = r[m[0]]; return '<li class="tv-row' + (i === 0 && v > 0 ? " top" : "") + '"><span class="tv-rank">' + (i === 0 && v > 0 ? "👑" : i + 1) + '</span><div class="tv-who"><b>' + escapeHtml(r.name || "Rep") + '</b><div class="tv-bar"><i style="width:' + Math.round(v / top * 100) + '%"></i></div></div><span class="tv-val">' + v.toLocaleString() + '</span>' +
-        '<span class="tv-sub">' + r.calls + ' call' + (r.calls === 1 ? '' : 's') + ' · ' + r.talk + ' talked · ' + r.int + ' interested</span></li>'; }).join("") + '</ol>';
+    else h += '<ol class="tv-rows">' + reps.slice(0, 8).map(function (r, i) {
+      var v = r[m[0]], lead = i === 0 && v > 0, stTxt = r.st === "call" ? '<span class="tv-st call"><i></i>On a call <time class="tv-t" data-since="' + r.since + '">' + presClock(r.since) + '</time></span>' :
+        r.st === "dial" ? '<span class="tv-st dial"><i></i>Dialing</span>' : r.st === "idle" ? '<span class="tv-st idle"><i></i>Online</span>' : r.st === "off" ? '<span class="tv-st off"><i></i>Offline</span>' : '';
+      var badges = (r.lastHour >= 12 ? '<span class="tv-badge hot">🔥 ' + r.lastHour + ' this hour</span>' : '') + (r.goal && r.calls >= r.goal ? '<span class="tv-badge goal">🎯 Goal hit</span>' : '');
+      return '<li class="tv-row' + (lead ? ' top' : '') + '"><span class="tv-rank">' + (lead ? "👑" : i + 1) + '</span><div class="tv-who"><div class="tv-name"><b>' + escapeHtml(r.name || "Rep") + '</b>' + badges + '</div>' +
+        '<div class="tv-bar"><i style="width:' + Math.round(v / top * 100) + '%"></i>' + (m[0] === "calls" && r.goal ? '<s style="left:' + Math.min(100, Math.round(r.goal / top * 100)) + '%" title="Goal ' + r.goal + '"></s>' : '') + '</div></div>' +
+        '<span class="tv-val">' + v.toLocaleString() + '</span>' +
+        '<span class="tv-sub">' + stTxt + '<span>' + r.calls + ' call' + (r.calls === 1 ? '' : 's') + (r.goal ? ' of ' + r.goal : '') + ' · ' + r.talk + ' talked · ' + r.int + ' interested' + (r.appts ? ' · ' + r.appts + ' appt' + (r.appts === 1 ? '' : 's') : '') +
+        (r.last && r.st !== "call" ? ' · last call ' + tvAgo(nowMs - r.last) : '') + '</span></span></li>'; }).join("") + '</ol>';
+    h += '<div class="tv-today"><h4>Today by the hour</h4>' + tvHoursHtml(rows.hours) + '</div>';
     h += '</section><div class="tv-side">';
     var onc = TEAM.on ? presenceNow() : [];
-    if (onc.length) h += '<section class="tv-panel" aria-label="On calls now"><h3>On calls now <small>' + onc.length + '</small></h3><ul class="tv-feed">' + onc.slice(0, 8).map(function (x) {
+    if (onc.length) h += '<section class="tv-panel" aria-label="On calls now"><h3>On calls now <small>' + onc.length + '</small></h3><ul class="tv-feed">' + onc.slice(0, 6).map(function (x) {
       return '<li class="tv-oc"><i aria-hidden="true"></i><b>' + escapeHtml(firstName(x.p.by || "Rep")) + '</b><time class="tv-t" data-since="' + (+x.p.at) + '">' + presClock(x.p.at) + '</time></li>'; }).join("") + '</ul></section>';
-    var fresh = TV.fresh || {};
-    h += '<section class="tv-panel" aria-label="Latest calls"><h3>Latest</h3>' + (d.calls.length ? '<ol class="tv-feed">' + d.calls.slice(0, onc.length ? 7 : 11).map(function (c) {
+    if (d.upcoming.length) h += '<section class="tv-panel" aria-label="Appointments coming up"><h3>Coming up <small>' + d.upcoming.length + ' today</small></h3><ul class="tv-feed">' + d.upcoming.slice(0, 4).map(function (x) {
+      return '<li><time class="tv-when">' + escapeHtml(timeStr(x.apptAt)) + '</time><b>' + escapeHtml(x.to && x.to.name ? firstName(x.to.name) : "Closer") + '</b><span class="tv-by">set by ' + escapeHtml(x.from && x.from.name ? firstName(x.from.name) : "a rep") + '</span></li>'; }).join("") + '</ul></section>';
+    var fresh = TV.fresh || {}, room = 11 - (onc.length ? Math.min(6, onc.length) + 2 : 0) - (d.upcoming.length ? Math.min(4, d.upcoming.length) + 2 : 0);
+    h += '<section class="tv-panel" aria-label="Latest calls"><h3>Latest</h3>' + (d.calls.length ? '<ol class="tv-feed">' + d.calls.slice(0, Math.max(4, room)).map(function (c) {
       var mm = OUTCOME_META[c.outcomeKey] || { label: c.outcome || "Call", cls: "noanswer" };
       return '<li' + (fresh[tvCallId(c)] ? ' class="fresh"' : '') + '><b>' + escapeHtml(c.by ? firstName(c.by.name) : "You") + '</b><span class="qi-status ' + mm.cls + '">' + escapeHtml(mm.label) + '</span><time datetime="' + escapeHtml(String(c.timestamp)) + '">' + escapeHtml(agoStr(c.timestamp)) + '</time></li>'; }).join("") + '</ol>' : '<div class="tv-empty">Calls show up here the moment they’re logged.</div>') + '</section>';
-    h += '</div></div><div class="tv-foot">VPEX · updated ' + escapeHtml(now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", second: "2-digit" })) + '</div>';
+    // how it counts, and where the look comes from: nothing on this screen is a mystery
+    var thName = tvThemeWanted() ? THEME_LABELS[tvThemeWanted()] + " theme · from " + firstName(tc.by || "the admin") + "’s account" : (document.documentElement.getAttribute("data-theme") ? (THEME_LABELS[document.documentElement.getAttribute("data-theme")] || "") + " theme · this screen" : "");
+    h += '</div></div><div class="tv-foot"><span class="tv-how"><b>How it counts:</b> a call counts when it’s placed · a conversation is reaching a person · interested is marked Interested · appointments are set for a closer today. Reps’ first names and results only, never a lead’s name or number.</span>' +
+      '<span class="tv-meta">' + (thName ? escapeHtml(thName) + ' · ' : '') + 'updated ' + escapeHtml(now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", second: "2-digit" })) + '</span></div>';
     TV.fresh = {};
     el.innerHTML = h;
   }
@@ -22687,7 +22839,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     TV.showing = true;
     var cols = ["var(--interested)", "var(--accent)", "var(--gold, #FFC94D)", "var(--callback)"], conf = "";
     for (var i = 0; i < 28; i++) conf += '<i class="tv-conf" style="left:' + (Math.random() * 100).toFixed(1) + 'vw;background:' + cols[i % 4] + ';animation-delay:' + (Math.random() * 0.8).toFixed(2) + 's"></i>';
-    c.innerHTML = conf + '<div class="tv-cele-card"><b>' + escapeHtml(x.who) + '</b><span>' + escapeHtml(x.what) + '</span></div>';
+    c.innerHTML = conf + '<div class="tv-cele-card">' + (x.e ? '<i class="tv-cele-e" aria-hidden="true">' + x.e + '</i>' : '') + '<b>' + escapeHtml(x.who) + '</b><span>' + escapeHtml(x.what) + '</span></div>';
     c.hidden = false; tvChime();
     setTimeout(function () { c.hidden = true; c.innerHTML = ""; TV.showing = false; tvCelebrate(); }, 5000);
   }
@@ -22697,15 +22849,21 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     try { closeMenuModal(); } catch (e) {} try { if (typeof closeAdminHub === "function" && document.getElementById("adminModal").classList.contains("show")) closeAdminHub(); } catch (e) {}
     TV.back = document.activeElement; TV.on = true; TV.q = []; TV.last = {}; TV.metric = 0;
     var d = tvData(); TV.seen = {}; d.calls.forEach(function (c) { TV.seen[tvCallId(c)] = 1; }); TV.deals = {}; d.won.forEach(function (l) { TV.deals[l.id] = 1; });
+    TV.appts = {}; d.appts.forEach(function (l) { TV.appts[l.id] = 1; });
+    var r0 = tvRows(d); TV.goalHit = {}; r0.list.forEach(function (r) { if (r.goal && r.calls >= r.goal) TV.goalHit[r.uid] = 1; });
+    TV.mile = TV_MILES.filter(function (x) { return d.n.calls >= x; }).pop() || 0;
+    var lead0 = r0.list.slice().sort(function (a, b) { return b.calls - a.calls; })[0]; TV.leader = lead0 && lead0.calls ? lead0.uid : ""; TV.leaderAt = 0;
+    TV.themePrev = undefined;
     var el = document.createElement("div"); el.id = "floorTv"; el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true"); el.setAttribute("aria-label", "Floor TV"); el.tabIndex = -1;
     var cele = document.createElement("div"); cele.id = "tvCele"; cele.className = "tv-cele"; cele.hidden = true; cele.setAttribute("role", "status"); cele.setAttribute("aria-live", "assertive");
     document.body.appendChild(el); document.body.appendChild(cele); document.body.classList.add("tv-open");
     el.addEventListener("click", function (e) {
-      var t = e.target.closest("button, #tvBoardH"); if (!t) return;
+      var t = e.target.closest("button"); if (!t) return;
       if (t.id === "tvClose") tvClose();
+      else if (t.hasAttribute("data-tv-metric")) { TV.metric = +t.getAttribute("data-tv-metric"); tvRender(); }
+      else if (t.id === "tvTheme") { try { if (lsGet("vpex_tv_own") === "1") localStorage.removeItem("vpex_tv_own"); else localStorage.setItem("vpex_tv_own", "1"); } catch (er) {} tvRender(); }
       else if (t.id === "tvSound") { TV.sound = !TV.sound; if (TV.sound) { var s0 = TV.sound; TV.sound = true; tvChime(); TV.sound = s0; } tvRender(); }
       else if (t.id === "tvFull") { if (document.fullscreenElement) document.exitFullscreen().catch(function () {}); else el.requestFullscreen().catch(function () {}); setTimeout(tvRender, 300); }
-      else if (t.id === "tvBoardH") { TV.metric++; tvRender(); }
     });
     tvRender();
     TV.timers = [
@@ -22723,6 +22881,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     try { if (document.fullscreenElement) document.exitFullscreen().catch(function () {}); } catch (e) {}
     ["floorTv", "tvCele"].forEach(function (id) { var e = document.getElementById(id); if (e) e.remove(); });
     document.body.classList.remove("tv-open");
+    tvThemeRestore();
     if (/(^#|[-_&])tv$/i.test(location.hash)) try { history.replaceState(null, "", location.pathname + location.search + location.hash.replace(/([-_&])?tv$/i, "").replace(/^#$/, "")); } catch (e) {}
     try { if (TV.back && document.contains(TV.back)) TV.back.focus({ preventScroll: true }); } catch (e) {}
   }
@@ -22733,7 +22892,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       if (e.shiftKey ? i <= 0 : i === b.length - 1 || i < 0) { e.preventDefault(); b[e.shiftKey ? b.length - 1 : 0].focus(); } }
   });
   document.addEventListener("visibilitychange", function () { if (TV.on && !document.hidden) { tvWake(); tvRender(); } });
-  window.__vpexTvTest = { open: function () { tvOpen(); }, data: function () { return tvData().n; } };   // used by tests/floor_tv.js
+  window.__vpexTvTest = { open: function () { tvOpen(); }, data: function () { return tvData().n; }, themeOk: function (id) { return tvThemeOk(id); } };   // used by tests/floor_tv.js
 
   /* ----- results report ----- */
   // Same clock time n calendar days away (a week is not always 7 × 24 h when the clocks change).
