@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-03-17">
+<meta name="vpex-build" content="2027-03-18">
 <meta name="vpex-min-build" content="2027-03-15">
 <!-- Scripts only from this site and Google's Firebase library; no plugins; no <base> or form hijacking. Inline scripts stay
      allowed because the app is one file. (GitHub Pages can't send headers, so this is the strongest policy a page can set.) -->
@@ -6316,6 +6316,18 @@ window.VPEX_SIG = [
     background-color: var(--surface-raised); color: var(--text); font-family: inherit; font-size: 15px; }
   .tm-loc select { min-height: 36px; }
   .modal label + input[type="url"] { width: 100%; }
+  /* the card: name and amount, what happened last, what's next, then stage / call / remove */
+  .pipe-item-top .pipe-amount { flex: none; width: 104px; text-align: right; font-weight: 700; font-size: 14px; color: var(--text); background: transparent; border: 1px dashed var(--border); border-radius: 8px; min-height: 36px; padding: 6px 8px; font-variant-numeric: tabular-nums; }
+  .pipe-item-top .pipe-amount:focus { background: var(--surface-raised); border-style: solid; border-color: var(--accent); outline: none; }
+  .pipe-item-top { margin-bottom: 2px; }
+  .pipe-item .nx-line { margin: 0 0 8px; }
+  .pipe-item-controls { flex-wrap: nowrap; align-items: center; }
+  .pipe-item-controls .pipe-select { flex: 1 1 0; min-height: 38px; font-size: 13px; }
+  .pipe-item-controls .pipe-delete-btn { background: transparent; border-color: transparent; color: var(--text-faint); width: 40px; height: 40px; }
+  .pipe-item-controls .pipe-delete-btn:hover, .pipe-item-controls .pipe-delete-btn:focus-visible { color: var(--danger); border-color: var(--border); }
+  .pipe-item-top .pipe-item-name { white-space: normal; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.25; }
+  .pipe-new { text-align: left !important; border-style: solid !important; background: color-mix(in srgb, var(--surface) 60%, transparent); }
+  .pipe-lost-open { margin-top: 0; }
   .pipe-empty {
     text-align: center;
     color: var(--text-faint);
@@ -6325,6 +6337,71 @@ window.VPEX_SIG = [
     border-radius: var(--radius-s);
   }
 
+  .task-del-btn { display: block; margin: 4px 0 0; min-height: 44px; padding: 0 2px; background: none; border: 0; color: var(--danger); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  .task-del-btn[hidden] { display: none; }
+  /* ---- Calendar: the month, then the chosen day as an agenda ---- */
+  .cal-wrap { display: flex; flex-direction: column; gap: 14px; padding-top: 14px; }
+  .cal-month, .cal-day-view { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-l, 16px); padding: 14px 12px; box-shadow: var(--card-shadow, none); min-width: 0; }
+  .cal-top { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+  .cal-title { flex: 1; margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.01em; text-align: center; }
+  .cal-nav { width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface-raised); color: var(--text); font-size: 24px; line-height: 1; cursor: pointer; font-family: inherit; }
+  .cal-today { min-height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--accent); background: transparent; color: var(--text); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .cal-scope { padding: 0 0 8px; justify-content: center; }
+  .cal-wk, .cal-row { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+  .cal-row { margin-top: 4px; }
+  .cal-wk span { text-align: center; font-size: 11px; font-weight: 700; color: var(--text-faint); padding: 2px 0 4px; }
+  .cal-day { position: relative; min-height: 50px; min-width: 0; border-radius: 12px; border: 1px solid transparent; background: color-mix(in srgb, var(--surface-raised) 70%, transparent); color: var(--text);
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 2px; padding: 6px 0 4px; cursor: pointer; font-family: inherit; font-variant-numeric: tabular-nums; }
+  .cal-day.other { background: transparent; color: var(--text-faint); }
+  .cal-n { font-size: 15px; font-weight: 600; line-height: 1.2; }
+  .cal-day.today .cal-n { color: var(--accent-text); background: var(--accent-fill, var(--accent)); border-radius: 99px; min-width: 26px; padding: 0 6px; }
+  .cal-day.sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+  .cal-day:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+  .cal-c { font-size: 11px; font-weight: 700; min-width: 20px; padding: 0 5px; border-radius: 99px; line-height: 17px; text-align: center; background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--text); }
+  .cal-c.done { background: none; color: var(--interested); }
+  .cal-day.late .cal-c { background: color-mix(in srgb, var(--notinterested) 22%, transparent); }
+  .cal-dot { position: absolute; top: 6px; right: 6px; width: 7px; height: 7px; border-radius: 50%; background: var(--interested); }
+  .cal-legend { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 10px; font-size: 12px; color: var(--text-faint); align-items: center; }
+  .cal-legend > span { display: inline-flex; align-items: center; gap: 6px; } .cal-legend .cal-dot { position: static; }
+  .cal-day-head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 6px; }
+  .cal-day-head > div { flex: 1; min-width: 0; }
+  .cal-day-head h3 { margin: 0; font-size: 18px; line-height: 1.25; }
+  .cal-day-head p { margin: 3px 0 0; font-size: 13px; color: var(--text-dim); }
+  .cal-day-view .cal-add { flex: none; width: auto; min-height: 44px; padding: 0 18px; border-radius: 10px; font-size: 14px; }
+  .cal-group { margin-top: 12px; }
+  .cal-group h4 { margin: 0 0 6px; font-size: 12px; font-weight: 700; color: var(--text-dim); display: flex; align-items: center; gap: 6px; }
+  .cal-group h4 span, .cal-done-t span { font-weight: 600; color: var(--text-faint); }
+  .cal-group.late h4 { color: var(--notinterested); }
+  .cal-item { display: grid; grid-template-columns: 4.9em auto minmax(0, 1fr) auto; align-items: center; gap: 4px 10px; padding: 8px 6px 8px 8px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface-raised); margin-bottom: 6px; }
+  .cal-item.over { border-color: color-mix(in srgb, var(--notinterested) 55%, var(--border)); }
+  .cal-item.appt { border-color: color-mix(in srgb, var(--interested) 55%, var(--border)); }
+  .cal-item.done .cal-body, .cal-item.past .cal-body { opacity: 0.6; } .cal-item.done .cal-name { text-decoration: line-through; }
+  .cal-time { font-size: 12.5px; font-weight: 700; color: var(--text); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .cal-item.over .cal-time { color: var(--notinterested); }
+  .cal-mark { width: 30px; text-align: center; font-size: 18px; }
+  .cal-check { width: 30px; height: 30px; flex: none; margin: 0; }
+  .cal-body { min-width: 0; }
+  .cal-l1 { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; }
+  .cal-item .cal-name { font-weight: 700; font-size: 14.5px; min-height: 32px; padding: 4px 0; text-align: left; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cal-l2 { font-size: 12.5px; color: var(--text-dim); line-height: 1.35; }
+  .cal-note { font-size: 12px; color: var(--text-faint); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cal-acts { display: flex; gap: 4px; align-items: center; }
+  .cal-call, .cal-ic { width: 40px; height: 40px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; }
+  .cal-call { background: var(--accent-fill, var(--accent)); color: var(--accent-text); border-color: transparent; } .cal-call svg, .cal-ic svg { width: 16px; height: 16px; }
+  .cal-empty { margin-top: 14px; padding: 18px 12px; text-align: center; color: var(--text-dim); font-size: 14px; border: 1px dashed var(--border); border-radius: 12px; }
+  .cal-done-t { background: none; border: 0; padding: 0; min-height: 44px; font: inherit; font-size: 12px; font-weight: 700; color: var(--interested); cursor: pointer; }
+  @media (max-width: 420px) {
+    .cal-item { grid-template-columns: auto minmax(0, 1fr); padding-left: 6px; }
+    .cal-item > .cal-time { grid-column: 1 / -1; font-size: 12px; margin-bottom: -2px; }
+    .cal-item > .cal-acts { grid-column: 2; }
+    .cal-item.appt > .cal-acts:empty { display: none; }
+    .cal-day { min-height: 46px; border-radius: 10px; } .cal-wk, .cal-row { gap: 3px; }
+  }
+  @media (min-width: 900px) {
+    body.desk[data-view="calendar"] .cal-wrap { display: grid; grid-template-columns: minmax(380px, 1fr) minmax(0, 1.15fr); align-items: start; gap: 18px; }
+    body.desk[data-view="calendar"] .cal-month { position: sticky; top: 12px; }
+    body.desk[data-view="calendar"] .cal-day { min-height: 64px; }
+  }
   /* Tasks tab */
   .task-item {
     background: var(--surface);
@@ -9512,8 +9589,8 @@ window.VPEX_SIG = [
     body.desk[data-view="pipeline"] .stage-section .stage-head { margin-top: 0; }
     body.desk[data-view="pipeline"] .pipe-item { margin-left: 0; margin-right: 0; }
     body.desk[data-view="pipeline"] .pipe-item-controls { flex-wrap: wrap; }
-    body.desk[data-view="pipeline"] .pipe-item-controls .pipe-select { flex: 1 1 100%; width: 100%; max-width: none; }
-    body.desk[data-view="pipeline"] .pipe-item-controls .pipe-amount { flex: 1 1 0; width: auto; min-width: 0; }
+    body.desk[data-view="pipeline"] .pipe-item-controls .pipe-select { flex: 1 1 0; width: auto; max-width: none; }
+    body.desk[data-view="pipeline"] .pipe-item-top .pipe-amount { width: 84px; font-size: 13px; }
     /* Live panel */
     body.desk #deskLive { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-l); padding: 18px; box-shadow: var(--card-shadow, none); gap: 12px; }
     .dl-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
@@ -10645,6 +10722,7 @@ body.desk #deskLeft > #queueControls::before, body.desk #deskLeft #queueHeading 
     <button class="view-tab" data-view="history" id="viewTabHistory">History</button>
     <button class="view-tab" data-view="pipeline" id="viewTabPipeline">Pipeline</button>
     <button class="view-tab" data-view="tasks" id="viewTabTasks">Tasks</button>
+    <button class="view-tab" data-view="calendar" id="viewTabCalendar">Calendar</button>
     <button class="view-tab" data-view="vault" id="viewTabVault">Vault</button>
   </div>
 
@@ -10896,6 +10974,7 @@ body.desk #deskLeft > #queueControls::before, body.desk #deskLeft #queueHeading 
     <textarea id="taskNoteInput" style="min-height:60px" placeholder="What needs to happen…"></textarea>
 
     <div class="field-error" id="taskError"></div>
+    <button type="button" class="task-del-btn" id="deleteTask" hidden>Delete this follow-up</button>
     <div class="modal-actions">
       <button class="btn-secondary" id="cancelTask">Cancel</button>
       <button class="btn-primary" id="submitTask">Save task</button>
@@ -11896,6 +11975,13 @@ body.desk #deskLeft > #queueControls::before, body.desk #deskLeft #queueHeading 
     if (TEAM.on && TEAM.me) { teamScheduleFlush(fast ? 0 : TYPE_PAUSE); prefsSoon(); }
   }
 
+  // Switching tabs changes only where this phone is: save that on this phone without
+  // handing every lead to the team again, which on a big list took longer than drawing the tab.
+  function saveView() {
+    state.savedAt = Date.now();
+    clearTimeout(localTimer); localTimer = setTimeout(writeLocalNow, 120);
+    if (!TEAM.on && cloud.ready) scheduleCloud(2500);
+  }
   function writeLocalNow() {
     clearTimeout(localTimer);
     localTimer = null;
@@ -12255,7 +12341,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
   }
 
   // A view arrives from the side you moved toward; its rows rise in sequence and its bars grow.
-  var VX_ORDER = ["dial", "history", "pipeline", "tasks", "vault"];
+  var VX_ORDER = ["dial", "history", "pipeline", "tasks", "calendar", "vault"];
   function vxPlay(el, cls) {
     if (!el) return;
     el.classList.remove("vx-in-r", "vx-in-l", "vx-rise", "vx-grow"); void el.offsetWidth; el.classList.add(cls);
@@ -14180,7 +14266,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     var lcp = document.getElementById("locChip"), myLoc = TEAM.on && TEAM.me ? repLoc(TEAM.me.uid) : "";
     if (lcp) { lcp.hidden = !myLoc; lcp.textContent = myLoc ? LOCS[myLoc] : ""; lcp.className = "loc-chip loc-" + myLoc; }
 
-    if (["dial", "history", "pipeline", "tasks", "vault"].indexOf(state.activeView || "dial") < 0) state.activeView = "dial";   // e.g. a saved view from the removed Ops tab
+    if (["dial", "history", "pipeline", "tasks", "calendar", "vault"].indexOf(state.activeView || "dial") < 0) state.activeView = "dial";   // e.g. a saved view from the removed Ops tab
     document.body.setAttribute("data-view", state.activeView || "dial");
     if (DESK && DESK.on) Promise.resolve().then(deskRenderLive);
     if (RT.open) rtSoon();
@@ -14190,6 +14276,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     document.getElementById("viewTabHistory").classList.toggle("active", state.activeView === "history");
     document.getElementById("viewTabPipeline").classList.toggle("active", state.activeView === "pipeline");
     document.getElementById("viewTabTasks").classList.toggle("active", state.activeView === "tasks");
+    document.getElementById("viewTabCalendar").classList.toggle("active", state.activeView === "calendar");
     document.getElementById("viewTabVault").classList.toggle("active", state.activeView === "vault");
     document.getElementById("queueControls").style.display = "none";
     var dueN = dueTasks().length;
@@ -14224,6 +14311,13 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       document.getElementById("statsBlock").style.display = "none";
       document.getElementById("queueBlock").style.display = "none";
       renderTasksTab();
+      return;
+    }
+    if (state.activeView === "calendar") {
+      document.getElementById("progressWrap").style.display = "none";
+      document.getElementById("statsBlock").style.display = "none";
+      document.getElementById("queueBlock").style.display = "none";
+      renderCalendarTab();
       return;
     }
 
@@ -14510,23 +14604,33 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(v || ""));
     return m ? new Date(+m[1], +m[2] - 1, +m[3]).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : String(v || "");
   }
+  // Date and time words for lists of hundreds of rows: one formatter per format (making one is the slow part of
+  // toLocale…String, and Pipeline and Tasks used to make two per row), and today/tomorrow/yesterday worked out once a minute.
+  var FMT = {};
+  function fmtFor(loc, o) { var k = (loc || "") + JSON.stringify(o); return FMT[k] || (FMT[k] = new Intl.DateTimeFormat(loc, o)); }
+  var DAYW = { at: -1 };
+  function dayWords() {
+    var m = Math.floor(Date.now() / 60000);
+    if (DAYW.at !== m) DAYW = { at: m, t: localDateStr(new Date()), n: localDateStr(new Date(shiftDays(Date.now(), 1))), y: localDateStr(new Date(shiftDays(Date.now(), -1))) };
+    return DAYW;
+  }
   function dayLabel(d) {
-    var ds = localDateStr(d);
-    if (ds === localDateStr(new Date())) return "Today";
-    if (ds === localDateStr(new Date(shiftDays(Date.now(), 1)))) return "Tomorrow";      // calendar days, so a 23- or 25-hour day can't skip one
-    if (ds === localDateStr(new Date(shiftDays(Date.now(), -1)))) return "Yesterday";
-    return d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+    var ds = localDateStr(d), w = dayWords();
+    if (ds === w.t) return "Today";
+    if (ds === w.n) return "Tomorrow";      // calendar days, so a 23- or 25-hour day can't skip one
+    if (ds === w.y) return "Yesterday";
+    return fmtFor(undefined, { weekday: "short", month: "short", day: "numeric" }).format(d);
   }
   function fmtWhen(ts) {
     var d = new Date(ts);
-    return dayLabel(d) + " " + d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+    return dayLabel(d) + " " + fmtFor(undefined, { hour: "numeric", minute: "2-digit" }).format(d);
   }
   function theirTime(ts, lead) {
     var z = leadZone(lead);
     if (!z.iana) return "";
     try {
-      var mine = new Date(ts).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
-      var theirs = new Date(ts).toLocaleTimeString("en-US", { timeZone: z.iana, hour: "numeric", minute: "2-digit" });
+      var mine = fmtFor("en-US", { hour: "numeric", minute: "2-digit" }).format(new Date(ts));
+      var theirs = fmtFor("en-US", { timeZone: z.iana, hour: "numeric", minute: "2-digit" }).format(new Date(ts));
       return theirs === mine ? "" : theirs + " " + z.st;
     } catch (e) { return ""; }
   }
@@ -16105,95 +16209,105 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
   /** ---------- Pipeline ---------- **/
   function pipeMoney(n) { n = Math.max(0, Math.round(Number(n) || 0)); return "$" + n.toLocaleString("en-US"); }
   function pipeAmountOf(v) { var n = Number(String(v || "").replace(/[^0-9.]/g, "")); return isFinite(n) && n > 0 ? Math.round(n) : 0; }
+  // Pipeline: what's in play and what needs you. Each stage lists the leads that need you first (overdue, due today,
+  // no next step), 20 at a time, so a list of thousands opens as fast as a list of ten; one set of listeners serves all.
+  var PIPE_PAGE = 20;
   function renderPipelineTab() {
     var main = document.getElementById("mainArea");
     if (state.leads.length === 0) {
-      main.innerHTML = '<div class="empty"><div class="glyph">\uD83D\uDCCA</div><h2>No leads yet</h2><p>Load leads first, then track them through your pipeline here.</p></div>';
+      main.innerHTML = '<div class="empty"><div class="glyph">📊</div><h2>No leads yet</h2><p>Load leads first, then track them through your pipeline here.</p></div>';
       return;
     }
-    var sum = function (arr) { return arr.reduce(function (s, l) { return s + (Number(l.amount) || 0); }, 0); };
-    var committed = sum(state.leads.filter(function (l) { return l.stage === "Committed" && pipeScope(l); }));
-    var activeLeads = state.leads.filter(function (l) { return l.stage && l.stage !== "New Lead" && l.stage !== "Closed Lost" && pipeScope(l); });
-    var nxc = { over: 0, today: 0, none: 0 }, nxs = {};
-    activeLeads.forEach(function (l) { var n = nextInfo(l); nxs[l.id] = n.st; if (nxc[n.st] !== undefined) nxc[n.st]++; });
-    var needs = nxc.none;
+    var amt = function (l) { return Number(l.amount) || 0; }, sum = function (arr) { var t = 0; for (var i = 0; i < arr.length; i++) t += amt(arr[i]); return t; };
+    var by = {}; STAGES.forEach(function (s0) { by[s0] = []; });
+    state.leads.forEach(function (l) { var st = l.stage || "New Lead"; if (!by[st]) return; if (st === "New Lead" || pipeScope(l)) by[st].push(l); });
+    var committed = sum(by.Committed || []), activeLeads = [];
+    STAGES.forEach(function (s0) { if (s0 !== "New Lead" && s0 !== "Closed Lost") activeLeads = activeLeads.concat(by[s0]); });
+    var nxc = { over: 0, today: 0, none: 0 }, nx = {}, RANK = { over: 0, today: 1, none: 2, ok: 3, idle: 4 };
+    activeLeads.forEach(function (l) { var n = nextInfo(l); nx[l.id] = n; if (nxc[n.st] !== undefined) nxc[n.st]++; });
     if (PIPE.f !== "all" && !nxc[PIPE.f]) PIPE.f = "all";
-    var target = Number(state.dealTarget) || 0;
-    var pct = target > 0 ? Math.min(100, Math.round((committed / target) * 100)) : 0;
+    var target = Number(state.dealTarget) || 0, pct = target > 0 ? Math.min(100, Math.round((committed / target) * 100)) : 0;
     var html = '<div class="deal-bar-card">' +
       '<div class="deal-bar-top"><span class="deal-bar-label">Committed toward target</span>' +
       '<span class="deal-bar-amounts">' + fmtMoney(committed) + ' / ' + fmtMoney(target) + '</span></div>' +
       '<div class="deal-bar-track"><div class="deal-bar-fill" style="width:' + pct + '%"></div></div>' +
       '<div class="pipe-summary"><span><b>' + activeLeads.length + '</b> active</span><span><b>' + fmtMoney(sum(activeLeads)) + '</b> in play</span>' +
-      (needs ? '<span class="warn"><b>' + needs + '</b> need a next step</span>' : '<span><b>0</b> without a next step</span>') + '</div>' +
+      (nxc.none ? '<span class="warn" role="button" tabindex="0"><b>' + nxc.none + '</b> need a next step</span>' : '<span><b>0</b> without a next step</span>') + '</div>' +
       forecastHtml() +
     '</div>' +
     '<div class="filter-row pipe-filters" role="group" aria-label="Show">' + [["all", "All", activeLeads.length], ["over", "Overdue", nxc.over], ["today", "Due today", nxc.today], ["none", "No next step", nxc.none]]
       .filter(function (c) { return c[0] === "all" || c[2]; }).map(function (c) {
         return '<button type="button" class="filter-chip pf-' + c[0] + (PIPE.f === c[0] ? ' active' : '') + '" data-pipe-f="' + c[0] + '" aria-pressed="' + (PIPE.f === c[0]) + '">' + c[1] + ' <span class="chip-n">' + c[2] + '</span></button>';
       }).join("") + '</div>';
-    var pf = PIPE.f;
+    var pf = PIPE.f, stageOpts = STAGES.map(function (s2) { return '<option value="' + s2 + '">' + s2 + '</option>'; }).join(""), adm = TEAM.on && isAdmin();
     STAGES.forEach(function (stage) {
-      var stLeads = state.leads.filter(function (l) { return (l.stage || "New Lead") === stage && (stage === "New Lead" || pipeScope(l)); });
-      if (pf !== "all") { if (stage === "New Lead" || stage === "Closed Lost") return; stLeads = stLeads.filter(function (l) { return nxs[l.id] === pf; }); if (!stLeads.length) return; }
-      html += '<div class="stage-section"><div class="stage-head"><div class="stage-head-left ' + STAGE_CLASS[stage] + '"><span class="stage-dot"></span>' +
-        '<span class="stage-name">' + stage + '</span></div><span class="stage-count">' + stLeads.length + ' \u00b7 ' + fmtMoney(sum(stLeads)) + '</span></div>' +
-        (STAGE_HELP[stage] && stage !== "New Lead" ? '<p class="stage-help">' + STAGE_HELP[stage] + '</p>' : '');
-      if (!stLeads.length) {
-        html += '<div class="pipe-empty">No leads in this stage</div>';
-      } else if (stage === "New Lead") {
-        html += '<div class="pipe-empty">' + stLeads.length + ' not yet worked. Leads move up automatically when they say they\u2019re interested, or set a stage from any profile.</div>';
-      } else {
-        stLeads.forEach(function (l) {
-          var last = lastCallFor(l.id), next = openTasksFor(l.id)[0];
-          var meta = (last ? 'Last: ' + outcomeLabel(last.outcomeKey, last.outcome).toLowerCase() + ' ' + agoStr(last.timestamp) : 'Not called yet') +
-            (TEAM.on && isAdmin() && l.owner ? ' \u00b7 ' + l.owner.name : '');
-          html += '<div class="pipe-item" data-pipe-id="' + l.id + '">' +
-            '<div class="pipe-item-top"><button class="pipe-item-name linkish" data-open-lead="' + l.id + '">' + escapeHtml(l.name) + '</button>' +
-              '<button class="pipe-delete-btn" data-delete-pipe="' + l.id + '" title="Remove lead">' + trashIconSvg() + '</button></div>' +
-            '<div class="pipe-meta">' + escapeHtml(meta) + '</div>' +
-            '<div class="pipe-item-controls">' +
-              '<select class="pipe-select" data-pipe-stage="' + l.id + '" aria-label="Stage for ' + escapeHtml(l.name) + '">' +
-                STAGES.map(function (s2) { return '<option value="' + s2 + '"' + (s2 === stage ? " selected" : "") + '>' + s2 + '</option>'; }).join("") +
-              '</select>' +
-              '<input class="pipe-amount" type="text" inputmode="numeric" autocomplete="off" value="' + pipeMoney(l.amount) + '" data-pipe-amount="' + l.id + '" aria-label="Amount for ' + escapeHtml(l.name) + '">' +
-              callLinkHtml(l, "pipeline", next ? next.id : null, "pipe-call", callIconSvg()) +
-            '</div>' +
-            (l.stalled ? '<div class="pipe-parked"><span>Parked \u00b7 ' + escapeHtml(parkedWhy(l)) + '</span><button type="button" data-revive="' + l.id + '">Revive</button></div>'
-              : stage !== "Closed Lost" ? nextLineHtml(l) : '') +
-          '</div>';
-        });
-      }
-      html += '</div>';
+      var stLeads = by[stage];
+      if (pf !== "all") { if (stage === "New Lead" || stage === "Closed Lost") return; stLeads = stLeads.filter(function (l) { return nx[l.id].st === pf; }); if (!stLeads.length) return; }
+      var lost = stage === "Closed Lost", fresh = stage === "New Lead";
+      html += '<section class="stage-section" data-stage="' + escapeHtml(stage) + '"><div class="stage-head"><div class="stage-head-left ' + STAGE_CLASS[stage] + '"><span class="stage-dot"></span>' +
+        '<span class="stage-name">' + escapeHtml(stage) + '</span></div><span class="stage-count">' + stLeads.length + (fresh ? '' : ' · ' + fmtMoney(sum(stLeads))) + '</span></div>';
+      if (fresh) { html += '<div class="pipe-empty pipe-new">' + (stLeads.length ? stLeads.length.toLocaleString() + ' not worked yet. They move up on their own when they say they’re interested.' : 'Every lead has been worked.') + '</div></section>'; return; }
+      if (STAGE_HELP[stage]) html += '<p class="stage-help">' + STAGE_HELP[stage] + '</p>';
+      if (!stLeads.length) { html += '<div class="pipe-empty">None right now</div></section>'; return; }
+      if (lost && !PIPE.lost) { html += '<button type="button" class="tk-more pipe-lost-open" data-pipe-lost="1">Show ' + stLeads.length + '</button></section>'; return; }
+      // who needs you first: overdue, due today, no next step, then the soonest next step, then the biggest
+      if (!lost) stLeads = stLeads.slice().sort(function (a, b) { var x = nx[a.id], y = nx[b.id]; return (RANK[x.st] - RANK[y.st]) || ((x.t ? taskDueTs(x.t) : Infinity) - (y.t ? taskDueTs(y.t) : Infinity)) || (amt(b) - amt(a)); });
+      var lim = PIPE.more[stage] ? stLeads.length : PIPE_PAGE;
+      stLeads.slice(0, lim).forEach(function (l) {
+        var last = lastCallFor(l.id), n = nx[l.id];
+        var meta = (last ? outcomeLabel(last.outcomeKey, last.outcome) + ' ' + agoStr(last.timestamp) : 'Not called yet') + (adm && l.owner ? ' · ' + firstName(l.owner.name) : '');
+        html += '<div class="pipe-item' + (n ? ' px-' + n.st : '') + '" data-pipe-id="' + l.id + '">' +
+          '<div class="pipe-item-top"><button type="button" class="pipe-item-name linkish" data-open-lead="' + l.id + '">' + escapeHtml(l.name) + '</button>' +
+            '<input class="pipe-amount" type="text" inputmode="numeric" autocomplete="off" placeholder="$0" value="' + pipeMoney(l.amount) + '" data-pipe-amount="' + l.id + '" aria-label="Amount for ' + escapeHtml(l.name) + '"></div>' +
+          '<div class="pipe-meta">' + escapeHtml(meta) + '</div>' +
+          (l.stalled ? '<div class="pipe-parked"><span>Parked · ' + escapeHtml(parkedWhy(l)) + '</span><button type="button" data-revive="' + l.id + '">Revive</button></div>' : !lost ? nextLineHtml(l) : '') +
+          '<div class="pipe-item-controls">' +
+            '<select class="pipe-select" data-pipe-stage="' + l.id + '" aria-label="Stage for ' + escapeHtml(l.name) + '">' + stageOpts.replace('value="' + stage + '"', 'value="' + stage + '" selected') + '</select>' +
+            callLinkHtml(l, "pipeline", n && n.t ? n.t.id : null, "pipe-call", callIconSvg()) +
+            '<button type="button" class="pipe-delete-btn" data-delete-pipe="' + l.id + '" title="Remove lead" aria-label="Remove ' + escapeHtml(l.name) + '">' + trashIconSvg() + '</button>' +
+          '</div></div>';
+      });
+      if (stLeads.length > lim) html += '<button type="button" class="tk-more" data-pipe-more="' + escapeHtml(stage) + '">Show all ' + stLeads.length + '</button>';
+      html += '</section>';
     });
     main.innerHTML = html;
-    main.querySelectorAll("[data-pipe-stage]").forEach(function (sel) {
-      sel.addEventListener("change", function () {
-        var lead = findLeadById(sel.getAttribute("data-pipe-stage"));
-        if (lead) { setStage(lead, sel.value); saveState(); render(); showToast("Moved to " + lead.stage); }
-      });
-    });
-    main.querySelectorAll("[data-pipe-amount]").forEach(function (inp) {
-      // Shows "$850,000"; while editing it's the plain number, so the number pad works.
-      inp.addEventListener("focus", function () { var lead = findLeadById(inp.getAttribute("data-pipe-amount")); inp.value = lead && Number(lead.amount) ? String(Math.round(Number(lead.amount))) : ""; try { inp.select(); } catch (e) {} });
-      inp.addEventListener("blur", function () { var lead = findLeadById(inp.getAttribute("data-pipe-amount")); if (lead && pipeAmountOf(inp.value) === Math.round(Number(lead.amount) || 0)) inp.value = pipeMoney(lead.amount); });
-      inp.addEventListener("keydown", function (e) { if (e.key === "Enter") inp.blur(); });
-      inp.addEventListener("change", function () {
-        var lead = findLeadById(inp.getAttribute("data-pipe-amount"));
-        if (lead) { lead.amount = pipeAmountOf(inp.value); saveState(); render(); }
-      });
-    });
-    main.querySelectorAll("[data-delete-pipe]").forEach(function (btn) {
-      btn.addEventListener("click", function () { deleteLead(btn.getAttribute("data-delete-pipe")); });
-    });
-    main.querySelectorAll("[data-pipe-f]").forEach(function (b) {
-      b.addEventListener("click", function () { PIPE.f = b.getAttribute("data-pipe-f"); render(); });
-    });
-    var nw = main.querySelector(".pipe-summary .warn");
-    if (nw) { nw.setAttribute("role", "button"); nw.setAttribute("tabindex", "0"); nw.addEventListener("click", function () { PIPE.f = "none"; render(); });
-      nw.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); PIPE.f = "none"; render(); } }); }
+    pipeWire(main);
   }
-  var PIPE = { f: "all" };
+  // one set of listeners on the list for every card (added once)
+  function pipeWire(main) {
+    if (main.__pipeWired) return; main.__pipeWired = true;
+    var on = function () { return (state.activeView || "dial") === "pipeline"; };
+    main.addEventListener("change", function (e) {
+      if (!on()) return;
+      var sel = e.target.closest("[data-pipe-stage]"), inp = e.target.closest("[data-pipe-amount]");
+      if (sel) { var lead = findLeadById(sel.getAttribute("data-pipe-stage")); if (lead) { setStage(lead, sel.value); saveState(); render(); showToast("Moved to " + lead.stage); } }
+      else if (inp) { var l2 = findLeadById(inp.getAttribute("data-pipe-amount")); if (l2) { l2.amount = pipeAmountOf(inp.value); saveState(); render(); } }
+    });
+    // Shows "$850,000"; while editing it's the plain number, so the number pad works.
+    main.addEventListener("focusin", function (e) {
+      var inp = on() && e.target.closest("[data-pipe-amount]"); if (!inp) return;
+      var lead = findLeadById(inp.getAttribute("data-pipe-amount")); inp.value = lead && Number(lead.amount) ? String(Math.round(Number(lead.amount))) : ""; try { inp.select(); } catch (er) {}
+    });
+    main.addEventListener("focusout", function (e) {
+      var inp = on() && e.target.closest("[data-pipe-amount]"); if (!inp) return;
+      var lead = findLeadById(inp.getAttribute("data-pipe-amount")); if (lead && pipeAmountOf(inp.value) === Math.round(Number(lead.amount) || 0)) inp.value = pipeMoney(lead.amount);
+    });
+    main.addEventListener("keydown", function (e) {
+      if (!on()) return;
+      var inp = e.target.closest("[data-pipe-amount]"); if (inp && e.key === "Enter") inp.blur();
+      var nw = e.target.closest(".pipe-summary .warn"); if (nw && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); PIPE.f = "none"; render(); }
+    });
+    main.addEventListener("click", function (e) {
+      if (!on()) return;
+      var b = e.target.closest("[data-delete-pipe], [data-pipe-f], [data-pipe-more], [data-pipe-lost], .pipe-summary .warn"); if (!b) return;
+      if (b.hasAttribute("data-delete-pipe")) deleteLead(b.getAttribute("data-delete-pipe"));
+      else if (b.hasAttribute("data-pipe-f")) { PIPE.f = b.getAttribute("data-pipe-f"); PIPE.more = {}; render(); }
+      else if (b.hasAttribute("data-pipe-more")) { PIPE.more[b.getAttribute("data-pipe-more")] = 1; render(); }
+      else if (b.hasAttribute("data-pipe-lost")) { PIPE.lost = true; render(); }
+      else { PIPE.f = "none"; render(); }
+    });
+  }
+  var PIPE = { f: "all", more: {}, lost: false };
   // What each stage means, so everyone files a lead in the same place (the stage names change by industry; these don't need to).
   var STAGE_HELP = {
     "Qualified": "Interested and a fit. Next: present the offer.",
@@ -16210,9 +16324,17 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     if (mn) { var t = state.tasks.filter(function (x) { return x.id === mn.getAttribute("data-move-next"); })[0]; if (!t) return; if (profileLeadId) closeLeadProfile(true); openFollowSheet({ leadId: t.leadId, taskId: t.id, kind: "move" }); }
   });
 
+  // Looked up thousands of times per screen (every follow-up row, every task's owner): an index by id, checked on each
+  // use (the lead at that spot must still have that id) and rebuilt when the list changes. A miss still scans, so a lead
+  // added in place is always found.
+  var leadIdx = { ref: null, len: -1, map: null };
   function findLeadById(id) {
-    for (var i = 0; i < state.leads.length; i++) {
-      if (state.leads[i].id === id) return state.leads[i];
+    var ls = state.leads;
+    if (leadIdx.ref !== ls || leadIdx.len !== ls.length) { var m = new Map(); for (var j = 0; j < ls.length; j++) m.set(ls[j].id, j); leadIdx = { ref: ls, len: ls.length, map: m }; }
+    var k = leadIdx.map.get(id);
+    if (k !== undefined && ls[k] && ls[k].id === id) return ls[k];
+    for (var i = 0; i < ls.length; i++) {
+      if (ls[i].id === id) { leadIdx.len = -1; return ls[i]; }
     }
     return null;
   }
@@ -16407,17 +16529,172 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     if (ohb) ohb.addEventListener("click", moveOffHours);
     var tog = document.getElementById("toggleDoneTasks");
     if (tog) tog.addEventListener("click", function () { showDoneTasks = !showDoneTasks; render(); });
-    main.querySelectorAll("[data-toggle-task]").forEach(function (btn) {
-      btn.addEventListener("click", function () { toggleTask(btn.getAttribute("data-toggle-task")); });
+    taskRowsWire(main);
+  }
+  // One set of listeners for task rows wherever they're listed (Tasks, Calendar), added once
+  function taskRowsWire(main) {
+    if (main.__taskWired) return; main.__taskWired = true;
+    main.addEventListener("click", function (e) {
+      var v = state.activeView || "dial"; if (v !== "tasks" && v !== "calendar") return;
+      var b = e.target.closest("[data-toggle-task], [data-edit-task], [data-move-task], [data-delete-task]"); if (!b) return;
+      if (b.hasAttribute("data-toggle-task")) toggleTask(b.getAttribute("data-toggle-task"));
+      else if (b.hasAttribute("data-edit-task")) openTaskModal(b.getAttribute("data-edit-task"));
+      else if (b.hasAttribute("data-delete-task")) deleteTask(b.getAttribute("data-delete-task"));
+      else { var id = b.getAttribute("data-move-task"), t = state.tasks.filter(function (x) { return x.id === id; })[0]; if (t) openFollowSheet({ leadId: t.leadId, taskId: t.id, kind: "move" }); }
     });
-    main.querySelectorAll("[data-edit-task]").forEach(function (btn) {
-      btn.addEventListener("click", function () { openTaskModal(btn.getAttribute("data-edit-task")); });
+  }
+  /** ---------- Calendar: the month at a glance, and the day as an agenda ---------- **/
+  // Every follow-up, task and appointment on its day. Tap a day to see it laid out by time, with the same Call, Move,
+  // Done and Edit as the Tasks tab (same records, so a change here is a change there). Today also lists what's still
+  // open from earlier days. One pass over the follow-ups per draw, so a list of thousands stays quick.
+  var CAL = { y: null, m: null, sel: null, done: false, late: false };
+  function calKey(d) { return localDateStr(d); }
+  function calParse(k) { var p = k.split("-"); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function calTaskKey(t) { return t.due || (t.dueAt ? localDateStr(new Date(t.dueAt)) : ""); }
+  function calApptMine(hd) {
+    if (!TEAM.on) return true;
+    if (isAdmin() && TEAM.taskScope === "all") return true;
+    var me = TEAM.me && TEAM.me.uid; return !!me && ((hd.to && hd.to.uid === me) || (hd.from && hd.from.uid === me));
+  }
+  function calIndex(from, to) {   // items by day for [from, to) date keys, plus open ones from before today
+    var days = {}, today = calKey(new Date()), late = [], m = leadMap();
+    var slot = function (k) { return days[k] || (days[k] = { open: 0, done: 0, appts: 0, booked: 0, items: [] }); };
+    state.tasks.forEach(function (t) {
+      if (!taskScope(t)) return;
+      var k = calTaskKey(t); if (!k) return;
+      if (!t.done && k < today) late.push(t);
+      if (k < from || k >= to) return;
+      var d = slot(k); d.items.push({ kind: "task", t: t, lead: t.leadId ? m[t.leadId] : null, at: t.dueAt || 0 });
+      if (t.done) d.done++; else { d.open++; if (t.pinned) d.booked++; }
     });
-    main.querySelectorAll("[data-move-task]").forEach(function (btn) {
-      btn.addEventListener("click", function () { var t = state.tasks.filter(function (x) { return x.id === btn.getAttribute("data-move-task"); })[0]; if (t) openFollowSheet({ leadId: t.leadId, taskId: t.id, kind: "move" }); });
+    state.leads.forEach(function (l) {
+      var hd = l.handoff; if (!hd || !hd.apptAt || !calApptMine(hd)) return;
+      var k = calKey(new Date(hd.apptAt)); if (k < from || k >= to) return;
+      var d = slot(k); d.items.push({ kind: "appt", hd: hd, lead: l, at: hd.apptAt }); d.appts++;
     });
-    main.querySelectorAll("[data-delete-task]").forEach(function (btn) {
-      btn.addEventListener("click", function () { deleteTask(btn.getAttribute("data-delete-task")); });
+    return { days: days, late: late };
+  }
+  function calCalls(k) {   // calls made on that day (yours; everyone's when an admin looks at everyone's)
+    var all = TEAM.on && isAdmin() && TEAM.taskScope === "all", n = 0, log = state.callLog || [], d0 = calParse(k).getTime(), d1 = shiftDays(d0, 1);
+    for (var i = log.length - 1; i >= 0; i--) { var c = log[i], t = new Date(c.timestamp).getTime(); if (t >= d1) continue; if (t < d0) break; if (all || myCall(c)) n++; }
+    return n;
+  }
+  function renderCalendarTab() {
+    var main = document.getElementById("mainArea"), now = new Date(), today = calKey(now);
+    if (!CAL.sel) CAL.sel = today;
+    if (CAL.y === null) { var s0 = calParse(CAL.sel); CAL.y = s0.getFullYear(); CAL.m = s0.getMonth(); }
+    var first = new Date(CAL.y, CAL.m, 1), start = new Date(CAL.y, CAL.m, 1 - first.getDay()), cells = [];
+    for (var i = 0; i < 42; i++) cells.push(new Date(start.getFullYear(), start.getMonth(), start.getDate() + i));
+    if (cells[35].getMonth() !== CAL.m) cells = cells.slice(0, 35);
+    var from = calKey(cells[0]), to = calKey(new Date(cells[cells.length - 1].getFullYear(), cells[cells.length - 1].getMonth(), cells[cells.length - 1].getDate() + 1));
+    var selIn = CAL.sel >= from && CAL.sel < to, ix = calIndex(selIn ? from : (CAL.sel < from ? CAL.sel : from), selIn ? to : (CAL.sel >= to ? calKey(new Date(shiftDays(calParse(CAL.sel).getTime(), 1))) : to));
+    var monthName = fmtFor(undefined, { month: "long", year: "numeric" }).format(first);
+    var html = '<div class="cal-wrap"><section class="cal-month" aria-label="' + escapeHtml(monthName) + '">' +
+      '<div class="cal-top"><button type="button" class="cal-nav" data-cal-nav="-1" aria-label="Previous month">‹</button><h2 class="cal-title">' + escapeHtml(monthName) + '</h2>' +
+      '<button type="button" class="cal-nav" data-cal-nav="1" aria-label="Next month">›</button>' +
+      (CAL.sel !== today ? '<button type="button" class="cal-today" data-cal-today="1">Today</button>' : '') + '</div>' +
+      (TEAM.on && canSeeTeam() ? '<div class="filter-row tscope cal-scope"><button class="filter-chip' + (TEAM.taskScope === "mine" ? " active" : "") + '" data-tscope="mine">Mine</button><button class="filter-chip' + (TEAM.taskScope === "all" ? " active" : "") + '" data-tscope="all">Everyone’s</button></div>' : '') +
+      '<div class="cal-grid" role="grid" aria-label="Pick a day"><div class="cal-wk" role="row">' + ["S", "M", "T", "W", "T", "F", "S"].map(function (w, wi) { return '<span role="columnheader" aria-label="' + ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][wi] + '">' + w + '</span>'; }).join("") + '</div>';
+    for (var r = 0; r < cells.length; r += 7) {
+      html += '<div class="cal-row" role="row">';
+      cells.slice(r, r + 7).forEach(function (d) {
+        var k = calKey(d), x = ix.days[k], other = d.getMonth() !== CAL.m, past = k < today, n = x ? x.open + x.appts : 0;
+        var label = fmtFor(undefined, { weekday: "long", month: "long", day: "numeric" }).format(d) + (n ? ", " + n + " scheduled" : "") + (x && x.done ? ", " + x.done + " done" : "");
+        html += '<button type="button" role="gridcell" class="cal-day' + (other ? ' other' : '') + (k === today ? ' today' : '') + (k === CAL.sel ? ' sel' : '') + (past && x && x.open ? ' late' : '') + '" data-cal-day="' + k + '" aria-label="' + escapeHtml(label) + '" aria-selected="' + (k === CAL.sel) + '"' + (k === CAL.sel ? '' : ' tabindex="-1"') + '>' +
+          '<span class="cal-n">' + d.getDate() + '</span>' +
+          (n ? '<span class="cal-c">' + n + '</span>' : x && x.done ? '<span class="cal-c done" aria-hidden="true">✓</span>' : '') +
+          (x && (x.appts || x.booked) ? '<i class="cal-dot" aria-hidden="true"></i>' : '') + '</button>';
+      });
+      html += '</div>';
+    }
+    html += '</div><div class="cal-legend"><span><span class="cal-c">3</span> to do</span><span><i class="cal-dot"></i> appointment or booked time</span></div></section>';
+    html += calDayHtml(CAL.sel, ix, today);
+    html += '</div>';
+    main.innerHTML = html;
+    calWire(main); taskRowsWire(main);
+  }
+  function calDayHtml(k, ix, today) {
+    var d = calParse(k), x = ix.days[k] || { items: [], open: 0, done: 0, appts: 0 }, now = Date.now();
+    var head = k === today ? "Today" : dayLabel(d);
+    var full = fmtFor(undefined, { weekday: "long", month: "long", day: "numeric" }).format(d);
+    var open = x.items.filter(function (it) { return it.kind === "appt" || !it.t.done; }), done = x.items.filter(function (it) { return it.kind === "task" && it.t.done; });
+    open.sort(function (a, b) { return (a.at || 8.64e15) - (b.at || 8.64e15) || (a.kind === "appt" ? -1 : 1); });
+    var parts = [];
+    var nt = open.filter(function (it) { return it.kind === "task"; }).length;
+    if (nt) parts.push(nt + " follow-up" + (nt === 1 ? "" : "s"));
+    if (x.appts) parts.push(x.appts + " appointment" + (x.appts === 1 ? "" : "s"));
+    if (done.length) parts.push(done.length + " done");
+    var calls = k <= today ? calCalls(k) : 0;
+    if (calls) parts.push(calls + " call" + (calls === 1 ? "" : "s") + " made");
+    var rel = head === "Today" || head === "Tomorrow" || head === "Yesterday";
+    var html = '<section class="cal-day-view" aria-label="' + escapeHtml(full) + '"><div class="cal-day-head"><div><h3>' + escapeHtml(rel ? head : full) + '</h3>' +
+      '<p>' + escapeHtml((rel ? full + " \u00b7 " : "") + (parts.length ? parts.join(" \u00b7 ") : "Nothing scheduled")) + '</p></div>' +
+      '<button type="button" class="btn-primary cal-add" data-cal-add="' + k + '">+ Add</button></div>';
+    // still open from earlier days (on today only): where the day really starts
+    if (k === today && ix.late.length) {
+      var late = ix.late.slice().sort(function (a, b) { return taskDueTs(a) - taskDueTs(b); }), lim = CAL.late ? late.length : 5, m = leadMap();
+      html += '<div class="cal-group late"><h4>Still open from earlier <span>' + late.length + '</span></h4>' + late.slice(0, lim).map(function (t) { return calRowHtml({ kind: "task", t: t, lead: t.leadId ? m[t.leadId] : null, at: t.dueAt || 0 }, now, true); }).join("") +
+        (late.length > lim ? '<button type="button" class="tk-more" data-cal-late="1">Show all ' + late.length + '</button>' : '') + '</div>';
+    }
+    if (open.length) {
+      var groups = [["Anytime", function (it) { return !it.at; }], ["Morning", function (it) { return it.at && new Date(it.at).getHours() < 12; }], ["Afternoon", function (it) { var h = it.at && new Date(it.at).getHours(); return it.at && h >= 12 && h < 17; }], ["Evening", function (it) { return it.at && new Date(it.at).getHours() >= 17; }]];
+      groups.forEach(function (g) {
+        var items = open.filter(g[1]); if (!items.length) return;
+        html += '<div class="cal-group"><h4>' + g[0] + ' <span>' + items.length + '</span></h4>' + items.map(function (it) { return calRowHtml(it, now); }).join("") + '</div>';
+      });
+    } else if (!(k === today && ix.late.length)) {
+      html += '<div class="cal-empty">' + (k < today ? 'Nothing was scheduled for this day.' : 'A free day so far. Tap <b>+ Add</b> to plan a follow-up for it.') + '</div>';
+    }
+    if (done.length) {
+      html += '<div class="cal-group done"><button type="button" class="cal-done-t" data-cal-done="1" aria-expanded="' + CAL.done + '">Done <span>' + done.length + '</span> ' + (CAL.done ? '▴' : '▾') + '</button>' +
+        (CAL.done ? done.map(function (it) { return calRowHtml(it, now); }).join("") : '') + '</div>';
+    }
+    return html + '</section>';
+  }
+  function calRowHtml(it, now, showDay) {
+    var lead = it.lead, tm = it.at ? fmtFor(undefined, { hour: "numeric", minute: "2-digit" }).format(new Date(it.at)) : "Anytime";
+    if (it.kind === "appt") {
+      var hd = it.hd, past = it.at < now - 3600000;
+      return '<div class="cal-item appt' + (past ? ' past' : '') + '"><time class="cal-time">' + escapeHtml(tm) + '</time><span class="cal-mark" aria-hidden="true">📅</span><div class="cal-body">' +
+        '<div class="cal-l1">' + (lead ? '<button type="button" class="linkish cal-name" data-open-lead="' + lead.id + '">' + escapeHtml(lead.name) + '</button>' : '<b>Appointment</b>') + '<span class="qi-status interested">Appointment</span></div>' +
+        '<div class="cal-l2">' + escapeHtml((hd.to && hd.to.name ? "With " + hd.to.name : "Appointment") + (hd.from && hd.from.name && TEAM.on ? " · set by " + firstName(hd.from.name) : "") + (hd.note ? " · " + hd.note : "")) + '</div></div>' +
+        '<div class="cal-acts">' + (lead ? callLinkHtml(lead, "tasks", null, "cal-call", callIconSvg()) : '') + '</div></div>';
+    }
+    var t = it.t, k = taskKind(t, lead), over = !t.done && taskDueTs(t) < now - 3600000, their = lead && t.dueAt ? theirTime(t.dueAt, lead) : "";
+    var chip = t.pinned ? '<span class="qi-status interested">Booked</span>' : k === "int" ? '<span class="qi-status interested">Interested</span>' : k === "cb" ? '<span class="qi-status callback">Callback</span>' : k === "retry" ? '<span class="qi-status noanswer">Retry</span>' : '';
+    var who = TEAM.on && isAdmin() && !myTask(t) && assigneeOf(t) ? ' · ' + firstName(assigneeOf(t).name) : '';
+    return '<div class="cal-item' + (t.done ? ' done' : '') + (over ? ' over' : '') + '"><time class="cal-time">' + escapeHtml(showDay ? dayLabel(new Date(taskDueTs(t) === Infinity ? Date.now() : taskDueTs(t))) : tm) + '</time>' +
+      '<button type="button" class="task-check cal-check' + (t.done ? ' done' : '') + '" data-toggle-task="' + t.id + '" aria-label="' + (t.done ? 'Mark not done' : 'Mark done') + '">' + (t.done ? checkIconSvg() : '') + '</button>' +
+      '<div class="cal-body"><div class="cal-l1">' + (lead ? '<button type="button" class="linkish cal-name" data-open-lead="' + lead.id + '">' + escapeHtml(lead.name) + '</button>' : '<b>' + escapeHtml(t.leadName || "Follow-up") + '</b>') + chip + '</div>' +
+        '<div class="cal-l2">' + escapeHtml(taskWhat(t) + (their ? " · " + their + " their time" : "") + who) + '</div>' + (t.note ? '<div class="cal-note">' + escapeHtml(t.note) + '</div>' : '') + '</div>' +
+      '<div class="cal-acts">' + (lead && !t.done ? callLinkHtml(lead, "tasks", t.id, "cal-call", callIconSvg()) + '<button type="button" class="cal-ic" data-move-task="' + t.id + '" aria-label="Move ' + escapeHtml(lead.name) + '’s follow-up" title="Move">' + clockIconSvgSafe() + '</button>' : '') +
+        '<button type="button" class="cal-ic" data-edit-task="' + t.id + '" aria-label="Edit or delete" title="Edit or delete">' + editIconSvg() + '</button></div></div>';
+  }
+  function calGo(k) { CAL.sel = k; var d = calParse(k); CAL.y = d.getFullYear(); CAL.m = d.getMonth(); CAL.done = false; CAL.late = false; render(); }
+  function calWire(main) {
+    if (main.__calWired) return; main.__calWired = true;
+    var on = function () { return state.activeView === "calendar"; };
+    main.addEventListener("click", function (e) {
+      if (!on()) return;
+      var b = e.target.closest("[data-cal-day], [data-cal-nav], [data-cal-today], [data-cal-add], [data-cal-done], [data-cal-late], [data-tscope]"); if (!b) return;
+      if (b.hasAttribute("data-cal-day")) { calGo(b.getAttribute("data-cal-day")); var f = document.querySelector('[data-cal-day="' + CAL.sel + '"]'); if (f) try { f.focus({ preventScroll: true }); } catch (er) {}
+        if (window.innerWidth < 900) { var dv = document.querySelector(".cal-day-view"); if (dv && dv.getBoundingClientRect().top > window.innerHeight - 120) dv.scrollIntoView({ behavior: vxOn() ? "smooth" : "auto", block: "start" }); } }
+      else if (b.hasAttribute("data-cal-nav")) { var dir = +b.getAttribute("data-cal-nav"), d = new Date(CAL.y, CAL.m + dir, 1); CAL.y = d.getFullYear(); CAL.m = d.getMonth(); render(); }
+      else if (b.hasAttribute("data-cal-today")) calGo(calKey(new Date()));
+      else if (b.hasAttribute("data-cal-add")) openTaskModal(null, { due: b.getAttribute("data-cal-add") });
+      else if (b.hasAttribute("data-cal-done")) { CAL.done = !CAL.done; render(); }
+      else if (b.hasAttribute("data-cal-late")) { CAL.late = true; render(); }
+      else { TEAM.taskScope = b.getAttribute("data-tscope"); render(); }
+    });
+    // arrow keys move through the days (a week up or down), Home/End to the week's ends
+    main.addEventListener("keydown", function (e) {
+      if (!on()) return;
+      var c = e.target.closest && e.target.closest("[data-cal-day]"); if (!c) return;
+      var step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }[e.key], d = calParse(c.getAttribute("data-cal-day"));
+      if (e.key === "Home") step = -d.getDay(); if (e.key === "End") step = 6 - d.getDay();
+      if (step === undefined) return;
+      e.preventDefault(); calGo(calKey(new Date(d.getFullYear(), d.getMonth(), d.getDate() + step)));
+      var f = document.querySelector('[data-cal-day="' + CAL.sel + '"]'); if (f) try { f.focus(); } catch (er) {}
     });
   }
   function clockIconSvgSafe() { return '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'; }
@@ -16444,8 +16721,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       '<div class="task-actions">' +
         (lead && !t.done ? callLinkHtml(lead, "tasks", t.id, "task-call", callIconSvg() + '<span class="tk-call-t">Call</span>') : '') +
         (lead && !t.done ? '<button data-move-task="' + t.id + '" aria-label="Move to another time" title="Move to another time">' + clockIconSvgSafe() + '</button>' : '') +
-        '<button data-edit-task="' + t.id + '" aria-label="Edit">' + editIconSvg() + '</button>' +
-        '<button class="danger" data-delete-task="' + t.id + '" aria-label="Delete">' + trashIconSvg() + '</button>' +
+        '<button data-edit-task="' + t.id + '" aria-label="Edit or delete" title="Edit or delete">' + editIconSvg() + '</button>' +
       '</div>' +
     '</div>';
   }
@@ -16497,6 +16773,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     document.getElementById("taskNoteInput").value = task ? (task.note || "") : (defaults.note || "");
     document.getElementById("taskError").textContent = "";
     document.getElementById("taskModal").setAttribute("data-editing-id", task ? task.id : "");
+    document.getElementById("deleteTask").hidden = !task;
     document.getElementById("taskModal").classList.add("show");
     taskWinCheck();
   }
@@ -24408,6 +24685,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       { id: "leads", g: "Leads", t: "Add leads", s: function () { return state.leads.length.toLocaleString() + " leads now"; }, run: function () { openLoadModal(); switchTab("upload"); }, k: "upload import csv excel" },
       { id: "lists", g: "Leads", t: "Lead lists", s: function () { return "Who calls each list"; }, run: openLists, k: "assign" },
       { id: "dnc", g: "Leads", t: "Do Not Call list", s: function () { return Object.keys(dncNums()).length.toLocaleString() + " blocked"; }, run: function () { openDnc(); }, k: "dnc block" },
+      { id: "calendar", g: "Leads", t: "Calendar", s: function () { return "Your month, and each day's follow-ups and appointments"; }, run: function () { cmdClose(); state.activeView = "calendar"; CAL.sel = null; CAL.y = null; saveView(); render(); }, k: "agenda schedule day month appointments" },
       { id: "overdue", g: "Leads", t: "Overdue follow-ups", s: function () { return od ? od + " over a day late" : "None right now"; }, run: openOverdue, k: "late reassign" },
       { id: "vault", g: "Leads", t: "Investor Vault", s: function () { return "Investors, deals and key dates"; }, run: function () { cmdClose(); state.activeView = "vault"; saveState(); render(); }, k: "investments clients" },
       { id: "tv", g: "Reports", t: "Floor TV", s: function () { return "Today\u2019s leaderboard for the TV on the wall"; }, run: function () { cmdClose(); tvOpen(); }, k: "tv leaderboard screen wall" },
@@ -25163,27 +25441,32 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
 
     document.getElementById("viewTabDial").addEventListener("click", function () {
       state.activeView = "dial";
-      saveState();
+      saveView();
       render();
     });
     document.getElementById("viewTabHistory").addEventListener("click", function () {
       state.activeView = "history";
-      saveState();
+      saveView();
       render();
     });
     document.getElementById("viewTabPipeline").addEventListener("click", function () {
       state.activeView = "pipeline";
-      saveState();
+      saveView();
       render();
     });
     document.getElementById("viewTabTasks").addEventListener("click", function () {
       state.activeView = "tasks";
-      saveState();
+      saveView();
+      render();
+    });
+    document.getElementById("viewTabCalendar").addEventListener("click", function () {
+      state.activeView = "calendar";
+      saveView();
       render();
     });
     document.getElementById("viewTabVault").addEventListener("click", function () {
       state.activeView = "vault";
-      saveState();
+      saveView();
       render();
     });
     document.getElementById("vaultModal").addEventListener("click", function (e) { if (e.target === this) closeVault(); });
@@ -25259,6 +25542,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
 
     document.getElementById("closeTaskModal").addEventListener("click", closeTaskModal);
     document.getElementById("cancelTask").addEventListener("click", closeTaskModal);
+    document.getElementById("deleteTask").addEventListener("click", function () { var id = document.getElementById("taskModal").getAttribute("data-editing-id"); if (!id) return; closeTaskModal(); deleteTask(id); });
     document.getElementById("submitTask").addEventListener("click", handleSubmitTask);
     ["taskLeadSelect", "taskTypeSelect", "taskDueInput", "taskTimeInput"].forEach(function (id) { var el = document.getElementById(id); el.addEventListener("change", taskWinCheck); el.addEventListener("input", taskWinCheck); });
     document.getElementById("taskWin").addEventListener("click", function (e) {
