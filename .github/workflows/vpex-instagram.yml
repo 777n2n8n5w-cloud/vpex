@@ -133,20 +133,27 @@ jobs:
           # If GitHub stops this runner while it sleeps (it did on Nov 11, exit 143 after 30 min), hand the chain on at
           # once: start the same normal run now. It posts only what's due (gaps and backoff unchanged) and its own relay
           # then sleeps until the next planned post. One start at most per relay.
+          # The start itself is retried too: on Nov 25 the relay woke on time but GitHub refused the one start (red run), so
+          # the 11:00 post waited 7 hours for the regular schedule. A start that still fails leaves it to the schedule.
           started=0
           start_run() {
             [ "$started" = 1 ] && return 0
             started=1
-            gh api -X POST "repos/$REPO/actions/workflows/vpex-instagram.yml/dispatches" -f ref=main -f "inputs[mode]=run" >/dev/null
+            local i
+            for i in 1 2 3; do
+              gh api -X POST "repos/$REPO/actions/workflows/vpex-instagram.yml/dispatches" -f ref=main -f "inputs[mode]=run" >/dev/null && return 0
+              [ "$i" = 3 ] || sleep "${RETRY_WAIT:-15}"
+            done
+            echo "::warning title=Relay::GitHub didn't accept the start 3 times; the regular schedule picks up the next post."
+            return 1
           }
           on_stop() {
             echo "::warning title=Relay::This runner was stopped while waiting; started a run now so the next relay takes over."
-            kill "$sp" 2>/dev/null; start_run; exit 0
+            kill "$sp" 2>/dev/null; start_run || true; exit 0
           }
           trap on_stop TERM INT HUP
           sleep "$wait" &
           sp=$!
           wait "$sp"
           trap - TERM INT HUP
-          start_run
-          echo "Started a run."
+          if start_run; then echo "Started a run."; fi

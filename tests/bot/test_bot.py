@@ -548,14 +548,16 @@ check(_rif and _rif.group(1) == "always() && (github.event_name == 'schedule' ||
       "workflow: every scheduled run (15-minute, learn, scorecard) and a dispatched run may start the relay", _rif.group(1) if _rif else "")
 RD = os.path.join(TMP, "relay"); os.makedirs(os.path.join(RD, "bin"), exist_ok=True)
 open(os.path.join(RD, "relay.sh"), "w").write(relay_sh)
-open(os.path.join(RD, "bin", "gh"), "w").write('#!/bin/bash\necho "gh $*" >> "$LOG"\nif [[ "$*" == *"status=in_progress"* ]]; then echo "${OTHERS:-}"; elif [[ "$*" == *"/jobs"* ]]; then echo 99; fi\n')
+open(os.path.join(RD, "bin", "gh"), "w").write('#!/bin/bash\necho "gh $*" >> "$LOG"\nif [[ "$*" == *"status=in_progress"* ]]; then echo "${OTHERS:-}"; elif [[ "$*" == *"/jobs"* ]]; then echo 99; '
+    'elif [[ "$*" == *"/dispatches"* ]]; then n=$(grep -c /dispatches "$LOG"); [ "$n" -gt "${FAILS:-0}" ] || exit 1; fi\n')
 open(os.path.join(RD, "bin", "python"), "w").write('#!/bin/bash\necho "$SECS"\n')
 for _f in ("gh", "python"): os.chmod(os.path.join(RD, "bin", _f), 0o755)
-def relay(secs, others="", term_after=None):
+def relay(secs, others="", term_after=None, fails=0):
     log = os.path.join(RD, "log"); open(log, "w").close()
     env = dict(os.environ, PATH=os.path.join(RD, "bin") + ":" + os.environ["PATH"], LOG=log, SECS=str(secs), OTHERS=others,
-               REPO="o/r", RUN_ID="1", GH_TOKEN="x")
-    pr = subprocess.Popen(["bash", os.path.join(RD, "relay.sh")], env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+               REPO="o/r", RUN_ID="1", GH_TOKEN="x", FAILS=str(fails), RETRY_WAIT="0")
+    # GitHub runs a step's script with bash -eo pipefail; so does this.
+    pr = subprocess.Popen(["bash", "-eo", "pipefail", os.path.join(RD, "relay.sh")], env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     if term_after is not None:
         _time.sleep(term_after); pr.send_signal(_signal.SIGTERM)
     out, _ = pr.communicate(timeout=30)
@@ -564,6 +566,13 @@ rc, out, n = relay(-88)
 check(rc == 0 and n == 1 and "Started a run." in out, "relay: sleeps until the post, then starts exactly one run", out)
 rc, out, n = relay(600, term_after=1.5)
 check(rc == 0 and n == 1 and "stopped while waiting" in out, "relay: a runner stopped mid-sleep starts the next run at once (once), not a red run", out)
+rc, out, n = relay(-88, fails=1)
+check(rc == 0 and n == 2 and "Started a run." in out, "relay: GitHub refusing the start once is retried (the Nov 25 red relay)", out)
+rc, out, n = relay(-88, fails=5)
+check(rc == 0 and n == 3 and "Started a run." not in out and "regular schedule picks up" in out,
+      "relay: a start refused 3 times gives up with a note, not a red run or a 4th try", out)
+rc, out, n = relay(600, term_after=1.5, fails=1)
+check(rc == 0 and n == 2 and "stopped while waiting" in out, "relay: a stopped runner's start is retried too", out)
 rc, out, n = relay(600, others="5")
 check(rc == 0 and n == 0 and "already waiting" in out, "relay: another relay sleeping means no second one", out)
 rc, out, n = relay(30000)
