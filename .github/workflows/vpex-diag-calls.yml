@@ -18,3 +18,11 @@ jobs:
       - uses: google-github-actions/setup-gcloud@v3
       - name: Check
         run: TOK="$(gcloud auth print-access-token)" python3 tools/diag_calls.py
+      - name: Server job runs (last day, counts only)
+        run: |
+          for fn in savecheck morningdigest senddue; do
+            echo "== $fn"
+            gcloud logging read "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"$fn\" AND severity>=INFO AND (jsonPayload.message:\"save check\" OR jsonPayload.message:\"morning summary\" OR textPayload:\"save check\" OR severity>=WARNING)" \
+              --project dovetail-f863c --freshness=1d --limit 40 --format="value(timestamp,severity,jsonPayload.message,jsonPayload.scopes,jsonPayload.checked,jsonPayload.missing,jsonPayload.alerts,jsonPayload.err)" 2>&1 | head -30
+          done
+
