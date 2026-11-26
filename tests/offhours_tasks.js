@@ -17,7 +17,7 @@ const loc = (ts, z) => new Date(ts).toLocaleString('en-US', { timeZone: IANA[z],
 {
   const code = [/var STATE_HOURS = /, /function usHolidays\(/, /function stateRule\(/, /function hourLabel\(/, /function dayWindow\(/, /function zonedParts\(/,
     /function zonedToUtc\(/, /function slotCheck\(/, /function pad2\(/, /function tasksOffHours\(/, /function hoursFixAt\(/, /function localDateStr\(/,
-    /function shiftDays\(/, /function dayLabel\(/, /function dayStart\(/, /function weekStart\(/].map(grab).join('\n');
+    /function shiftDays\(/, /var FMT = /, /function fmtFor\(/, /var DAYW = /, /function dayWords\(/, /function dayLabel\(/, /function dayStart\(/, /function weekStart\(/].map(grab).join('\n');
   const ctx = { Date, Intl, Math, Number, String, NOW: 0, IANA, LEADS: {}, DNC: {} };
   vm.createContext(ctx);
   vm.runInContext('var zpFmt = {}, HOLIDAYS = {}; function leadZone(l) { return { st: l.st, iana: IANA[l.st] || null }; } function leadMap() { return LEADS; } function isDnc(l) { return !!DNC[l.id]; }\n' +
