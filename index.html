@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-03-18">
+<meta name="vpex-build" content="2027-03-19">
 <meta name="vpex-min-build" content="2027-03-15">
 <!-- Scripts only from this site and Google's Firebase library; no plugins; no <base> or form hijacking. Inline scripts stay
      allowed because the app is one file. (GitHub Pages can't send headers, so this is the strongest policy a page can set.) -->
@@ -6239,7 +6239,7 @@ window.VPEX_SIG = [
     margin-bottom: 8px;
   }
   .deal-bar-label { font-size: 12px; color: var(--text-dim); font-weight: 600; }
-  .deal-bar-amounts { font-size: 13px; font-weight: 700; color: var(--accent); }
+  .deal-bar-amounts { font-size: 13px; font-weight: 700; color: color-mix(in srgb, var(--accent) 60%, var(--text)); }
   .deal-bar-track {
     height: 8px;
     background: var(--surface-raised);
@@ -6268,7 +6268,7 @@ window.VPEX_SIG = [
   .stage-committed .stage-dot, .stage-tag.stage-committed { background: #5DBD6A; }
   .stage-closedlost .stage-dot, .stage-tag.stage-closedlost { background: #8890A8; }
   .stage-name { font-size: 12px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
-  .stage-count { font-size: 11px; color: var(--text-faint); }
+  .stage-count { font-size: 11px; color: var(--text-dim); }
   .pipe-item {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -6330,7 +6330,7 @@ window.VPEX_SIG = [
   .pipe-lost-open { margin-top: 0; }
   .pipe-empty {
     text-align: center;
-    color: var(--text-faint);
+    color: var(--text-dim);
     font-size: 12px;
     padding: 10px;
     border: 1px dashed var(--border);
@@ -6349,7 +6349,7 @@ window.VPEX_SIG = [
   .cal-scope { padding: 0 0 8px; justify-content: center; }
   .cal-wk, .cal-row { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
   .cal-row { margin-top: 4px; }
-  .cal-wk span { text-align: center; font-size: 11px; font-weight: 700; color: var(--text-faint); padding: 2px 0 4px; }
+  .cal-wk span { text-align: center; font-size: 11px; font-weight: 700; color: var(--text-dim); padding: 2px 0 4px; }
   .cal-day { position: relative; min-height: 50px; min-width: 0; border-radius: 12px; border: 1px solid transparent; background: color-mix(in srgb, var(--surface-raised) 70%, transparent); color: var(--text);
     display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 2px; padding: 6px 0 4px; cursor: pointer; font-family: inherit; font-variant-numeric: tabular-nums; }
   .cal-day.other { background: transparent; color: var(--text-faint); }
@@ -6361,7 +6361,7 @@ window.VPEX_SIG = [
   .cal-c.done { background: none; color: var(--interested); }
   .cal-day.late .cal-c { background: color-mix(in srgb, var(--notinterested) 22%, transparent); }
   .cal-dot { position: absolute; top: 6px; right: 6px; width: 7px; height: 7px; border-radius: 50%; background: var(--interested); }
-  .cal-legend { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 10px; font-size: 12px; color: var(--text-faint); align-items: center; }
+  .cal-legend { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 10px; font-size: 12px; color: var(--text-dim); align-items: center; }
   .cal-legend > span { display: inline-flex; align-items: center; gap: 6px; } .cal-legend .cal-dot { position: static; }
   .cal-day-head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 6px; }
   .cal-day-head > div { flex: 1; min-width: 0; }
@@ -6371,20 +6371,20 @@ window.VPEX_SIG = [
   .cal-group { margin-top: 12px; }
   .cal-group h4 { margin: 0 0 6px; font-size: 12px; font-weight: 700; color: var(--text-dim); display: flex; align-items: center; gap: 6px; }
   .cal-group h4 span, .cal-done-t span { font-weight: 600; color: var(--text-faint); }
-  .cal-group.late h4 { color: var(--notinterested); }
+  .cal-group.late h4 { color: color-mix(in srgb, var(--notinterested) 72%, var(--text)); }
   .cal-item { display: grid; grid-template-columns: 4.9em auto minmax(0, 1fr) auto; align-items: center; gap: 4px 10px; padding: 8px 6px 8px 8px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface-raised); margin-bottom: 6px; }
   .cal-item.over { border-color: color-mix(in srgb, var(--notinterested) 55%, var(--border)); }
   .cal-item.appt { border-color: color-mix(in srgb, var(--interested) 55%, var(--border)); }
   .cal-item.done .cal-body, .cal-item.past .cal-body { opacity: 0.6; } .cal-item.done .cal-name { text-decoration: line-through; }
   .cal-time { font-size: 12.5px; font-weight: 700; color: var(--text); white-space: nowrap; font-variant-numeric: tabular-nums; }
-  .cal-item.over .cal-time { color: var(--notinterested); }
+  .cal-item.over .cal-time { color: color-mix(in srgb, var(--notinterested) 72%, var(--text)); }
   .cal-mark { width: 30px; text-align: center; font-size: 18px; }
   .cal-check { width: 30px; height: 30px; flex: none; margin: 0; }
   .cal-body { min-width: 0; }
   .cal-l1 { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; }
   .cal-item .cal-name { font-weight: 700; font-size: 14.5px; min-height: 32px; padding: 4px 0; text-align: left; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .cal-l2 { font-size: 12.5px; color: var(--text-dim); line-height: 1.35; }
-  .cal-note { font-size: 12px; color: var(--text-faint); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cal-note { font-size: 12px; color: var(--text-dim); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .cal-acts { display: flex; gap: 4px; align-items: center; }
   .cal-call, .cal-ic { width: 40px; height: 40px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; }
   .cal-call { background: var(--accent-fill, var(--accent)); color: var(--accent-text); border-color: transparent; } .cal-call svg, .cal-ic svg { width: 16px; height: 16px; }
@@ -6434,7 +6434,7 @@ window.VPEX_SIG = [
   .task-lead-name.linkish { position: relative; }
   .task-lead-name.linkish::after { content: ""; position: absolute; left: 0; right: 0; top: min(-12px, calc(50% - 22px)); bottom: min(-12px, calc(50% - 22px)); }   /* at least 44 px to tap whatever the font, same line height */
   .task-note { font-size: 12px; color: var(--text-dim); }
-  .task-due { font-size: 11px; color: var(--text-faint); margin-top: 3px; }
+  .task-due { font-size: 11px; color: var(--text-dim); margin-top: 3px; }
   .task-actions { display: flex; gap: 10px; flex-shrink: 0; }
   .task-actions button {
     width: 38px; height: 38px;
@@ -7157,7 +7157,7 @@ window.VPEX_SIG = [
   .fu-banner .fu-ico svg { width: 16px; height: 16px; }
   .fu-banner .fu-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
   .fu-banner .fu-txt b { font-size: 14px; }
-  .fu-banner .fu-txt span { font-size: 11.5px; color: var(--text-faint); margin-top: 2px; }
+  .fu-banner .fu-txt span { font-size: 11.5px; color: var(--text-dim); margin-top: 2px; }
   .fu-banner .fu-go { font-weight: 700; font-size: 13px; color: var(--accent); white-space: nowrap; }
   .crm-search { margin-top: 14px; }
   .crm-search input {
@@ -7172,8 +7172,8 @@ window.VPEX_SIG = [
   .hx-sub { font-size: 12px; color: var(--text-faint); margin-top: 3px; }
   .pipe-summary { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; font-size: 12px; color: var(--text-dim); }
   .pipe-summary b { color: var(--text); }
-  .pipe-summary .warn, .pipe-summary .warn b { color: var(--voicemail); }
-  .pipe-meta { font-size: 12px; color: var(--text-faint); margin: -4px 0 8px; line-height: 1.4; }
+  .pipe-summary .warn, .pipe-summary .warn b { color: color-mix(in srgb, var(--voicemail) 72%, var(--text)); }
+  .pipe-meta { font-size: 12px; color: var(--text-dim); margin: -4px 0 8px; line-height: 1.4; }
   .pipe-call, .task-actions .task-call {
     flex: none; width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
     background: var(--accent-fill, var(--accent)); color: var(--accent-text); border: 0; text-decoration: none;
@@ -7191,13 +7191,13 @@ window.VPEX_SIG = [
   .tk-backlog span { font-size: 12px; color: var(--text-dim); }
   .tk-backlog .btn-secondary { flex: none; min-height: 44px; padding: 0 14px; }
   .tk-kinds { margin: 12px 0 4px; }
-  .tk-sub { font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--text-faint); margin-left: 4px; }
+  .tk-sub { font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--text-dim); margin-left: 4px; }
   .task-section-head.tk-up { color: var(--text-dim); margin-top: 22px; }
   .task-section-head.tk-day { margin-top: 10px; }
   .tk-more { display: block; width: 100%; min-height: 44px; margin: 0 0 10px; border-radius: var(--radius-s); border: 1px dashed var(--border); background: none; color: var(--accent); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
   .tk-none { color: var(--text-dim); font-size: 13px; padding: 18px 2px; }
-  .task-due .tk-ok { color: var(--interested); font-weight: 600; }
-  .task-due .tk-wait { color: var(--voicemail); font-weight: 600; }
+  .task-due .tk-ok { color: color-mix(in srgb, var(--interested) 65%, var(--text)); font-weight: 600; }
+  .task-due .tk-wait { color: color-mix(in srgb, var(--voicemail) 65%, var(--text)); font-weight: 600; }
   .task-item.missed { border-color: var(--notinterested); }
   .tk-call-t { display: none; }
   @media (max-width: 480px) { .tk-call-t { display: inline; } }
@@ -7212,9 +7212,9 @@ window.VPEX_SIG = [
   .tasks-head > button { flex: none !important; width: auto; }
   :root[data-theme]:not([data-theme^="flow"]) .tasks-title { font-size: calc(17px * var(--brand-k, 1)); }
   .tasks-title { font-size: 17px; font-weight: 700; }
-  .tasks-sub { font-size: 12px; color: var(--text-faint); margin-top: 2px; }
+  .tasks-sub { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
   .task-item.missed { border-color: var(--notinterested); }
-  .task-item.overdue .task-due { color: var(--notinterested); }
+  .task-item.overdue .task-due { color: color-mix(in srgb, var(--notinterested) 72%, var(--text)); }
   .done-toggle { background: none; border: 0; font-family: inherit; cursor: pointer; padding-left: 0; }
   .view-tab[data-badge]:not([data-badge=""])::after {
     content: attr(data-badge); margin-left: 6px; display: inline-block; min-width: 18px; padding: 1px 5px;
@@ -8256,7 +8256,7 @@ window.VPEX_SIG = [
   .nx-over { --nx: var(--notinterested); } .nx-today { --nx: var(--voicemail); } .nx-none { --nx: var(--voicemail); cursor: pointer; border-style: dashed; }
   .nx-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--nx); box-shadow: 0 0 0 3px color-mix(in srgb, var(--nx) 22%, transparent); }
   .nx-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; } .nx-t b { font-size: 13.5px; font-weight: 650; } .nx-t span { font-size: 12px; color: var(--text-dim); }
-  .nx-over .nx-t span { color: var(--notinterested); font-weight: 600; }
+  .nx-over .nx-t span { color: color-mix(in srgb, var(--notinterested) 72%, var(--text)); font-weight: 600; }
   .nx-go { flex: none; min-height: 34px; padding: 0 12px; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--nx) 45%, var(--border)); background: var(--surface); color: var(--text); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-grid; place-items: center; }
   /* ---- Clock: your date and time in the header, in every theme. Tap for the time across the US. ---- */
   .hdr-clock { order: -1; flex: 1 0 100%; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; min-width: 0;
@@ -8343,7 +8343,7 @@ window.VPEX_SIG = [
   .pipe-summary .warn[role="button"] { cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
   /* "N need a next step" answers a 44 px tall tap on touch screens without changing its look */
   @media (pointer: coarse) { .pipe-summary .warn[role="button"] { position: relative; } .pipe-summary .warn[role="button"]::before { content: ""; position: absolute; left: -6px; right: -6px; top: 50%; height: 44px; transform: translateY(-50%); } }
-  .stage-help { margin: -4px 0 8px; font-size: 12px; line-height: 1.4; color: var(--text-faint); }
+  .stage-help { margin: -4px 0 8px; font-size: 12px; line-height: 1.4; color: var(--text-dim); }
   .task-what { font-size: 13.5px; font-weight: 650; color: var(--text); margin-top: 2px; }
   .lp-next { display: grid; gap: 2px; width: 100%; margin: 12px 0 8px; padding: 12px 14px; border-radius: 12px; text-align: left; font: inherit; color: var(--text);
     border: 1px solid color-mix(in srgb, var(--nx) 40%, transparent); background: color-mix(in srgb, var(--nx) 9%, var(--surface)); --nx: var(--interested); }
@@ -16503,7 +16503,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       any = true;
       if (s.up && !upHead) { html += '<div class="task-section-head tk-up">Coming up</div>'; upHead = true; }
       var lim = TK.more[s.id] ? s.items.length : 25;
-      html += '<div class="task-section-head' + (s.up ? ' tk-day' : '') + '" style="color:var(--' + s.cls + ')">' + escapeHtml(s.title) + ' (' + s.items.length + ')' + (s.sub ? ' <span class="tk-sub">' + s.sub + '</span>' : '') + '</div>';
+      html += '<div class="task-section-head' + (s.up ? ' tk-day' : '') + '" style="color:color-mix(in srgb, var(--' + s.cls + ') 72%, var(--text))">' + escapeHtml(s.title) + ' (' + s.items.length + ')' + (s.sub ? ' <span class="tk-sub">' + s.sub + '</span>' : '') + '</div>';
       s.items.slice(0, lim).forEach(function (t) { html += taskRowHtml(t, now, info[t.id]); });
       if (s.items.length > lim) html += '<button type="button" class="tk-more" data-tk-more="' + s.id + '">Show all ' + s.items.length + '</button>';
     });
