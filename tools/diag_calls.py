@@ -118,3 +118,20 @@ for d in lst("", "leadChunks", []):
         o = (L.get("owner") or {}).get("uid") if isinstance(L.get("owner"), dict) else ""
         miss[code(o or "?")] = miss.get(code(o or "?"), 0) + 1
 print("  SAVECHECK missing in last 24h by person:", miss or "none")
+
+# ---- is the hourly save check running, and what each phone last reported (codes only) ----
+for d in lst("", "pushMeta", []):
+    did = d["name"].split("/")[-1]
+    if not did.startswith("save_"): continue
+    f = {k: val(v) for k, v in d.get("fields", {}).items()}
+    print("  SAVENOTE", "team" if did == "save__team" else "office " + code(did[5:], 6), "| open", f.get("open"), "| missing", f.get("missing"), "| people", f.get("people"), "| at", et(f.get("at")) if isinstance(f.get("at"), (int, float)) else f.get("at"))
+latest = {}
+for d in days_docs("", "act_" + (datetime.datetime.utcnow() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")):
+    did = d["name"].split("/")[-1]
+    if not did.startswith("act_"): continue
+    f = {k: val(v) for k, v in d.get("fields", {}).items()}
+    for u, x in (f.get("live") or {}).items():
+        h = (x or {}).get("h") if isinstance(x, dict) else None
+        if isinstance(h, dict) and isinstance(h.get("at"), (int, float)) and (u not in latest or h["at"] > latest[u]["at"]): latest[u] = h
+for u, h in latest.items(): print("  PHONE", code(u), "| waiting calls", h.get("w"), "| waiting changes", h.get("u"), "| app", h.get("b"), "| reported", et(h["at"]))
+if not latest: print("  PHONE no reports yet")
