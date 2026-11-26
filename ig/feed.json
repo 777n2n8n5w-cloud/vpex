@@ -1,6 +1,132 @@
 {
-"built": "2026-11-19T09:12-05:00",
+"built": "2026-11-26T09:15-05:00",
 "tiles": [
+{
+"id": "w10-notnow",
+"at": "2026-12-07T19:00:00-05:00",
+"t": "Not interested. In solar, or in now?",
+"img": "t/w10-notnow.jpg",
+"go": "demo:solar",
+"c": "w10",
+"k": "image"
+},
+{
+"id": "w10-bl",
+"at": "2026-12-07T11:00:00-05:00",
+"t": "3 weeks left in 2026.",
+"img": "t/w10-bl.jpg",
+"go": "trial",
+"c": "w10",
+"k": "reel"
+},
+{
+"id": "w10-auto",
+"at": "2026-12-06T19:00:00-05:00",
+"t": "Built for auto sales floors",
+"img": "t/w10-auto.jpg",
+"go": "demo:auto",
+"c": "w10",
+"k": "carousel"
+},
+{
+"id": "w10-bk",
+"at": "2026-12-06T11:00:00-05:00",
+"t": "Follow up on Christmas?",
+"img": "t/w10-bk.jpg",
+"go": "home",
+"c": "w10",
+"k": "reel"
+},
+{
+"id": "w10-myth",
+"at": "2026-12-05T19:00:00-05:00",
+"t": "Myth: trying a power dialer means a contract.",
+"img": "t/w10-myth.jpg",
+"go": "trial",
+"c": "w10",
+"k": "image"
+},
+{
+"id": "w10-bj",
+"at": "2026-12-05T11:00:00-05:00",
+"t": "6 brush-offs. 6 answers.",
+"img": "t/w10-bj.jpg",
+"go": "demo:mca",
+"c": "w10",
+"k": "reel"
+},
+{
+"id": "w10-remote",
+"at": "2026-12-04T19:00:00-05:00",
+"t": "Reps at home? 3 things to check from your phone",
+"img": "t/w10-remote.jpg",
+"go": "home",
+"c": "w10",
+"k": "carousel"
+},
+{
+"id": "w10-bi",
+"at": "2026-12-04T11:00:00-05:00",
+"t": "9:15 PM. Who can you still call?",
+"img": "t/w10-bi.jpg",
+"go": "home",
+"c": "w10",
+"k": "reel"
+},
+{
+"id": "w10-calendar",
+"at": "2026-12-03T19:00:00-05:00",
+"t": "December, on one screen.",
+"img": "t/w10-calendar.jpg",
+"go": "home",
+"c": "w10",
+"k": "image"
+},
+{
+"id": "w10-bh",
+"at": "2026-12-03T11:00:00-05:00",
+"t": "Just send me your best price.",
+"img": "t/w10-bh.jpg",
+"go": "demo:auto",
+"c": "w10",
+"k": "reel"
+},
+{
+"id": "w10-budget",
+"at": "2026-12-02T19:00:00-05:00",
+"t": "Budgeting 2027? Your dialer is one line.",
+"img": "t/w10-budget.jpg",
+"go": "trial",
+"c": "w10",
+"k": "image"
+},
+{
+"id": "w10-bg",
+"at": "2026-12-02T11:00:00-05:00",
+"t": "Remote reps. Who's dialing?",
+"img": "t/w10-bg.jpg",
+"go": "home",
+"c": "w10",
+"k": "reel"
+},
+{
+"id": "w10-spouse",
+"at": "2026-12-01T19:00:00-05:00",
+"t": "I need to talk to my spouse. Every floor's answer",
+"img": "t/w10-spouse.jpg",
+"go": "home",
+"c": "w10",
+"k": "carousel"
+},
+{
+"id": "w10-bf",
+"at": "2026-12-01T11:00:00-05:00",
+"t": "How did you get my number?",
+"img": "t/w10-bf.jpg",
+"go": "home",
+"c": "w10",
+"k": "reel"
+},
 {
 "id": "w9-dec",
 "at": "2026-11-30T19:00:00-05:00",
