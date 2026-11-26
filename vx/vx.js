@@ -94,7 +94,7 @@
   }
 
   // A view arrives from the side you moved toward; its rows rise in sequence and its bars grow.
-  var VX_ORDER = ["dial", "history", "pipeline", "tasks", "vault"];
+  var VX_ORDER = ["dial", "history", "pipeline", "tasks", "calendar", "vault"];
   function vxPlay(el, cls) {
     if (!el) return;
     el.classList.remove("vx-in-r", "vx-in-l", "vx-rise", "vx-grow"); void el.offsetWidth; el.classList.add(cls);
@@ -108,7 +108,7 @@
     if (to === "dial") { vxPlay(document.getElementById("progressWrap"), dir); vxPlay(main, dir); }
     else {
       var n = 0;
-      main.querySelectorAll(".deal-bar-card, .stage-section, .hist-day, .hist-item, .pipe-item, .task-item, .vault-item, .hist-head, .tasks-head").forEach(function (el) {
+      main.querySelectorAll(".deal-bar-card, .stage-section, .hist-day, .hist-item, .pipe-item, .task-item, .vault-item, .hist-head, .tasks-head, .cal-month, .cal-day-view").forEach(function (el) {
         if (n > 16 || el.closest(".vx-rise")) return;
         var r = el.getBoundingClientRect(); if (r.top > window.innerHeight + 40 || !r.height) return;
         el.style.setProperty("--vx-i", n++); vxPlay(el, "vx-rise");
