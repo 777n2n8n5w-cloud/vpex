@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-03-19">
+<meta name="vpex-build" content="2027-03-20">
 <meta name="vpex-min-build" content="2027-03-15">
 <!-- Scripts only from this site and Google's Firebase library; no plugins; no <base> or form hijacking. Inline scripts stay
      allowed because the app is one file. (GitHub Pages can't send headers, so this is the strongest policy a page can set.) -->
@@ -6361,8 +6361,13 @@ window.VPEX_SIG = [
   .cal-c.done { background: none; color: var(--interested); }
   .cal-day.late .cal-c { background: color-mix(in srgb, var(--notinterested) 22%, transparent); }
   .cal-dot { position: absolute; top: 6px; right: 6px; width: 7px; height: 7px; border-radius: 50%; background: var(--interested); }
+  .cal-hm { position: absolute; top: 6px; left: 6px; width: 7px; height: 7px; border-radius: 50%; border: 2px solid color-mix(in srgb, var(--voicemail) 80%, var(--text)); box-sizing: border-box; }
+  .cal-day.closed:not(.sel) { border: 1px dashed color-mix(in srgb, var(--voicemail) 55%, var(--border)); }
+  .cal-hol-note { margin: 8px 0 2px; padding: 9px 11px; border-radius: 10px; font-size: 13px; line-height: 1.4; color: var(--text); background: color-mix(in srgb, var(--voicemail) 12%, transparent); border: 1px solid color-mix(in srgb, var(--voicemail) 40%, var(--border)); }
+  .cal-hol-note b { font-weight: 700; }
+  .cal-warn { display: block; margin-top: 2px; font-size: 12.5px; font-weight: 600; color: color-mix(in srgb, var(--voicemail) 62%, var(--text)); }
   .cal-legend { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 10px; font-size: 12px; color: var(--text-dim); align-items: center; }
-  .cal-legend > span { display: inline-flex; align-items: center; gap: 6px; } .cal-legend .cal-dot { position: static; }
+  .cal-legend > span { display: inline-flex; align-items: center; gap: 6px; } .cal-legend .cal-dot, .cal-legend .cal-hm { position: static; }
   .cal-day-head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 6px; }
   .cal-day-head > div { flex: 1; min-width: 0; }
   .cal-day-head h3 { margin: 0; font-size: 18px; line-height: 1.25; }
@@ -16589,6 +16594,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     var from = calKey(cells[0]), to = calKey(new Date(cells[cells.length - 1].getFullYear(), cells[cells.length - 1].getMonth(), cells[cells.length - 1].getDate() + 1));
     var selIn = CAL.sel >= from && CAL.sel < to, ix = calIndex(selIn ? from : (CAL.sel < from ? CAL.sel : from), selIn ? to : (CAL.sel >= to ? calKey(new Date(shiftDays(calParse(CAL.sel).getTime(), 1))) : to));
     var monthName = fmtFor(undefined, { month: "long", year: "numeric" }).format(first);
+    var holInMonth = false;
     var html = '<div class="cal-wrap"><section class="cal-month" aria-label="' + escapeHtml(monthName) + '">' +
       '<div class="cal-top"><button type="button" class="cal-nav" data-cal-nav="-1" aria-label="Previous month">‹</button><h2 class="cal-title">' + escapeHtml(monthName) + '</h2>' +
       '<button type="button" class="cal-nav" data-cal-nav="1" aria-label="Next month">›</button>' +
@@ -16599,15 +16605,16 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       html += '<div class="cal-row" role="row">';
       cells.slice(r, r + 7).forEach(function (d) {
         var k = calKey(d), x = ix.days[k], other = d.getMonth() !== CAL.m, past = k < today, n = x ? x.open + x.appts : 0;
-        var label = fmtFor(undefined, { weekday: "long", month: "long", day: "numeric" }).format(d) + (n ? ", " + n + " scheduled" : "") + (x && x.done ? ", " + x.done + " done" : "");
-        html += '<button type="button" role="gridcell" class="cal-day' + (other ? ' other' : '') + (k === today ? ' today' : '') + (k === CAL.sel ? ' sel' : '') + (past && x && x.open ? ' late' : '') + '" data-cal-day="' + k + '" aria-label="' + escapeHtml(label) + '" aria-selected="' + (k === CAL.sel) + '"' + (k === CAL.sel ? '' : ' tabindex="-1"') + '>' +
+        var hol = calHoliday(k); if (hol && !other) holInMonth = true;
+        var label = fmtFor(undefined, { weekday: "long", month: "long", day: "numeric" }).format(d) + (hol ? ", " + hol : "") + (n ? ", " + n + " scheduled" : "") + (x && x.done ? ", " + x.done + " done" : "");
+        html += '<button type="button" role="gridcell" class="cal-day' + (other ? ' other' : '') + (k === today ? ' today' : '') + (k === CAL.sel ? ' sel' : '') + (past && x && x.open ? ' late' : '') + (hol ? ' hol' : '') + (closedDayName(k) ? ' closed' : '') + '" data-cal-day="' + k + '" aria-label="' + escapeHtml(label) + '" aria-selected="' + (k === CAL.sel) + '"' + (k === CAL.sel ? '' : ' tabindex="-1"') + '>' +
           '<span class="cal-n">' + d.getDate() + '</span>' +
           (n ? '<span class="cal-c">' + n + '</span>' : x && x.done ? '<span class="cal-c done" aria-hidden="true">✓</span>' : '') +
-          (x && (x.appts || x.booked) ? '<i class="cal-dot" aria-hidden="true"></i>' : '') + '</button>';
+          (x && (x.appts || x.booked) ? '<i class="cal-dot" aria-hidden="true"></i>' : '') + (hol ? '<i class="cal-hm" aria-hidden="true"></i>' : '') + '</button>';
       });
       html += '</div>';
     }
-    html += '</div><div class="cal-legend"><span><span class="cal-c">3</span> to do</span><span><i class="cal-dot"></i> appointment or booked time</span></div></section>';
+    html += '</div><div class="cal-legend"><span><span class="cal-c">3</span> to do</span><span><i class="cal-dot"></i> appointment or booked time</span>' + (holInMonth ? '<span><i class="cal-hm"></i> holiday</span>' : '') + '</div></section>';
     html += calDayHtml(CAL.sel, ix, today);
     html += '</div>';
     main.innerHTML = html;
@@ -16630,6 +16637,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     var html = '<section class="cal-day-view" aria-label="' + escapeHtml(full) + '"><div class="cal-day-head"><div><h3>' + escapeHtml(rel ? head : full) + '</h3>' +
       '<p>' + escapeHtml((rel ? full + " \u00b7 " : "") + (parts.length ? parts.join(" \u00b7 ") : "Nothing scheduled")) + '</p></div>' +
       '<button type="button" class="btn-primary cal-add" data-cal-add="' + k + '">+ Add</button></div>';
+    html += calHolNote(k, open);
     // still open from earlier days (on today only): where the day really starts
     if (k === today && ix.late.length) {
       var late = ix.late.slice().sort(function (a, b) { return taskDueTs(a) - taskDueTs(b); }), lim = CAL.late ? late.length : 5, m = leadMap();
@@ -16657,7 +16665,7 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
       var hd = it.hd, past = it.at < now - 3600000;
       return '<div class="cal-item appt' + (past ? ' past' : '') + '"><time class="cal-time">' + escapeHtml(tm) + '</time><span class="cal-mark" aria-hidden="true">📅</span><div class="cal-body">' +
         '<div class="cal-l1">' + (lead ? '<button type="button" class="linkish cal-name" data-open-lead="' + lead.id + '">' + escapeHtml(lead.name) + '</button>' : '<b>Appointment</b>') + '<span class="qi-status interested">Appointment</span></div>' +
-        '<div class="cal-l2">' + escapeHtml((hd.to && hd.to.name ? "With " + hd.to.name : "Appointment") + (hd.from && hd.from.name && TEAM.on ? " · set by " + firstName(hd.from.name) : "") + (hd.note ? " · " + hd.note : "")) + '</div></div>' +
+        '<div class="cal-l2">' + escapeHtml((hd.to && hd.to.name ? "With " + hd.to.name : "Appointment") + (hd.from && hd.from.name && TEAM.on ? " · set by " + firstName(hd.from.name) : "") + (hd.note ? " · " + hd.note : "")) + calWarnHtml(past ? "" : calHolBan(lead, it.at, "")) + '</div></div>' +
         '<div class="cal-acts">' + (lead ? callLinkHtml(lead, "tasks", null, "cal-call", callIconSvg()) : '') + '</div></div>';
     }
     var t = it.t, k = taskKind(t, lead), over = !t.done && taskDueTs(t) < now - 3600000, their = lead && t.dueAt ? theirTime(t.dueAt, lead) : "";
@@ -16666,9 +16674,31 @@ var VX_KIT = {"flow":"house","flowlight":"house","midnight":"ledger","daylight":
     return '<div class="cal-item' + (t.done ? ' done' : '') + (over ? ' over' : '') + '"><time class="cal-time">' + escapeHtml(showDay ? dayLabel(new Date(taskDueTs(t) === Infinity ? Date.now() : taskDueTs(t))) : tm) + '</time>' +
       '<button type="button" class="task-check cal-check' + (t.done ? ' done' : '') + '" data-toggle-task="' + t.id + '" aria-label="' + (t.done ? 'Mark not done' : 'Mark done') + '">' + (t.done ? checkIconSvg() : '') + '</button>' +
       '<div class="cal-body"><div class="cal-l1">' + (lead ? '<button type="button" class="linkish cal-name" data-open-lead="' + lead.id + '">' + escapeHtml(lead.name) + '</button>' : '<b>' + escapeHtml(t.leadName || "Follow-up") + '</b>') + chip + '</div>' +
-        '<div class="cal-l2">' + escapeHtml(taskWhat(t) + (their ? " · " + their + " their time" : "") + who) + '</div>' + (t.note ? '<div class="cal-note">' + escapeHtml(t.note) + '</div>' : '') + '</div>' +
+        '<div class="cal-l2">' + escapeHtml(taskWhat(t) + (their ? " · " + their + " their time" : "") + who) + calWarnHtml(t.done ? "" : calHolBan(lead, t.dueAt, calTaskKey(t))) + '</div>' + (t.note ? '<div class="cal-note">' + escapeHtml(t.note) + '</div>' : '') + '</div>' +
       '<div class="cal-acts">' + (lead && !t.done ? callLinkHtml(lead, "tasks", t.id, "cal-call", callIconSvg()) + '<button type="button" class="cal-ic" data-move-task="' + t.id + '" aria-label="Move ' + escapeHtml(lead.name) + '’s follow-up" title="Move">' + clockIconSvgSafe() + '</button>' : '') +
         '<button type="button" class="cal-ic" data-edit-task="' + t.id + '" aria-label="Edit or delete" title="Edit or delete">' + editIconSvg() + '</button></div></div>';
+  }
+  // Holidays on the calendar: every federal holiday is marked; Thanksgiving, Christmas and New Year's Day (closed days,
+  // which automatic follow-ups skip) get a dashed frame. The day's agenda says which states ban sales calls on it
+  // (from STATE_HOURS) and flags each follow-up or appointment with a lead there.
+  function calHoliday(k) { var n = usHolidays(Number(k.slice(0, 4)))[k] ? (holidayNames(Number(k.slice(0, 4)))[k] || "Federal holiday") : ""; return n; }
+  function calBanStates(k) { return Object.keys(STATE_HOURS).filter(function (st) { var r = stateRule(st, k); return !!(r && r.hol); }).sort(); }
+  function calHolBan(lead, ts, k) {   // the lead's state code when its rules ban sales calls on that (lead-local) day, else ""
+    var z = lead ? leadZone(lead) : null; if (!z || !z.st) return "";
+    var ymd = k;
+    if (ts && z.iana) { var p = zonedParts(ts, z.iana); ymd = p.y + "-" + pad2(p.m + 1) + "-" + pad2(p.d); }
+    if (!ymd || !usHolidays(Number(ymd.slice(0, 4)))[ymd]) return "";
+    var r = stateRule(z.st, ymd); return r && r.hol ? z.st : "";
+  }
+  function calWarnHtml(st) { return st ? '<span class="cal-warn">Holiday: no sales calls in ' + escapeHtml(st) + ' that day</span>' : ""; }
+  function calHolNote(k, open) {
+    var name = calHoliday(k); if (!name) return "";
+    var closed = closedDayName(k), sts = calBanStates(k), hit = 0;
+    (open || []).forEach(function (it) { if (it.lead && calHolBan(it.lead, it.at, it.kind === "task" ? calTaskKey(it.t) : "")) hit++; });
+    var txt = '<b>' + escapeHtml(name) + '.</b> ' + (closed ? 'Most floors are closed; automatic follow-ups skip this day. ' : '') +
+      (sts.length ? 'No sales calls in ' + escapeHtml(stList(sts)) + ' on this holiday.' : '') +
+      (hit ? ' ' + hit + (hit === 1 ? ' below is for a lead in ' + (sts.length === 1 ? 'that state' : 'those states') + '. Move it.' : ' below are for leads in ' + (sts.length === 1 ? 'that state' : 'those states') + '. Move them.') : '');
+    return '<div class="cal-hol-note" role="note">' + txt + '</div>';
   }
   function calGo(k) { CAL.sel = k; var d = calParse(k); CAL.y = d.getFullYear(); CAL.m = d.getMonth(); CAL.done = false; CAL.late = false; render(); }
   function calWire(main) {
