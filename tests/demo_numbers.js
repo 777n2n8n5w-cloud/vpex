@@ -2,7 +2,7 @@
 //  - Every demo number (main and other numbers, Vault records) is in 555-0100..0199, the range reserved for fiction.
 //  - No two demo numbers are the same, and neighbours in Up next don't all end the same (they all read 555-0115 before).
 //  - No two demo leads share a name (13 did).
-//  - A returning visitor with the old demo data gets the new data (demo data version 5).
+//  - A returning visitor with the old demo data gets the new data (demo data version 6: no calls or follow-ups on closed holidays).
 //   python3 -m http.server 8765 (repo root), then NODE_PATH=<playwright> node tests/demo_numbers.js
 const { chromium } = require('playwright');
 const BASE = process.env.BASE || 'http://127.0.0.1:8765/index.html';
@@ -29,7 +29,7 @@ const FICTION = /^\(\d{3}\) 555-01\d\d$/;
         check(tag + ': dial numbers match what shows', d.leads.every(l => l.ph === '+1' + l.p.replace(/\D/g, '')) && d.vault.every(v => v.ph === '+1' + v.p.replace(/\D/g, '')));
         check(tag + ': no number used twice', new Set(nums).size === nums.length, nums.length - new Set(nums).size);
         check(tag + ': no name used twice', new Set(d.leads.map(l => l.n)).size === d.leads.length, d.leads.length - new Set(d.leads.map(l => l.n)).size);
-        check(tag + ': demo data version 5', d.v === '5:' + o, d.v);
+        check(tag + ': demo data version 6', d.v === '6:' + o, d.v);
       }
       // What a visitor sees: the dial card and Up next (computer) show different endings
       const seen = await p.evaluate(() => { const up = [...((document.getElementById('queueHeading') || document.body).parentElement.parentElement.querySelectorAll('*'))].map(e => e.childElementCount === 0 ? e.textContent.trim() : '').filter(t => /^\(\d{3}\) 555-\d{4}$/.test(t));
@@ -48,7 +48,7 @@ const FICTION = /^\(\d{3}\) 555-01\d\d$/;
   await p.evaluate(() => { const fs = JSON.parse(localStorage.getItem('__mockfs')); Object.keys(fs).forEach(k => { if (/leadChunks\/c\d+$/.test(k)) Object.values(fs[k].leads).forEach(l => { l.phoneRaw = '(212) 555-0115'; }); }); localStorage.setItem('__mockfs', JSON.stringify(fs)); localStorage.setItem('dovetail_demo_v', '4:auto'); });
   await p.reload(); await p.waitForTimeout(2000);
   const again = await p.evaluate(() => { const fs = JSON.parse(localStorage.getItem('__mockfs')); const ps = []; Object.keys(fs).forEach(k => { if (/leadChunks\/c\d+$/.test(k)) Object.values(fs[k].leads).forEach(l => ps.push(l.phoneRaw)); }); return { n: new Set(ps).size, v: localStorage.getItem('dovetail_demo_v') }; });
-  check('returning visitor with old demo data: fresh data, version 5', again.n === 240 && again.v === '5:auto', again);
+  check('returning visitor with old demo data: fresh data, version 6', again.n === 240 && again.v === '6:auto', again);
   await ctx.close();
   await br.close();
   console.log('demo_numbers: ' + pass + ' passed, ' + fail + ' failed'); process.exit(fail ? 1 : 0);

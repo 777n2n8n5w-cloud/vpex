@@ -3,7 +3,7 @@
 <head>
 <script id="customerConfig" type="application/json">{}</script>
 <meta charset="UTF-8">
-<meta name="vpex-build" content="2027-03-20">
+<meta name="vpex-build" content="2027-03-21">
 <meta name="vpex-min-build" content="2027-03-15">
 <!-- Scripts only from this site and Google's Firebase library; no plugins; no <base> or form hijacking. Inline scripts stay
      allowed because the app is one file. (GitHub Pages can't send headers, so this is the strongest policy a page can set.) -->
@@ -11678,6 +11678,23 @@ body.desk #deskLeft > #queueControls::before, body.desk #deskLeft #queueHeading 
       } catch (e) {}
       return ts;
     };
+    // Thanksgiving, Christmas and New Year's Day (and their observed weekdays): most floors are closed, and automatic follow-ups
+    // skip them, so the demo shows no calls those days and moves a seeded follow-up or appointment off them (later if upcoming,
+    // earlier if overdue), keeping it inside calling hours. Same days as closedDayName() (in the app's script, not loaded yet here).
+    var closedYmd = function (ymd) {   // Thanksgiving; Dec 25 / Jan 1, and the Friday before or Monday after when they fall on a weekend
+      var m = Number(ymd.slice(5, 7)), d = Number(ymd.slice(8, 10)), wd = new Date(Date.UTC(Number(ymd.slice(0, 4)), m - 1, d)).getUTCDay();
+      return (m === 11 && wd === 4 && d >= 22 && d <= 28) || (m === 12 && (d === 25 || (d === 24 && wd === 5) || (d === 26 && wd === 1) || (d === 31 && wd === 5))) ||
+        (m === 1 && (d === 1 || (d === 2 && wd === 1)));
+    };
+    var zoneYmd = function (ts, st) {
+      try { return new Intl.DateTimeFormat("en-CA", { timeZone: ZN[st], year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(ts)); }
+      catch (e) { var t = new Date(ts); return t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0"); }
+    };
+    var offClosed = function (ts, st) {
+      var dir = ts < now ? -1 : 1;
+      for (var g = 0; g < 3 && closedYmd(zoneYmd(ts, st)); g++) ts = inHours(ts + dir * 86400000, st);
+      return ts;
+    };
     var s = 42, rnd = function () { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }, pick = function (a) { return a[Math.floor(rnd() * a.length)]; };
     db["members/dAdm"] = { username: "demo", name: "You", role: "admin", active: true, lastSeen: now };
     reps.forEach(function (r, i) { db["members/" + r.uid] = { username: ["jordan", "sam", "mia"][i], name: r.name, role: "rep", active: true, lastSeen: now, closer: r.uid === "dR2" }; });   // Sam closes
@@ -11700,12 +11717,13 @@ body.desk #deskLeft > #queueControls::before, body.desk #deskLeft #queueHeading 
     var days = {}, n = 0, worked = ids.slice(0, 150);
     for (var d = 13; d >= 0; d--) {
       var day = new Date(now - d * 86400000); if (day.getDay() === 0 || day.getDay() === 6) continue;
+      var shut = closedYmd(day.getFullYear() + "-" + String(day.getMonth() + 1).padStart(2, "0") + "-" + String(day.getDate()).padStart(2, "0"));   // drawn but not logged, so the other days stay the same
       reps.concat([me]).forEach(function (r) {
         var count = r === me ? 5 + Math.floor(rnd() * 6) : 28 + Math.floor(rnd() * 30);
         for (var c = 0; c < count; c++) {
           var lid = worked[Math.floor(rnd() * worked.length)], o = outcome(), t = new Date(day);
           t.setHours(9 + Math.floor(rnd() * 8), Math.floor(rnd() * 60), 0, 0);
-          if (t.getTime() > now) continue;
+          if (t.getTime() > now || shut) continue;
           var cid = "dc" + (n++), key = t.toISOString().slice(0, 10);
           (days[key] = days[key] || {})[cid] = { id: cid, leadId: lid, name: leads[lid].name, outcomeKey: o[0], outcome: o[1], attempt: 1 + Math.floor(rnd() * 3), timestamp: t.toISOString(), by: { uid: r.uid, name: r.name },
             talk: o[0] === "noanswer" ? 15 + Math.floor(rnd() * 15) : o[0] === "voicemail" ? 30 + Math.floor(rnd() * 25) : 60 + Math.floor(rnd() * 420) };
@@ -11717,7 +11735,7 @@ body.desk #deskLeft > #queueControls::before, body.desk #deskLeft #queueHeading 
     Object.keys(days).forEach(function (k) { db["callDays/" + k] = { calls: days[k] }; });
     var stages = ["Qualified", "Pitched", "Qualified", "Pitched", "Objection", "Pitched", "Committed", "Committed"], due = [-2, 0, 1, 3];
     worked.filter(function (id) { return leads[id].outcome === "interested" || leads[id].outcome === "callback"; }).slice(0, 22).forEach(function (id, k) {
-      var L = leads[id], sg = stages[k % stages.length], at = inHours(now + due[k % 4] * 86400000 + (k % 3) * 3600000, L.st);
+      var L = leads[id], sg = stages[k % stages.length], at = offClosed(inHours(now + due[k % 4] * 86400000 + (k % 3) * 3600000, L.st), L.st);
       L.stage = sg; L.amount = (2 + Math.floor(rnd() * 20)) * IND.demo.amt;
       L.stageLog = [{ s: "Qualified", at: now - 8 * 86400000 }].concat(sg !== "Qualified" ? [{ s: sg, at: now - (k % 6) * 86400000 }] : []);
       if (sg !== "Committed") L.tasks = [{ id: "dt" + k, leadId: id, leadName: L.name, type: "Call", priority: "High", due: new Date(at).toISOString().slice(0, 10), dueAt: at, note: "Follow up on the overview", done: false, auto: true, assignee: L.owner || me }];
@@ -11737,7 +11755,7 @@ body.desk #deskLeft > #queueControls::before, body.desk #deskLeft #queueHeading 
     db["leadChunks/_team"].roster = [{ uid: "dAdm", name: "You", role: "admin", closer: false, active: true }].concat(reps.map(function (r) { return { uid: r.uid, name: r.name, role: "rep", closer: r.uid === "dR2", active: true }; }));
     worked.filter(function (id) { var L = leads[id]; return L.outcome === "interested" && L.owner && L.owner.uid !== "dR2" && Date.parse(L.calledAt) > now - 6 * 86400000; }).slice(0, 8).forEach(function (id, k) {
       var L = leads[id], at = Date.parse(L.calledAt) + 120000;
-      L.handoff = { from: L.owner, to: closer, at: at, apptAt: inHours(at + (1 + k % 3) * 86400000, L.st), note: "Wants the details walked through", seen: true };
+      L.handoff = { from: L.owner, to: closer, at: at, apptAt: offClosed(inHours(at + (1 + k % 3) * 86400000, L.st), L.st), note: "Wants the details walked through", seen: true };
       L.owner = closer;
     });
     var acts = {};
@@ -11758,11 +11776,11 @@ body.desk #deskLeft > #queueControls::before, body.desk #deskLeft #queueHeading 
   if (DEMO) {
     installDemoBackend();
     try {
-      if (!window.localStorage.getItem("__mockfs") || window.localStorage.getItem("dovetail_demo_v") !== "5:" + IND_KEY) {
+      if (!window.localStorage.getItem("__mockfs") || window.localStorage.getItem("dovetail_demo_v") !== "6:" + IND_KEY) {
         window.localStorage.removeItem("dovetail_team_dAdm");
         window.localStorage.setItem("__mockfs", JSON.stringify(demoSeed()));
         var da = {}; da["demo@" + BASE_DOMAIN] = { uid: "dAdm", pw: "demo" };
-        window.localStorage.setItem("__mockauth", JSON.stringify(da)); window.localStorage.setItem("dovetail_demo_v", "5:" + IND_KEY);
+        window.localStorage.setItem("__mockauth", JSON.stringify(da)); window.localStorage.setItem("dovetail_demo_v", "6:" + IND_KEY);
       }
       window.sessionStorage.setItem("__mocksess", JSON.stringify({ uid: "dAdm", email: "demo@" + BASE_DOMAIN }));
     } catch (e) {}
